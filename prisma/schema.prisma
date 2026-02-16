@@ -1,0 +1,492 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum SellerStatus {
+  APPLIED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum VerificationType {
+  IDENTITY
+  INVENTORY
+  INTERVIEW
+  PAYMENT
+  STREAM_QUALITY
+}
+
+enum VerificationStatus {
+  PENDING
+  PASSED
+  FAILED
+}
+
+enum AuctionStatus {
+  DRAFT
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELED
+}
+
+enum ListingType {
+  AUCTION
+  BUY_NOW
+  BOTH
+}
+
+enum BidStatus {
+  ACTIVE
+  OUTBID
+  WON
+  RETRACTED
+}
+
+enum ConversationRole {
+  BUYER
+  SELLER
+  HOST
+  SUPPORT
+}
+
+enum ReferralStatus {
+  INVITED
+  APPLIED
+  APPROVED
+  REWARDED
+  EXPIRED
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  FULFILLING
+  DELIVERED
+  CONFIRMED
+  CANCELED
+  REFUNDED
+  DISPUTED
+}
+
+enum PaymentProvider {
+  STRIPE
+}
+
+enum PaymentStatus {
+  REQUIRES_PAYMENT_METHOD
+  REQUIRES_CONFIRMATION
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELED
+  REFUNDED
+}
+
+enum PayoutStatus {
+  PENDING
+  SCHEDULED
+  IN_TRANSIT
+  PAID
+  FAILED
+  REVERSED
+}
+
+enum ShipmentStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+  RETURNED
+}
+
+enum StreamProvider {
+  LIVEKIT
+  MUX
+  AWS_IVS
+  CLOUDFLARE
+  AGORA
+}
+
+enum StreamStatus {
+  CREATED
+  LIVE
+  ENDED
+  DISABLED
+}
+
+enum ImageStorageProvider {
+  DATABASE
+  SUPABASE
+  S3
+  R2
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email          String?       @unique
+  name           String?
+  phone          String?
+  displayName    String?
+  image          String?
+  emailVerified  DateTime?
+  role           UserRole      @default(BUYER)
+  trustScore     Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  accounts       Account[]
+  sessions       Session[]
+  sellerProfile  SellerProfile?
+  bids           Bid[]
+  chatMessages   AuctionChatMessage[]
+  conversations  ConversationParticipant[]
+  sentMessages   DirectMessage[] @relation("DirectMessageSender")
+  referrals      Referral[]    @relation("ReferralReferrer")
+  disputes       Dispute[]     @relation("DisputeReporter")
+  ordersAsBuyer  Order[]       @relation("OrderBuyer")
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id            String   @id @default(cuid())
+  sessionToken  String   @unique
+  userId        String
+  expires       DateTime
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier  String
+  token       String   @unique
+  expires     DateTime
+
+  @@unique([identifier, token])
+}
+
+model SellerProfile {
+  id               String              @id @default(cuid())
+  userId           String              @unique
+  status           SellerStatus        @default(APPLIED)
+  trustTier        Int                 @default(1)
+  payoutHoldDays   Int                 @default(7)
+  manualNotes      String?
+  stripeAccountId  String?
+  payoutsEnabled   Boolean             @default(false)
+  approvedAt       DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  user             User                @relation(fields: [userId], references: [id])
+  verifications    VerificationCheck[]
+  auctions         Auction[]
+  items            Item[]
+  orders           Order[]
+}
+
+model VerificationCheck {
+  id          String              @id @default(cuid())
+  sellerId    String
+  type        VerificationType
+  status      VerificationStatus @default(PENDING)
+  reviewerId  String?
+  notes       String?
+  reviewedAt  DateTime?
+  createdAt   DateTime           @default(now())
+
+  seller      SellerProfile @relation(fields: [sellerId], references: [id])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+
+  auctions  Auction[]
+  items     Item[]
+}
+
+model Auction {
+  id                 String             @id @default(cuid())
+  sellerId           String
+  itemId             String?
+  categoryId         String?
+  title              String
+  description        String?
+  listingType        ListingType        @default(AUCTION)
+  status             AuctionStatus      @default(DRAFT)
+  startingBid        Int
+  currentBid         Int                @default(0)
+  minBidIncrement    Int                @default(2000)
+  buyNowPrice        Int?
+  reservePrice       Int?
+  startTime          DateTime?
+  endTime            DateTime?
+  extendedTime       DateTime?
+  antiSnipeSeconds   Int                @default(12)
+  videoStreamUrl     String?
+  previewClipUrl     String?
+  watchersCount      Int                @default(0)
+  currency           String             @default("usd")
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  seller             SellerProfile       @relation(fields: [sellerId], references: [id])
+  category           Category?           @relation(fields: [categoryId], references: [id])
+  item               Item?               @relation(fields: [itemId], references: [id])
+  bids               Bid[]
+  chatMessages       AuctionChatMessage[]
+  disputes           Dispute[]
+  orders             Order[]
+  streamSessions     StreamSession[]
+}
+
+model Bid {
+  id             String    @id @default(cuid())
+  auctionId      String
+  bidderId       String
+  amount         Int
+  status         BidStatus @default(ACTIVE)
+  extendsTimerBy Int       @default(12)
+  createdAt      DateTime  @default(now())
+
+  auction        Auction   @relation(fields: [auctionId], references: [id])
+  bidder         User      @relation(fields: [bidderId], references: [id])
+}
+
+model AuctionChatMessage {
+  id          String   @id @default(cuid())
+  auctionId   String
+  senderId    String
+  body        String
+  isModerator Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  auction     Auction  @relation(fields: [auctionId], references: [id])
+  sender      User     @relation(fields: [senderId], references: [id])
+}
+
+model Conversation {
+  id           String                     @id @default(cuid())
+  subject      String?
+  isSupport    Boolean                    @default(false)
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+
+  participants ConversationParticipant[]
+  messages     DirectMessage[]
+}
+
+model ConversationParticipant {
+  id              String           @id @default(cuid())
+  conversationId  String
+  userId          String
+  role            ConversationRole @default(BUYER)
+  joinedAt        DateTime         @default(now())
+
+  conversation    Conversation     @relation(fields: [conversationId], references: [id])
+  user            User             @relation(fields: [userId], references: [id])
+
+  @@unique([conversationId, userId])
+}
+
+model DirectMessage {
+  id              String        @id @default(cuid())
+  conversationId  String
+  senderId        String
+  body            String
+  createdAt       DateTime      @default(now())
+
+  conversation    Conversation  @relation(fields: [conversationId], references: [id])
+  sender          User          @relation("DirectMessageSender", fields: [senderId], references: [id])
+}
+
+model Referral {
+  id              String         @id @default(cuid())
+  referrerId      String
+  referredEmail   String
+  referredUserId  String?
+  status          ReferralStatus @default(INVITED)
+  rewardAmount    Int?
+  createdAt       DateTime       @default(now())
+  approvedAt      DateTime?
+
+  referrer        User           @relation("ReferralReferrer", fields: [referrerId], references: [id])
+}
+
+model Dispute {
+  id          String        @id @default(cuid())
+  auctionId   String
+  reporterId  String
+  status      DisputeStatus @default(OPEN)
+  reason      String
+  resolution  String?
+  createdAt   DateTime      @default(now())
+  resolvedAt  DateTime?
+
+  auction     Auction       @relation(fields: [auctionId], references: [id])
+  reporter    User          @relation("DisputeReporter", fields: [reporterId], references: [id])
+}
+
+model Item {
+  id          String       @id @default(cuid())
+  sellerId    String
+  categoryId  String?
+  title       String
+  description String?
+  condition   String?
+  attributes  Json?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  seller      SellerProfile @relation(fields: [sellerId], references: [id])
+  category    Category?     @relation(fields: [categoryId], references: [id])
+  images      ItemImage[]
+  auctions    Auction[]
+}
+
+model ItemImage {
+  id               String               @id @default(cuid())
+  itemId           String
+  url              String
+  storageProvider  ImageStorageProvider @default(DATABASE)
+  storagePath      String?
+  width            Int?
+  height           Int?
+  bytes            Int?
+  isPrimary        Boolean              @default(false)
+  createdAt        DateTime             @default(now())
+
+  item             Item                 @relation(fields: [itemId], references: [id])
+
+  @@index([itemId])
+}
+
+model Order {
+  id             String        @id @default(cuid())
+  auctionId      String
+  buyerId        String
+  sellerId       String
+  status         OrderStatus   @default(PENDING_PAYMENT)
+  amount         Int
+  currency       String        @default("usd")
+  platformFee    Int
+  processingFee  Int
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  auction        Auction       @relation(fields: [auctionId], references: [id])
+  buyer          User          @relation("OrderBuyer", fields: [buyerId], references: [id])
+  seller         SellerProfile @relation(fields: [sellerId], references: [id])
+  payment        Payment?
+  payout         Payout?
+  shipment       Shipment?
+
+  @@index([buyerId])
+  @@index([sellerId])
+}
+
+model Payment {
+  id                     String         @id @default(cuid())
+  orderId                String         @unique
+  provider               PaymentProvider
+  providerPaymentIntent  String?
+  providerChargeId       String?
+  status                 PaymentStatus  @default(REQUIRES_PAYMENT_METHOD)
+  amount                 Int
+  currency               String         @default("usd")
+  capturedAt             DateTime?
+  refundedAt             DateTime?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  order                  Order          @relation(fields: [orderId], references: [id])
+}
+
+model Payout {
+  id                   String        @id @default(cuid())
+  orderId              String        @unique
+  provider             PaymentProvider
+  providerTransferId   String?
+  amount               Int
+  currency             String        @default("usd")
+  status               PayoutStatus  @default(PENDING)
+  scheduledAt          DateTime?
+  paidAt               DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  order                Order         @relation(fields: [orderId], references: [id])
+}
+
+model Shipment {
+  id             String         @id @default(cuid())
+  orderId        String         @unique
+  status         ShipmentStatus @default(PENDING)
+  carrier        String?
+  trackingNumber String?
+  address        Json?
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  order          Order          @relation(fields: [orderId], references: [id])
+}
+
+model StreamSession {
+  id            String         @id @default(cuid())
+  auctionId     String
+  provider      StreamProvider
+  status        StreamStatus   @default(CREATED)
+  roomName      String?
+  streamKey     String?
+  ingestUrl     String?
+  playbackUrl   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  auction       Auction        @relation(fields: [auctionId], references: [id])
+
+  @@index([auctionId])
+}

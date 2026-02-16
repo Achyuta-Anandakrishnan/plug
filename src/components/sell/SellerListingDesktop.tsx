@@ -1,0 +1,479 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { signIn, useSession } from "next-auth/react";
+import { useCategories } from "@/hooks/useCategories";
+import { formatCurrency } from "@/lib/format";
+
+const listingTypes = [
+  { label: "Auction", value: "AUCTION" },
+  { label: "Buy Now", value: "BUY_NOW" },
+  { label: "Both", value: "BOTH" },
+] as const;
+
+function nextSundayAtEightLocal() {
+  const now = new Date();
+  const target = new Date();
+  target.setHours(20, 0, 0, 0);
+  const day = target.getDay();
+  const daysUntil = (7 - day) % 7;
+  target.setDate(target.getDate() + daysUntil);
+  if (target <= now) {
+    target.setDate(target.getDate() + 7);
+  }
+  return target.toISOString().slice(0, 16);
+}
+
+function toCents(value: string) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.round(parsed * 100);
+}
+
+export function SellerListingDesktop() {
+  const { data: categories } = useCategories();
+  const { data: session } = useSession();
+  const isSeller =
+    session?.user?.role === "SELLER" || session?.user?.role === "ADMIN";
+  const sessionSellerId = isSeller ? session?.user?.id ?? "" : "";
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
+    "idle",
+  );
+  const [message, setMessage] = useState("");
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [sellerId, setSellerId] = useState("");
+  const [buyerId, setBuyerId] = useState("");
+  const [listingId, setListingId] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [condition, setCondition] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [listingType, setListingType] = useState("AUCTION");
+  const [startingBid, setStartingBid] = useState("100");
+  const [buyNowPrice, setBuyNowPrice] = useState("250");
+  const [reservePrice, setReservePrice] = useState("");
+  const [minBidIncrement, setMinBidIncrement] = useState("20");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState(nextSundayAtEightLocal());
+  const [publishNow, setPublishNow] = useState(true);
+  const [videoStreamUrl, setVideoStreamUrl] = useState("");
+  const [images, setImages] = useState<
+    Array<{
+      url: string;
+      storageProvider: "SUPABASE";
+      storagePath?: string;
+      bytes?: number;
+      previewUrl?: string;
+    }>
+  >([]);
+
+  const listingPreview = useMemo(() => {
+    const bid = toCents(startingBid) ?? 0;
+    return formatCurrency(bid, "USD");
+  }, [startingBid]);
+
+  useEffect(() => {
+    if (!sessionSellerId && sellerId) {
+      window.localStorage.setItem("vyre-seller-id", sellerId);
+    }
+    if (!sessionSellerId && buyerId) {
+      window.localStorage.setItem("vyre-buyer-id", buyerId);
+    }
+  }, [buyerId, sellerId, sessionSellerId]);
+
+  const handleSeed = async () => {
+    setStatus("loading");
+    setMessage("");
+    try {
+      const response = await fetch("/api/dev/seed", { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to seed.");
+      }
+      if (data.sellerProfileId) {
+        setSellerId(data.sellerProfileId);
+      }
+      if (data.buyerId) {
+        setBuyerId(data.buyerId);
+      }
+      setStatus("success");
+      setMessage("Dev seller and buyer created.");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "Unable to seed.");
+    }
+  };
+
+  const handleImageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = Array.from(event.target.files ?? []);
+    if (!files.length) return;
+    setUploadMessage("Uploading images...");
+    try {
+      const uploaded = await Promise.all(
+        files.map(async (file) => {
+          const formData = new FormData();
+          formData.append("file", file);
+          const response = await fetch("/api/uploads", {
+            method: "POST",
+            body: formData,
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.error || "Image upload failed.");
+          }
+          return {
+            url: payload.url as string,
+            storageProvider: "SUPABASE" as const,
+            storagePath: payload.storagePath as string | undefined,
+            bytes: payload.bytes as number | undefined,
+            previewUrl: URL.createObjectURL(file),
+          };
+        }),
+      );
+      setImages((prev) => [...prev, ...uploaded]);
+      setUploadMessage("Upload complete.");
+    } catch (error) {
+      setUploadMessage(
+        error instanceof Error ? error.message : "Unable to upload images.",
+      );
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setStatus("loading");
+    setMessage("");
+
+    const payload = {
+      sellerId: sessionSellerId ? undefined : sellerId || undefined,
+      listingType,
+      title,
+      description,
+      startingBid: listingType !== "BUY_NOW" ? toCents(startingBid) : undefined,
+      buyNowPrice: listingType !== "AUCTION" ? toCents(buyNowPrice) : undefined,
+      reservePrice: reservePrice ? toCents(reservePrice) : undefined,
+      minBidIncrement: minBidIncrement ? toCents(minBidIncrement) : undefined,
+      startTime: startTime ? new Date(startTime).toISOString() : undefined,
+      endTime: endTime ? new Date(endTime).toISOString() : undefined,
+      publishNow,
+      currency: "usd",
+      categoryId: categoryId || undefined,
+      videoStreamUrl: videoStreamUrl || undefined,
+      item: {
+        title,
+        description,
+        condition,
+        categoryId: categoryId || undefined,
+      },
+      images: images.map((image, index) => ({
+        url: image.url,
+        isPrimary: index === 0,
+        storageProvider: image.storageProvider,
+        storagePath: image.storagePath,
+        bytes: image.bytes,
+      })),
+    };
+
+    try {
+      const response = await fetch("/api/auctions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to create listing.");
+      }
+      setListingId(data.id);
+      setStatus("success");
+      setMessage("Listing created.");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "Unable to create listing.");
+    }
+  };
+
+  return (
+    <div className="space-y-10">
+      <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-6">
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+            Seller desk
+          </p>
+          <h1 className="font-display text-3xl text-slate-900 sm:text-4xl">
+            Create a live listing.
+          </h1>
+          <p className="text-sm leading-relaxed text-slate-600">
+            List as auction, buy now, or both. Buyers can bid in real time.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={handleSeed}
+              className="rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-700"
+            >
+              Create dev seller/buyer
+            </button>
+            {buyerId && !sessionSellerId && (
+              <div className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white">
+                Dev buyer: {buyerId.slice(0, 6)}...
+              </div>
+            )}
+          </div>
+          {sessionSellerId ? (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-700">
+              Signed in as {session?.user?.email ?? "seller"}.
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
+                {session?.user?.id
+                  ? "Your account is not a seller yet. Use a dev seller ID or apply for verification."
+                  : "Sign in to publish live listings. Dev mode uses seeded IDs."}
+              </div>
+              {!session?.user?.id && (
+                <button
+                  onClick={() => signIn()}
+                  className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                >
+                  Sign in
+                </button>
+              )}
+            </div>
+          )}
+          {listingId && (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              Listing live.{" "}
+              <Link
+                href={`/streams/${listingId}`}
+                className="font-semibold underline"
+              >
+                Open stream room
+              </Link>
+            </div>
+          )}
+        </div>
+        <div className="glass-panel rounded-[32px] p-6">
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+            Default auction end
+          </p>
+          <p className="font-display text-2xl text-slate-900">
+            Sunday 8:00 PM ET
+          </p>
+          <p className="mt-3 text-sm text-slate-600">
+            Default for TCG auctions this week. Adjust if needed.
+          </p>
+        </div>
+      </section>
+
+      <section className="surface-panel rounded-[32px] p-8">
+        <form className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {!sessionSellerId && (
+                <input
+                  value={sellerId}
+                  onChange={(event) => setSellerId(event.target.value)}
+                  placeholder="Seller profile id (optional if DEV_SELLER_ID set)"
+                  className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+                />
+              )}
+              <select
+                value={categoryId}
+                onChange={(event) => setCategoryId(event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+              >
+                <option value="">Primary category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Listing title"
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+              required
+            />
+            <textarea
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="Description"
+              rows={4}
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+            />
+            <input
+              value={condition}
+              onChange={(event) => setCondition(event.target.value)}
+              placeholder="Condition / grade"
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+            />
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                Photos (stored in Supabase)
+              </p>
+              <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImageChange}
+                  className="w-full rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-3 text-sm text-slate-600"
+                />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-3 text-sm text-slate-600"
+                />
+              </div>
+              <p className="mt-2 text-[11px] text-slate-500">
+                Left: take photo (phone). Right: upload from device.
+              </p>
+              {uploadMessage && (
+                <div className="mt-3 rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-xs text-slate-600">
+                  {uploadMessage}
+                </div>
+              )}
+              {images.length > 0 && (
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  {images.map((image) => (
+                    <div
+                      key={image.url}
+                      className="overflow-hidden rounded-2xl border border-white/70 bg-white/70"
+                    >
+                      <div className="relative h-24 w-full">
+                        <Image
+                          src={image.previewUrl ?? image.url}
+                          alt="Upload preview"
+                          fill
+                          sizes="200px"
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid gap-3">
+              {listingTypes.map((type) => (
+                <button
+                  type="button"
+                  key={type.value}
+                  onClick={() => setListingType(type.value)}
+                  className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold ${
+                    listingType === type.value
+                      ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
+                      : "border-slate-200 text-slate-600"
+                  }`}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
+
+            {listingType !== "BUY_NOW" && (
+              <input
+                value={startingBid}
+                onChange={(event) => setStartingBid(event.target.value)}
+                placeholder="Starting bid (USD)"
+                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+              />
+            )}
+            {listingType !== "AUCTION" && (
+              <input
+                value={buyNowPrice}
+                onChange={(event) => setBuyNowPrice(event.target.value)}
+                placeholder="Buy now price (USD)"
+                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+              />
+            )}
+            {listingType !== "BUY_NOW" && (
+              <input
+                value={reservePrice}
+                onChange={(event) => setReservePrice(event.target.value)}
+                placeholder="Reserve price (USD, optional)"
+                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+              />
+            )}
+            <input
+              value={minBidIncrement}
+              onChange={(event) => setMinBidIncrement(event.target.value)}
+              placeholder="Min bid increment (USD)"
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <input
+                type="datetime-local"
+                value={startTime}
+                onChange={(event) => setStartTime(event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+              />
+              <input
+                type="datetime-local"
+                value={endTime}
+                onChange={(event) => setEndTime(event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+              />
+            </div>
+            <input
+              value={videoStreamUrl}
+              onChange={(event) => setVideoStreamUrl(event.target.value)}
+              placeholder="Stream playback URL (optional)"
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+            />
+            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-xs text-slate-600">
+              <input
+                type="checkbox"
+                checked={publishNow}
+                onChange={(event) => setPublishNow(event.target.checked)}
+              />
+              Publish immediately (otherwise stays draft)
+            </label>
+            <button
+              type="submit"
+              disabled={status === "loading"}
+              className="w-full rounded-full bg-[var(--royal)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[var(--royal-deep)] disabled:opacity-60"
+            >
+              {status === "loading" ? "Creating..." : "Create listing"}
+            </button>
+            {message && (
+              <div
+                className={`rounded-2xl border px-4 py-3 text-xs ${
+                  status === "success"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-red-200 bg-red-50 text-red-600"
+                }`}
+              >
+                {message}
+              </div>
+            )}
+          </div>
+        </form>
+      </section>
+
+      <section className="surface-panel rounded-[32px] p-8">
+        <h3 className="font-display text-xl text-slate-900">Preview</h3>
+        <p className="mt-2 text-sm text-slate-600">
+          Current bid preview: {listingPreview}
+        </p>
+      </section>
+    </div>
+  );
+}

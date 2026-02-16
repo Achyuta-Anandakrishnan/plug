@@ -1,0 +1,188 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f9ff;
+  --foreground: #0b1426;
+  --royal: #1b4dff;
+  --royal-deep: #1237cc;
+  --steel: #7c879d;
+  --mist: #e5ebf5;
+  --surface: rgba(255, 255, 255, 0.9);
+  --glass: rgba(255, 255, 255, 0.65);
+  --border: rgba(15, 23, 42, 0.1);
+  --shadow: 0 28px 90px rgba(12, 26, 75, 0.16);
+  --halo-1: rgba(27, 77, 255, 0.14);
+  --halo-2: rgba(27, 77, 255, 0.08);
+  --bg-1: #f9fbff;
+  --bg-2: #f1f4fb;
+  --bg-3: #eef2f8;
+}
+
+html[data-theme="dark"] {
+  --background: #0a0f1f;
+  --foreground: #f5f7ff;
+  --royal: #5c7bff;
+  --royal-deep: #2f4ed8;
+  --steel: #9aa4bd;
+  --mist: #1a2238;
+  --surface: rgba(15, 23, 42, 0.9);
+  --glass: rgba(15, 23, 42, 0.65);
+  --border: rgba(148, 163, 184, 0.16);
+  --shadow: 0 32px 90px rgba(5, 10, 28, 0.55);
+  --halo-1: rgba(92, 123, 255, 0.18);
+  --halo-2: rgba(92, 123, 255, 0.12);
+  --bg-1: #0c1226;
+  --bg-2: #0a1021;
+  --bg-3: #080e1d;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-royal: var(--royal);
+  --color-royal-deep: var(--royal-deep);
+  --color-steel: var(--steel);
+  --color-mist: var(--mist);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+}
+
+body {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(circle at 12% 18%, var(--halo-1), transparent 42%),
+    radial-gradient(circle at 88% 12%, var(--halo-2), transparent 35%),
+    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 60%, var(--bg-3) 100%);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100vh;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.surface-panel,
+.glass-panel {
+  border-radius: 24px;
+}
+
+.page-container {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 0 18px;
+}
+
+@media (min-width: 640px) {
+  .page-container {
+    max-width: 1240px;
+    padding: 0 28px;
+  }
+}
+
+html[data-theme="dark"] body {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] .text-slate-900 {
+  color: #f8fafc;
+}
+
+html[data-theme="dark"] .text-slate-800 {
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .text-slate-700 {
+  color: #cbd5f5;
+}
+
+html[data-theme="dark"] .text-slate-600 {
+  color: #b6c1d4;
+}
+
+html[data-theme="dark"] .text-slate-500 {
+  color: #9aa6bc;
+}
+
+html[data-theme="dark"] .text-slate-400 {
+  color: #7f8aa3;
+}
+
+html[data-theme="dark"] .bg-white {
+  background-color: rgba(15, 23, 42, 0.92);
+}
+
+html[data-theme="dark"] .bg-white\/90 {
+  background-color: rgba(15, 23, 42, 0.9);
+}
+
+html[data-theme="dark"] .bg-white\/85 {
+  background-color: rgba(15, 23, 42, 0.85);
+}
+
+html[data-theme="dark"] .bg-white\/80 {
+  background-color: rgba(15, 23, 42, 0.8);
+}
+
+html[data-theme="dark"] .bg-white\/70 {
+  background-color: rgba(15, 23, 42, 0.7);
+}
+
+html[data-theme="dark"] .bg-white\/60 {
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+html[data-theme="dark"] .bg-slate-100 {
+  background-color: rgba(30, 41, 59, 0.7);
+}
+
+html[data-theme="dark"] .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+html[data-theme="dark"] .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.14);
+}
+
+html[data-theme="dark"] .border-slate-200 {
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+html[data-theme="dark"] .border-slate-100 {
+  border-color: rgba(148, 163, 184, 0.12);
+}
+
+html[data-theme="dark"] .border-white\/70 {
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+html[data-theme="dark"] .border-white\/60 {
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+html[data-theme="dark"] .border-white\/50 {
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+html[data-theme="dark"] .border-white\/40 {
+  border-color: rgba(148, 163, 184, 0.12);
+}
+
+.font-display {
+  font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.glass-panel {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(24px);
+}
+
+.surface-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+}
+
+::selection {
+  background: rgba(27, 77, 255, 0.2);
+}
