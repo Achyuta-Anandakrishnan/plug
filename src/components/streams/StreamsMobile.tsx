@@ -1,12 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { AuctionCard } from "@/components/AuctionCard";
 import { useAuctions } from "@/hooks/useAuctions";
 import { useCategories } from "@/hooks/useCategories";
 import { getPrimaryImageUrl, getTimeLeftSeconds } from "@/lib/auctions";
-import { formatCurrency, formatSeconds } from "@/lib/format";
 
 export function StreamsMobile() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -98,80 +97,24 @@ export function StreamsMobile() {
         </div>
       )}
 
-      <section className="space-y-5">
-        {filteredStreams.map((stream) => {
-          const imageUrl = getPrimaryImageUrl(stream);
-          return (
-            <Link
-              key={stream.id}
-              href={`/streams/${stream.id}`}
-              className="block overflow-hidden rounded-[28px] border border-white/60 bg-white/85 shadow-[0_18px_40px_rgba(15,23,42,0.12)]"
-            >
-              <div className="relative h-44 overflow-hidden">
-                <Image
-                  src={imageUrl ?? "/streams/stream-1.svg"}
-                  alt={stream.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-[linear-gradient(to_top,_rgba(15,23,42,0.6),_transparent_60%)]" />
-                <div className="absolute left-4 top-4 rounded-full bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-700">
-                  {stream.listingType === "BUY_NOW"
-                    ? "Buy now"
-                    : "Live auction"}
-                </div>
-                <div className="absolute bottom-4 left-4 right-4 space-y-1 text-white">
-                  <p className="font-display text-lg">{stream.title}</p>
-                  <p className="text-xs text-white/70">
-                    {stream.seller?.user?.displayName ?? "Verified seller"} ·{" "}
-                    {stream.category?.name ?? "Collectible"}
-                  </p>
-                </div>
-              </div>
-              <div className="grid gap-3 p-4 text-sm text-slate-600">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                      Current
-                    </p>
-                  <p className="font-display text-lg text-slate-900">
-                      {formatCurrency(
-                        stream.currentBid,
-                        stream.currency?.toUpperCase() ?? "USD",
-                      )}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                      Time left
-                    </p>
-                    <p className="font-display text-lg text-[var(--royal)]">
-                      {formatSeconds(getTimeLeftSeconds(stream))}
-                    </p>
-                  </div>
-                </div>
-                {stream.buyNowPrice ? (
-                  <div className="flex items-center justify-between rounded-2xl border border-white/60 bg-white/80 px-3 py-2 text-xs">
-                    <span>Buy now price</span>
-                    <span className="font-semibold text-slate-900">
-                      {formatCurrency(
-                        stream.buyNowPrice,
-                        stream.currency?.toUpperCase() ?? "USD",
-                      )}
-                    </span>
-                  </div>
-                ) : null}
-                <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span>{stream.watchersCount} watching</span>
-                  <span className="font-semibold text-[var(--royal)]">
-                    Enter live
-                  </span>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+      <section className="grid grid-cols-2 gap-3">
+        {filteredStreams.map((stream) => (
+          <AuctionCard
+            key={stream.id}
+            id={stream.id}
+            title={stream.title}
+            sellerName={stream.seller?.user?.displayName ?? "Verified seller"}
+            category={stream.category?.name}
+            currentBid={stream.currentBid}
+            timeLeft={getTimeLeftSeconds(stream)}
+            watchers={stream.watchersCount}
+            badge={stream.seller?.status === "APPROVED" ? "Verified" : "Live"}
+            imageUrl={getPrimaryImageUrl(stream)}
+            listingType={stream.listingType}
+            buyNowPrice={stream.buyNowPrice}
+            currency={stream.currency?.toUpperCase()}
+          />
+        ))}
       </section>
     </div>
   );

@@ -34,73 +34,83 @@ export function AuctionCard({
   return (
     <Link
       href={`/streams/${id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_14px_32px_rgba(15,23,42,0.12)] transition hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(15,23,42,0.16)]"
+      className="group relative aspect-[5/7] w-full overflow-hidden rounded-[28px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.22)]"
     >
-      <div className="relative h-32 overflow-hidden bg-gradient-to-br from-blue-50 via-blue-100 to-white sm:h-28">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={title}
-            fill
-            sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-cover"
-          />
-        ) : (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 h-full w-full object-cover"
-          >
-            <source src="/streams/loop.mp4" type="video/mp4" />
-          </video>
-        )}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(27,77,255,0.25),_transparent_60%)]" />
-        {badge && (
-          <div className="absolute left-2.5 top-2.5 rounded-full bg-white/85 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-700 sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[10px]">
-            {badge}
-          </div>
-        )}
-        {category && (
-          <div className="absolute bottom-1.5 left-2.5 text-[9px] uppercase tracking-[0.24em] text-white/80 sm:bottom-2 sm:left-3 sm:text-[10px] sm:tracking-[0.28em]">
-            {category}
-          </div>
-        )}
+      {imageUrl ? (
+        <Image
+          src={imageUrl}
+          alt={title}
+          fill
+          sizes="(max-width: 768px) 50vw, 25vw"
+          className="object-cover transition duration-500 group-hover:scale-[1.03]"
+        />
+      ) : (
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+        >
+          <source src="/streams/loop.mp4" type="video/mp4" />
+        </video>
+      )}
+
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(27,77,255,0.26),_transparent_55%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_top,_rgba(2,6,23,0.86),_rgba(2,6,23,0.24)_55%,_rgba(2,6,23,0.06))]" />
+
+      <div className="absolute left-3 top-3 right-3 flex items-start justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          {badge ? (
+            <span className="rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-800">
+              {badge}
+            </span>
+          ) : null}
+          {category ? (
+            <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/90">
+              {category}
+            </span>
+          ) : null}
+        </div>
         {listingType !== "AUCTION" && buyNowPrice ? (
-          <div className="absolute right-2.5 bottom-2.5 rounded-full bg-white/85 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-700 sm:right-3 sm:bottom-3 sm:px-2.5 sm:py-1 sm:text-[10px]">
+          <span className="rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-800">
             Buy now {formatCurrency(buyNowPrice, currency)}
-          </div>
+          </span>
         ) : null}
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-3 sm:p-3.5">
-        <div>
-          <h3 className="font-display text-base text-slate-900 sm:text-lg">
-            {title}
-          </h3>
-          <p className="text-xs text-slate-500">{sellerName}</p>
-        </div>
-        <div className="mt-auto flex items-center justify-between text-sm text-slate-600">
+
+      <div className="absolute bottom-0 left-0 right-0 p-4">
+        <div className="space-y-2">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
-              Live price
-            </p>
-            <p className="font-display text-lg text-slate-900 sm:text-xl">
-              {formatCurrency(currentBid, currency)}
-            </p>
+            <h3 className="font-display text-[18px] leading-tight text-white">
+              {title}
+            </h3>
+            <p className="text-xs text-white/70">{sellerName}</p>
           </div>
-          <div className="text-right">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
-              Time left
-            </p>
-            <p className="font-display text-lg text-[var(--royal)] sm:text-xl">
-              {formatSeconds(timeLeft)}
-            </p>
+
+          <div className="grid grid-cols-2 gap-2 text-white">
+            <div className="rounded-2xl bg-white/10 px-3 py-2">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">
+                Current
+              </p>
+              <p className="font-display text-lg">
+                {formatCurrency(currentBid, currency)}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-white/10 px-3 py-2 text-right">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">
+                Time
+              </p>
+              <p className="font-display text-lg text-[rgba(165,190,255,0.98)]">
+                {formatSeconds(timeLeft)}
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          <span>{watchers} watching</span>
-          <span className="font-semibold text-[var(--royal)]">Enter live</span>
+
+          <div className="flex items-center justify-between text-xs text-white/70">
+            <span>{watchers} watching</span>
+            <span className="font-semibold text-white">Enter</span>
+          </div>
         </div>
       </div>
     </Link>

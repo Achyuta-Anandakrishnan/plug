@@ -165,6 +165,8 @@ model User {
   referrals      Referral[]    @relation("ReferralReferrer")
   disputes       Dispute[]     @relation("DisputeReporter")
   ordersAsBuyer  Order[]       @relation("OrderBuyer")
+  forumPosts     ForumPost[]
+  forumComments  ForumComment[]
 }
 
 model Account {
@@ -339,6 +341,35 @@ model DirectMessage {
 
   conversation    Conversation  @relation(fields: [conversationId], references: [id])
   sender          User          @relation("DirectMessageSender", fields: [senderId], references: [id])
+}
+
+model ForumPost {
+  id        String   @id @default(cuid())
+  authorId  String
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author    User           @relation(fields: [authorId], references: [id])
+  comments  ForumComment[]
+
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model ForumComment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  post      ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id])
+
+  @@index([postId])
+  @@index([authorId])
 }
 
 model Referral {

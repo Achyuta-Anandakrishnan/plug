@@ -29,6 +29,7 @@ export type AuctionListItem = {
 type UseAuctionsOptions = {
   status?: string;
   category?: string;
+  query?: string;
 };
 
 export function useAuctions(options: UseAuctionsOptions = {}) {
@@ -43,6 +44,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
       const params = new URLSearchParams();
       if (options.status) params.set("status", options.status);
       if (options.category) params.set("category", options.category);
+      if (options.query) params.set("q", options.query);
       const response = await fetch(`/api/auctions?${params.toString()}`);
       if (!response.ok) {
         setError("Unable to load listings.");
@@ -56,7 +58,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
       setError("Unable to load listings.");
       setLoading(false);
     }
-  }, [options.category, options.status]);
+  }, [options.category, options.query, options.status]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

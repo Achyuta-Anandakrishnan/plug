@@ -50,6 +50,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category");
   const statusParam = searchParams.get("status");
+  const q = searchParams.get("q")?.trim() ?? "";
   const limitParam = Number(searchParams.get("limit") ?? 30);
 
   if (statusParam && !allowedStatuses.has(statusParam)) {
@@ -84,6 +85,18 @@ export async function GET(request: Request) {
 
   if (category) {
     where.category = { slug: category };
+  }
+
+  if (q) {
+    // Basic search across listing + item fields.
+    // (No full-text index yet; good enough for MVP.)
+    const query = q.slice(0, 80);
+    (where as Prisma.AuctionWhereInput).OR = [
+      { title: { contains: query, mode: "insensitive" } },
+      { description: { contains: query, mode: "insensitive" } },
+      { item: { title: { contains: query, mode: "insensitive" } } },
+      { item: { description: { contains: query, mode: "insensitive" } } },
+    ];
   }
 
   const auctions = await prisma.auction.findMany({

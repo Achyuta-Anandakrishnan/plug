@@ -12,20 +12,19 @@ const ThemeToggle = dynamic(
 );
 
 const navItems = [
-  { label: "Live Streams", href: "/streams" },
-  { label: "Live Rooms", href: "/live" },
+  { label: "Streams", href: "/streams" },
   { label: "Sell", href: "/sell" },
-  { label: "Explore", href: "/explore" },
+  { label: "Search", href: "/explore" },
+  { label: "Forum", href: "/forum" },
   { label: "Seller Verification", href: "/seller/verification" },
-  { label: "Referral", href: "/referral" },
   { label: "Messages", href: "/messages" },
+  { label: "Settings", href: "/settings" },
 ];
 
 export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: session } = useSession();
-  const isAdmin =
-    session?.user?.email?.toLowerCase() === "achyuta.2006@gmail.com";
+  const isAdmin = session?.user?.role === "ADMIN";
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/40 bg-white/80 backdrop-blur-xl">

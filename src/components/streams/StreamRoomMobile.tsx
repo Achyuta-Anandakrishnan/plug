@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { useAuction } from "@/hooks/useAuction";
 import type { AuctionDetail } from "@/hooks/useAuction";
@@ -20,6 +21,7 @@ export function StreamRoomMobile({
   initialData,
   stripeEnabled = true,
 }: StreamRoomMobileProps) {
+  const router = useRouter();
   const { data, loading, error, refresh } = useAuction(
     auctionId,
     5000,
@@ -27,22 +29,12 @@ export function StreamRoomMobile({
   );
   const { data: session } = useSession();
   const sessionUserId = session?.user?.id ?? "";
-  const [buyerId, setBuyerId] = useState(() => {
-    if (typeof window === "undefined") return "";
-    return window.localStorage.getItem("vyre-buyer-id") ?? "";
-  });
   const [message, setMessage] = useState("");
   const [actionStatus, setActionStatus] = useState("");
   const [participantCount, setParticipantCount] = useState<number | null>(null);
   const [streamStatus, setStreamStatus] = useState<
     "idle" | "connecting" | "live" | "error"
   >("idle");
-
-  useEffect(() => {
-    if (!sessionUserId && buyerId) {
-      window.localStorage.setItem("vyre-buyer-id", buyerId);
-    }
-  }, [buyerId, sessionUserId]);
 
   const timeLeft = useMemo(() => {
     if (!data) return 0;
@@ -51,9 +43,8 @@ export function StreamRoomMobile({
 
   const nextBid = data ? data.currentBid + data.minBidIncrement : 0;
   const currency = data?.currency?.toUpperCase() ?? "USD";
-  const effectiveBuyerId = sessionUserId || buyerId;
-  const isAdmin =
-    session?.user?.email?.toLowerCase() === "achyuta.2006@gmail.com";
+  const effectiveBuyerId = sessionUserId;
+  const isAdmin = session?.user?.role === "ADMIN";
   const isHost = Boolean(
     sessionUserId &&
       data?.seller?.user?.id &&
@@ -64,6 +55,32 @@ export function StreamRoomMobile({
     data?.seller?.user?.id === sessionUserId;
   const canUseStripe = Boolean(stripeEnabled);
 
+  const handleMessageSeller = async () => {
+    if (!data) return;
+    if (!sessionUserId) {
+      await signIn();
+      return;
+    }
+    const sellerUserId = data.seller?.user?.id ?? "";
+    if (!sellerUserId) return;
+    if (sellerUserId === sessionUserId) return;
+
+    const response = await fetch("/api/conversations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subject: `auction:${data.id}`,
+        participantIds: [sessionUserId, sellerUserId],
+      }),
+    });
+    const payload = (await response.json()) as { id?: string; error?: string };
+    if (!response.ok || !payload?.id) {
+      setActionStatus(payload.error || "Unable to start a conversation.");
+      return;
+    }
+    router.push(`/messages?c=${encodeURIComponent(payload.id)}`);
+  };
+
   const handleBid = async () => {
     if (!data) return;
     if (!canUseStripe) {
@@ -72,6 +89,7 @@ export function StreamRoomMobile({
     }
     if (!effectiveBuyerId) {
       setActionStatus("Sign in to place bids.");
+      await signIn();
       return;
     }
     if (isListingSeller) {
@@ -85,7 +103,7 @@ export function StreamRoomMobile({
     const response = await fetch(`/api/auctions/${data.id}/bids`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bidderId: effectiveBuyerId, amount: nextBid }),
+      body: JSON.stringify({ amount: nextBid }),
     });
     const payload = await response.json();
     if (!response.ok) {
@@ -104,6 +122,7 @@ export function StreamRoomMobile({
     }
     if (!effectiveBuyerId) {
       setActionStatus("Sign in to buy now.");
+      await signIn();
       return;
     }
     if (isListingSeller) {
@@ -117,7 +136,7 @@ export function StreamRoomMobile({
     const response = await fetch(`/api/auctions/${data.id}/buy`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ buyerId: effectiveBuyerId }),
+      body: JSON.stringify({}),
     });
     const payload = await response.json();
     if (!response.ok) {
@@ -129,11 +148,15 @@ export function StreamRoomMobile({
 
   const handleSend = async () => {
     if (!data || !message.trim()) return;
+    if (!effectiveBuyerId) {
+      setActionStatus("Sign in to chat.");
+      await signIn();
+      return;
+    }
     const response = await fetch(`/api/auctions/${data.id}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        senderId: effectiveBuyerId || undefined,
         body: message,
       }),
     });
@@ -245,6 +268,13 @@ export function StreamRoomMobile({
               Buy now {formatCurrency(data.buyNowPrice, currency)}
             </button>
           )}
+          <button
+            onClick={handleMessageSeller}
+            disabled={isListingSeller}
+            className="rounded-full border border-slate-200 bg-white/90 px-4 py-3 text-sm font-semibold text-slate-700 disabled:opacity-60"
+          >
+            Message seller
+          </button>
         </div>
         {!canUseStripe && (
           <p className="text-xs text-amber-700">
@@ -259,26 +289,21 @@ export function StreamRoomMobile({
       </section>
 
       <section className="surface-panel rounded-3xl p-4 space-y-3">
-        <h3 className="font-display text-lg text-slate-900">Buyer ID</h3>
+        <h3 className="font-display text-lg text-slate-900">Buyer identity</h3>
         {sessionUserId ? (
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-700">
-            {session?.user?.email ?? session?.user?.name ?? "Authenticated buyer"}
+            {session?.user?.email ??
+              session?.user?.name ??
+              "Authenticated buyer"}
           </div>
         ) : (
-          <div className="grid gap-2">
-            <input
-              value={buyerId}
-              onChange={(event) => setBuyerId(event.target.value)}
-              placeholder="Buyer id (or set DEV_BUYER_ID)"
-              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-            />
-            <button
-              onClick={() => signIn()}
-              className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
-            >
-              Sign in for live actions
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => signIn()}
+            className="rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
+          >
+            Sign in to bid, buy, and chat
+          </button>
         )}
         {actionStatus && (
           <div className="rounded-2xl border border-slate-200 bg-white/70 px-4 py-2 text-xs text-slate-600">
@@ -299,7 +324,7 @@ export function StreamRoomMobile({
             <div
               key={entry.id}
               className={`rounded-2xl px-3 py-2 ${
-                entry.senderId === effectiveBuyerId
+                entry.senderId === sessionUserId
                   ? "ml-auto bg-[var(--royal)]/10 text-slate-800"
                   : "bg-slate-100 text-slate-600"
               }`}
