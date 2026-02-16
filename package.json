@@ -9,7 +9,8 @@
     "lint": "eslint",
     "create-admin": "node scripts/create-admin.mjs",
     "process-payouts": "node scripts/process-payouts.mjs",
-    "setup-supabase": "node --env-file=.env scripts/setup-supabase.mjs"
+    "setup-supabase": "node --env-file=.env scripts/setup-supabase.mjs",
+    "github-init": "node --env-file=.env scripts/github-init.mjs"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
