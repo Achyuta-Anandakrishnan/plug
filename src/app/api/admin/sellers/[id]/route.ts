@@ -80,7 +80,7 @@ export async function PATCH(
           data: { role: "SELLER" },
         });
       } else if (body.status === "REJECTED") {
-        await prisma.user.update({
+        await prisma.user.updateMany({
           where: { id: seller.userId, role: { not: "ADMIN" } },
           data: { role: "BUYER" },
         });
