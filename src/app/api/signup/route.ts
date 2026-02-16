@@ -32,7 +32,8 @@ export async function POST(request: Request) {
   }
 
   const wantsSeller = body.role === "SELLER" || body.role === "BOTH" || body.applyAsSeller;
-  const role = wantsSeller ? UserRole.SELLER : UserRole.BUYER;
+  // Users are buyers by default. Selling privileges come from an APPROVED seller profile.
+  const role = UserRole.BUYER;
 
   const displayName = body.displayName?.trim();
   const user = await prisma.user.create({
@@ -44,10 +45,10 @@ export async function POST(request: Request) {
       role,
       sellerProfile: wantsSeller
         ? {
-            create: {
-              status: "APPLIED",
-            },
-          }
+          create: {
+            status: "APPLIED",
+          },
+        }
         : undefined,
     },
   });

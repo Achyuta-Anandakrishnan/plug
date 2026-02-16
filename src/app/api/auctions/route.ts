@@ -2,6 +2,7 @@ import { AuctionStatus, ListingType, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getDevSellerId, isDev, jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/admin";
 
 const allowedStatuses = new Set<string>([
   "DRAFT",
@@ -55,13 +56,30 @@ export async function GET(request: Request) {
     return jsonError("Invalid status filter.");
   }
 
+  const sessionUser = await getSessionUser();
+  const isAdmin = Boolean(
+    sessionUser && (sessionUser.role === "ADMIN" || isAdminEmail(sessionUser.email)),
+  );
+
   const where: {
     status?: AuctionStatus;
     category?: { slug: string };
+    seller?: { userId: string };
   } = {};
 
   if (statusParam) {
     where.status = statusParam as AuctionStatus;
+    if (statusParam === "DRAFT") {
+      if (!sessionUser) {
+        return jsonError("Authentication required.", 401);
+      }
+      if (!isAdmin) {
+        where.seller = { userId: sessionUser.id };
+      }
+    }
+  } else {
+    // Safe default: only expose live listings when no status filter is requested.
+    where.status = "LIVE";
   }
 
   if (category) {

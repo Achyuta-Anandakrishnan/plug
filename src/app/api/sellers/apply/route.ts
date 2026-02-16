@@ -58,16 +58,10 @@ export async function POST(request: Request) {
           displayName: body.displayName?.trim(),
           name: body.displayName?.trim(),
           phone: body.phone?.trim(),
-          role: UserRole.SELLER,
+          // Applicants are not sellers until approved by admin.
+          role: UserRole.BUYER,
         },
       }));
-
-    if (ensuredUser.role !== UserRole.SELLER) {
-      await tx.user.update({
-        where: { id: ensuredUser.id },
-        data: { role: UserRole.SELLER },
-      });
-    }
 
     const seller = await tx.sellerProfile.upsert({
       where: { userId: ensuredUser.id },

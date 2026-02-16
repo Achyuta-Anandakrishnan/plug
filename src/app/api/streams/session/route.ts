@@ -39,6 +39,9 @@ export async function POST(request: Request) {
   ) {
     return jsonError("Not authorized to start this stream.", 403);
   }
+  if (auction.seller.userId === sessionUser.id && auction.seller.status !== "APPROVED") {
+    return jsonError("Seller verification pending approval.", 403);
+  }
 
   let session = await prisma.streamSession.findFirst({
     where: { auctionId: auction.id, provider: "LIVEKIT" },
@@ -92,6 +95,9 @@ export async function PATCH(request: Request) {
     !isAdminEmail(sessionUser.email)
   ) {
     return jsonError("Not authorized to update this stream.", 403);
+  }
+  if (auction.seller.userId === sessionUser.id && auction.seller.status !== "APPROVED") {
+    return jsonError("Seller verification pending approval.", 403);
   }
 
   const session = await prisma.streamSession.findFirst({

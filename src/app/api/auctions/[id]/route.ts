@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
+import { getSessionUser } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/admin";
 
 export async function GET(
   _request: Request,
@@ -15,6 +17,7 @@ export async function GET(
         select: {
           id: true,
           status: true,
+          userId: true,
           user: { select: { displayName: true, id: true } },
         },
       },
@@ -30,6 +33,17 @@ export async function GET(
 
   if (!auction) {
     return jsonError("Auction not found.", 404);
+  }
+
+  if (auction.status === "DRAFT") {
+    const sessionUser = await getSessionUser();
+    const isAdmin = Boolean(
+      sessionUser && (sessionUser.role === "ADMIN" || isAdminEmail(sessionUser.email)),
+    );
+    const isOwner = Boolean(sessionUser && auction.seller.userId === sessionUser.id);
+    if (!isAdmin && !isOwner) {
+      return jsonError("Not authorized.", 403);
+    }
   }
 
   return jsonOk(auction);

@@ -62,7 +62,12 @@ export async function PATCH(
           status: body.status ?? undefined,
           approvedAt: body.status === "APPROVED" ? new Date() : null,
           manualNotes: body.notes?.trim(),
-          payoutsEnabled: body.status === "APPROVED" ? true : undefined,
+          payoutsEnabled:
+            body.status === "APPROVED"
+              ? true
+              : body.status === "REJECTED"
+                ? false
+                : undefined,
         },
         include: { user: true, verifications: true },
       });
@@ -73,6 +78,11 @@ export async function PATCH(
         await prisma.user.update({
           where: { id: seller.userId },
           data: { role: "SELLER" },
+        });
+      } else if (body.status === "REJECTED") {
+        await prisma.user.update({
+          where: { id: seller.userId, role: { not: "ADMIN" } },
+          data: { role: "BUYER" },
         });
       }
 

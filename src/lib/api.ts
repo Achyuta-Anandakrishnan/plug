@@ -16,10 +16,6 @@ export function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
-export function getActorId(request: Request) {
-  return request.headers.get("x-user-id");
-}
-
 export function getDevSellerId() {
   return process.env.DEV_SELLER_ID || null;
 }

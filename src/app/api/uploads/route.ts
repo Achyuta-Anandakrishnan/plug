@@ -2,6 +2,8 @@ import { randomUUID } from "crypto";
 import { jsonError, jsonOk } from "@/lib/api";
 import { getSupabaseServerClient, supabaseEnabled } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { isAdminEmail } from "@/lib/admin";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
@@ -18,6 +20,17 @@ export async function POST(request: Request) {
   const sessionUser = await getSessionUser();
   if (!sessionUser) {
     return jsonError("Authentication required.", 401);
+  }
+
+  const isAdmin = sessionUser.role === "ADMIN" || isAdminEmail(sessionUser.email);
+  if (!isAdmin) {
+    const sellerProfile = await prisma.sellerProfile.findUnique({
+      where: { userId: sessionUser.id },
+      select: { id: true },
+    });
+    if (!sellerProfile) {
+      return jsonError("Only sellers can upload listing images.", 403);
+    }
   }
 
   if (!supabaseEnabled()) {

@@ -36,6 +36,9 @@ export async function POST(request: Request) {
   if (role === "host" && !isSeller && sessionUser?.role !== "ADMIN" && !isAdminEmail(sessionUser?.email)) {
     return jsonError("Not authorized to host this stream.", 403);
   }
+  if (role === "host" && isSeller && auction.seller.status !== "APPROVED") {
+    return jsonError("Seller verification pending approval.", 403);
+  }
 
   const session = auction.streamSessions[0];
   if (!session?.roomName) {

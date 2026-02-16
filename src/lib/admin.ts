@@ -24,6 +24,12 @@ export async function requireAdmin(request: Request) {
     return { ok: true, user: sessionUser } as const;
   }
 
+  // In production, admin access should come from a signed session.
+  // Keep x-admin-key as a dev escape hatch for local tooling.
+  if (process.env.NODE_ENV === "production") {
+    return { ok: false, status: 401, error: "Missing admin credentials." } as const;
+  }
+
   const adminKey = request.headers.get("x-admin-key");
   const allowedKey = process.env.ADMIN_KEY;
 
