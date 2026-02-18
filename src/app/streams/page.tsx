@@ -1,11 +1,5 @@
-import { headers } from "next/headers";
-import { StreamsDesktop } from "@/components/streams/StreamsDesktop";
-import { StreamsMobile } from "@/components/streams/StreamsMobile";
-import { isMobileUserAgent } from "@/lib/device";
+import { StreamsResponsive } from "@/components/streams/StreamsResponsive";
 
-export default async function StreamsPage() {
-  const ua = (await headers()).get("user-agent");
-  const isMobile = isMobileUserAgent(ua);
-
-  return isMobile ? <StreamsMobile /> : <StreamsDesktop />;
+export default function StreamsPage() {
+  return <StreamsResponsive />;
 }

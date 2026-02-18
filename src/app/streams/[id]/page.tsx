@@ -1,8 +1,5 @@
 import Link from "next/link";
-import { headers } from "next/headers";
-import { StreamRoomDesktop } from "@/components/streams/StreamRoomDesktop";
-import { StreamRoomMobile } from "@/components/streams/StreamRoomMobile";
-import { isMobileUserAgent } from "@/lib/device";
+import { StreamRoomResponsive } from "@/components/streams/StreamRoomResponsive";
 import type { AuctionDetail } from "@/hooks/useAuction";
 
 export default async function StreamRoom({
@@ -11,8 +8,6 @@ export default async function StreamRoom({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const ua = (await headers()).get("user-agent");
-  const isMobile = isMobileUserAgent(ua);
   let initialData: AuctionDetail | null = null;
   const stripeReady = Boolean(process.env.STRIPE_SECRET_KEY);
 
@@ -52,19 +47,11 @@ export default async function StreamRoom({
         </div>
       </div>
 
-      {isMobile ? (
-        <StreamRoomMobile
-          auctionId={id}
-          initialData={initialData}
-          stripeEnabled={stripeReady}
-        />
-      ) : (
-        <StreamRoomDesktop
-          auctionId={id}
-          initialData={initialData}
-          stripeEnabled={stripeReady}
-        />
-      )}
+      <StreamRoomResponsive
+        auctionId={id}
+        initialData={initialData}
+        stripeEnabled={stripeReady}
+      />
     </div>
   );
 }
