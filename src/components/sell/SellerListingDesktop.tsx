@@ -73,6 +73,9 @@ export function SellerListingDesktop() {
     const bid = toCents(startingBid) ?? 0;
     return formatCurrency(bid, "USD");
   }, [startingBid]);
+  const inputClass =
+    "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
+  const labelClass = "text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400";
 
   useEffect(() => {
     if (!sessionSellerId && sellerId) {
@@ -272,56 +275,78 @@ export function SellerListingDesktop() {
         </div>
       </section>
 
-      <section className="surface-panel rounded-[32px] p-8">
+      <section className="surface-panel rounded-[32px] p-5 sm:p-8">
         <form className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {!sessionSellerId && (
-                <input
-                  value={sellerId}
-                  onChange={(event) => setSellerId(event.target.value)}
-                  placeholder="Seller profile id (optional if DEV_SELLER_ID set)"
-                  className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-                />
-              )}
-              <select
-                value={categoryId}
-                onChange={(event) => setCategoryId(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-              >
-                <option value="">Primary category</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+          <div className="space-y-5">
+            <div className="rounded-3xl border border-white/70 bg-white/60 p-5">
+              <p className="font-display text-lg text-slate-900">Listing details</p>
+              <div className="mt-4 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {!sessionSellerId && (
+                    <div className="space-y-2">
+                      <p className={labelClass}>Seller profile id</p>
+                      <input
+                        value={sellerId}
+                        onChange={(event) => setSellerId(event.target.value)}
+                        placeholder="Optional if DEV_SELLER_ID set"
+                        className={inputClass}
+                      />
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <p className={labelClass}>Category</p>
+                    <select
+                      value={categoryId}
+                      onChange={(event) => setCategoryId(event.target.value)}
+                      className={inputClass}
+                    >
+                      <option value="">Primary category</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className={labelClass}>Title</p>
+                  <input
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
+                    placeholder="Listing title"
+                    className={inputClass}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <p className={labelClass}>Description</p>
+                  <textarea
+                    value={description}
+                    onChange={(event) => setDescription(event.target.value)}
+                    placeholder="Description"
+                    rows={4}
+                    className={inputClass}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <p className={labelClass}>Condition / Grade</p>
+                  <input
+                    value={condition}
+                    onChange={(event) => setCondition(event.target.value)}
+                    placeholder="Condition / grade"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
             </div>
-            <input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Listing title"
-              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-              required
-            />
-            <textarea
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Description"
-              rows={4}
-              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-            />
-            <input
-              value={condition}
-              onChange={(event) => setCondition(event.target.value)}
-              placeholder="Condition / grade"
-              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-            />
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                Photos (stored in Supabase)
+
+            <div className="rounded-3xl border border-white/70 bg-white/60 p-5">
+              <p className="font-display text-lg text-slate-900">Media uploads</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Stored in Supabase bucket. First image becomes primary.
               </p>
-              <div className="mt-2 grid gap-3 sm:grid-cols-2">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <input
                   type="file"
                   multiple
@@ -338,9 +363,6 @@ export function SellerListingDesktop() {
                   className="w-full rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-3 text-sm text-slate-600"
                 />
               </div>
-              <p className="mt-2 text-[11px] text-slate-500">
-                Left: take photo (phone). Right: upload from device.
-              </p>
               {uploadMessage && (
                 <div className="mt-3 rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-xs text-slate-600">
                   {uploadMessage}
@@ -370,7 +392,18 @@ export function SellerListingDesktop() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-3xl border border-white/70 bg-white/60 p-4">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+                Live preview
+              </p>
+              <p className="mt-1 font-display text-2xl text-slate-900">
+                {listingPreview}
+              </p>
+              <p className="text-xs text-slate-500">
+                Starting price preview in USD.
+              </p>
+            </div>
             <div className="grid gap-3">
               {listingTypes.map((type) => (
                 <button
@@ -389,55 +422,76 @@ export function SellerListingDesktop() {
             </div>
 
             {listingType !== "BUY_NOW" && (
-              <input
-                value={startingBid}
-                onChange={(event) => setStartingBid(event.target.value)}
-                placeholder="Starting bid (USD)"
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-              />
+              <div className="space-y-2">
+                <p className={labelClass}>Starting bid (USD)</p>
+                <input
+                  value={startingBid}
+                  onChange={(event) => setStartingBid(event.target.value)}
+                  placeholder="Starting bid (USD)"
+                  className={inputClass}
+                />
+              </div>
             )}
             {listingType !== "AUCTION" && (
-              <input
-                value={buyNowPrice}
-                onChange={(event) => setBuyNowPrice(event.target.value)}
-                placeholder="Buy now price (USD)"
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-              />
+              <div className="space-y-2">
+                <p className={labelClass}>Buy now price (USD)</p>
+                <input
+                  value={buyNowPrice}
+                  onChange={(event) => setBuyNowPrice(event.target.value)}
+                  placeholder="Buy now price (USD)"
+                  className={inputClass}
+                />
+              </div>
             )}
             {listingType !== "BUY_NOW" && (
-              <input
-                value={reservePrice}
-                onChange={(event) => setReservePrice(event.target.value)}
-                placeholder="Reserve price (USD, optional)"
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-              />
+              <div className="space-y-2">
+                <p className={labelClass}>Reserve price (optional)</p>
+                <input
+                  value={reservePrice}
+                  onChange={(event) => setReservePrice(event.target.value)}
+                  placeholder="Reserve price (USD, optional)"
+                  className={inputClass}
+                />
+              </div>
             )}
-            <input
-              value={minBidIncrement}
-              onChange={(event) => setMinBidIncrement(event.target.value)}
-              placeholder="Min bid increment (USD)"
-              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-            />
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-2">
+              <p className={labelClass}>Min bid increment (USD)</p>
               <input
-                type="datetime-local"
-                value={startTime}
-                onChange={(event) => setStartTime(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-              />
-              <input
-                type="datetime-local"
-                value={endTime}
-                onChange={(event) => setEndTime(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+                value={minBidIncrement}
+                onChange={(event) => setMinBidIncrement(event.target.value)}
+                placeholder="Min bid increment (USD)"
+                className={inputClass}
               />
             </div>
-            <input
-              value={videoStreamUrl}
-              onChange={(event) => setVideoStreamUrl(event.target.value)}
-              placeholder="Stream playback URL (optional)"
-              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <p className={labelClass}>Start time</p>
+                <input
+                  type="datetime-local"
+                  value={startTime}
+                  onChange={(event) => setStartTime(event.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <div className="space-y-2">
+                <p className={labelClass}>End time</p>
+                <input
+                  type="datetime-local"
+                  value={endTime}
+                  onChange={(event) => setEndTime(event.target.value)}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className={labelClass}>Stream playback URL</p>
+              <input
+                value={videoStreamUrl}
+                onChange={(event) => setVideoStreamUrl(event.target.value)}
+                placeholder="Stream playback URL (optional)"
+                className={inputClass}
+              />
+            </div>
             <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-xs text-slate-600">
               <input
                 type="checkbox"

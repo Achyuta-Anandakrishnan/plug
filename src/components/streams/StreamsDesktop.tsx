@@ -35,9 +35,9 @@ export function StreamsDesktop() {
   }, [activeCategory, auctions, endingSoon, verifiedOnly]);
 
   return (
-    <div className="space-y-6">
-      <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+    <div className="space-y-5 sm:space-y-6">
+      <section className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
               Live now
@@ -46,27 +46,27 @@ export function StreamsDesktop() {
               Streams
             </h1>
           </div>
-          <div className="hidden gap-2 sm:flex">
+          <div className="flex gap-2">
             <Link
               href="/streams/schedule"
-              className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600"
+              className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold text-slate-600"
             >
               Schedule
             </Link>
             <Link
               href="/streams/roster"
-              className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600"
+              className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold text-slate-600"
             >
               Roster
             </Link>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/70 bg-white/70 p-3">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="rounded-2xl border border-white/70 bg-white/70 p-3 sm:p-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               onClick={() => setEndingSoon((prev) => !prev)}
-              className={`rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.2em] transition ${
+              className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition sm:text-[12px] ${
                 endingSoon
                   ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
                   : "border-slate-200 text-slate-600"
@@ -76,7 +76,7 @@ export function StreamsDesktop() {
             </button>
             <button
               onClick={() => setVerifiedOnly((prev) => !prev)}
-              className={`rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.2em] transition ${
+              className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition sm:text-[12px] ${
                 verifiedOnly
                   ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
                   : "border-slate-200 text-slate-600"
@@ -84,13 +84,13 @@ export function StreamsDesktop() {
             >
               Verified
             </button>
-            <div className="flex gap-2 overflow-x-auto">
+            <div className="flex flex-1 gap-2 overflow-x-auto">
               {["All", ...categories.map((category) => category.name)].map(
                 (category) => (
                   <button
                     key={category}
                     onClick={() => setActiveCategory(category)}
-                    className={`whitespace-nowrap rounded-full border px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.2em] transition ${
+                    className={`whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition sm:text-[12px] ${
                       activeCategory === category
                         ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
                         : "border-white/70 bg-white/70 text-slate-500"
@@ -117,7 +117,13 @@ export function StreamsDesktop() {
         </div>
       )}
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+      {!loading && filteredStreams.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+          No live streams match this filter yet.
+        </div>
+      )}
+
+      <section className="grid grid-cols-2 gap-3 min-[520px]:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
         {filteredStreams.map((stream) => (
           <AuctionCard
             key={stream.id}

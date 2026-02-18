@@ -34,7 +34,7 @@ export function AuctionCard({
   return (
     <Link
       href={`/streams/${id}`}
-      className="group relative aspect-[5/7] w-full overflow-hidden rounded-[28px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.22)]"
+      className="group relative aspect-[4/5] w-full overflow-hidden rounded-[20px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.22)] sm:aspect-[5/7] sm:rounded-[28px]"
     >
       {imageUrl ? (
         <Image
@@ -82,7 +82,7 @@ export function AuctionCard({
       <div className="absolute bottom-0 left-0 right-0 p-4">
         <div className="space-y-2">
           <div>
-            <h3 className="font-display text-[18px] leading-tight text-white">
+            <h3 className="font-display text-base leading-tight text-white sm:text-[18px]">
               {title}
             </h3>
             <p className="text-xs text-white/70">{sellerName}</p>
@@ -93,7 +93,7 @@ export function AuctionCard({
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">
                 Current
               </p>
-              <p className="font-display text-lg">
+              <p className="font-display text-base sm:text-lg">
                 {formatCurrency(currentBid, currency)}
               </p>
             </div>
@@ -101,7 +101,7 @@ export function AuctionCard({
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">
                 Time
               </p>
-              <p className="font-display text-lg text-[rgba(165,190,255,0.98)]">
+              <p className="font-display text-base text-[rgba(165,190,255,0.98)] sm:text-lg">
                 {formatSeconds(timeLeft)}
               </p>
             </div>
