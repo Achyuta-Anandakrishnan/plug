@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
+import { ensureForumSchema } from "@/lib/forum-schema";
 
 type CreatePostBody = {
   title?: string;
@@ -8,6 +9,12 @@ type CreatePostBody = {
 };
 
 export async function GET(request: Request) {
+  try {
+    await ensureForumSchema();
+  } catch {
+    return jsonError("Forum database is not ready yet.", 503);
+  }
+
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") ?? "").trim();
 
@@ -32,6 +39,12 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  try {
+    await ensureForumSchema();
+  } catch {
+    return jsonError("Forum database is not ready yet.", 503);
+  }
+
   const sessionUser = await getSessionUser();
   if (!sessionUser) return jsonError("Authentication required.", 401);
 
@@ -60,4 +73,3 @@ export async function POST(request: Request) {
 
   return jsonOk(post, { status: 201 });
 }
-
