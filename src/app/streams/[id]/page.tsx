@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { StreamRoomDesktop } from "@/components/streams/StreamRoomDesktop";
+import { StreamRoomResponsive } from "@/components/streams/StreamRoomResponsive";
 import type { AuctionDetail } from "@/hooks/useAuction";
 
 export default async function StreamRoom({
@@ -37,7 +37,7 @@ export default async function StreamRoom({
             Verified seller · Dual camera · Live chat enabled
           </p>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="hidden sm:flex flex-wrap gap-3">
           <span className="rounded-full bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-600">
             Escrow protected
           </span>
@@ -47,7 +47,7 @@ export default async function StreamRoom({
         </div>
       </div>
 
-      <StreamRoomDesktop
+      <StreamRoomResponsive
         auctionId={id}
         initialData={initialData}
         stripeEnabled={stripeReady}
