@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { StreamRoomResponsive } from "@/components/streams/StreamRoomResponsive";
+import { StreamRoomDesktop } from "@/components/streams/StreamRoomDesktop";
 import type { AuctionDetail } from "@/hooks/useAuction";
 
 export default async function StreamRoom({
@@ -47,7 +47,7 @@ export default async function StreamRoom({
         </div>
       </div>
 
-      <StreamRoomResponsive
+      <StreamRoomDesktop
         auctionId={id}
         initialData={initialData}
         stripeEnabled={stripeReady}

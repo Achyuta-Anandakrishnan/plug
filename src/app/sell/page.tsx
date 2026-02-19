@@ -1,5 +1,5 @@
-import { SellResponsive } from "@/components/sell/SellResponsive";
+import { SellerListingDesktop } from "@/components/sell/SellerListingDesktop";
 
 export default function SellPage() {
-  return <SellResponsive />;
+  return <SellerListingDesktop />;
 }
