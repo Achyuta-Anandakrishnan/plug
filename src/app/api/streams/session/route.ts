@@ -34,7 +34,6 @@ export async function POST(request: Request) {
 
   if (
     auction.seller.userId !== sessionUser.id &&
-    sessionUser.role !== "ADMIN" &&
     !isAdminEmail(sessionUser.email)
   ) {
     return jsonError("Not authorized to start this stream.", 403);
@@ -91,7 +90,6 @@ export async function PATCH(request: Request) {
 
   if (
     auction.seller.userId !== sessionUser.id &&
-    sessionUser.role !== "ADMIN" &&
     !isAdminEmail(sessionUser.email)
   ) {
     return jsonError("Not authorized to update this stream.", 403);

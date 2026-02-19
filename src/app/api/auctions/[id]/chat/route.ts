@@ -55,9 +55,7 @@ export async function POST(
   // Never trust client-provided moderation flags.
   const isModerator = Boolean(
     sessionUser &&
-      (sessionUser.role === "ADMIN" ||
-        isAdminEmail(sessionUser.email) ||
-        auction.seller.userId === sessionUser.id),
+      (isAdminEmail(sessionUser.email) || auction.seller.userId === sessionUser.id),
   );
 
   const message = await prisma.auctionChatMessage.create({

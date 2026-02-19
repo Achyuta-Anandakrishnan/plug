@@ -1,15 +1,19 @@
-import { UserRole, VerificationType } from "@prisma/client";
+import { VerificationType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { isDev, jsonError, jsonOk, parseJson } from "@/lib/api";
+import { checkRateLimit, getRequestIp, jsonError, jsonOk, parseJson } from "@/lib/api";
 import { notifySellerApplication } from "@/lib/email";
 import { getSessionUser } from "@/lib/auth";
 
 type ApplySellerBody = {
-  userId?: string;
-  email?: string;
   displayName?: string;
   phone?: string;
+  businessName?: string;
+  inventorySummary?: string;
+  streamExperience?: string;
+  socialHandle?: string;
+  website?: string;
   notes?: string;
+  agreeToTerms?: boolean;
 };
 
 export async function POST(request: Request) {
@@ -17,62 +21,74 @@ export async function POST(request: Request) {
   if (!body) {
     return jsonError("Invalid request body.");
   }
+
   const sessionUser = await getSessionUser();
-  const effectiveUserId = sessionUser?.id ?? (isDev() ? body?.userId : null);
-
-  if (!effectiveUserId && !body?.email) {
-    return jsonError("userId or email is required.");
+  if (!sessionUser?.id || !sessionUser?.email) {
+    return jsonError("Authentication required.", 401);
   }
 
-  const email = body.email?.trim().toLowerCase();
-  if (email && !email.includes("@")) {
-    return jsonError("Invalid email.");
+  const googleAccount = await prisma.account.findFirst({
+    where: { userId: sessionUser.id, provider: "google" },
+  });
+  if (!googleAccount) {
+    return jsonError("Seller verification requires Google sign-in.", 403);
   }
 
-  const user =
-    effectiveUserId
-      ? await prisma.user.findUnique({ where: { id: effectiveUserId } })
-      : email
-        ? await prisma.user.findUnique({ where: { email } })
-        : null;
-
-  if (!user && !email) {
-    return jsonError("User not found.", 404);
+  const ip = getRequestIp(request);
+  const rateLimitKey = `seller-apply:user:${sessionUser.id}:ip:${ip}`;
+  if (!checkRateLimit(rateLimitKey, 3, 60_000)) {
+    return jsonError("Too many seller application attempts. Try again shortly.", 429);
   }
 
-  if (sessionUser && !isDev()) {
-    const googleAccount = await prisma.account.findFirst({
-      where: { userId: sessionUser.id, provider: "google" },
-    });
-    if (!googleAccount) {
-      return jsonError("Seller verification requires Google sign-in.", 403);
-    }
+  const displayName = body.displayName?.trim() || sessionUser.email.split("@")[0];
+  const businessName = body.businessName?.trim() ?? "";
+  const inventorySummary = body.inventorySummary?.trim() ?? "";
+  const streamExperience = body.streamExperience?.trim() ?? "";
+
+  if (businessName.length < 2) {
+    return jsonError("Business name is required (min 2 characters).", 400);
+  }
+  if (inventorySummary.length < 20) {
+    return jsonError("Inventory summary must be at least 20 characters.", 400);
+  }
+  if (streamExperience.length < 10) {
+    return jsonError("Stream experience must be at least 10 characters.", 400);
+  }
+  if (!body.agreeToTerms) {
+    return jsonError("You must agree to seller verification terms.", 400);
   }
 
   const result = await prisma.$transaction(async (tx) => {
-    const ensuredUser =
-      user ??
-      (await tx.user.create({
-        data: {
-          email,
-          displayName: body.displayName?.trim(),
-          name: body.displayName?.trim(),
-          phone: body.phone?.trim(),
-          // Applicants are not sellers until approved by admin.
-          role: UserRole.BUYER,
-        },
-      }));
+    const ensuredUser = await tx.user.update({
+      where: { id: sessionUser.id },
+      data: {
+        displayName,
+        name: displayName,
+        phone: body.phone?.trim() || undefined,
+      },
+    });
+
+    const manualNotes = [
+      `business=${businessName}`,
+      body.socialHandle?.trim() ? `social=${body.socialHandle.trim()}` : null,
+      body.website?.trim() ? `website=${body.website.trim()}` : null,
+      `inventory=${inventorySummary}`,
+      `stream=${streamExperience}`,
+      body.notes?.trim() ? `notes=${body.notes.trim()}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     const seller = await tx.sellerProfile.upsert({
       where: { userId: ensuredUser.id },
       update: {
         status: "IN_REVIEW",
-        manualNotes: body.notes?.trim(),
+        manualNotes,
       },
       create: {
         userId: ensuredUser.id,
         status: "IN_REVIEW",
-        manualNotes: body.notes?.trim(),
+        manualNotes,
       },
     });
 
@@ -85,10 +101,7 @@ export async function POST(request: Request) {
     ];
 
     await tx.verificationCheck.createMany({
-      data: steps.map((type) => ({
-        sellerId: seller.id,
-        type,
-      })),
+      data: steps.map((type) => ({ sellerId: seller.id, type })),
       skipDuplicates: true,
     });
 
@@ -97,8 +110,8 @@ export async function POST(request: Request) {
 
   await notifySellerApplication({
     sellerId: result.seller.id,
-    email: result.user.email ?? email ?? "unknown",
-    displayName: result.user.displayName ?? body.displayName ?? "New seller",
+    email: result.user.email ?? sessionUser.email,
+    displayName: result.user.displayName ?? displayName,
   });
 
   return jsonOk(result, { status: 201 });

@@ -17,7 +17,6 @@ type SellerApplication = {
 };
 
 export default function SellerAdminPage() {
-  const [adminKey, setAdminKey] = useState("");
   const [applications, setApplications] = useState<SellerApplication[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,9 +27,7 @@ export default function SellerAdminPage() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/sellers", {
-        headers: adminKey ? { "x-admin-key": adminKey } : {},
-      });
+      const response = await fetch("/api/admin/sellers");
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Unable to load applications.");
@@ -45,7 +42,6 @@ export default function SellerAdminPage() {
 
   useEffect(() => {
     fetchApplications();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDecision = async (id: string, status: "APPROVED" | "REJECTED") => {
@@ -55,7 +51,6 @@ export default function SellerAdminPage() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          ...(adminKey ? { "x-admin-key": adminKey } : {}),
         },
         body: JSON.stringify({ status, notes: notesById[id] }),
       });
@@ -82,7 +77,6 @@ export default function SellerAdminPage() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          ...(adminKey ? { "x-admin-key": adminKey } : {}),
         },
         body: JSON.stringify({
           verifications: [{ id: verificationId, status }],
@@ -120,7 +114,6 @@ export default function SellerAdminPage() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          ...(adminKey ? { "x-admin-key": adminKey } : {}),
         },
         body: JSON.stringify({
           verifications: app.verifications.map((check) => ({
@@ -177,19 +170,13 @@ export default function SellerAdminPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-              Admin key
+              Admin access
             </p>
             <p className="text-sm text-slate-600">
-              Use the admin key from your environment.
+              Signed session for the primary admin email is required.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <input
-              value={adminKey}
-              onChange={(event) => setAdminKey(event.target.value)}
-              placeholder="ADMIN_KEY"
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm text-slate-700 outline-none"
-            />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
