@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
@@ -40,8 +40,6 @@ export function SellerListingMobile() {
   );
   const [message, setMessage] = useState("");
   const [uploadMessage, setUploadMessage] = useState("");
-  const [sellerId, setSellerId] = useState("");
-  const [buyerId, setBuyerId] = useState("");
   const [listingId, setListingId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -73,37 +71,7 @@ export function SellerListingMobile() {
     "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
   const labelClass = "text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400";
 
-  useEffect(() => {
-    if (!sessionSellerId && sellerId) {
-      window.localStorage.setItem("vyre-seller-id", sellerId);
-    }
-    if (!sessionSellerId && buyerId) {
-      window.localStorage.setItem("vyre-buyer-id", buyerId);
-    }
-  }, [buyerId, sellerId, sessionSellerId]);
 
-  const handleSeed = async () => {
-    setStatus("loading");
-    setMessage("");
-    try {
-      const response = await fetch("/api/dev/seed", { method: "POST" });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Unable to seed.");
-      }
-      if (data.sellerProfileId) {
-        setSellerId(data.sellerProfileId);
-      }
-      if (data.buyerId) {
-        setBuyerId(data.buyerId);
-      }
-      setStatus("success");
-      setMessage("Dev seller and buyer created.");
-    } catch (error) {
-      setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Unable to seed.");
-    }
-  };
 
   const handleImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -149,7 +117,6 @@ export function SellerListingMobile() {
     setMessage("");
 
     const payload = {
-      sellerId: sessionSellerId ? undefined : sellerId || undefined,
       listingType,
       title,
       description,
@@ -228,18 +195,6 @@ export function SellerListingMobile() {
 
       {stepIndex === 0 && (
         <section className="surface-panel rounded-3xl p-4 space-y-4">
-          <button
-            type="button"
-            onClick={handleSeed}
-            className="w-full rounded-full border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700"
-          >
-            Create dev seller/buyer
-          </button>
-          {buyerId && !sessionSellerId && (
-            <div className="rounded-2xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white">
-              Dev buyer: {buyerId.slice(0, 6)}...
-            </div>
-          )}
           {sessionSellerId ? (
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-700">
               Signed in as {session?.user?.email ?? "seller"}.
@@ -248,16 +203,9 @@ export function SellerListingMobile() {
             <div className="grid gap-2">
               {session?.user?.id && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
-                  Your account is not a seller yet. Use a dev seller ID or apply
-                  for verification.
+                  Your account is not a seller yet. Submit seller verification for manual review.
                 </div>
               )}
-              <input
-                value={sellerId}
-                onChange={(event) => setSellerId(event.target.value)}
-                placeholder="Seller profile id (optional)"
-                className={inputClass}
-              />
               {!session?.user?.id && (
                 <button
                   onClick={() => signIn()}

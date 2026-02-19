@@ -38,7 +38,7 @@ export async function GET(
   if (auction.status === "DRAFT") {
     const sessionUser = await getSessionUser();
     const isAdmin = Boolean(
-      sessionUser && (sessionUser.role === "ADMIN" || isAdminEmail(sessionUser.email)),
+      sessionUser && isAdminEmail(sessionUser.email),
     );
     const isOwner = Boolean(sessionUser && auction.seller.userId === sessionUser.id);
     if (!isAdmin && !isOwner) {

@@ -1,5 +1,5 @@
-import { StreamsDesktop } from "@/components/streams/StreamsDesktop";
+import { StreamsResponsive } from "@/components/streams/StreamsResponsive";
 
 export default function StreamsPage() {
-  return <StreamsDesktop />;
+  return <StreamsResponsive />;
 }

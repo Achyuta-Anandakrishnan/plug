@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   const isSeller = sessionUser?.id === auction.seller.userId;
   const role = body.role ?? (isSeller ? "host" : "viewer");
 
-  if (role === "host" && !isSeller && sessionUser?.role !== "ADMIN" && !isAdminEmail(sessionUser?.email)) {
+  if (role === "host" && !isSeller && !isAdminEmail(sessionUser?.email)) {
     return jsonError("Not authorized to host this stream.", 403);
   }
   if (role === "host" && isSeller && auction.seller.status !== "APPROVED") {

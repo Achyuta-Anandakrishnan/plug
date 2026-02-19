@@ -1,6 +1,13 @@
 import { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { jsonError, jsonOk, parseJson } from "@/lib/api";
+import {
+  EMAIL_REGEX,
+  checkRateLimit,
+  getRequestIp,
+  jsonError,
+  jsonOk,
+  parseJson,
+} from "@/lib/api";
 
 type SignupBody = {
   email?: string;
@@ -8,6 +15,7 @@ type SignupBody = {
   displayName?: string;
   role?: "BUYER" | "SELLER" | "BOTH";
   applyAsSeller?: boolean;
+  captchaToken?: string;
 };
 
 function normalizeEmail(email: string) {
@@ -21,9 +29,22 @@ export async function POST(request: Request) {
     return jsonError("Email is required.");
   }
 
+  const ip = getRequestIp(request);
   const email = normalizeEmail(body.email);
-  if (!email.includes("@")) {
+
+  if (!checkRateLimit(`signup:${ip}`, 10, 60_000)) {
+    return jsonError("Too many signup attempts. Try again shortly.", 429);
+  }
+
+  if (!EMAIL_REGEX.test(email)) {
     return jsonError("Invalid email.");
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    const captchaSecret = process.env.TURNSTILE_SECRET_KEY;
+    if (captchaSecret && !body.captchaToken) {
+      return jsonError("Captcha verification is required.", 400);
+    }
   }
 
   const existing = await prisma.user.findUnique({ where: { email } });
