@@ -4,6 +4,8 @@ import { PRIMARY_ADMIN_EMAIL, isPrimaryAdminEmail } from "@/lib/admin-email";
 
 export { PRIMARY_ADMIN_EMAIL };
 
+export const PRIMARY_ADMIN_EMAIL = "achyuta.2006@gmail.com";
+
 export function getAdminEmails() {
   return [PRIMARY_ADMIN_EMAIL];
 }
