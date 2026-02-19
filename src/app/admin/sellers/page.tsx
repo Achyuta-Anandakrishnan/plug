@@ -173,7 +173,7 @@ export default function SellerAdminPage() {
               Admin access
             </p>
             <p className="text-sm text-slate-600">
-              Signed session for the primary admin email is required.
+              Signed session for a configured admin account is required.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -210,9 +210,6 @@ export default function SellerAdminPage() {
           </div>
         )}
         {filtered.map((app) => {
-          const allPassed = app.verifications.every(
-            (check) => check.status === "PASSED",
-          );
           return (
           <div
             key={app.id}
@@ -235,8 +232,7 @@ export default function SellerAdminPage() {
                 </button>
                 <button
                   onClick={() => handleDecision(app.id, "APPROVED")}
-                  disabled={!allPassed}
-                  className="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                  className="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white"
                 >
                   Approve
                 </button>

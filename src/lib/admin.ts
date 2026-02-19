@@ -1,20 +1,21 @@
 import "server-only";
 import { getSessionUser } from "@/lib/auth";
-import { PRIMARY_ADMIN_EMAIL as ADMIN_EMAIL_CANON, isPrimaryAdminEmail } from "@/lib/admin-email";
-
-export const PRIMARY_ADMIN_EMAIL = "achyuta.2006@gmail.com";
+import { getConfiguredAdminEmails, isConfiguredAdminEmail } from "@/lib/admin-email";
 
 export function getAdminEmails() {
-  return [ADMIN_EMAIL_CANON];
+  return getConfiguredAdminEmails();
 }
 
 export function isAdminEmail(email?: string | null) {
-  return isPrimaryAdminEmail(email);
+  return isConfiguredAdminEmail(email, getAdminEmails());
 }
 
 export async function requireAdmin(request: Request) {
   void request;
   const sessionUser = await getSessionUser();
+  if (sessionUser?.role === "ADMIN") {
+    return { ok: true, user: sessionUser } as const;
+  }
   if (isAdminEmail(sessionUser?.email)) {
     return { ok: true, user: sessionUser } as const;
   }

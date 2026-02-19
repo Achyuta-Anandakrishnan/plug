@@ -45,15 +45,11 @@ export async function PATCH(
       }
 
       if (body?.status === "APPROVED") {
-        const remaining = await tx.verificationCheck.count({
-          where: {
-            sellerId: id,
-            status: { not: "PASSED" },
-          },
+        // Admin override: approving a seller marks all checks as PASSED.
+        await tx.verificationCheck.updateMany({
+          where: { sellerId: id },
+          data: { status: "PASSED" },
         });
-        if (remaining > 0) {
-          throw new Error("All verification steps must be PASSED before approval.");
-        }
       }
 
       return tx.sellerProfile.update({
@@ -86,13 +82,17 @@ export async function PATCH(
         });
       }
 
-      await notifySellerDecision({
-        sellerId: seller.id,
-        email: seller.user.email ?? "",
-        displayName: seller.user.displayName ?? "Seller",
-        status: body.status,
-        notes: body.notes,
-      });
+      try {
+        await notifySellerDecision({
+          sellerId: seller.id,
+          email: seller.user.email ?? "",
+          displayName: seller.user.displayName ?? "Seller",
+          status: body.status,
+          notes: body.notes,
+        });
+      } catch (notifyError) {
+        console.error("notifySellerDecision failed", notifyError);
+      }
     }
 
     return jsonOk(seller);

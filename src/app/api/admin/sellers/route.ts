@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   }
 
   const sellers = await prisma.sellerProfile.findMany({
-    where: { status: "IN_REVIEW" },
+    where: { status: { in: ["IN_REVIEW", "APPLIED"] } },
     include: {
       user: {
         select: { id: true, email: true, displayName: true, phone: true },

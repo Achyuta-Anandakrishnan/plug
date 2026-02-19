@@ -72,7 +72,8 @@ export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
-  const isAdmin = isPrimaryAdminEmail(session?.user?.email);
+  const isAdmin =
+    session?.user?.role === "ADMIN" || isPrimaryAdminEmail(session?.user?.email);
   const isMobileUi = useMobileUi();
 
   useEffect(() => {

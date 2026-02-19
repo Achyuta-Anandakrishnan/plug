@@ -18,3 +18,22 @@ export function normalizeAdminEmail(email?: string | null) {
 export function isPrimaryAdminEmail(email?: string | null) {
   return normalizeAdminEmail(email) === normalizeAdminEmail(PRIMARY_ADMIN_EMAIL);
 }
+
+export function getConfiguredAdminEmails() {
+  const fromEnv = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "")
+    .split(",")
+    .map((email) => normalizeAdminEmail(email))
+    .filter(Boolean);
+
+  const fallback = normalizeAdminEmail(PRIMARY_ADMIN_EMAIL);
+  return Array.from(new Set([fallback, ...fromEnv]));
+}
+
+export function isConfiguredAdminEmail(
+  email?: string | null,
+  adminEmails: string[] = getConfiguredAdminEmails(),
+) {
+  const normalized = normalizeAdminEmail(email);
+  if (!normalized) return false;
+  return adminEmails.includes(normalized);
+}

@@ -5,8 +5,10 @@ import GoogleProvider from "next-auth/providers/google";
 import AppleProvider from "next-auth/providers/apple";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import { getConfiguredAdminEmails, isConfiguredAdminEmail } from "@/lib/admin-email";
 
 const providers = [];
+const adminEmails = getConfiguredAdminEmails();
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   providers.push(
@@ -37,14 +39,19 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      if (user && "role" in user) {
-        token.role = (user as { role?: string }).role;
-        token.userId = (user as { id?: string }).id;
-        token.email = (user as { email?: string }).email ?? token.email;
+      if (user) {
+        token.userId =
+          (user as { id?: string }).id ??
+          (token.userId as string | undefined) ??
+          token.sub;
+        token.role = (user as { role?: string }).role ?? (token.role as string | undefined);
+        token.email = (user as { email?: string }).email ?? (token.email as string | undefined);
       }
-      if (token.userId) {
+
+      const tokenUserId = (token.userId as string | undefined) ?? token.sub;
+      if (tokenUserId) {
         const dbUser = await prisma.user.findUnique({
-          where: { id: token.userId as string },
+          where: { id: tokenUserId },
           select: { role: true, email: true },
         });
         if (dbUser?.role) {
@@ -52,6 +59,16 @@ export const authOptions: NextAuthOptions = {
         }
         if (dbUser?.email) {
           token.email = dbUser.email;
+        }
+
+        if (isConfiguredAdminEmail(dbUser?.email ?? (token.email as string), adminEmails)) {
+          token.role = "ADMIN";
+          if (dbUser?.role !== "ADMIN") {
+            await prisma.user.update({
+              where: { id: tokenUserId },
+              data: { role: "ADMIN" },
+            });
+          }
         }
       }
       return token;
