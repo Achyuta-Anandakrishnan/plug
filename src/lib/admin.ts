@@ -1,43 +1,23 @@
 import "server-only";
 import { getSessionUser } from "@/lib/auth";
+import { PRIMARY_ADMIN_EMAIL, isPrimaryAdminEmail } from "@/lib/admin-email";
+
+export { PRIMARY_ADMIN_EMAIL };
 
 export function getAdminEmails() {
-  return (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
+  return [PRIMARY_ADMIN_EMAIL];
 }
 
 export function isAdminEmail(email?: string | null) {
-  if (!email) return false;
-  const adminEmails = getAdminEmails();
-  return adminEmails.length > 0 && adminEmails.includes(email.toLowerCase());
+  return isPrimaryAdminEmail(email);
 }
 
 export async function requireAdmin(request: Request) {
+  void request;
   const sessionUser = await getSessionUser();
   if (isAdminEmail(sessionUser?.email)) {
     return { ok: true, user: sessionUser } as const;
   }
 
-  if (sessionUser?.role === "ADMIN") {
-    return { ok: true, user: sessionUser } as const;
-  }
-
-  // In production, admin access should come from a signed session.
-  // Keep x-admin-key as a dev escape hatch for local tooling.
-  if (process.env.NODE_ENV === "production") {
-    return { ok: false, status: 401, error: "Missing admin credentials." } as const;
-  }
-
-  const adminKey = request.headers.get("x-admin-key");
-  const allowedKey = process.env.ADMIN_KEY;
-
-  if (allowedKey && adminKey && adminKey === allowedKey) {
-    return { ok: true } as const;
-  }
-
-  // Never trust caller-provided user identifiers for auth.
-  // Admin access must be established via a signed session (NextAuth) or a shared secret (x-admin-key).
   return { ok: false, status: 401, error: "Missing admin credentials." } as const;
 }

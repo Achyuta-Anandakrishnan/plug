@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   }
 
   const allowSupportFlag = Boolean(
-    sessionUser && (sessionUser.role === "ADMIN" || isAdminEmail(sessionUser.email)),
+    sessionUser && isAdminEmail(sessionUser.email),
   );
   const isSupport = isDev() ? Boolean(body.isSupport) : allowSupportFlag && Boolean(body.isSupport);
 

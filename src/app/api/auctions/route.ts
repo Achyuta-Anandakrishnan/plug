@@ -59,8 +59,20 @@ export async function GET(request: Request) {
 
   const sessionUser = await getSessionUser();
   const isAdmin = Boolean(
-    sessionUser && (sessionUser.role === "ADMIN" || isAdminEmail(sessionUser.email)),
+    sessionUser && isAdminEmail(sessionUser.email),
   );
+
+  const now = new Date();
+  await prisma.auction.updateMany({
+    where: {
+      status: "LIVE",
+      OR: [
+        { extendedTime: { not: null, lte: now } },
+        { extendedTime: null, endTime: { not: null, lte: now } },
+      ],
+    },
+    data: { status: "ENDED" },
+  });
 
   const where: {
     status?: AuctionStatus;
@@ -70,6 +82,11 @@ export async function GET(request: Request) {
 
   if (statusParam) {
     where.status = statusParam as AuctionStatus;
+    if (statusParam === "LIVE") {
+      (where as Prisma.AuctionWhereInput).AND = [
+        { OR: [{ extendedTime: { gt: now } }, { endTime: { gt: now } }, { endTime: null }] },
+      ];
+    }
     if (statusParam === "DRAFT") {
       if (!sessionUser) {
         return jsonError("Authentication required.", 401);
@@ -81,6 +98,9 @@ export async function GET(request: Request) {
   } else {
     // Safe default: only expose live listings when no status filter is requested.
     where.status = "LIVE";
+    (where as Prisma.AuctionWhereInput).AND = [
+      { OR: [{ extendedTime: { gt: now } }, { endTime: { gt: now } }, { endTime: null }] },
+    ];
   }
 
   if (category) {
