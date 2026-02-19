@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     return jsonError("Authentication required.", 401);
   }
 
-  const isAdmin = sessionUser.role === "ADMIN" || isAdminEmail(sessionUser.email);
+  const isAdmin = isAdminEmail(sessionUser.email);
   if (!isAdmin) {
     const sellerProfile = await prisma.sellerProfile.findUnique({
       where: { userId: sessionUser.id },

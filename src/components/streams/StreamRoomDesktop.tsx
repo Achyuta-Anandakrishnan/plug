@@ -203,7 +203,7 @@ export function StreamRoomDesktop({
   const imageUrl = data.item?.images?.find((img) => img.isPrimary)?.url ?? data.item?.images?.[0]?.url ?? null;
 
   return (
-    <section className="grid h-[calc(100vh-220px)] min-h-[700px] gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+    <section className="grid h-[calc(100vh-260px)] min-h-[620px] gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
       <div
         ref={streamFrameRef}
         className="relative overflow-hidden rounded-[28px] border border-white/60 bg-slate-900"
@@ -320,13 +320,13 @@ export function StreamRoomDesktop({
           {actionStatus && <p className="text-xs text-slate-600">{actionStatus}</p>}
         </section>
 
-        <section className="surface-panel rounded-3xl p-4 min-h-0">
+        <section className="surface-panel rounded-3xl p-4 min-h-0 flex flex-col">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-display text-lg text-slate-900">Chat</h3>
             <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Scrollable</span>
           </div>
 
-          <div className="h-[calc(100%-88px)] min-h-0 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
             {data.chatMessages.length === 0 && (
               <div className="rounded-2xl bg-slate-100 px-3 py-2 text-xs text-slate-500">No chat yet. Be first to comment.</div>
             )}
@@ -341,7 +341,7 @@ export function StreamRoomDesktop({
             ))}
           </div>
 
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex items-center gap-2 pt-2">
             <input
               value={message}
               onChange={(event) => setMessage(event.target.value)}

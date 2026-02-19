@@ -228,7 +228,7 @@ export function StreamRoomMobile({
           <h3 className="font-display text-lg text-slate-900">Chat</h3>
           <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Scroll</span>
         </div>
-        <div className="max-h-52 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+        <div className="max-h-48 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
           {data.chatMessages.map((entry) => (
             <div key={entry.id} className="rounded-2xl bg-slate-100 px-3 py-2">
               <span className="block text-xs font-semibold text-slate-500">{entry.sender.displayName ?? "Guest"}</span>
@@ -257,7 +257,7 @@ export function StreamRoomMobile({
           <h3 className="font-display text-lg text-slate-900">Recent bids</h3>
           <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Scroll</span>
         </div>
-        <div className="max-h-44 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+        <div className="max-h-40 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
           {data.bids.map((bid) => (
             <div key={bid.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white/80 px-3 py-2">
               <span className="text-xs uppercase tracking-[0.2em] text-slate-400">{bid.bidderId.slice(0, 6)}...</span>
