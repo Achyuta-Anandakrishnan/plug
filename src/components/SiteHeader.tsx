@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useMobileUi } from "@/hooks/useMobileUi";
+import { isPrimaryAdminEmail } from "@/lib/admin-email";
 
 const ThemeToggle = dynamic(
   () => import("@/components/ThemeToggle").then((mod) => mod.ThemeToggle),
@@ -71,7 +72,7 @@ export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
-  const isAdmin = session?.user?.role === "ADMIN";
+  const isAdmin = isPrimaryAdminEmail(session?.user?.email);
   const isMobileUi = useMobileUi();
 
   useEffect(() => {
