@@ -1,6 +1,14 @@
 import { UserRole, VerificationType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { isDev, jsonError, jsonOk, parseJson } from "@/lib/api";
+import {
+  EMAIL_REGEX,
+  checkRateLimit,
+  getRequestIp,
+  isDev,
+  jsonError,
+  jsonOk,
+  parseJson,
+} from "@/lib/api";
 import { notifySellerApplication } from "@/lib/email";
 import { getSessionUser } from "@/lib/auth";
 
@@ -17,15 +25,28 @@ export async function POST(request: Request) {
   if (!body) {
     return jsonError("Invalid request body.");
   }
+
   const sessionUser = await getSessionUser();
-  const effectiveUserId = sessionUser?.id ?? (isDev() ? body?.userId : null);
+  const inDev = isDev();
+
+  if (!sessionUser && !inDev) {
+    return jsonError("Authentication required.", 401);
+  }
+
+  const ip = getRequestIp(request);
+  const rateLimitKey = sessionUser ? `seller-apply:user:${sessionUser.id}` : `seller-apply:ip:${ip}`;
+  if (!checkRateLimit(rateLimitKey, 5, 60_000)) {
+    return jsonError("Too many seller application attempts. Try again shortly.", 429);
+  }
+
+  const effectiveUserId = sessionUser?.id ?? (inDev ? body.userId : null);
 
   if (!effectiveUserId && !body?.email) {
     return jsonError("userId or email is required.");
   }
 
   const email = body.email?.trim().toLowerCase();
-  if (email && !email.includes("@")) {
+  if (email && !EMAIL_REGEX.test(email)) {
     return jsonError("Invalid email.");
   }
 
@@ -40,7 +61,7 @@ export async function POST(request: Request) {
     return jsonError("User not found.", 404);
   }
 
-  if (sessionUser && !isDev()) {
+  if (sessionUser && !inDev) {
     const googleAccount = await prisma.account.findFirst({
       where: { userId: sessionUser.id, provider: "google" },
     });
