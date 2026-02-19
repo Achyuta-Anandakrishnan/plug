@@ -86,6 +86,12 @@ Note: API routes use NextAuth server sessions for auth. Admin routes may also ac
 
 See `docs/hosting.md` for the recommended stack and deployment steps.
 
+## Deployment notes
+
+- Set the production branch to `main` in Vercel project settings.
+- If you hit admin build errors after conflict resolution, make sure `src/lib/admin.ts` does not re-export `PRIMARY_ADMIN_EMAIL` and only imports it from `src/lib/admin-email.ts`.
+
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
