@@ -2,6 +2,8 @@ import "server-only";
 import { getSessionUser } from "@/lib/auth";
 import { PRIMARY_ADMIN_EMAIL as ADMIN_EMAIL_CANON, isPrimaryAdminEmail } from "@/lib/admin-email";
 
+export const PRIMARY_ADMIN_EMAIL = "achyuta.2006@gmail.com";
+
 export function getAdminEmails() {
   return [ADMIN_EMAIL_CANON];
 }
