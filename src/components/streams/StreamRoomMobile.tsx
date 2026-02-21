@@ -178,10 +178,12 @@ export function StreamRoomMobile({
             onParticipantCount={setParticipantCount}
             onStatusChange={setStreamStatus}
           />
-          <div className="absolute left-3 top-3 flex items-center gap-2">
-            <span className={`rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] ${streamStatus === "live" ? "bg-emerald-400/20 text-emerald-100" : "bg-white/15 text-white"}`}>
-              {streamStatus === "live" ? "Live" : "Offline"}
-            </span>
+          <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
+            {!Boolean(sessionUserId && data.seller?.user?.id === sessionUserId) && (
+              <span className={`rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] ${streamStatus === "live" ? "bg-emerald-400/20 text-emerald-100" : "bg-white/15 text-white"}`}>
+                {streamStatus === "live" ? "Live" : "Offline"}
+              </span>
+            )}
             <span className="rounded-full bg-white/15 px-3 py-1 text-xs text-white">{formatSeconds(timeLeft)}</span>
           </div>
           <div className="absolute bottom-3 left-3 right-3 rounded-2xl bg-slate-950/55 px-3 py-2 text-white">

@@ -279,13 +279,13 @@ export function LiveKitStream({
       )}
 
       {isHost && (
-        <div className="absolute left-4 top-4 flex flex-wrap items-center gap-2">
+        <div className="absolute right-4 top-4 z-40 flex flex-wrap items-center justify-end gap-2">
           <span className="rounded-full bg-white/15 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white">
             {status === "live" ? "Live" : "Offline"}
           </span>
           <button
             onClick={status === "live" ? stopBroadcast : startBroadcast}
-            className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white/25"
+            className="rounded-full bg-[var(--royal)] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[var(--royal-deep)]"
           >
             {status === "live" ? "Stop stream" : "Go live"}
           </button>

@@ -219,11 +219,13 @@ export function StreamRoomDesktop({
 
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,_rgba(2,6,23,0.75),_rgba(2,6,23,0.15)_45%,_transparent)]" />
 
-        <div className="absolute left-4 top-4 right-4 flex items-start justify-between gap-3">
+        <div className="absolute left-4 top-4 right-4 z-20 flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className={`rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] ${streamStatus === "live" ? "bg-emerald-400/20 text-emerald-100" : "bg-white/15 text-white"}`}>
-              {streamStatus === "live" ? "Live" : "Offline"}
-            </span>
+            {!isHost && (
+              <span className={`rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] ${streamStatus === "live" ? "bg-emerald-400/20 text-emerald-100" : "bg-white/15 text-white"}`}>
+                {streamStatus === "live" ? "Live" : "Offline"}
+              </span>
+            )}
             <span className="rounded-full bg-white/15 px-3 py-1 text-xs text-white">
               {formatSeconds(timeLeft)} left
             </span>
