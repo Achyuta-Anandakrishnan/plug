@@ -8,6 +8,7 @@ import type { AuctionDetail } from "@/hooks/useAuction";
 import { getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { LiveKitStream } from "@/components/streams/LiveKitStream";
+import { ListingImageStrip } from "@/components/streams/ListingImageStrip";
 
 type StreamRoomDesktopProps = {
   auctionId: string;
@@ -281,7 +282,7 @@ export function StreamRoomDesktop({
         )}
       </div>
 
-      <aside className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] gap-4">
+      <aside className="grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)_minmax(0,1fr)] gap-4">
         <section className="surface-panel rounded-3xl p-4 space-y-3">
           <div className="flex items-center justify-between text-sm text-slate-600">
             <span>Next bid</span>
@@ -321,6 +322,8 @@ export function StreamRoomDesktop({
           )}
           {actionStatus && <p className="text-xs text-slate-600">{actionStatus}</p>}
         </section>
+
+        <ListingImageStrip images={data.item?.images ?? []} />
 
         <section className="surface-panel rounded-3xl p-4 min-h-0 flex flex-col">
           <div className="mb-3 flex items-center justify-between">

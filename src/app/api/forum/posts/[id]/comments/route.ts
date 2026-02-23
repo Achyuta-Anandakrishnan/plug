@@ -6,6 +6,7 @@ import { ensureForumSchema } from "@/lib/forum-schema";
 
 type CreateCommentBody = {
   body?: string;
+  parentId?: string;
 };
 
 export async function POST(
@@ -24,6 +25,7 @@ export async function POST(
   const { id: postId } = await context.params;
   const body = await parseJson<CreateCommentBody>(request);
   const text = body?.body?.trim() ?? "";
+  const parentId = body?.parentId?.trim() || null;
 
   if (!text || text.length < 2) {
     return jsonError("body must be at least 2 characters.", 400);
@@ -43,10 +45,21 @@ export async function POST(
     return jsonError("Post not found.", 404);
   }
 
+  if (parentId) {
+    const parent = await prisma.forumComment.findUnique({
+      where: { id: parentId },
+      select: { id: true, postId: true },
+    });
+    if (!parent || parent.postId !== postId) {
+      return jsonError("Parent comment not found.", 404);
+    }
+  }
+
   const comment = await prisma.forumComment.create({
     data: {
       postId,
       authorId: sessionUser.id,
+      parentId,
       body: text,
     },
     include: {

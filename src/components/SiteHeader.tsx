@@ -22,11 +22,26 @@ function Brand() {
       </div>
       <div>
         <p className="font-display text-base text-slate-900 sm:text-lg">Vyre</p>
-        <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500 sm:text-xs sm:tracking-[0.28em]">
-          Verified Live Sales
-        </p>
       </div>
     </Link>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M15 17h5l-1.4-1.4a2 2 0 0 1-.6-1.4V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
+      <path d="M9.5 19a2.5 2.5 0 0 0 5 0" />
+    </svg>
   );
 }
 
@@ -172,6 +187,14 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+            <Link
+              href="/messages"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 transition hover:border-slate-300 hover:text-slate-900 md:hidden"
+              aria-label="Messages"
+              title="Messages"
+            >
+              <BellIcon />
+            </Link>
             <button
               type="button"
               onClick={() => setMobileOpen((prev) => !prev)}
@@ -186,6 +209,14 @@ export function SiteHeader() {
             </div>
 
             <div className="hidden md:flex md:items-center md:gap-3">
+              <Link
+                href="/messages"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                aria-label="Messages"
+                title="Messages"
+              >
+                <BellIcon />
+              </Link>
               <AccountActions signedIn={Boolean(session?.user?.id)} />
               <Link
                 href={isVerifiedSeller ? "/sell" : "/seller/verification"}

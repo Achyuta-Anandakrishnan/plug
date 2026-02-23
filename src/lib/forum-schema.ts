@@ -37,6 +37,7 @@ export async function ensureForumSchema() {
         "id" TEXT NOT NULL,
         "postId" TEXT NOT NULL REFERENCES "ForumPost"("id") ON DELETE CASCADE ON UPDATE CASCADE,
         "authorId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+        "parentId" TEXT REFERENCES "ForumComment"("id") ON DELETE CASCADE ON UPDATE CASCADE,
         "body" TEXT NOT NULL,
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "ForumComment_pkey" PRIMARY KEY ("id")
@@ -55,6 +56,9 @@ export async function ensureForumSchema() {
     await prisma.$executeRawUnsafe(
       `CREATE INDEX IF NOT EXISTS "ForumComment_authorId_idx" ON "ForumComment"("authorId");`,
     );
+    await prisma.$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS "ForumComment_parentId_idx" ON "ForumComment"("parentId");`,
+    );
 
     await prisma.$executeRawUnsafe(`
       ALTER TABLE "ForumPost"
@@ -63,6 +67,25 @@ export async function ensureForumSchema() {
     await prisma.$executeRawUnsafe(`
       ALTER TABLE "ForumPost"
       ADD COLUMN IF NOT EXISTS "publishedAt" TIMESTAMP(3);
+    `);
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE "ForumComment"
+      ADD COLUMN IF NOT EXISTS "parentId" TEXT;
+    `);
+    await prisma.$executeRawUnsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'ForumComment_parentId_fkey'
+        ) THEN
+          ALTER TABLE "ForumComment"
+          ADD CONSTRAINT "ForumComment_parentId_fkey"
+          FOREIGN KEY ("parentId") REFERENCES "ForumComment"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
     `);
     await prisma.$executeRawUnsafe(`
       UPDATE "ForumPost"

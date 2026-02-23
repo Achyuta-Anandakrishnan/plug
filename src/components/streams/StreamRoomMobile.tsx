@@ -8,6 +8,7 @@ import type { AuctionDetail } from "@/hooks/useAuction";
 import { getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { LiveKitStream } from "@/components/streams/LiveKitStream";
+import { ListingImageStrip } from "@/components/streams/ListingImageStrip";
 
 type StreamRoomMobileProps = {
   auctionId: string;
@@ -192,6 +193,8 @@ export function StreamRoomMobile({
           </div>
         </div>
       </section>
+
+      <ListingImageStrip images={data.item?.images ?? []} compact />
 
       <section className="surface-panel rounded-3xl p-4 space-y-3">
         <p className="font-display text-xl text-slate-900">{formatCurrency(data.currentBid, currency)}</p>

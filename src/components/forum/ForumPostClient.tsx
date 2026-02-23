@@ -15,6 +15,7 @@ type ForumComment = {
   id: string;
   body: string;
   createdAt: string;
+  parentId: string | null;
   author: ForumAuthor;
 };
 
@@ -53,6 +54,7 @@ export function ForumPostClient() {
   const [error, setError] = useState("");
 
   const [comment, setComment] = useState("");
+  const [replyTo, setReplyTo] = useState<ForumComment | null>(null);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
 
@@ -88,6 +90,28 @@ export function ForumPostClient() {
     }`;
   }, [post]);
 
+  const commentTree = useMemo(() => {
+    if (!post) return [] as Array<{ parent: ForumComment; replies: ForumComment[] }>;
+
+    const childrenMap = new Map<string, ForumComment[]>();
+    const topLevel: ForumComment[] = [];
+
+    for (const commentItem of post.comments) {
+      if (!commentItem.parentId) {
+        topLevel.push(commentItem);
+        continue;
+      }
+      const list = childrenMap.get(commentItem.parentId) ?? [];
+      list.push(commentItem);
+      childrenMap.set(commentItem.parentId, list);
+    }
+
+    return topLevel.map((parent) => ({
+      parent,
+      replies: childrenMap.get(parent.id) ?? [],
+    }));
+  }, [post]);
+
   const handleComment = async () => {
     setSendError("");
     if (!session?.user?.id) {
@@ -104,7 +128,10 @@ export function ForumPostClient() {
       const response = await fetch(`/api/forum/posts/${postId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: text }),
+        body: JSON.stringify({
+          body: text,
+          parentId: replyTo?.id ?? undefined,
+        }),
       });
       const payload = (await response.json()) as { error?: string } & ForumComment;
       if (!response.ok) {
@@ -113,6 +140,7 @@ export function ForumPostClient() {
         return;
       }
       setComment("");
+      setReplyTo(null);
       setPost((prev) => {
         if (!prev) return prev;
         return {
@@ -201,32 +229,70 @@ export function ForumPostClient() {
               Be the first to reply.
             </div>
           ) : (
-            post.comments.map((c) => (
+            commentTree.map(({ parent, replies }) => (
               <div
-                key={c.id}
-                className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3"
+                key={parent.id}
+                className="space-y-2 rounded-2xl border border-white/70 bg-white/70 px-4 py-3"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-slate-800">
-                    {c.author.displayName ?? "Member"}
+                    {parent.author.displayName ?? "Member"}
                   </p>
                   <p className="text-xs text-slate-400">
-                    {formatLongDate(c.createdAt)}
+                    {formatLongDate(parent.createdAt)}
                   </p>
                 </div>
-                <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">
-                  {c.body}
+                <p className="whitespace-pre-wrap text-sm text-slate-700">
+                  {parent.body}
                 </p>
+                <button
+                  type="button"
+                  onClick={() => setReplyTo(parent)}
+                  className="rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs font-semibold text-slate-600"
+                >
+                  Reply
+                </button>
+                {replies.length > 0 && (
+                  <div className="space-y-2 border-l border-slate-200 pl-3">
+                    {replies.map((reply) => (
+                      <div key={reply.id} className="rounded-xl bg-white px-3 py-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-semibold text-slate-700">
+                            {reply.author.displayName ?? "Member"}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {formatLongDate(reply.createdAt)}
+                          </p>
+                        </div>
+                        <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">
+                          {reply.body}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))
           )}
         </div>
 
         <div className="mt-5 grid gap-3">
+          {replyTo && (
+            <div className="flex items-center justify-between rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+              <span>Replying to {replyTo.author.displayName ?? "Member"}</span>
+              <button
+                type="button"
+                onClick={() => setReplyTo(null)}
+                className="rounded-full border border-blue-200 bg-white/80 px-2 py-1 font-semibold"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Write a reply..."
+            placeholder={replyTo ? "Write your threaded reply..." : "Write a reply..."}
             className="min-h-24 w-full resize-y rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
           />
           {sendError ? (
