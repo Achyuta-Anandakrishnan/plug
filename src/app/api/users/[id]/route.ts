@@ -1,18 +1,23 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
+import { ensureProfileSchema } from "@/lib/profile-schema";
 
 export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  await ensureProfileSchema().catch(() => null);
+
   const { id } = await context.params;
 
   const user = await prisma.user.findUnique({
     where: { id },
     select: {
       id: true,
+      username: true,
       displayName: true,
       name: true,
+      bio: true,
       image: true,
       createdAt: true,
       role: true,

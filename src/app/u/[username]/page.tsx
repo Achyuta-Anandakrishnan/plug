@@ -1,16 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { MessageUserButton } from "@/components/profiles/MessageUserButton";
 import { formatCurrency } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { ensureProfileSchema } from "@/lib/profile-schema";
 
-async function getProfile(id: string) {
+async function getProfileByUsername(username: string) {
   await ensureProfileSchema().catch(() => null);
 
   return prisma.user.findUnique({
-    where: { id },
+    where: { username },
     select: {
       id: true,
       username: true,
@@ -54,13 +54,14 @@ async function getProfile(id: string) {
   });
 }
 
-export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const profile = await getProfile(id);
+export default async function UsernameProfilePage({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}) {
+  const { username } = await params;
+  const profile = await getProfileByUsername(username.toLowerCase());
   if (!profile) notFound();
-  if (profile.username) {
-    redirect(`/u/${profile.username}`);
-  }
 
   return (
     <div className="space-y-6">
@@ -78,25 +79,44 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         <div className="flex items-center gap-4">
           <div className="relative h-14 w-14 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
             {profile.image ? (
-              <Image src={profile.image} alt={profile.displayName ?? "User"} fill sizes="56px" className="object-cover" unoptimized />
+              <Image
+                src={profile.image}
+                alt={profile.displayName ?? "User"}
+                fill
+                sizes="56px"
+                className="object-cover"
+                unoptimized
+              />
             ) : null}
           </div>
           <div>
-            <h1 className="text-base font-semibold text-slate-900">{profile.displayName ?? profile.name ?? "User"}</h1>
-            <p className="text-xs text-slate-500">Member since {new Date(profile.createdAt).toLocaleDateString()}</p>
-            {profile.bio ? <p className="mt-1 text-sm text-slate-600">{profile.bio}</p> : null}
+            <h1 className="text-base font-semibold text-slate-900">
+              {profile.displayName ?? profile.name ?? "User"}
+            </h1>
+            <p className="text-xs text-slate-500">@{profile.username}</p>
+            <p className="text-xs text-slate-500">
+              Member since {new Date(profile.createdAt).toLocaleDateString()}
+            </p>
           </div>
         </div>
+
+        {profile.bio ? <p className="mt-3 text-sm text-slate-600">{profile.bio}</p> : null}
 
         <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
           <div className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2">
             Role: <span className="font-semibold text-slate-900">{profile.role}</span>
           </div>
           <div className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2">
-            Seller status: <span className="font-semibold text-slate-900">{profile.sellerProfile?.status ?? "N/A"}</span>
+            Seller status:{" "}
+            <span className="font-semibold text-slate-900">
+              {profile.sellerProfile?.status ?? "N/A"}
+            </span>
           </div>
           <div className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2">
-            Trust tier: <span className="font-semibold text-slate-900">{profile.sellerProfile?.trustTier ?? "-"}</span>
+            Trust tier:{" "}
+            <span className="font-semibold text-slate-900">
+              {profile.sellerProfile?.trustTier ?? "-"}
+            </span>
           </div>
         </div>
       </section>
@@ -104,15 +124,25 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
       <section className="surface-panel rounded-[28px] p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-display text-lg text-slate-900">Live / Scheduled listings</h2>
-          <span className="text-xs uppercase tracking-[0.2em] text-slate-400">{profile.sellerProfile?.auctions.length ?? 0} active</span>
+          <span className="text-xs uppercase tracking-[0.2em] text-slate-400">
+            {profile.sellerProfile?.auctions.length ?? 0} active
+          </span>
         </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {(profile.sellerProfile?.auctions ?? []).map((listing) => (
-            <Link key={listing.id} href={`/streams/${listing.id}`} className="rounded-2xl border border-white/70 bg-white/70 p-3">
+            <Link
+              key={listing.id}
+              href={`/streams/${listing.id}`}
+              className="rounded-2xl border border-white/70 bg-white/70 p-3"
+            >
               <p className="text-base font-semibold text-slate-900">{listing.title}</p>
-              <p className="mt-1 text-xs text-slate-500">{listing.category?.name ?? "Collectible"} · {listing.status}</p>
-              <p className="mt-2 text-sm text-slate-700">Current {formatCurrency(listing.currentBid, listing.currency?.toUpperCase() ?? "USD")}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                {listing.category?.name ?? "Collectible"} · {listing.status}
+              </p>
+              <p className="mt-2 text-sm text-slate-700">
+                Current {formatCurrency(listing.currentBid, listing.currency?.toUpperCase() ?? "USD")}
+              </p>
             </Link>
           ))}
           {(profile.sellerProfile?.auctions?.length ?? 0) === 0 && (

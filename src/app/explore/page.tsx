@@ -44,7 +44,9 @@ export default function ExplorePage() {
   const [profiles, setProfiles] = useState<
     Array<{
       id: string;
+      username: string | null;
       displayName: string | null;
+      bio: string | null;
       role: string;
       sellerProfile: { status: string; auctions: Array<{ id: string }> } | null;
     }>
@@ -92,7 +94,9 @@ export default function ExplorePage() {
         const response = await fetch(`/api/users?q=${encodeURIComponent(q)}&limit=8`);
         const payload = (await response.json()) as Array<{
           id: string;
+          username: string | null;
           displayName: string | null;
+          bio: string | null;
           role: string;
           sellerProfile: { status: string; auctions: Array<{ id: string }> } | null;
         }>;
@@ -214,7 +218,10 @@ export default function ExplorePage() {
             {profiles.map((profile) => (
               <div key={profile.id} className="rounded-2xl border border-white/70 bg-white/70 p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <Link href={`/profiles/${profile.id}`} className="text-sm font-semibold text-slate-900 hover:underline">
+                  <Link
+                    href={profile.username ? `/u/${profile.username}` : `/profiles/${profile.id}`}
+                    className="text-sm font-semibold text-slate-900 hover:underline"
+                  >
                     {profile.displayName ?? "User"}
                   </Link>
                   <span className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
@@ -222,10 +229,12 @@ export default function ExplorePage() {
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-slate-500">
+                  {profile.username ? `@${profile.username} · ` : ""}
                   {profile.sellerProfile?.status === "APPROVED"
                     ? `${profile.sellerProfile.auctions.length} live listing(s)`
                     : "Marketplace member"}
                 </p>
+                {profile.bio ? <p className="mt-1 line-clamp-2 text-xs text-slate-500">{profile.bio}</p> : null}
                 <div className="mt-2">
                   <MessageUserButton
                     targetUserId={profile.id}

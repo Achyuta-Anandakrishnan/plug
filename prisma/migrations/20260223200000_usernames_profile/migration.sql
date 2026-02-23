@@ -1,0 +1,6 @@
+-- Add username and bio fields for user profiles
+ALTER TABLE "User"
+ADD COLUMN "username" TEXT,
+ADD COLUMN "bio" TEXT;
+
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");

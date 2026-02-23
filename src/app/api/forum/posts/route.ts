@@ -2,7 +2,8 @@ import { ForumPostStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
-import { ensureForumSchema } from "@/lib/forum-schema";
+import { ensureForumSchema, isForumSchemaMissing } from "@/lib/forum-schema";
+import { ensureProfileSchema } from "@/lib/profile-schema";
 
 type CreatePostBody = {
   title?: string;
@@ -11,11 +12,8 @@ type CreatePostBody = {
 };
 
 export async function GET(request: Request) {
-  try {
-    await ensureForumSchema();
-  } catch {
-    return jsonError("Forum database is not ready yet.", 503);
-  }
+  await ensureForumSchema().catch(() => null);
+  await ensureProfileSchema().catch(() => null);
 
   const { searchParams } = new URL(request.url);
   const sessionUser = await getSessionUser();
@@ -34,38 +32,43 @@ export async function GET(request: Request) {
     ? ForumPostStatus.DRAFT
     : ForumPostStatus.PUBLISHED;
 
-  const posts = await prisma.forumPost.findMany({
-    where: {
-      status,
-      ...(mineOnly || status === ForumPostStatus.DRAFT
-        ? { authorId: sessionUser?.id }
-        : undefined),
-      ...(q
-        ? {
-            OR: [
-              { title: { contains: q, mode: "insensitive" } },
-              { body: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : undefined),
-    },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-    include: {
-      author: { select: { id: true, displayName: true, image: true } },
-      _count: { select: { comments: true } },
-    },
-  });
+  let posts;
+  try {
+    posts = await prisma.forumPost.findMany({
+      where: {
+        status,
+        ...(mineOnly || status === ForumPostStatus.DRAFT
+          ? { authorId: sessionUser?.id }
+          : undefined),
+        ...(q
+          ? {
+              OR: [
+                { title: { contains: q, mode: "insensitive" } },
+                { body: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : undefined),
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      include: {
+        author: { select: { id: true, username: true, displayName: true, image: true } },
+        _count: { select: { comments: true } },
+      },
+    });
+  } catch (error) {
+    if (isForumSchemaMissing(error)) {
+      return jsonError("Forum database is not ready yet.", 503);
+    }
+    throw error;
+  }
 
   return jsonOk(posts);
 }
 
 export async function POST(request: Request) {
-  try {
-    await ensureForumSchema();
-  } catch {
-    return jsonError("Forum database is not ready yet.", 503);
-  }
+  await ensureForumSchema().catch(() => null);
+  await ensureProfileSchema().catch(() => null);
 
   const sessionUser = await getSessionUser();
   if (!sessionUser) return jsonError("Authentication required.", 401);
@@ -88,19 +91,27 @@ export async function POST(request: Request) {
     return jsonError("Provide a title or body to save a draft.", 400);
   }
 
-  const post = await prisma.forumPost.create({
-    data: {
-      authorId: sessionUser.id,
-      title: title || "Untitled draft",
-      body: text || "Draft body",
-      status: desiredStatus,
-      publishedAt: desiredStatus === ForumPostStatus.PUBLISHED ? new Date() : null,
-    },
-    include: {
-      author: { select: { id: true, displayName: true, image: true } },
-      _count: { select: { comments: true } },
-    },
-  });
+  let post;
+  try {
+    post = await prisma.forumPost.create({
+      data: {
+        authorId: sessionUser.id,
+        title: title || "Untitled draft",
+        body: text || "Draft body",
+        status: desiredStatus,
+        publishedAt: desiredStatus === ForumPostStatus.PUBLISHED ? new Date() : null,
+      },
+      include: {
+        author: { select: { id: true, username: true, displayName: true, image: true } },
+        _count: { select: { comments: true } },
+      },
+    });
+  } catch (error) {
+    if (isForumSchemaMissing(error)) {
+      return jsonError("Forum database is not ready yet.", 503);
+    }
+    throw error;
+  }
 
   return jsonOk(post, { status: 201 });
 }

@@ -103,3 +103,13 @@ export async function ensureForumSchema() {
 
   return ensureForumSchemaPromise;
 }
+
+export function isForumSchemaMissing(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const code = "code" in error ? String((error as { code?: unknown }).code ?? "") : "";
+  const message = "message" in error
+    ? String((error as { message?: unknown }).message ?? "")
+    : "";
+  if (code === "42P01" || code === "42704") return true;
+  return message.includes("ForumPost") || message.includes("ForumComment");
+}

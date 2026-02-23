@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
@@ -11,7 +12,7 @@ type Conversation = {
   updatedAt: string;
   participants: Array<{
     userId: string;
-    user: { id: string; displayName: string | null };
+    user: { id: string; username: string | null; displayName: string | null };
   }>;
   messages: Array<{
     id: string;
@@ -122,7 +123,7 @@ export function MessagesClient() {
     const q = query.trim().toLowerCase();
     return conversations.filter((c) => {
       const label = c.participants
-        .map((p) => p.user.displayName ?? p.userId)
+        .map((p) => p.user.displayName ?? p.user.username ?? p.userId)
         .join(" ")
         .toLowerCase();
       return label.includes(q) || (c.subject ?? "").toLowerCase().includes(q);
@@ -134,7 +135,7 @@ export function MessagesClient() {
   const activeParticipantsLabel =
     activeConversation?.participants
       .filter((p) => p.userId !== sessionUserId)
-      .map((p) => p.user.displayName ?? "Unknown")
+      .map((p) => p.user.displayName ?? p.user.username ?? "Unknown")
       .join(", ") ?? "";
   const activeTitle =
     activeConversation?.subject?.trim() ||
@@ -222,7 +223,7 @@ export function MessagesClient() {
                 const last = thread.messages[0]?.body ?? "";
                 const otherNames = thread.participants
                   .filter((p) => p.userId !== sessionUserId)
-                  .map((p) => p.user.displayName ?? "Unknown")
+                  .map((p) => p.user.displayName ?? p.user.username ?? "Unknown")
                   .join(", ");
                 const title = thread.subject ?? otherNames ?? "Conversation";
                 const selected = thread.id === activeId;
@@ -262,6 +263,21 @@ export function MessagesClient() {
               <p className="text-xs text-slate-400">
                 {activeConversation?.isSupport ? "Support thread" : "Direct thread"}
               </p>
+              {activeConversation ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {activeConversation.participants
+                    .filter((p) => p.userId !== sessionUserId)
+                    .map((p) => (
+                      <Link
+                        key={p.userId}
+                        href={p.user.username ? `/u/${p.user.username}` : `/profiles/${p.user.id}`}
+                        className="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:text-slate-900"
+                      >
+                        {p.user.displayName ?? p.user.username ?? "Member"}
+                      </Link>
+                    ))}
+                </div>
+              ) : null}
             </div>
           </div>
 

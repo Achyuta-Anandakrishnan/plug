@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { ReferralBar } from "@/components/settings/ReferralBar";
+import { ProfileEditor } from "@/components/settings/ProfileEditor";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -22,6 +23,10 @@ export default function SettingsPage() {
         <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
           Profile
         </p>
+        <div className="mt-4">
+          <ProfileEditor />
+        </div>
+
         <div className="mt-4 grid gap-3 text-sm text-slate-600">
           <div className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
             <span>Email</span>
@@ -66,4 +71,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

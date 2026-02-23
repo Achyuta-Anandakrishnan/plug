@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { isDev, jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
+import { ensureProfileSchema } from "@/lib/profile-schema";
 
 type CreateConversationBody = {
   participantIds?: string[];
@@ -10,6 +11,8 @@ type CreateConversationBody = {
 };
 
 export async function GET(request: Request) {
+  await ensureProfileSchema().catch(() => null);
+
   const { searchParams } = new URL(request.url);
   const sessionUser = await getSessionUser();
   const actorId =
@@ -27,7 +30,7 @@ export async function GET(request: Request) {
     },
     include: {
       participants: {
-        include: { user: { select: { displayName: true, id: true } } },
+        include: { user: { select: { displayName: true, username: true, id: true } } },
       },
       messages: {
         orderBy: { createdAt: "desc" },
@@ -41,6 +44,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  await ensureProfileSchema().catch(() => null);
+
   const body = await parseJson<CreateConversationBody>(request);
 
   if (!body?.participantIds || body.participantIds.length < 2) {
@@ -83,7 +88,7 @@ export async function POST(request: Request) {
       },
       include: {
         participants: {
-          include: { user: { select: { displayName: true, id: true } } },
+          include: { user: { select: { displayName: true, username: true, id: true } } },
         },
       },
     });
@@ -102,7 +107,7 @@ export async function POST(request: Request) {
     },
     include: {
       participants: {
-        include: { user: { select: { displayName: true, id: true } } },
+        include: { user: { select: { displayName: true, username: true, id: true } } },
       },
     },
   });

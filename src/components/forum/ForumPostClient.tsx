@@ -7,6 +7,7 @@ import { signIn, useSession } from "next-auth/react";
 
 type ForumAuthor = {
   id: string;
+  username: string | null;
   displayName: string | null;
   image: string | null;
 };
@@ -199,7 +200,10 @@ export function ForumPostClient() {
         <h1 className="text-base font-semibold text-slate-900">{post.title}</h1>
         <p className="mt-2 text-sm text-slate-500">
           by{" "}
-          <Link href={`/profiles/${post.author.id}`} className="font-semibold text-slate-700 hover:underline">
+          <Link
+            href={post.author.username ? `/u/${post.author.username}` : `/profiles/${post.author.id}`}
+            className="font-semibold text-slate-700 hover:underline"
+          >
             {post.author.displayName ?? "Member"}
           </Link>
         </p>
@@ -239,7 +243,10 @@ export function ForumPostClient() {
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-slate-800">
-                    <Link href={`/profiles/${parent.author.id}`} className="hover:underline">
+                    <Link
+                      href={parent.author.username ? `/u/${parent.author.username}` : `/profiles/${parent.author.id}`}
+                      className="hover:underline"
+                    >
                       {parent.author.displayName ?? "Member"}
                     </Link>
                   </p>
@@ -263,7 +270,10 @@ export function ForumPostClient() {
                       <div key={reply.id} className="rounded-xl bg-white px-3 py-2">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-semibold text-slate-700">
-                            <Link href={`/profiles/${reply.author.id}`} className="hover:underline">
+                            <Link
+                              href={reply.author.username ? `/u/${reply.author.username}` : `/profiles/${reply.author.id}`}
+                              className="hover:underline"
+                            >
                               {reply.author.displayName ?? "Member"}
                             </Link>
                           </p>

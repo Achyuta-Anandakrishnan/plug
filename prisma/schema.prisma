@@ -153,6 +153,8 @@ model User {
   name           String?
   phone          String?
   displayName    String?
+  username       String?       @unique
+  bio            String?
   image          String?
   emailVerified  DateTime?
   role           UserRole      @default(BUYER)

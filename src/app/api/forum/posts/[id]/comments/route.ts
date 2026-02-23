@@ -2,7 +2,8 @@ import { ForumPostStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
-import { ensureForumSchema } from "@/lib/forum-schema";
+import { ensureForumSchema, isForumSchemaMissing } from "@/lib/forum-schema";
+import { ensureProfileSchema } from "@/lib/profile-schema";
 
 type CreateCommentBody = {
   body?: string;
@@ -13,11 +14,8 @@ export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  try {
-    await ensureForumSchema();
-  } catch {
-    return jsonError("Forum database is not ready yet.", 503);
-  }
+  await ensureForumSchema().catch(() => null);
+  await ensureProfileSchema().catch(() => null);
 
   const sessionUser = await getSessionUser();
   if (!sessionUser) return jsonError("Authentication required.", 401);
@@ -31,10 +29,18 @@ export async function POST(
     return jsonError("body must be at least 2 characters.", 400);
   }
 
-  const post = await prisma.forumPost.findUnique({
-    where: { id: postId },
-    select: { id: true, status: true, authorId: true },
-  });
+  let post;
+  try {
+    post = await prisma.forumPost.findUnique({
+      where: { id: postId },
+      select: { id: true, status: true, authorId: true },
+    });
+  } catch (error) {
+    if (isForumSchemaMissing(error)) {
+      return jsonError("Forum database is not ready yet.", 503);
+    }
+    throw error;
+  }
 
   if (!post) return jsonError("Post not found.", 404);
   if (
@@ -55,17 +61,25 @@ export async function POST(
     }
   }
 
-  const comment = await prisma.forumComment.create({
-    data: {
-      postId,
-      authorId: sessionUser.id,
-      parentId,
-      body: text,
-    },
-    include: {
-      author: { select: { id: true, displayName: true, image: true } },
-    },
-  });
+  let comment;
+  try {
+    comment = await prisma.forumComment.create({
+      data: {
+        postId,
+        authorId: sessionUser.id,
+        parentId,
+        body: text,
+      },
+      include: {
+        author: { select: { id: true, username: true, displayName: true, image: true } },
+      },
+    });
+  } catch (error) {
+    if (isForumSchemaMissing(error)) {
+      return jsonError("Forum database is not ready yet.", 503);
+    }
+    throw error;
+  }
 
   return jsonOk(comment, { status: 201 });
 }

@@ -6,6 +6,7 @@ import { signIn, useSession } from "next-auth/react";
 
 type ForumAuthor = {
   id: string;
+  username: string | null;
   displayName: string | null;
   image: string | null;
 };
@@ -37,20 +38,22 @@ export function ForumClient() {
   const [draftPosts, setDraftPosts] = useState<ForumPostListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [draftWarning, setDraftWarning] = useState("");
 
   const fetchPosts = useCallback(async (q: string) => {
     setLoading(true);
     setError("");
+    setDraftWarning("");
     try {
       const publishedUrl = new URL("/api/forum/posts", window.location.origin);
       if (q.trim()) publishedUrl.searchParams.set("q", q.trim());
       const publishedResponse = await fetch(publishedUrl.toString());
+      const publishedPayload = (await publishedResponse.json()) as ForumPostListItem[] & { error?: string };
       if (!publishedResponse.ok) {
-        setError("Unable to load forum posts.");
+        setError(publishedPayload.error || "Unable to load forum posts.");
         setLoading(false);
         return;
       }
-      const publishedPayload = (await publishedResponse.json()) as ForumPostListItem[];
       setPublishedPosts(publishedPayload);
 
       if (session?.user?.id) {
@@ -59,13 +62,13 @@ export function ForumClient() {
         draftsUrl.searchParams.set("mine", "1");
         if (q.trim()) draftsUrl.searchParams.set("q", q.trim());
         const draftsResponse = await fetch(draftsUrl.toString());
-        if (!draftsResponse.ok) {
-          setError("Unable to load draft posts.");
-          setLoading(false);
-          return;
+        const draftsPayload = (await draftsResponse.json()) as ForumPostListItem[] & { error?: string };
+        if (draftsResponse.ok) {
+          setDraftPosts(draftsPayload);
+        } else {
+          setDraftPosts([]);
+          setDraftWarning(draftsPayload.error || "Unable to load draft posts right now.");
         }
-        const draftsPayload = (await draftsResponse.json()) as ForumPostListItem[];
-        setDraftPosts(draftsPayload);
       } else {
         setDraftPosts([]);
       }
@@ -193,6 +196,11 @@ export function ForumClient() {
           {error}
         </div>
       ) : null}
+      {draftWarning ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          {draftWarning}
+        </div>
+      ) : null}
 
       {loading ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
@@ -232,9 +240,12 @@ export function ForumClient() {
             </div>
             <div className="mt-2 text-xs text-slate-500">
               by{" "}
-              <span className="font-semibold text-slate-700">
+              <Link
+                href={post.author.username ? `/u/${post.author.username}` : `/profiles/${post.author.id}`}
+                className="font-semibold text-slate-700 hover:underline"
+              >
                 {post.author.displayName ?? "Member"}
-              </span>
+              </Link>
             </div>
           </Link>
         ))}
