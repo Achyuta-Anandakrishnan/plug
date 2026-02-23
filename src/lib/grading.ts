@@ -16,106 +16,93 @@ export const GRADING_COMPANIES = [
   "Other",
 ] as const;
 
-export type GradePrecision = "WHOLE" | "HALF";
+const WHOLE_GRADES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+const HALF_GRADES = [
+  "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5",
+  "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10",
+];
 
-const WHOLE_GRADES = Array.from({ length: 10 }, (_, index) => `${index + 1}`);
-const HALF_GRADES = Array.from({ length: 19 }, (_, index) => `${(index + 2) / 2}`);
+const GRADE_OPTIONS_BY_COMPANY: Record<string, string[]> = {
+  PSA: HALF_GRADES,
+  BGS: HALF_GRADES,
+  CGC: HALF_GRADES,
+  SGC: HALF_GRADES,
+  TAG: WHOLE_GRADES,
+  BVG: HALF_GRADES,
+  CSG: HALF_GRADES,
+  HGA: HALF_GRADES,
+  GMA: HALF_GRADES,
+  MNT: HALF_GRADES,
+  ISA: HALF_GRADES,
+  KSA: HALF_GRADES,
+  AGS: HALF_GRADES,
+  "Arena Club": HALF_GRADES,
+  Other: WHOLE_GRADES,
+};
 
 type GradingProfile = {
-  supportsHalfGrades: boolean;
-  defaultPrecision: GradePrecision;
   labelOptions: string[];
   note: string;
 };
 
 const GRADING_PROFILES: Record<string, GradingProfile> = {
   PSA: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: [],
-    note: "PSA supports half-point grades (for example 2.5, 6.5).",
+    note: "PSA dropdown uses the available PSA number scale.",
   },
   BGS: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: ["Gold Label", "Black Label"],
-    note: "BGS supports half-point grades and premium gold/black label tiers.",
+    note: "BGS supports premium Gold/Black label tiers.",
   },
   CGC: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: ["Gold Label"],
-    note: "CGC supports half-point grades and premium pristine label tiers.",
+    note: "CGC supports premium pristine label tiers.",
   },
   SGC: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: [],
-    note: "SGC grading supports half-point values when needed.",
+    note: "SGC dropdown uses the available SGC number scale.",
   },
   TAG: {
-    supportsHalfGrades: false,
-    defaultPrecision: "WHOLE",
     labelOptions: [],
-    note: "TAG uses a standardized numeric grade; premium label tiers are not used here.",
+    note: "TAG dropdown uses the available TAG number scale.",
   },
   BVG: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: [],
-    note: "BVG supports half-point style card grades.",
+    note: "BVG dropdown uses the available BVG number scale.",
   },
   CSG: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: ["Gold Label"],
-    note: "CSG supports half-point values and premium top labels.",
+    note: "CSG supports premium label tiers.",
   },
   HGA: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: [],
-    note: "HGA supports half-point grading values.",
+    note: "HGA dropdown uses the available HGA number scale.",
   },
   GMA: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: [],
-    note: "GMA supports half-point grading values.",
+    note: "GMA dropdown uses the available GMA number scale.",
   },
   MNT: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: [],
-    note: "MNT supports half-point grading values.",
+    note: "MNT dropdown uses the available MNT number scale.",
   },
   ISA: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: [],
-    note: "ISA supports half-point grading values.",
+    note: "ISA dropdown uses the available ISA number scale.",
   },
   KSA: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: [],
-    note: "KSA supports half-point grading values.",
+    note: "KSA dropdown uses the available KSA number scale.",
   },
   AGS: {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: [],
-    note: "AGS supports half-point grading values.",
+    note: "AGS dropdown uses the available AGS number scale.",
   },
   "Arena Club": {
-    supportsHalfGrades: true,
-    defaultPrecision: "HALF",
     labelOptions: [],
-    note: "Arena Club supports half-point grading values.",
+    note: "Arena Club dropdown uses the available Arena Club number scale.",
   },
   Other: {
-    supportsHalfGrades: false,
-    defaultPrecision: "WHOLE",
     labelOptions: [],
     note: "Use custom grading details for other companies.",
   },
@@ -125,27 +112,6 @@ export function getGradingProfile(company: string) {
   return GRADING_PROFILES[company] ?? GRADING_PROFILES.Other;
 }
 
-export function getGradeOptions(company: string, precision: GradePrecision = "WHOLE") {
-  const half = precision === "HALF";
-  switch (company) {
-    case "BGS":
-    case "CGC":
-    case "SGC":
-    case "PSA":
-    case "BVG":
-    case "CSG":
-    case "HGA":
-    case "GMA":
-    case "MNT":
-    case "ISA":
-    case "KSA":
-    case "AGS":
-    case "Arena Club":
-      return half ? HALF_GRADES : WHOLE_GRADES;
-    case "TAG":
-    case "Other":
-      return WHOLE_GRADES;
-    default:
-      return WHOLE_GRADES;
-  }
+export function getGradeOptions(company: string) {
+  return GRADE_OPTIONS_BY_COMPANY[company] ?? WHOLE_GRADES;
 }

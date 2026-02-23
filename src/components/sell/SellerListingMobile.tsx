@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
@@ -8,7 +8,6 @@ import { useCategories } from "@/hooks/useCategories";
 import { formatCurrency } from "@/lib/format";
 import {
   GRADING_COMPANIES,
-  type GradePrecision,
   getGradeOptions,
   getGradingProfile,
 } from "@/lib/grading";
@@ -60,12 +59,11 @@ export function SellerListingMobile() {
   const [videoStreamUrl, setVideoStreamUrl] = useState("");
   const [isGraded, setIsGraded] = useState<"YES" | "NO">("NO");
   const [gradingCompany, setGradingCompany] = useState("PSA");
-  const [gradePrecision, setGradePrecision] = useState<GradePrecision>(
-    getGradingProfile("PSA").defaultPrecision,
-  );
   const [grade, setGrade] = useState("");
   const [gradingLabel, setGradingLabel] = useState("");
   const [certNumber, setCertNumber] = useState("");
+  const [lookupMessage, setLookupMessage] = useState("");
+  const [lookupLoading, setLookupLoading] = useState(false);
   const [images, setImages] = useState<
     Array<{
       url: string;
@@ -89,8 +87,8 @@ export function SellerListingMobile() {
     [gradingCompany],
   );
   const gradeOptions = useMemo(
-    () => getGradeOptions(gradingCompany, gradePrecision),
-    [gradePrecision, gradingCompany],
+    () => getGradeOptions(gradingCompany),
+    [gradingCompany],
   );
   const inputClass =
     "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
@@ -194,6 +192,53 @@ export function SellerListingMobile() {
       setMessage(error instanceof Error ? error.message : "Unable to create listing.");
     }
   };
+
+  useEffect(() => {
+    if (isGraded !== "YES" || certNumber.trim().length < 4) {
+      setLookupLoading(false);
+      setLookupMessage("");
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      setLookupLoading(true);
+      try {
+        const response = await fetch(
+          `/api/grading/lookup?company=${encodeURIComponent(gradingCompany)}&cert=${encodeURIComponent(certNumber.trim())}`,
+        );
+        const payload = (await response.json()) as {
+          found?: boolean;
+          grade?: string | null;
+          label?: string | null;
+          note?: string;
+          error?: string;
+        };
+
+        if (cancelled) return;
+        if (!response.ok) {
+          setLookupMessage(payload.error || "Unable to verify cert right now.");
+          return;
+        }
+        if (payload.found) {
+          if (payload.grade && !grade) setGrade(payload.grade);
+          if (payload.label && !gradingLabel) setGradingLabel(payload.label);
+          setLookupMessage(payload.note || "Certificate found.");
+        } else {
+          setLookupMessage(payload.note || "No certificate match found.");
+        }
+      } catch {
+        if (!cancelled) setLookupMessage("Unable to verify cert right now.");
+      } finally {
+        if (!cancelled) setLookupLoading(false);
+      }
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [certNumber, gradingCompany, gradingLabel, grade, isGraded]);
 
   return (
     <div className="space-y-6">
@@ -312,10 +357,7 @@ export function SellerListingMobile() {
                   <select
                     value={gradingCompany}
                     onChange={(event) => {
-                      const nextCompany = event.target.value;
-                      const nextProfile = getGradingProfile(nextCompany);
-                      setGradingCompany(nextCompany);
-                      setGradePrecision(nextProfile.defaultPrecision);
+                      setGradingCompany(event.target.value);
                       setGrade("");
                       setGradingLabel("");
                     }}
@@ -328,22 +370,6 @@ export function SellerListingMobile() {
                     ))}
                   </select>
                 </div>
-                {gradingProfile.supportsHalfGrades && (
-                  <div className="space-y-2">
-                    <p className={labelClass}>Grade increments</p>
-                    <select
-                      value={gradePrecision}
-                      onChange={(event) => {
-                        setGradePrecision(event.target.value as GradePrecision);
-                        setGrade("");
-                      }}
-                      className={inputClass}
-                    >
-                      <option value="WHOLE">Whole numbers</option>
-                      <option value="HALF">Half points (.5)</option>
-                    </select>
-                  </div>
-                )}
                 <div className="space-y-2">
                   <p className={labelClass}>Grade</p>
                   <select
@@ -385,6 +411,11 @@ export function SellerListingMobile() {
                     placeholder="Certification #"
                     className={inputClass}
                   />
+                  {lookupMessage && (
+                    <p className="text-xs text-slate-500">
+                      {lookupLoading ? "Checking cert..." : lookupMessage}
+                    </p>
+                  )}
                 </div>
               </>
             )}

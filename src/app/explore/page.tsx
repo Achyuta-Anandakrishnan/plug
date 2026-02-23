@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AuctionCard } from "@/components/AuctionCard";
+import { MessageUserButton } from "@/components/profiles/MessageUserButton";
 import { useAuctions } from "@/hooks/useAuctions";
 import { useCategories } from "@/hooks/useCategories";
 import {
@@ -39,6 +41,15 @@ export default function ExplorePage() {
     category: activeCategory ?? undefined,
     query: query.trim() || undefined,
   });
+  const [profiles, setProfiles] = useState<
+    Array<{
+      id: string;
+      displayName: string | null;
+      role: string;
+      sellerProfile: { status: string; auctions: Array<{ id: string }> } | null;
+    }>
+  >([]);
+  const [profilesLoading, setProfilesLoading] = useState(false);
 
   useEffect(() => {
     setActiveCategory(searchParams.get("category"));
@@ -65,6 +76,39 @@ export default function ExplorePage() {
     const next = params.toString();
     router.replace(next ? `${pathname}?${next}` : pathname);
   };
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setProfiles([]);
+      setProfilesLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const run = async () => {
+      setProfilesLoading(true);
+      try {
+        const response = await fetch(`/api/users?q=${encodeURIComponent(q)}&limit=8`);
+        const payload = (await response.json()) as Array<{
+          id: string;
+          displayName: string | null;
+          role: string;
+          sellerProfile: { status: string; auctions: Array<{ id: string }> } | null;
+        }>;
+        if (!cancelled) setProfiles(response.ok ? payload : []);
+      } catch {
+        if (!cancelled) setProfiles([]);
+      } finally {
+        if (!cancelled) setProfilesLoading(false);
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [query]);
 
   return (
     <div className="space-y-6">
@@ -155,6 +199,49 @@ export default function ExplorePage() {
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
           No matches.
         </div>
+      )}
+
+      {query.trim().length >= 2 && (
+        <section className="surface-panel rounded-[28px] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-base font-semibold text-slate-900">Profiles</h2>
+            <span className="text-xs uppercase tracking-[0.2em] text-slate-400">
+              {profilesLoading ? "Searching..." : `${profiles.length} found`}
+            </span>
+          </div>
+
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {profiles.map((profile) => (
+              <div key={profile.id} className="rounded-2xl border border-white/70 bg-white/70 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <Link href={`/profiles/${profile.id}`} className="text-sm font-semibold text-slate-900 hover:underline">
+                    {profile.displayName ?? "User"}
+                  </Link>
+                  <span className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                    {profile.role}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-slate-500">
+                  {profile.sellerProfile?.status === "APPROVED"
+                    ? `${profile.sellerProfile.auctions.length} live listing(s)`
+                    : "Marketplace member"}
+                </p>
+                <div className="mt-2">
+                  <MessageUserButton
+                    targetUserId={profile.id}
+                    className="rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700"
+                    label="Message"
+                  />
+                </div>
+              </div>
+            ))}
+            {!profilesLoading && profiles.length === 0 && (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-4 py-5 text-sm text-slate-500">
+                No profile matches.
+              </div>
+            )}
+          </div>
+        </section>
       )}
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">

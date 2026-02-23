@@ -198,7 +198,10 @@ export function ForumPostClient() {
       <article className="surface-panel rounded-[24px] p-4">
         <h1 className="text-base font-semibold text-slate-900">{post.title}</h1>
         <p className="mt-2 text-sm text-slate-500">
-          by {post.author.displayName ?? "Member"}
+          by{" "}
+          <Link href={`/profiles/${post.author.id}`} className="font-semibold text-slate-700 hover:underline">
+            {post.author.displayName ?? "Member"}
+          </Link>
         </p>
         <div className="mt-3 whitespace-pre-wrap text-sm leading-5 text-slate-700">
           {post.body}
@@ -236,7 +239,9 @@ export function ForumPostClient() {
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-slate-800">
-                    {parent.author.displayName ?? "Member"}
+                    <Link href={`/profiles/${parent.author.id}`} className="hover:underline">
+                      {parent.author.displayName ?? "Member"}
+                    </Link>
                   </p>
                   <p className="text-xs text-slate-400">
                     {formatLongDate(parent.createdAt)}
@@ -258,7 +263,9 @@ export function ForumPostClient() {
                       <div key={reply.id} className="rounded-xl bg-white px-3 py-2">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-semibold text-slate-700">
-                            {reply.author.displayName ?? "Member"}
+                            <Link href={`/profiles/${reply.author.id}`} className="hover:underline">
+                              {reply.author.displayName ?? "Member"}
+                            </Link>
                           </p>
                           <p className="text-xs text-slate-400">
                             {formatLongDate(reply.createdAt)}

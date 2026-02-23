@@ -231,7 +231,10 @@ export function ForumClient() {
               </div>
             </div>
             <div className="mt-2 text-xs text-slate-500">
-              by {post.author.displayName ?? "Member"}
+              by{" "}
+              <span className="font-semibold text-slate-700">
+                {post.author.displayName ?? "Member"}
+              </span>
             </div>
           </Link>
         ))}
