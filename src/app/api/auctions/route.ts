@@ -20,7 +20,6 @@ type CreateAuctionBody = {
   description?: string;
   startingBid?: number;
   buyNowPrice?: number;
-  reservePrice?: number;
   startTime?: string;
   endTime?: string;
   antiSnipeSeconds?: number;
@@ -50,6 +49,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category");
   const statusParam = searchParams.get("status");
+  const view = searchParams.get("view");
   const q = searchParams.get("q")?.trim() ?? "";
   const limitParam = Number(searchParams.get("limit") ?? 30);
 
@@ -117,6 +117,17 @@ export async function GET(request: Request) {
       { item: { title: { contains: query, mode: "insensitive" } } },
       { item: { description: { contains: query, mode: "insensitive" } } },
     ];
+  }
+
+  if (view === "streams") {
+    (where as Prisma.AuctionWhereInput).streamSessions = {
+      some: { status: "LIVE" },
+    };
+  }
+  if (view === "listings") {
+    (where as Prisma.AuctionWhereInput).streamSessions = {
+      none: { status: "LIVE" },
+    };
   }
 
   const auctions = await prisma.auction.findMany({
@@ -265,7 +276,7 @@ export async function POST(request: Request) {
       currentBid: wantsAuction ? (body.startingBid as number) : 0,
       minBidIncrement: body.minBidIncrement ?? 2000,
       buyNowPrice: body.buyNowPrice ?? null,
-      reservePrice: wantsAuction ? body.reservePrice ?? null : null,
+      reservePrice: null,
       startTime: effectiveStart,
       endTime,
       antiSnipeSeconds: body.antiSnipeSeconds ?? 12,

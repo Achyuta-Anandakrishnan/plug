@@ -142,6 +142,11 @@ enum ImageStorageProvider {
   R2
 }
 
+enum ForumPostStatus {
+  DRAFT
+  PUBLISHED
+}
+
 model User {
   id             String        @id @default(cuid())
   email          String?       @unique
@@ -348,6 +353,8 @@ model ForumPost {
   authorId  String
   title     String
   body      String
+  status    ForumPostStatus @default(PUBLISHED)
+  publishedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -356,6 +363,7 @@ model ForumPost {
 
   @@index([authorId])
   @@index([createdAt])
+  @@index([status])
 }
 
 model ForumComment {

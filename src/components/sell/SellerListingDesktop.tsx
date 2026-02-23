@@ -6,6 +6,7 @@ import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 import { useCategories } from "@/hooks/useCategories";
 import { formatCurrency } from "@/lib/format";
+import { GRADING_COMPANIES, getGradeOptions } from "@/lib/grading";
 
 const listingTypes = [
   { label: "Auction", value: "AUCTION" },
@@ -51,12 +52,15 @@ export function SellerListingDesktop() {
   const [listingType, setListingType] = useState("AUCTION");
   const [startingBid, setStartingBid] = useState("100");
   const [buyNowPrice, setBuyNowPrice] = useState("250");
-  const [reservePrice, setReservePrice] = useState("");
   const [minBidIncrement, setMinBidIncrement] = useState("20");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState(nextSundayAtEightLocal());
   const [publishNow, setPublishNow] = useState(true);
   const [videoStreamUrl, setVideoStreamUrl] = useState("");
+  const [isGraded, setIsGraded] = useState<"YES" | "NO">("NO");
+  const [gradingCompany, setGradingCompany] = useState("PSA");
+  const [grade, setGrade] = useState("");
+  const [certNumber, setCertNumber] = useState("");
   const [images, setImages] = useState<
     Array<{
       url: string;
@@ -71,6 +75,14 @@ export function SellerListingDesktop() {
     const bid = toCents(startingBid) ?? 0;
     return formatCurrency(bid, "USD");
   }, [startingBid]);
+  const selectedCategorySlug = useMemo(
+    () => categories.find((entry) => entry.id === categoryId)?.slug ?? null,
+    [categories, categoryId],
+  );
+  const gradeOptions = useMemo(
+    () => getGradeOptions(gradingCompany),
+    [gradingCompany],
+  );
   const inputClass =
     "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
   const labelClass = "text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400";
@@ -127,7 +139,6 @@ export function SellerListingDesktop() {
       description,
       startingBid: listingType !== "BUY_NOW" ? toCents(startingBid) : undefined,
       buyNowPrice: listingType !== "AUCTION" ? toCents(buyNowPrice) : undefined,
-      reservePrice: reservePrice ? toCents(reservePrice) : undefined,
       minBidIncrement: minBidIncrement ? toCents(minBidIncrement) : undefined,
       startTime: startTime ? new Date(startTime).toISOString() : undefined,
       endTime: endTime ? new Date(endTime).toISOString() : undefined,
@@ -140,6 +151,13 @@ export function SellerListingDesktop() {
         description,
         condition,
         categoryId: categoryId || undefined,
+        attributes: {
+          categorySlug: selectedCategorySlug,
+          isGraded: isGraded === "YES",
+          gradingCompany: isGraded === "YES" ? gradingCompany : null,
+          grade: isGraded === "YES" ? grade || null : null,
+          certNumber: isGraded === "YES" ? certNumber.trim() || null : null,
+        },
       },
       images: images.map((image, index) => ({
         url: image.url,
@@ -148,7 +166,7 @@ export function SellerListingDesktop() {
         storagePath: image.storagePath,
         bytes: image.bytes,
       })),
-    };
+    } as const;
 
     try {
       const response = await fetch("/api/auctions", {
@@ -274,13 +292,76 @@ export function SellerListingDesktop() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <p className={labelClass}>Condition / Grade</p>
+                  <p className={labelClass}>Condition notes</p>
                   <input
                     value={condition}
                     onChange={(event) => setCondition(event.target.value)}
-                    placeholder="Condition / grade"
+                    placeholder="Condition notes"
                     className={inputClass}
                   />
+                </div>
+                <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white/80 p-3">
+                  <p className={labelClass}>Grading</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <p className={labelClass}>Is graded?</p>
+                      <select
+                        value={isGraded}
+                        onChange={(event) => setIsGraded(event.target.value as "YES" | "NO")}
+                        className={inputClass}
+                      >
+                        <option value="NO">No</option>
+                        <option value="YES">Yes</option>
+                      </select>
+                    </div>
+                    {isGraded === "YES" && (
+                      <div className="space-y-2">
+                        <p className={labelClass}>Grading company</p>
+                        <select
+                          value={gradingCompany}
+                          onChange={(event) => {
+                            setGradingCompany(event.target.value);
+                            setGrade("");
+                          }}
+                          className={inputClass}
+                        >
+                          {GRADING_COMPANIES.map((company) => (
+                            <option key={company} value={company}>
+                              {company}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                  {isGraded === "YES" && (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <p className={labelClass}>Grade</p>
+                        <select
+                          value={grade}
+                          onChange={(event) => setGrade(event.target.value)}
+                          className={inputClass}
+                        >
+                          <option value="">Select grade</option>
+                          {gradeOptions.map((entry) => (
+                            <option key={entry} value={entry}>
+                              {entry}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <p className={labelClass}>Cert number</p>
+                        <input
+                          value={certNumber}
+                          onChange={(event) => setCertNumber(event.target.value)}
+                          placeholder="Certification #"
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -383,17 +464,6 @@ export function SellerListingDesktop() {
                   value={buyNowPrice}
                   onChange={(event) => setBuyNowPrice(event.target.value)}
                   placeholder="Buy now price (USD)"
-                  className={inputClass}
-                />
-              </div>
-            )}
-            {listingType !== "BUY_NOW" && (
-              <div className="space-y-2">
-                <p className={labelClass}>Reserve price (optional)</p>
-                <input
-                  value={reservePrice}
-                  onChange={(event) => setReservePrice(event.target.value)}
-                  placeholder="Reserve price (USD, optional)"
                   className={inputClass}
                 />
               </div>

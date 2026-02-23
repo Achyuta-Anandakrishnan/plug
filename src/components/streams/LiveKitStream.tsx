@@ -279,7 +279,7 @@ export function LiveKitStream({
       )}
 
       {isHost && (
-        <div className="absolute right-4 top-4 z-40 flex flex-wrap items-center justify-end gap-2">
+        <div className="absolute right-4 top-14 z-40 flex flex-wrap items-center justify-end gap-2 md:top-16">
           <span className="rounded-full bg-white/15 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white">
             {status === "live" ? "Live" : "Offline"}
           </span>

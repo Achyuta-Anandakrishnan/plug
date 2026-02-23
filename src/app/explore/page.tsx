@@ -1,14 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AuctionCard } from "@/components/AuctionCard";
 import { useAuctions } from "@/hooks/useAuctions";
 import { useCategories } from "@/hooks/useCategories";
-import { getPrimaryImageUrl, getTimeLeftSeconds } from "@/lib/auctions";
+import {
+  getGradeLabel,
+  getPrimaryImageUrl,
+  getTimeLeftSeconds,
+} from "@/lib/auctions";
+
+const QUICK_CATEGORIES = [
+  { name: "Pokemon", slug: "pokemon" },
+  { name: "Sports", slug: "sports" },
+  { name: "Funko Pops", slug: "funko" },
+];
 
 export default function ExplorePage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(
+    searchParams.get("category"),
+  );
   const { data: categories, loading: categoriesLoading } = useCategories();
   const { data: auctions, loading, error } = useAuctions({
     status: "LIVE",
@@ -16,7 +32,29 @@ export default function ExplorePage() {
     query: query.trim() || undefined,
   });
 
-  const categoryChips = useMemo(() => categories.slice(0, 12), [categories]);
+  useEffect(() => {
+    setActiveCategory(searchParams.get("category"));
+  }, [searchParams]);
+
+  const categoryChips = useMemo(() => {
+    const quick = QUICK_CATEGORIES.map((entry) => ({
+      id: entry.slug,
+      name: entry.name,
+      slug: entry.slug,
+    }));
+    const merged = new Map(quick.map((entry) => [entry.slug, entry]));
+    categories.slice(0, 12).forEach((entry) => merged.set(entry.slug, entry));
+    return Array.from(merged.values());
+  }, [categories]);
+
+  const setCategory = (slug: string | null) => {
+    setActiveCategory(slug);
+    const params = new URLSearchParams(searchParams.toString());
+    if (slug) params.set("category", slug);
+    else params.delete("category");
+    const next = params.toString();
+    router.replace(next ? `${pathname}?${next}` : pathname);
+  };
 
   return (
     <div className="space-y-6">
@@ -39,7 +77,7 @@ export default function ExplorePage() {
             type="button"
             onClick={() => {
               setQuery("");
-              setActiveCategory(null);
+              setCategory(null);
             }}
             className="rounded-full border border-slate-200 bg-white/90 px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600"
           >
@@ -48,9 +86,23 @@ export default function ExplorePage() {
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
+          {QUICK_CATEGORIES.map((chip) => (
+            <button
+              key={chip.slug}
+              type="button"
+              onClick={() => setCategory(chip.slug)}
+              className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
+                activeCategory === chip.slug
+                  ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
+                  : "border-slate-200 bg-white/90 text-slate-600"
+              }`}
+            >
+              {chip.name}
+            </button>
+          ))}
           <button
             type="button"
-            onClick={() => setActiveCategory(null)}
+            onClick={() => setCategory(null)}
             className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
               !activeCategory
                 ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
@@ -64,7 +116,7 @@ export default function ExplorePage() {
             <button
               key={category.slug}
               type="button"
-              onClick={() => setActiveCategory(category.slug)}
+              onClick={() => setCategory(category.slug)}
               className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
                 activeCategory === category.slug
                   ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
@@ -111,10 +163,10 @@ export default function ExplorePage() {
             listingType={stream.listingType}
             buyNowPrice={stream.buyNowPrice}
             currency={stream.currency?.toUpperCase()}
+            gradeLabel={getGradeLabel(stream.item?.attributes) ?? undefined}
           />
         ))}
       </section>
     </div>
   );
 }
-

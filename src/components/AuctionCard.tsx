@@ -15,6 +15,7 @@ type AuctionCardProps = {
   currency?: string;
   listingType?: "AUCTION" | "BUY_NOW" | "BOTH";
   buyNowPrice?: number | null;
+  gradeLabel?: string;
 };
 
 export function AuctionCard({
@@ -30,11 +31,12 @@ export function AuctionCard({
   currency = "USD",
   listingType = "AUCTION",
   buyNowPrice,
+  gradeLabel,
 }: AuctionCardProps) {
   return (
     <Link
       href={`/streams/${id}`}
-      className="group relative aspect-[4/5] w-full overflow-hidden rounded-[20px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.22)] sm:aspect-[5/7] sm:rounded-[28px]"
+      className="group relative aspect-[4/5] w-full overflow-hidden rounded-[20px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.22)] sm:aspect-[5/7] sm:rounded-[24px]"
     >
       {imageUrl ? (
         <Image
@@ -79,37 +81,37 @@ export function AuctionCard({
         ) : null}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4">
-        <div className="space-y-2">
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <div className="space-y-1.5">
           <div>
-            <h3 className="font-display text-base leading-tight text-white sm:text-[18px]">
+            <h3 className="font-display text-sm font-semibold leading-tight text-white sm:text-base">
               {title}
             </h3>
-            <p className="text-xs text-white/70">{sellerName}</p>
+            <p className="text-[11px] text-white/70">{sellerName}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-white">
-            <div className="rounded-2xl bg-white/10 px-3 py-2">
+            <div className="rounded-2xl bg-white/10 px-2.5 py-2">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">
                 Current
               </p>
-              <p className="font-display text-base sm:text-lg">
+              <p className="font-display text-sm sm:text-base">
                 {formatCurrency(currentBid, currency)}
               </p>
             </div>
-            <div className="rounded-2xl bg-white/10 px-3 py-2 text-right">
+            <div className="rounded-2xl bg-white/10 px-2.5 py-2 text-right">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">
                 Time
               </p>
-              <p className="font-display text-base text-[rgba(165,190,255,0.98)] sm:text-lg">
+              <p className="font-display text-sm text-[rgba(165,190,255,0.98)] sm:text-base">
                 {formatSeconds(timeLeft)}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-white/70">
+          <div className="flex items-center justify-between text-[11px] text-white/70">
             <span>{watchers} watching</span>
-            <span className="font-semibold text-white">Enter</span>
+            <span className="font-semibold text-white">{gradeLabel ?? "Enter"}</span>
           </div>
         </div>
       </div>

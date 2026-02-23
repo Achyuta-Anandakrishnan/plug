@@ -15,7 +15,25 @@ type CreateCategoryBody = {
   slug?: string;
 };
 
+async function ensureDefaultCategories() {
+  const defaults = [
+    { name: "Pokemon", slug: "pokemon" },
+    { name: "Sports", slug: "sports" },
+    { name: "Funko Pops", slug: "funko" },
+  ];
+
+  await prisma.$transaction(
+    defaults.map((category) =>
+      prisma.category.upsert({
+        where: { slug: category.slug },
+        update: { name: category.name },
+        create: category,
+      })),
+  );
+}
+
 export async function GET() {
+  await ensureDefaultCategories();
   const categories = await prisma.category.findMany({
     orderBy: { name: "asc" },
   });

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AuctionCard } from "@/components/AuctionCard";
+import { getSessionUser } from "@/lib/auth";
 import { categories, auctions as mockAuctions } from "@/lib/mock";
+import { prisma } from "@/lib/prisma";
 
 type FeaturedCard = {
   id: string;
@@ -71,6 +73,14 @@ async function getFeaturedAuctions(): Promise<FeaturedCard[]> {
 }
 
 export default async function Home() {
+  const sessionUser = await getSessionUser();
+  const sellerProfile = sessionUser?.id
+    ? await prisma.sellerProfile.findUnique({
+        where: { userId: sessionUser.id },
+        select: { status: true },
+      })
+    : null;
+  const isVerifiedSeller = sellerProfile?.status === "APPROVED" || sessionUser?.role === "ADMIN";
   const featured = await getFeaturedAuctions();
   const items = featured.length ? featured : mockAuctions.slice(0, 6);
   return (
@@ -95,10 +105,10 @@ export default async function Home() {
               Watch live streams
             </Link>
             <Link
-              href="/seller/verification"
+              href={isVerifiedSeller ? "/sell" : "/seller/verification"}
               className="rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300"
             >
-              Become a verified seller
+              {isVerifiedSeller ? "Create listing" : "Become a verified seller"}
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">

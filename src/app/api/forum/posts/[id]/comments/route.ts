@@ -1,3 +1,4 @@
+import { ForumPostStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
@@ -30,10 +31,17 @@ export async function POST(
 
   const post = await prisma.forumPost.findUnique({
     where: { id: postId },
-    select: { id: true },
+    select: { id: true, status: true, authorId: true },
   });
 
   if (!post) return jsonError("Post not found.", 404);
+  if (
+    post.status === ForumPostStatus.DRAFT
+    && sessionUser.role !== "ADMIN"
+    && sessionUser.id !== post.authorId
+  ) {
+    return jsonError("Post not found.", 404);
+  }
 
   const comment = await prisma.forumComment.create({
     data: {

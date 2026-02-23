@@ -22,6 +22,7 @@ export type AuctionListItem = {
     user?: { displayName: string | null; id: string } | null;
   } | null;
   item?: {
+    attributes?: Record<string, unknown> | null;
     images: { url: string; isPrimary: boolean }[];
   } | null;
 };
@@ -30,6 +31,7 @@ type UseAuctionsOptions = {
   status?: string;
   category?: string;
   query?: string;
+  view?: "streams" | "listings";
 };
 
 export function useAuctions(options: UseAuctionsOptions = {}) {
@@ -45,6 +47,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
       if (options.status) params.set("status", options.status);
       if (options.category) params.set("category", options.category);
       if (options.query) params.set("q", options.query);
+      if (options.view) params.set("view", options.view);
       const response = await fetch(`/api/auctions?${params.toString()}`);
       if (!response.ok) {
         setError("Unable to load listings.");
@@ -58,7 +61,7 @@ export function useAuctions(options: UseAuctionsOptions = {}) {
       setError("Unable to load listings.");
       setLoading(false);
     }
-  }, [options.category, options.query, options.status]);
+  }, [options.category, options.query, options.status, options.view]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

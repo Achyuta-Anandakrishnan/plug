@@ -5,13 +5,20 @@ import { useMemo, useState } from "react";
 import { AuctionCard } from "@/components/AuctionCard";
 import { useAuctions } from "@/hooks/useAuctions";
 import { useCategories } from "@/hooks/useCategories";
-import { getPrimaryImageUrl, getTimeLeftSeconds } from "@/lib/auctions";
+import {
+  getGradeLabel,
+  getPrimaryImageUrl,
+  getTimeLeftSeconds,
+} from "@/lib/auctions";
 
 export function StreamsDesktop() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [endingSoon, setEndingSoon] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const { data: auctions, loading, error } = useAuctions({ status: "LIVE" });
+  const { data: auctions, loading, error } = useAuctions({
+    status: "LIVE",
+    view: "streams",
+  });
   const { data: categories } = useCategories();
 
   const filteredStreams = useMemo(() => {
@@ -139,6 +146,7 @@ export function StreamsDesktop() {
             listingType={stream.listingType}
             buyNowPrice={stream.buyNowPrice}
             currency={stream.currency?.toUpperCase()}
+            gradeLabel={getGradeLabel(stream.item?.attributes) ?? undefined}
           />
         ))}
       </section>

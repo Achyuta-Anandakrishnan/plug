@@ -167,17 +167,17 @@ export function ForumPostClient() {
         </span>
       </div>
 
-      <article className="surface-panel rounded-[28px] p-6">
-        <h1 className="font-display text-3xl text-slate-900">{post.title}</h1>
+      <article className="surface-panel rounded-[24px] p-4">
+        <h1 className="text-base font-semibold text-slate-900">{post.title}</h1>
         <p className="mt-2 text-sm text-slate-500">
           by {post.author.displayName ?? "Member"}
         </p>
-        <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-700">
+        <div className="mt-3 whitespace-pre-wrap text-sm leading-5 text-slate-700">
           {post.body}
         </div>
       </article>
 
-      <section className="surface-panel rounded-[28px] p-6">
+      <section className="surface-panel rounded-[24px] p-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="font-display text-lg text-slate-900">Replies</h2>
           {!session?.user?.id ? (
@@ -247,4 +247,3 @@ export function ForumPostClient() {
     </div>
   );
 }
-

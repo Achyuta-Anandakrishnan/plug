@@ -28,6 +28,7 @@ export type AuctionDetail = {
   item?: {
     description: string | null;
     condition: string | null;
+    attributes?: Record<string, unknown> | null;
     images: { url: string; isPrimary: boolean }[];
   } | null;
   bids: { id: string; bidderId: string; amount: number; createdAt: string }[];

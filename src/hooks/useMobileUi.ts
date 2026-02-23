@@ -2,25 +2,23 @@
 
 import { useEffect, useState } from "react";
 
-const MOBILE_BREAKPOINT = 768;
-
-function detectMobileUi() {
-  if (typeof window === "undefined") return false;
-  const widthIsMobile = window.innerWidth < MOBILE_BREAKPOINT;
-  const coarsePointer = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-  return widthIsMobile && coarsePointer;
-}
+const MOBILE_QUERY = "(max-width: 767px)";
 
 export function useMobileUi() {
-  const [isMobileUi, setIsMobileUi] = useState(false);
+  const [isMobileUi, setIsMobileUi] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const update = () => setIsMobileUi(detectMobileUi());
+    const mediaQuery = window.matchMedia(MOBILE_QUERY);
+    const update = () => setIsMobileUi(mediaQuery.matches);
 
     update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
+    mediaQuery.addEventListener("change", update);
+    window.addEventListener("pageshow", update);
+    return () => {
+      mediaQuery.removeEventListener("change", update);
+      window.removeEventListener("pageshow", update);
+    };
   }, []);
 
-  return isMobileUi;
+  return isMobileUi ?? false;
 }

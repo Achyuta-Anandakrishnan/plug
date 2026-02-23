@@ -5,12 +5,19 @@ import { useMemo, useState } from "react";
 import { AuctionCard } from "@/components/AuctionCard";
 import { useAuctions } from "@/hooks/useAuctions";
 import { useCategories } from "@/hooks/useCategories";
-import { getPrimaryImageUrl, getTimeLeftSeconds } from "@/lib/auctions";
+import {
+  getGradeLabel,
+  getPrimaryImageUrl,
+  getTimeLeftSeconds,
+} from "@/lib/auctions";
 
 export function StreamsMobile() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [endingSoon, setEndingSoon] = useState(false);
-  const { data: auctions, loading, error } = useAuctions({ status: "LIVE" });
+  const { data: auctions, loading, error } = useAuctions({
+    status: "LIVE",
+    view: "streams",
+  });
   const { data: categories } = useCategories();
 
   const filteredStreams = useMemo(() => {
@@ -97,7 +104,7 @@ export function StreamsMobile() {
         </div>
       )}
 
-      <section className="grid grid-cols-2 gap-3">
+      <section className="grid grid-cols-2 gap-2 min-[520px]:grid-cols-3">
         {filteredStreams.map((stream) => (
           <AuctionCard
             key={stream.id}
@@ -113,6 +120,7 @@ export function StreamsMobile() {
             listingType={stream.listingType}
             buyNowPrice={stream.buyNowPrice}
             currency={stream.currency?.toUpperCase()}
+            gradeLabel={getGradeLabel(stream.item?.attributes) ?? undefined}
           />
         ))}
       </section>
