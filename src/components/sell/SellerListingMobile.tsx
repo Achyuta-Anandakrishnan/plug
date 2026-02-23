@@ -6,7 +6,12 @@ import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 import { useCategories } from "@/hooks/useCategories";
 import { formatCurrency } from "@/lib/format";
-import { GRADING_COMPANIES, getGradeOptions } from "@/lib/grading";
+import {
+  GRADING_COMPANIES,
+  type GradePrecision,
+  getGradeOptions,
+  getGradingProfile,
+} from "@/lib/grading";
 
 const steps = ["Basics", "Pricing", "Media"] as const;
 
@@ -55,7 +60,11 @@ export function SellerListingMobile() {
   const [videoStreamUrl, setVideoStreamUrl] = useState("");
   const [isGraded, setIsGraded] = useState<"YES" | "NO">("NO");
   const [gradingCompany, setGradingCompany] = useState("PSA");
+  const [gradePrecision, setGradePrecision] = useState<GradePrecision>(
+    getGradingProfile("PSA").defaultPrecision,
+  );
   const [grade, setGrade] = useState("");
+  const [gradingLabel, setGradingLabel] = useState("");
   const [certNumber, setCertNumber] = useState("");
   const [images, setImages] = useState<
     Array<{
@@ -75,9 +84,13 @@ export function SellerListingMobile() {
     () => categories.find((entry) => entry.id === categoryId)?.slug ?? null,
     [categories, categoryId],
   );
-  const gradeOptions = useMemo(
-    () => getGradeOptions(gradingCompany),
+  const gradingProfile = useMemo(
+    () => getGradingProfile(gradingCompany),
     [gradingCompany],
+  );
+  const gradeOptions = useMemo(
+    () => getGradeOptions(gradingCompany, gradePrecision),
+    [gradePrecision, gradingCompany],
   );
   const inputClass =
     "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
@@ -149,6 +162,7 @@ export function SellerListingMobile() {
           categorySlug: selectedCategorySlug,
           isGraded: isGraded === "YES",
           gradingCompany: isGraded === "YES" ? gradingCompany : null,
+          gradingLabel: isGraded === "YES" ? gradingLabel || null : null,
           grade: isGraded === "YES" ? grade || null : null,
           certNumber: isGraded === "YES" ? certNumber.trim() || null : null,
         },
@@ -298,8 +312,12 @@ export function SellerListingMobile() {
                   <select
                     value={gradingCompany}
                     onChange={(event) => {
-                      setGradingCompany(event.target.value);
+                      const nextCompany = event.target.value;
+                      const nextProfile = getGradingProfile(nextCompany);
+                      setGradingCompany(nextCompany);
+                      setGradePrecision(nextProfile.defaultPrecision);
                       setGrade("");
+                      setGradingLabel("");
                     }}
                     className={inputClass}
                   >
@@ -310,6 +328,22 @@ export function SellerListingMobile() {
                     ))}
                   </select>
                 </div>
+                {gradingProfile.supportsHalfGrades && (
+                  <div className="space-y-2">
+                    <p className={labelClass}>Grade increments</p>
+                    <select
+                      value={gradePrecision}
+                      onChange={(event) => {
+                        setGradePrecision(event.target.value as GradePrecision);
+                        setGrade("");
+                      }}
+                      className={inputClass}
+                    >
+                      <option value="WHOLE">Whole numbers</option>
+                      <option value="HALF">Half points (.5)</option>
+                    </select>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <p className={labelClass}>Grade</p>
                   <select
@@ -325,6 +359,24 @@ export function SellerListingMobile() {
                     ))}
                   </select>
                 </div>
+                {gradingProfile.labelOptions.length > 0 && (
+                  <div className="space-y-2">
+                    <p className={labelClass}>Label tier</p>
+                    <select
+                      value={gradingLabel}
+                      onChange={(event) => setGradingLabel(event.target.value)}
+                      className={inputClass}
+                    >
+                      <option value="">Standard label</option>
+                      {gradingProfile.labelOptions.map((label) => (
+                        <option key={label} value={label}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <p className="text-xs text-slate-500">{gradingProfile.note}</p>
                 <div className="space-y-2">
                   <p className={labelClass}>Cert number</p>
                   <input

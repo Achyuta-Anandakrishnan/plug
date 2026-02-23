@@ -19,6 +19,14 @@ const QUICK_CATEGORIES = [
   { label: "Funko Pops", slug: "funko" },
 ];
 
+function getCategoryKey(slug: string, name: string) {
+  const combined = `${slug} ${name}`.toLowerCase();
+  if (combined.includes("pokemon")) return "pokemon";
+  if (combined.includes("sport")) return "sports";
+  if (combined.includes("funko")) return "funko";
+  return slug.trim().toLowerCase();
+}
+
 export default function ListingsPage() {
   const [tab, setTab] = useState<ListingTab>("ALL");
   const [categorySlug, setCategorySlug] = useState("");
@@ -36,6 +44,19 @@ export default function ListingsPage() {
     }
     return auctions.filter((entry) => entry.listingType !== "BUY_NOW");
   }, [auctions, tab]);
+
+  const additionalCategories = useMemo(() => {
+    const seen = new Set(QUICK_CATEGORIES.map((entry) => entry.slug).filter(Boolean));
+    const unique = [];
+    for (const category of categories) {
+      const key = getCategoryKey(category.slug, category.name);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(category);
+      if (unique.length >= 8) break;
+    }
+    return unique;
+  }, [categories]);
 
   return (
     <div className="space-y-5">
@@ -84,23 +105,20 @@ export default function ListingsPage() {
                 {entry.label}
               </button>
             ))}
-            {categories
-              .filter((category) => !QUICK_CATEGORIES.some((entry) => entry.slug === category.slug))
-              .slice(0, 8)
-              .map((category) => (
-                <button
-                  key={category.id}
-                  type="button"
-                  onClick={() => setCategorySlug(category.slug)}
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
-                    categorySlug === category.slug
-                      ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                      : "border-slate-200 bg-white/90 text-slate-600"
-                  }`}
-                >
-                  {category.name}
-                </button>
-              ))}
+            {additionalCategories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => setCategorySlug(category.slug)}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
+                  categorySlug === category.slug
+                    ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
+                    : "border-slate-200 bg-white/90 text-slate-600"
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
           </div>
         </div>
       </section>

@@ -28,11 +28,14 @@ export function getGradeLabel(attributes: Record<string, unknown> | null | undef
     ? attributes.gradingCompany.trim()
     : "";
   const grade = typeof attributes.grade === "string" ? attributes.grade.trim() : "";
+  const label = typeof attributes.gradingLabel === "string"
+    ? attributes.gradingLabel.trim()
+    : "";
   const cert = typeof attributes.certNumber === "string"
     ? attributes.certNumber.trim()
     : "";
 
-  const core = [company, grade].filter(Boolean).join(" ");
+  const core = [company, grade, label].filter(Boolean).join(" ");
   if (!core && !cert) return "Graded";
   if (!cert) return core;
   return `${core || "Graded"} • Cert ${cert}`;

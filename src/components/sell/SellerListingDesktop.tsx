@@ -6,7 +6,12 @@ import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 import { useCategories } from "@/hooks/useCategories";
 import { formatCurrency } from "@/lib/format";
-import { GRADING_COMPANIES, getGradeOptions } from "@/lib/grading";
+import {
+  GRADING_COMPANIES,
+  type GradePrecision,
+  getGradeOptions,
+  getGradingProfile,
+} from "@/lib/grading";
 
 const listingTypes = [
   { label: "Auction", value: "AUCTION" },
@@ -59,7 +64,11 @@ export function SellerListingDesktop() {
   const [videoStreamUrl, setVideoStreamUrl] = useState("");
   const [isGraded, setIsGraded] = useState<"YES" | "NO">("NO");
   const [gradingCompany, setGradingCompany] = useState("PSA");
+  const [gradePrecision, setGradePrecision] = useState<GradePrecision>(
+    getGradingProfile("PSA").defaultPrecision,
+  );
   const [grade, setGrade] = useState("");
+  const [gradingLabel, setGradingLabel] = useState("");
   const [certNumber, setCertNumber] = useState("");
   const [images, setImages] = useState<
     Array<{
@@ -79,9 +88,13 @@ export function SellerListingDesktop() {
     () => categories.find((entry) => entry.id === categoryId)?.slug ?? null,
     [categories, categoryId],
   );
-  const gradeOptions = useMemo(
-    () => getGradeOptions(gradingCompany),
+  const gradingProfile = useMemo(
+    () => getGradingProfile(gradingCompany),
     [gradingCompany],
+  );
+  const gradeOptions = useMemo(
+    () => getGradeOptions(gradingCompany, gradePrecision),
+    [gradePrecision, gradingCompany],
   );
   const inputClass =
     "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
@@ -155,6 +168,7 @@ export function SellerListingDesktop() {
           categorySlug: selectedCategorySlug,
           isGraded: isGraded === "YES",
           gradingCompany: isGraded === "YES" ? gradingCompany : null,
+          gradingLabel: isGraded === "YES" ? gradingLabel || null : null,
           grade: isGraded === "YES" ? grade || null : null,
           certNumber: isGraded === "YES" ? certNumber.trim() || null : null,
         },
@@ -189,7 +203,7 @@ export function SellerListingDesktop() {
 
   return (
     <div className="space-y-10">
-      <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="space-y-6">
         <div className="space-y-6">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
             Seller desk
@@ -234,17 +248,6 @@ export function SellerListingDesktop() {
               </Link>
             </div>
           )}
-        </div>
-        <div className="glass-panel rounded-[32px] p-6">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-            Default auction end
-          </p>
-          <p className="font-display text-2xl text-slate-900">
-            Sunday 8:00 PM ET
-          </p>
-          <p className="mt-3 text-sm text-slate-600">
-            Default for TCG auctions this week. Adjust if needed.
-          </p>
         </div>
       </section>
 
@@ -320,8 +323,12 @@ export function SellerListingDesktop() {
                         <select
                           value={gradingCompany}
                           onChange={(event) => {
-                            setGradingCompany(event.target.value);
+                            const nextCompany = event.target.value;
+                            const nextProfile = getGradingProfile(nextCompany);
+                            setGradingCompany(nextCompany);
+                            setGradePrecision(nextProfile.defaultPrecision);
                             setGrade("");
+                            setGradingLabel("");
                           }}
                           className={inputClass}
                         >
@@ -335,30 +342,68 @@ export function SellerListingDesktop() {
                     )}
                   </div>
                   {isGraded === "YES" && (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <p className={labelClass}>Grade</p>
-                        <select
-                          value={grade}
-                          onChange={(event) => setGrade(event.target.value)}
-                          className={inputClass}
-                        >
-                          <option value="">Select grade</option>
-                          {gradeOptions.map((entry) => (
-                            <option key={entry} value={entry}>
-                              {entry}
-                            </option>
-                          ))}
-                        </select>
+                    <div className="space-y-3">
+                      <p className="text-xs text-slate-500">{gradingProfile.note}</p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {gradingProfile.supportsHalfGrades && (
+                          <div className="space-y-2">
+                            <p className={labelClass}>Grade increments</p>
+                            <select
+                              value={gradePrecision}
+                              onChange={(event) => {
+                                setGradePrecision(event.target.value as GradePrecision);
+                                setGrade("");
+                              }}
+                              className={inputClass}
+                            >
+                              <option value="WHOLE">Whole numbers</option>
+                              <option value="HALF">Half points (.5)</option>
+                            </select>
+                          </div>
+                        )}
+                        <div className="space-y-2">
+                          <p className={labelClass}>Grade</p>
+                          <select
+                            value={grade}
+                            onChange={(event) => setGrade(event.target.value)}
+                            className={inputClass}
+                          >
+                            <option value="">Select grade</option>
+                            {gradeOptions.map((entry) => (
+                              <option key={entry} value={entry}>
+                                {entry}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <p className={labelClass}>Cert number</p>
-                        <input
-                          value={certNumber}
-                          onChange={(event) => setCertNumber(event.target.value)}
-                          placeholder="Certification #"
-                          className={inputClass}
-                        />
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {gradingProfile.labelOptions.length > 0 && (
+                          <div className="space-y-2">
+                            <p className={labelClass}>Label tier</p>
+                            <select
+                              value={gradingLabel}
+                              onChange={(event) => setGradingLabel(event.target.value)}
+                              className={inputClass}
+                            >
+                              <option value="">Standard label</option>
+                              {gradingProfile.labelOptions.map((label) => (
+                                <option key={label} value={label}>
+                                  {label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                        <div className="space-y-2">
+                          <p className={labelClass}>Cert number</p>
+                          <input
+                            value={certNumber}
+                            onChange={(event) => setCertNumber(event.target.value)}
+                            placeholder="Certification #"
+                            className={inputClass}
+                          />
+                        </div>
                       </div>
                     </div>
                   )}

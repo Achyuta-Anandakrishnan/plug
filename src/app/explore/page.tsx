@@ -17,6 +17,14 @@ const QUICK_CATEGORIES = [
   { name: "Funko Pops", slug: "funko" },
 ];
 
+function getCategoryKey(slug: string, name: string) {
+  const combined = `${slug} ${name}`.toLowerCase();
+  if (combined.includes("pokemon")) return "pokemon";
+  if (combined.includes("sport")) return "sports";
+  if (combined.includes("funko")) return "funko";
+  return slug.trim().toLowerCase();
+}
+
 export default function ExplorePage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -36,15 +44,17 @@ export default function ExplorePage() {
     setActiveCategory(searchParams.get("category"));
   }, [searchParams]);
 
-  const categoryChips = useMemo(() => {
-    const quick = QUICK_CATEGORIES.map((entry) => ({
-      id: entry.slug,
-      name: entry.name,
-      slug: entry.slug,
-    }));
-    const merged = new Map(quick.map((entry) => [entry.slug, entry]));
-    categories.slice(0, 12).forEach((entry) => merged.set(entry.slug, entry));
-    return Array.from(merged.values());
+  const additionalCategories = useMemo(() => {
+    const seen = new Set(QUICK_CATEGORIES.map((entry) => entry.slug));
+    const unique = [];
+    for (const category of categories) {
+      const key = getCategoryKey(category.slug, category.name);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(category);
+      if (unique.length >= 12) break;
+    }
+    return unique;
   }, [categories]);
 
   const setCategory = (slug: string | null) => {
@@ -112,7 +122,7 @@ export default function ExplorePage() {
           >
             All
           </button>
-          {categoryChips.map((category) => (
+          {additionalCategories.map((category) => (
             <button
               key={category.slug}
               type="button"
