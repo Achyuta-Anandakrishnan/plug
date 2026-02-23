@@ -50,9 +50,6 @@ export async function ensureForumSchema() {
       `CREATE INDEX IF NOT EXISTS "ForumPost_createdAt_idx" ON "ForumPost"("createdAt");`,
     );
     await prisma.$executeRawUnsafe(
-      `CREATE INDEX IF NOT EXISTS "ForumPost_status_idx" ON "ForumPost"("status");`,
-    );
-    await prisma.$executeRawUnsafe(
       `CREATE INDEX IF NOT EXISTS "ForumComment_postId_idx" ON "ForumComment"("postId");`,
     );
     await prisma.$executeRawUnsafe(
@@ -72,6 +69,10 @@ export async function ensureForumSchema() {
       SET "publishedAt" = COALESCE("publishedAt", "createdAt")
       WHERE "status" = 'PUBLISHED';
     `);
+
+    await prisma.$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS "ForumPost_status_idx" ON "ForumPost"("status");`,
+    );
   })().catch((error) => {
     ensureForumSchemaPromise = null;
     throw error;
