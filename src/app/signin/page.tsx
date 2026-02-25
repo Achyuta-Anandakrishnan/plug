@@ -29,7 +29,7 @@ export default function SignInPage() {
         <div className="glass-panel rounded-[28px] p-6 sm:p-8">
           <h2 className="font-display text-2xl text-slate-900">Sign in</h2>
           <p className="mt-2 text-sm text-slate-600">
-            Use a verified provider to access your account.
+            Enter your username, then use a verified provider to access your account.
           </p>
           <div className="mt-6">
             <AuthButtons />

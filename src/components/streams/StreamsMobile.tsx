@@ -40,9 +40,6 @@ export function StreamsMobile() {
     <div className="space-y-6">
       <section className="space-y-4">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
-            Live now
-          </p>
           <h1 className="font-display text-[32px] text-slate-900">Streams</h1>
         </div>
         <div className="flex gap-2">

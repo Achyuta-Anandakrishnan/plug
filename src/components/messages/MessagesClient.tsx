@@ -183,9 +183,6 @@ export function MessagesClient() {
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Messaging
-        </p>
         <h1 className="font-display text-3xl text-slate-900">Inbox</h1>
         <p className="text-sm text-slate-600">
           Direct messages between buyers, sellers, and support.

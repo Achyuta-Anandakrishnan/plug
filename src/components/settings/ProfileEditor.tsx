@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 
 type ProfilePayload = {
@@ -18,6 +19,9 @@ type ProfilePayload = {
 
 export function ProfileEditor() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const setupMode = searchParams.get("setup") === "1";
+  const suggestedUsername = (searchParams.get("username") ?? "").trim();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -48,7 +52,7 @@ export function ProfileEditor() {
         }
         if (cancelled) return;
         setProfile(payload);
-        setUsername(payload.username ?? "");
+        setUsername(payload.username ?? suggestedUsername);
         setDisplayName(payload.displayName ?? "");
         setBio(payload.bio ?? "");
         setImage(payload.image ?? "");
@@ -64,7 +68,7 @@ export function ProfileEditor() {
     return () => {
       cancelled = true;
     };
-  }, [session?.user?.id]);
+  }, [session?.user?.id, suggestedUsername]);
 
   if (!session?.user?.id) {
     return (
@@ -160,6 +164,11 @@ export function ProfileEditor() {
         </div>
       ) : (
         <div className="grid gap-4">
+          {setupMode ? (
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+              Finish profile setup so buyers and sellers can find you by username.
+            </div>
+          ) : null}
           {error ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type SellerApplication = {
@@ -175,6 +176,20 @@ export default function SellerAdminPage() {
             <p className="text-sm text-slate-600">
               Signed session for a configured admin account is required.
             </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                href="/admin/sellers"
+                className="rounded-full bg-slate-900 px-4 py-1.5 text-[11px] font-semibold text-white"
+              >
+                Seller Queue
+              </Link>
+              <Link
+                href="/admin/profiles"
+                className="rounded-full border border-slate-200 bg-white/90 px-4 py-1.5 text-[11px] font-semibold text-slate-700"
+              >
+                Profiles
+              </Link>
+            </div>
           </div>
           <div className="flex flex-wrap gap-3">
             <input

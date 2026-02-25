@@ -62,9 +62,6 @@ export default function ListingsPage() {
     <div className="space-y-5">
       <section className="space-y-3">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
-            Marketplace
-          </p>
           <h1 className="font-display text-3xl text-slate-900">Listings</h1>
         </div>
 

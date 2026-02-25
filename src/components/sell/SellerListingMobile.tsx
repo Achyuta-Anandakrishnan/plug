@@ -5,6 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 import { useCategories } from "@/hooks/useCategories";
+import {
+  nextThursdayNinePmEst,
+  toDateTimeLocalInputValue,
+} from "@/lib/auction-time";
 import { formatCurrency } from "@/lib/format";
 import {
   GRADING_COMPANIES,
@@ -13,19 +17,6 @@ import {
 } from "@/lib/grading";
 
 const steps = ["Basics", "Pricing", "Media"] as const;
-
-function nextSundayAtEightLocal() {
-  const now = new Date();
-  const target = new Date();
-  target.setHours(20, 0, 0, 0);
-  const day = target.getDay();
-  const daysUntil = (7 - day) % 7;
-  target.setDate(target.getDate() + daysUntil);
-  if (target <= now) {
-    target.setDate(target.getDate() + 7);
-  }
-  return target.toISOString().slice(0, 16);
-}
 
 function toCents(value: string) {
   const parsed = Number(value);
@@ -54,9 +45,10 @@ export function SellerListingMobile() {
   const [startingBid, setStartingBid] = useState("100");
   const [buyNowPrice, setBuyNowPrice] = useState("250");
   const [minBidIncrement, setMinBidIncrement] = useState("20");
-  const [endTime, setEndTime] = useState(nextSundayAtEightLocal());
+  const [endTime, setEndTime] = useState(
+    () => toDateTimeLocalInputValue(nextThursdayNinePmEst()),
+  );
   const [publishNow, setPublishNow] = useState(true);
-  const [videoStreamUrl, setVideoStreamUrl] = useState("");
   const [isGraded, setIsGraded] = useState<"YES" | "NO">("NO");
   const [gradingCompany, setGradingCompany] = useState("PSA");
   const [grade, setGrade] = useState("");
@@ -145,12 +137,14 @@ export function SellerListingMobile() {
       description,
       startingBid: listingType !== "BUY_NOW" ? toCents(startingBid) : undefined,
       buyNowPrice: listingType !== "AUCTION" ? toCents(buyNowPrice) : undefined,
-      minBidIncrement: minBidIncrement ? toCents(minBidIncrement) : undefined,
+      minBidIncrement:
+        listingType !== "BUY_NOW" && minBidIncrement
+          ? toCents(minBidIncrement)
+          : undefined,
       endTime: endTime ? new Date(endTime).toISOString() : undefined,
       publishNow,
       currency: "usd",
       categoryId: categoryId || undefined,
-      videoStreamUrl: videoStreamUrl || undefined,
       item: {
         title,
         description,
@@ -243,9 +237,6 @@ export function SellerListingMobile() {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Seller desk
-        </p>
         <h1 className="font-display text-3xl text-slate-900">
           Create a listing
         </h1>
@@ -457,18 +448,23 @@ export function SellerListingMobile() {
               className={inputClass}
             />
           )}
-          <input
-            value={minBidIncrement}
-            onChange={(event) => setMinBidIncrement(event.target.value)}
-            placeholder="Min bid increment (USD)"
-            className={inputClass}
-          />
+          {listingType !== "BUY_NOW" && (
+            <input
+              value={minBidIncrement}
+              onChange={(event) => setMinBidIncrement(event.target.value)}
+              placeholder="Min bid increment (USD)"
+              className={inputClass}
+            />
+          )}
           <input
             type="datetime-local"
             value={endTime}
             onChange={(event) => setEndTime(event.target.value)}
             className={inputClass}
           />
+          <p className="text-[11px] text-slate-500">
+            Default auction end: Thursday 9:00 PM EST. Live streams can set custom duration.
+          </p>
           <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-xs text-slate-600">
             <input
               type="checkbox"
@@ -536,12 +532,6 @@ export function SellerListingMobile() {
               </div>
             )}
           </div>
-          <input
-            value={videoStreamUrl}
-            onChange={(event) => setVideoStreamUrl(event.target.value)}
-            placeholder="Stream playback URL (optional)"
-            className={inputClass}
-          />
           <button
             type="button"
             onClick={handleSubmit}

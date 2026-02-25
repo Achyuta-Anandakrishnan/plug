@@ -117,9 +117,6 @@ export default function ExplorePage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
-          Search + explore
-        </p>
         <h1 className="font-display text-3xl text-slate-900">Find listings</h1>
       </div>
 
@@ -232,7 +229,7 @@ export default function ExplorePage() {
                   {profile.username ? `@${profile.username} · ` : ""}
                   {profile.sellerProfile?.status === "APPROVED"
                     ? `${profile.sellerProfile.auctions.length} live listing(s)`
-                    : "Marketplace member"}
+                    : "Member"}
                 </p>
                 {profile.bio ? <p className="mt-1 line-clamp-2 text-xs text-slate-500">{profile.bio}</p> : null}
                 <div className="mt-2">

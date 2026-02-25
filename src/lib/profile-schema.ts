@@ -22,6 +22,14 @@ export async function ensureProfileSchema() {
       ADD COLUMN IF NOT EXISTS "bio" TEXT;
     `);
     await prisma.$executeRawUnsafe(`
+      ALTER TABLE "User"
+      ADD COLUMN IF NOT EXISTS "usernameChangeCount" INTEGER NOT NULL DEFAULT 0;
+    `);
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE "User"
+      ADD COLUMN IF NOT EXISTS "usernameChangePeriodStart" TIMESTAMP(3);
+    `);
+    await prisma.$executeRawUnsafe(`
       CREATE UNIQUE INDEX IF NOT EXISTS "User_username_key" ON "User"("username");
     `);
   })().catch((error) => {
@@ -30,4 +38,14 @@ export async function ensureProfileSchema() {
   });
 
   return ensureProfileSchemaPromise;
+}
+
+export function isProfileSchemaMissing(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const code = "code" in error ? String((error as { code?: unknown }).code ?? "") : "";
+  const message = "message" in error
+    ? String((error as { message?: unknown }).message ?? "")
+    : "";
+  if (code === "42703") return true;
+  return message.includes("username") || message.includes("bio");
 }

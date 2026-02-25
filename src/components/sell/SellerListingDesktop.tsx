@@ -5,6 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
 import { useCategories } from "@/hooks/useCategories";
+import {
+  nextThursdayNinePmEst,
+  toDateTimeLocalInputValue,
+} from "@/lib/auction-time";
 import { formatCurrency } from "@/lib/format";
 import {
   GRADING_COMPANIES,
@@ -17,19 +21,6 @@ const listingTypes = [
   { label: "Buy Now", value: "BUY_NOW" },
   { label: "Both", value: "BOTH" },
 ] as const;
-
-function nextSundayAtEightLocal() {
-  const now = new Date();
-  const target = new Date();
-  target.setHours(20, 0, 0, 0);
-  const day = target.getDay();
-  const daysUntil = (7 - day) % 7;
-  target.setDate(target.getDate() + daysUntil);
-  if (target <= now) {
-    target.setDate(target.getDate() + 7);
-  }
-  return target.toISOString().slice(0, 16);
-}
 
 function toCents(value: string) {
   const parsed = Number(value);
@@ -58,9 +49,10 @@ export function SellerListingDesktop() {
   const [buyNowPrice, setBuyNowPrice] = useState("250");
   const [minBidIncrement, setMinBidIncrement] = useState("20");
   const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState(nextSundayAtEightLocal());
+  const [endTime, setEndTime] = useState(
+    () => toDateTimeLocalInputValue(nextThursdayNinePmEst()),
+  );
   const [publishNow, setPublishNow] = useState(true);
-  const [videoStreamUrl, setVideoStreamUrl] = useState("");
   const [isGraded, setIsGraded] = useState<"YES" | "NO">("NO");
   const [gradingCompany, setGradingCompany] = useState("PSA");
   const [grade, setGrade] = useState("");
@@ -150,13 +142,15 @@ export function SellerListingDesktop() {
       description,
       startingBid: listingType !== "BUY_NOW" ? toCents(startingBid) : undefined,
       buyNowPrice: listingType !== "AUCTION" ? toCents(buyNowPrice) : undefined,
-      minBidIncrement: minBidIncrement ? toCents(minBidIncrement) : undefined,
+      minBidIncrement:
+        listingType !== "BUY_NOW" && minBidIncrement
+          ? toCents(minBidIncrement)
+          : undefined,
       startTime: startTime ? new Date(startTime).toISOString() : undefined,
       endTime: endTime ? new Date(endTime).toISOString() : undefined,
       publishNow,
       currency: "usd",
       categoryId: categoryId || undefined,
-      videoStreamUrl: videoStreamUrl || undefined,
       item: {
         title,
         description,
@@ -250,9 +244,6 @@ export function SellerListingDesktop() {
     <div className="space-y-10">
       <section className="space-y-6">
         <div className="space-y-6">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-            Seller desk
-          </p>
           <h1 className="font-display text-3xl text-slate-900 sm:text-4xl">
             Create a live listing.
           </h1>
@@ -544,15 +535,17 @@ export function SellerListingDesktop() {
                 />
               </div>
             )}
-            <div className="space-y-2">
-              <p className={labelClass}>Min bid increment (USD)</p>
-              <input
-                value={minBidIncrement}
-                onChange={(event) => setMinBidIncrement(event.target.value)}
-                placeholder="Min bid increment (USD)"
-                className={inputClass}
-              />
-            </div>
+            {listingType !== "BUY_NOW" && (
+              <div className="space-y-2">
+                <p className={labelClass}>Min bid increment (USD)</p>
+                <input
+                  value={minBidIncrement}
+                  onChange={(event) => setMinBidIncrement(event.target.value)}
+                  placeholder="Min bid increment (USD)"
+                  className={inputClass}
+                />
+              </div>
+            )}
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <p className={labelClass}>Start time</p>
@@ -571,16 +564,10 @@ export function SellerListingDesktop() {
                   onChange={(event) => setEndTime(event.target.value)}
                   className={inputClass}
                 />
+                <p className="text-[11px] text-slate-500">
+                  Default auction end: Thursday 9:00 PM EST. Live streams can set custom duration.
+                </p>
               </div>
-            </div>
-            <div className="space-y-2">
-              <p className={labelClass}>Stream playback URL</p>
-              <input
-                value={videoStreamUrl}
-                onChange={(event) => setVideoStreamUrl(event.target.value)}
-                placeholder="Stream playback URL (optional)"
-                className={inputClass}
-              />
             </div>
             <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-xs text-slate-600">
               <input

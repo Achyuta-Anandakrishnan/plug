@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { ensureForumSchema, isForumSchemaMissing } from "@/lib/forum-schema";
-import { ensureProfileSchema } from "@/lib/profile-schema";
+import { ensureProfileSchema, isProfileSchemaMissing } from "@/lib/profile-schema";
 
 type CreateCommentBody = {
   body?: string;
@@ -78,7 +78,29 @@ export async function POST(
     if (isForumSchemaMissing(error)) {
       return jsonError("Forum database is not ready yet.", 503);
     }
-    throw error;
+    if (!isProfileSchemaMissing(error)) {
+      throw error;
+    }
+
+    const fallbackComment = await prisma.forumComment.create({
+      data: {
+        postId,
+        authorId: sessionUser.id,
+        parentId,
+        body: text,
+      },
+      include: {
+        author: { select: { id: true, displayName: true, image: true } },
+      },
+    });
+
+    comment = {
+      ...fallbackComment,
+      author: {
+        ...fallbackComment.author,
+        username: null,
+      },
+    };
   }
 
   return jsonOk(comment, { status: 201 });

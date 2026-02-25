@@ -21,6 +21,8 @@ type ForumPostListItem = {
   updatedAt: string;
   author: ForumAuthor;
   _count: { comments: number };
+  voteScore: number;
+  myVote: number;
 };
 
 function formatCompactDate(value: string) {
@@ -99,9 +101,6 @@ export function ForumClient() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
-          Community
-        </p>
         <h1 className="font-display text-3xl text-slate-900">Forum</h1>
       </div>
 
@@ -225,7 +224,7 @@ export function ForumClient() {
               <div className="min-w-0">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
                   {formatCompactDate(post.createdAt)} ·{" "}
-                  {post._count.comments} repl{post._count.comments === 1 ? "y" : "ies"}
+                  {post._count.comments} repl{post._count.comments === 1 ? "y" : "ies"} · {post.voteScore} votes
                 </p>
                 <h3 className="mt-1 truncate text-base font-semibold text-slate-900">
                   {post.title}

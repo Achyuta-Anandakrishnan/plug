@@ -155,6 +155,8 @@ model User {
   displayName    String?
   username       String?       @unique
   bio            String?
+  usernameChangeCount       Int           @default(0)
+  usernameChangePeriodStart DateTime?
   image          String?
   emailVerified  DateTime?
   role           UserRole      @default(BUYER)
@@ -174,6 +176,7 @@ model User {
   ordersAsBuyer  Order[]       @relation("OrderBuyer")
   forumPosts     ForumPost[]
   forumComments  ForumComment[]
+  forumPostVotes ForumPostVote[]
 }
 
 model Account {
@@ -362,10 +365,27 @@ model ForumPost {
 
   author    User           @relation(fields: [authorId], references: [id])
   comments  ForumComment[]
+  votes     ForumPostVote[]
 
   @@index([authorId])
   @@index([createdAt])
   @@index([status])
+}
+
+model ForumPostVote {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  value     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post      ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
 }
 
 model ForumComment {

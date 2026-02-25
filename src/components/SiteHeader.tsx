@@ -140,7 +140,7 @@ export function SiteHeader() {
               ))}
               {isAdmin && (
                 <Link
-                  href="/admin/sellers"
+                  href="/admin/profiles"
                   onClick={() => setMobileOpen(false)}
                   className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3"
                 >
@@ -178,7 +178,7 @@ export function SiteHeader() {
             ))}
             {isAdmin && (
               <Link
-                href="/admin/sellers"
+                href="/admin/profiles"
                 className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600"
               >
                 Admin

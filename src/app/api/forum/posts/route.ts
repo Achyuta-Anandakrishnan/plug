@@ -3,12 +3,29 @@ import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { ensureForumSchema, isForumSchemaMissing } from "@/lib/forum-schema";
-import { ensureProfileSchema } from "@/lib/profile-schema";
+import { ensureProfileSchema, isProfileSchemaMissing } from "@/lib/profile-schema";
 
 type CreatePostBody = {
   title?: string;
   body?: string;
   status?: "draft" | "published";
+};
+
+type PostRow = {
+  id: string;
+  title: string;
+  body: string;
+  status: ForumPostStatus;
+  publishedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  author: {
+    id: string;
+    username: string | null;
+    displayName: string | null;
+    image: string | null;
+  };
+  _count: { comments: number };
 };
 
 export async function GET(request: Request) {
@@ -32,7 +49,7 @@ export async function GET(request: Request) {
     ? ForumPostStatus.DRAFT
     : ForumPostStatus.PUBLISHED;
 
-  let posts;
+  let posts: PostRow[];
   try {
     posts = await prisma.forumPost.findMany({
       where: {
@@ -60,10 +77,84 @@ export async function GET(request: Request) {
     if (isForumSchemaMissing(error)) {
       return jsonError("Forum database is not ready yet.", 503);
     }
-    throw error;
+    if (!isProfileSchemaMissing(error)) {
+      throw error;
+    }
+
+    const fallbackPosts = await prisma.forumPost.findMany({
+      where: {
+        status,
+        ...(mineOnly || status === ForumPostStatus.DRAFT
+          ? { authorId: sessionUser?.id }
+          : undefined),
+        ...(q
+          ? {
+              OR: [
+                { title: { contains: q, mode: "insensitive" } },
+                { body: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : undefined),
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      include: {
+        author: { select: { id: true, displayName: true, image: true } },
+        _count: { select: { comments: true } },
+      },
+    });
+
+    posts = fallbackPosts.map((post) => ({
+      ...post,
+      author: { ...post.author, username: null },
+    }));
   }
 
-  return jsonOk(posts);
+  const postIds = posts.map((post) => post.id);
+  const voteScoreByPost = new Map<string, number>();
+  const myVoteByPost = new Map<string, number>();
+
+  if (postIds.length) {
+    try {
+      const groupedVotes = await prisma.forumPostVote.groupBy({
+        by: ["postId"],
+        where: { postId: { in: postIds } },
+        _sum: { value: true },
+      });
+      for (const row of groupedVotes) {
+        voteScoreByPost.set(row.postId, row._sum.value ?? 0);
+      }
+
+      if (sessionUser?.id) {
+        const myVotes = await prisma.forumPostVote.findMany({
+          where: {
+            userId: sessionUser.id,
+            postId: { in: postIds },
+          },
+          select: {
+            postId: true,
+            value: true,
+          },
+        });
+        for (const row of myVotes) {
+          myVoteByPost.set(row.postId, row.value);
+        }
+      }
+    } catch (error) {
+      if (isForumSchemaMissing(error)) {
+        return jsonError("Forum database is not ready yet.", 503);
+      }
+      throw error;
+    }
+  }
+
+  return jsonOk(
+    posts.map((post) => ({
+      ...post,
+      voteScore: voteScoreByPost.get(post.id) ?? 0,
+      myVote: myVoteByPost.get(post.id) ?? 0,
+    })),
+  );
 }
 
 export async function POST(request: Request) {
@@ -91,7 +182,7 @@ export async function POST(request: Request) {
     return jsonError("Provide a title or body to save a draft.", 400);
   }
 
-  let post;
+  let post: PostRow;
   try {
     post = await prisma.forumPost.create({
       data: {
@@ -110,8 +201,32 @@ export async function POST(request: Request) {
     if (isForumSchemaMissing(error)) {
       return jsonError("Forum database is not ready yet.", 503);
     }
-    throw error;
+    if (!isProfileSchemaMissing(error)) {
+      throw error;
+    }
+
+    const fallbackPost = await prisma.forumPost.create({
+      data: {
+        authorId: sessionUser.id,
+        title: title || "Untitled draft",
+        body: text || "Draft body",
+        status: desiredStatus,
+        publishedAt: desiredStatus === ForumPostStatus.PUBLISHED ? new Date() : null,
+      },
+      include: {
+        author: { select: { id: true, displayName: true, image: true } },
+        _count: { select: { comments: true } },
+      },
+    });
+
+    post = {
+      ...fallbackPost,
+      author: {
+        ...fallbackPost.author,
+        username: null,
+      },
+    };
   }
 
-  return jsonOk(post, { status: 201 });
+  return jsonOk({ ...post, voteScore: 0, myVote: 0 }, { status: 201 });
 }

@@ -46,9 +46,6 @@ export function StreamsDesktop() {
       <section className="flex flex-col gap-3 sm:gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
-              Live now
-            </p>
             <h1 className="font-display text-[30px] text-slate-900 sm:text-4xl">
               Streams
             </h1>

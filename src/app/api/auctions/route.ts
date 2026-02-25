@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getDevSellerId, isDev, jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
+import { nextThursdayNinePmEst } from "@/lib/auction-time";
 
 const allowedStatuses = new Set<string>([
   "DRAFT",
@@ -26,7 +27,6 @@ type CreateAuctionBody = {
   minBidIncrement?: number;
   currency?: string;
   publishNow?: boolean;
-  videoStreamUrl?: string;
   item?: {
     title?: string;
     description?: string;
@@ -222,6 +222,7 @@ export async function POST(request: Request) {
   let status: AuctionStatus = AuctionStatus.DRAFT;
   const publishNow = Boolean(body.publishNow);
   const effectiveStart = startTime ?? (publishNow ? now : null);
+  const effectiveEnd = endTime ?? (wantsAuction ? nextThursdayNinePmEst(now) : null);
 
   if (effectiveStart && effectiveStart <= now) {
     status = AuctionStatus.LIVE;
@@ -274,15 +275,15 @@ export async function POST(request: Request) {
         ? (body.startingBid as number)
         : body.buyNowPrice ?? 0,
       currentBid: wantsAuction ? (body.startingBid as number) : 0,
-      minBidIncrement: body.minBidIncrement ?? 2000,
+      minBidIncrement: wantsAuction ? body.minBidIncrement ?? 2000 : 0,
       buyNowPrice: body.buyNowPrice ?? null,
       reservePrice: null,
       startTime: effectiveStart,
-      endTime,
+      endTime: effectiveEnd,
       antiSnipeSeconds: body.antiSnipeSeconds ?? 12,
       status,
       currency: body.currency?.toLowerCase() ?? "usd",
-      videoStreamUrl: body.videoStreamUrl?.trim() || null,
+      videoStreamUrl: null,
     },
   });
 

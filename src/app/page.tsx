@@ -129,7 +129,6 @@ export default async function Home() {
       <section className="space-y-5">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-slate-400">Live now</p>
             <h2 className="font-display text-2xl text-slate-900">Featured streams</h2>
           </div>
           <Link href="/streams" className="text-sm font-semibold text-[var(--royal)]">

@@ -3,13 +3,70 @@ import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { ensureForumSchema, isForumSchemaMissing } from "@/lib/forum-schema";
-import { ensureProfileSchema } from "@/lib/profile-schema";
+import { ensureProfileSchema, isProfileSchemaMissing } from "@/lib/profile-schema";
 
 type UpdatePostBody = {
   title?: string;
   body?: string;
   status?: "draft" | "published";
 };
+
+type PostDetail = {
+  id: string;
+  authorId: string;
+  title: string;
+  body: string;
+  createdAt: Date;
+  updatedAt: Date;
+  publishedAt: Date | null;
+  status: ForumPostStatus;
+  author: {
+    id: string;
+    username: string | null;
+    displayName: string | null;
+    image: string | null;
+  };
+  comments: Array<{
+    id: string;
+    body: string;
+    createdAt: Date;
+    parentId: string | null;
+    author: {
+      id: string;
+      username: string | null;
+      displayName: string | null;
+      image: string | null;
+    };
+  }>;
+  _count: { comments: number };
+};
+
+async function getVoteMeta(postId: string, userId?: string | null) {
+  let voteScore = 0;
+  let myVote = 0;
+
+  try {
+    const aggregate = await prisma.forumPostVote.aggregate({
+      where: { postId },
+      _sum: { value: true },
+    });
+    voteScore = aggregate._sum.value ?? 0;
+
+    if (userId) {
+      const mine = await prisma.forumPostVote.findUnique({
+        where: { postId_userId: { postId, userId } },
+        select: { value: true },
+      });
+      myVote = mine?.value ?? 0;
+    }
+  } catch (error) {
+    if (isForumSchemaMissing(error)) {
+      throw error;
+    }
+  }
+
+  return { voteScore, myVote };
+}
 
 export async function GET(
   _request: Request,
@@ -21,7 +78,7 @@ export async function GET(
   const { id } = await context.params;
   const sessionUser = await getSessionUser();
 
-  let post;
+  let post: PostDetail | null;
   try {
     post = await prisma.forumPost.findUnique({
       where: { id },
@@ -40,7 +97,40 @@ export async function GET(
     if (isForumSchemaMissing(error)) {
       return jsonError("Forum database is not ready yet.", 503);
     }
-    throw error;
+    if (!isProfileSchemaMissing(error)) {
+      throw error;
+    }
+
+    const fallbackPost = await prisma.forumPost.findUnique({
+      where: { id },
+      include: {
+        author: { select: { id: true, displayName: true, image: true } },
+        comments: {
+          orderBy: { createdAt: "asc" },
+          include: {
+            author: { select: { id: true, displayName: true, image: true } },
+          },
+        },
+        _count: { select: { comments: true } },
+      },
+    });
+
+    post = fallbackPost
+      ? {
+          ...fallbackPost,
+          author: {
+            ...fallbackPost.author,
+            username: null,
+          },
+          comments: fallbackPost.comments.map((comment) => ({
+            ...comment,
+            author: {
+              ...comment.author,
+              username: null,
+            },
+          })),
+        }
+      : null;
   }
 
   if (!post) return jsonError("Post not found.", 404);
@@ -51,7 +141,9 @@ export async function GET(
   ) {
     return jsonError("Post not found.", 404);
   }
-  return jsonOk(post);
+
+  const voteMeta = await getVoteMeta(post.id, sessionUser?.id);
+  return jsonOk({ ...post, ...voteMeta });
 }
 
 export async function PATCH(
@@ -138,8 +230,39 @@ export async function PATCH(
     if (isForumSchemaMissing(error)) {
       return jsonError("Forum database is not ready yet.", 503);
     }
-    throw error;
+    if (!isProfileSchemaMissing(error)) {
+      throw error;
+    }
+
+    const fallbackPost = await prisma.forumPost.update({
+      where: { id },
+      data: {
+        title: title !== undefined ? title || "Untitled draft" : undefined,
+        body: text !== undefined ? text || "Draft body" : undefined,
+        status: nextStatus,
+        publishedAt: nextStatus === ForumPostStatus.PUBLISHED
+          ? existing.status === ForumPostStatus.PUBLISHED
+            ? undefined
+            : new Date()
+          : nextStatus === ForumPostStatus.DRAFT
+            ? null
+            : undefined,
+      },
+      include: {
+        author: { select: { id: true, displayName: true, image: true } },
+        _count: { select: { comments: true } },
+      },
+    });
+
+    post = {
+      ...fallbackPost,
+      author: {
+        ...fallbackPost.author,
+        username: null,
+      },
+    };
   }
 
-  return jsonOk(post);
+  const voteMeta = await getVoteMeta(post.id, sessionUser.id);
+  return jsonOk({ ...post, ...voteMeta });
 }

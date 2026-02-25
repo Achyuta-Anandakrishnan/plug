@@ -15,6 +15,10 @@ type UpdateProfileBody = {
   image?: string;
 };
 
+function isSameUtcMonth(a: Date, b: Date) {
+  return a.getUTCFullYear() === b.getUTCFullYear() && a.getUTCMonth() === b.getUTCMonth();
+}
+
 function cleanOptionalText(value: string | undefined, maxLength: number) {
   if (value === undefined) return undefined;
   const next = value.trim();
@@ -83,11 +87,24 @@ export async function PUT(request: Request) {
   const body = await parseJson<UpdateProfileBody>(request);
   if (!body) return jsonError("Invalid request body.", 400);
 
+  const currentUser = await prisma.user.findUnique({
+    where: { id: sessionUser.id },
+    select: {
+      id: true,
+      username: true,
+      usernameChangeCount: true,
+      usernameChangePeriodStart: true,
+    },
+  });
+  if (!currentUser) return jsonError("User not found.", 404);
+
   const data: {
     username?: string | null;
     displayName?: string | null;
     bio?: string | null;
     image?: string | null;
+    usernameChangeCount?: number;
+    usernameChangePeriodStart?: Date | null;
   } = {};
 
   if (body.username !== undefined) {
@@ -98,17 +115,37 @@ export async function PUT(request: Request) {
         400,
       );
     }
-    const existing = await prisma.user.findFirst({
-      where: {
-        username: normalized,
-        id: { not: sessionUser.id },
-      },
-      select: { id: true },
-    });
-    if (existing) {
-      return jsonError("Username is already taken.", 409);
+    if (normalized !== currentUser.username) {
+      const existing = await prisma.user.findFirst({
+        where: {
+          username: normalized,
+          id: { not: sessionUser.id },
+        },
+        select: { id: true },
+      });
+      if (existing) {
+        return jsonError("username not available", 409);
+      }
+
+      const isFirstSet = !currentUser.username;
+      if (!isFirstSet) {
+        const now = new Date();
+        const sameMonth = currentUser.usernameChangePeriodStart
+          ? isSameUtcMonth(currentUser.usernameChangePeriodStart, now)
+          : false;
+        const usedThisMonth = sameMonth ? currentUser.usernameChangeCount : 0;
+        if (usedThisMonth >= 2) {
+          return jsonError("You can only change username twice a month.", 429);
+        }
+
+        data.usernameChangeCount = usedThisMonth + 1;
+        data.usernameChangePeriodStart = sameMonth
+          ? currentUser.usernameChangePeriodStart
+          : now;
+      }
+
+      data.username = normalized;
     }
-    data.username = normalized;
   }
 
   if (body.displayName !== undefined) {

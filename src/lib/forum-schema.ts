@@ -43,6 +43,17 @@ export async function ensureForumSchema() {
         CONSTRAINT "ForumComment_pkey" PRIMARY KEY ("id")
       );
     `);
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "ForumPostVote" (
+        "id" TEXT NOT NULL,
+        "postId" TEXT NOT NULL REFERENCES "ForumPost"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        "userId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        "value" INTEGER NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "ForumPostVote_pkey" PRIMARY KEY ("id")
+      );
+    `);
 
     await prisma.$executeRawUnsafe(
       `CREATE INDEX IF NOT EXISTS "ForumPost_authorId_idx" ON "ForumPost"("authorId");`,
@@ -58,6 +69,15 @@ export async function ensureForumSchema() {
     );
     await prisma.$executeRawUnsafe(
       `CREATE INDEX IF NOT EXISTS "ForumComment_parentId_idx" ON "ForumComment"("parentId");`,
+    );
+    await prisma.$executeRawUnsafe(
+      `CREATE UNIQUE INDEX IF NOT EXISTS "ForumPostVote_postId_userId_key" ON "ForumPostVote"("postId", "userId");`,
+    );
+    await prisma.$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS "ForumPostVote_postId_idx" ON "ForumPostVote"("postId");`,
+    );
+    await prisma.$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS "ForumPostVote_userId_idx" ON "ForumPostVote"("userId");`,
     );
 
     await prisma.$executeRawUnsafe(`
@@ -111,5 +131,5 @@ export function isForumSchemaMissing(error: unknown) {
     ? String((error as { message?: unknown }).message ?? "")
     : "";
   if (code === "42P01" || code === "42704") return true;
-  return message.includes("ForumPost") || message.includes("ForumComment");
+  return message.includes("ForumPost") || message.includes("ForumComment") || message.includes("ForumPostVote");
 }

@@ -29,6 +29,8 @@ type ForumPostDetail = {
   author: ForumAuthor;
   comments: ForumComment[];
   _count: { comments: number };
+  voteScore: number;
+  myVote: number;
 };
 
 function formatLongDate(value: string) {
@@ -58,6 +60,8 @@ export function ForumPostClient() {
   const [replyTo, setReplyTo] = useState<ForumComment | null>(null);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
+  const [voting, setVoting] = useState(false);
+  const [voteError, setVoteError] = useState("");
 
   const fetchPost = useCallback(async () => {
     if (!postId) return;
@@ -66,7 +70,8 @@ export function ForumPostClient() {
     try {
       const response = await fetch(`/api/forum/posts/${postId}`);
       if (!response.ok) {
-        setError("Unable to load post.");
+        const payload = (await response.json().catch(() => ({}))) as { error?: string };
+        setError(payload.error || "Unable to load post.");
         setLoading(false);
         return;
       }
@@ -78,6 +83,46 @@ export function ForumPostClient() {
       setLoading(false);
     }
   }, [postId]);
+
+  const handleVote = async (value: -1 | 1) => {
+    setVoteError("");
+    if (!session?.user?.id) {
+      await signIn();
+      return;
+    }
+    if (!post) return;
+
+    const nextValue = post.myVote === value ? 0 : value;
+    setVoting(true);
+    try {
+      const response = await fetch(`/api/forum/posts/${post.id}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: nextValue }),
+      });
+      const payload = (await response.json()) as {
+        voteScore?: number;
+        myVote?: number;
+        error?: string;
+      };
+      if (!response.ok) {
+        setVoteError(payload.error || "Unable to update vote.");
+        setVoting(false);
+        return;
+      }
+      setPost((prev) => (prev
+        ? {
+            ...prev,
+            voteScore: payload.voteScore ?? prev.voteScore,
+            myVote: payload.myVote ?? prev.myVote,
+          }
+        : prev));
+    } catch {
+      setVoteError("Unable to update vote.");
+    } finally {
+      setVoting(false);
+    }
+  };
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -210,6 +255,40 @@ export function ForumPostClient() {
         <div className="mt-3 whitespace-pre-wrap text-sm leading-5 text-slate-700">
           {post.body}
         </div>
+        <div className="mt-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void handleVote(1)}
+            disabled={voting}
+            className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+              post.myVote === 1
+                ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                : "border-slate-200 bg-white/90 text-slate-600"
+            }`}
+          >
+            Upvote
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleVote(-1)}
+            disabled={voting}
+            className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+              post.myVote === -1
+                ? "border-rose-300 bg-rose-50 text-rose-700"
+                : "border-slate-200 bg-white/90 text-slate-600"
+            }`}
+          >
+            Downvote
+          </button>
+          <span className="text-xs uppercase tracking-[0.2em] text-slate-500">
+            Score {post.voteScore}
+          </span>
+        </div>
+        {voteError ? (
+          <div className="mt-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-600">
+            {voteError}
+          </div>
+        ) : null}
       </article>
 
       <section className="surface-panel rounded-[24px] p-4">
