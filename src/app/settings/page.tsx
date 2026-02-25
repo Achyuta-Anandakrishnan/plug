@@ -17,8 +17,6 @@ export default function SettingsPage() {
         <h1 className="font-display text-3xl text-slate-900">Account</h1>
       </div>
 
-      <ReferralBar />
-
       <div className="surface-panel rounded-[28px] p-5">
         <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
           Profile
@@ -68,6 +66,8 @@ export default function SettingsPage() {
           </Link>
         </div>
       </div>
+
+      <ReferralBar />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { AppProviders } from "@/components/AppProviders";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -21,11 +22,12 @@ export default function RootLayout({
         <AppProviders>
           <div className="flex min-h-screen flex-col">
             <SiteHeader />
-            <main className="page-container flex-1 pb-28 pt-8 sm:pb-24 sm:pt-12 lg:pt-14">
+            <main className="page-container flex-1 pb-28 pt-12 sm:pb-24 sm:pt-16 lg:pt-20">
               {children}
             </main>
             <SiteFooter />
           </div>
+          <Analytics />
         </AppProviders>
       </body>
     </html>
