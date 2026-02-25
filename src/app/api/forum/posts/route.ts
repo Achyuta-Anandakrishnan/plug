@@ -79,7 +79,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     if (isForumSchemaMissing(error)) {
-      return jsonError("Forum database is not ready yet.", 503);
+      return jsonOk([]);
     }
     if (!isProfileSchemaMissing(error)) {
       throw error;

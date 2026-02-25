@@ -54,6 +54,11 @@ export function ForumClient() {
       });
       const publishedPayload = (await publishedResponse.json()) as ForumPostListItem[] & { error?: string };
       if (!publishedResponse.ok) {
+        if (publishedPayload.error?.toLowerCase().includes("forum database is not ready")) {
+          setPublishedPosts([]);
+          setLoading(false);
+          return;
+        }
         setError(publishedPayload.error || "Unable to load forum posts.");
         setLoading(false);
         return;
