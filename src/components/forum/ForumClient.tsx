@@ -49,7 +49,9 @@ export function ForumClient() {
     try {
       const publishedUrl = new URL("/api/forum/posts", window.location.origin);
       if (q.trim()) publishedUrl.searchParams.set("q", q.trim());
-      const publishedResponse = await fetch(publishedUrl.toString());
+      const publishedResponse = await fetch(publishedUrl.toString(), {
+        cache: "no-store",
+      });
       const publishedPayload = (await publishedResponse.json()) as ForumPostListItem[] & { error?: string };
       if (!publishedResponse.ok) {
         setError(publishedPayload.error || "Unable to load forum posts.");
@@ -63,7 +65,9 @@ export function ForumClient() {
         draftsUrl.searchParams.set("status", "draft");
         draftsUrl.searchParams.set("mine", "1");
         if (q.trim()) draftsUrl.searchParams.set("q", q.trim());
-        const draftsResponse = await fetch(draftsUrl.toString());
+        const draftsResponse = await fetch(draftsUrl.toString(), {
+          cache: "no-store",
+        });
         const draftsPayload = (await draftsResponse.json()) as ForumPostListItem[] & { error?: string };
         if (draftsResponse.ok) {
           setDraftPosts(draftsPayload);

@@ -69,13 +69,11 @@ export function SiteHeader() {
   const { data: session } = useSession();
   const canUseDom = typeof document !== "undefined";
 
-  const isVerifiedSeller =
-    session?.user?.role === "SELLER" || session?.user?.role === "ADMIN";
   const isAdmin =
     session?.user?.role === "ADMIN" || isPrimaryAdminEmail(session?.user?.email);
 
   const navItems = useMemo(() => {
-    const items = [
+    return [
       { label: "Streams", href: "/streams" },
       { label: "Listings", href: "/listings" },
       { label: "Search", href: "/explore" },
@@ -83,11 +81,7 @@ export function SiteHeader() {
       { label: "Messages", href: "/messages" },
       { label: "Settings", href: "/settings" },
     ];
-    items.splice(2, 0, isVerifiedSeller
-      ? { label: "Sell", href: "/sell" }
-      : { label: "Seller Verification", href: "/seller/verification" });
-    return items;
-  }, [isVerifiedSeller]);
+  }, []);
 
   const mobilePrimaryItems = [
     { label: "Streams", href: "/streams" },
@@ -150,13 +144,6 @@ export function SiteHeader() {
             </nav>
             <div className="mt-4 grid gap-2">
               <AccountActions signedIn={Boolean(session?.user?.id)} />
-              <Link
-                href={isVerifiedSeller ? "/sell" : "/seller/verification"}
-                onClick={() => setMobileOpen(false)}
-                className="rounded-full bg-[var(--royal)] px-4 py-3 text-center text-sm font-semibold text-white"
-              >
-                {isVerifiedSeller ? "Create listing" : "Get verified"}
-              </Link>
             </div>
           </div>
         </div>,
@@ -218,12 +205,6 @@ export function SiteHeader() {
                 <BellIcon />
               </Link>
               <AccountActions signedIn={Boolean(session?.user?.id)} />
-              <Link
-                href={isVerifiedSeller ? "/sell" : "/seller/verification"}
-                className="rounded-full bg-[var(--royal)] px-3.5 py-1.5 text-xs font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[var(--royal-deep)] sm:px-5 sm:py-2 sm:text-sm"
-              >
-                {isVerifiedSeller ? "Create listing" : "Get verified"}
-              </Link>
             </div>
           </div>
         </div>

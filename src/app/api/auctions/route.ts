@@ -16,12 +16,11 @@ const allowedStatuses = new Set<string>([
 type CreateAuctionBody = {
   sellerId?: string;
   categoryId?: string;
-  listingType?: ListingType;
+  listingType?: ListingType | "LIVE_STREAM";
   title?: string;
   description?: string;
   startingBid?: number;
   buyNowPrice?: number;
-  startTime?: string;
   endTime?: string;
   antiSnipeSeconds?: number;
   minBidIncrement?: number;
@@ -194,17 +193,17 @@ export async function POST(request: Request) {
     return jsonError("Seller verification pending approval.", 403);
   }
 
-  const startTime = body.startTime ? new Date(body.startTime) : null;
   const endTime = body.endTime ? new Date(body.endTime) : null;
 
-  if (startTime && Number.isNaN(startTime.valueOf())) {
-    return jsonError("Invalid startTime.");
-  }
   if (endTime && Number.isNaN(endTime.valueOf())) {
     return jsonError("Invalid endTime.");
   }
 
-  const listingType = body.listingType ?? ListingType.AUCTION;
+  const requestedListingType = body.listingType ?? ListingType.AUCTION;
+  const isLiveStreamListing = requestedListingType === "LIVE_STREAM";
+  const listingType = isLiveStreamListing
+    ? ListingType.AUCTION
+    : requestedListingType;
   const wantsAuction =
     listingType === ListingType.AUCTION || listingType === ListingType.BOTH;
   const wantsBuyNow =
@@ -220,8 +219,8 @@ export async function POST(request: Request) {
 
   const now = new Date();
   let status: AuctionStatus = AuctionStatus.DRAFT;
-  const publishNow = Boolean(body.publishNow);
-  const effectiveStart = startTime ?? (publishNow ? now : null);
+  const publishNow = isLiveStreamListing ? true : Boolean(body.publishNow);
+  const effectiveStart = publishNow ? now : null;
   const effectiveEnd = endTime ?? (wantsAuction ? nextThursdayNinePmEst(now) : null);
 
   if (effectiveStart && effectiveStart <= now) {

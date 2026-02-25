@@ -16,7 +16,7 @@ import {
   getGradingProfile,
 } from "@/lib/grading";
 
-const steps = ["Basics", "Pricing", "Media"] as const;
+const steps = ["Basics", "Pricing", "Media", "Preview"] as const;
 
 function toCents(value: string) {
   const parsed = Number(value);
@@ -41,7 +41,9 @@ export function SellerListingMobile() {
   const [description, setDescription] = useState("");
   const [condition, setCondition] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [listingType, setListingType] = useState("AUCTION");
+  const [listingType, setListingType] = useState<
+    "AUCTION" | "BUY_NOW" | "BOTH" | "LIVE_STREAM"
+  >("AUCTION");
   const [startingBid, setStartingBid] = useState("100");
   const [buyNowPrice, setBuyNowPrice] = useState("250");
   const [minBidIncrement, setMinBidIncrement] = useState("20");
@@ -82,6 +84,10 @@ export function SellerListingMobile() {
     () => getGradeOptions(gradingCompany),
     [gradingCompany],
   );
+  const isLiveStreamMode = listingType === "LIVE_STREAM";
+  const effectiveListingType = isLiveStreamMode ? "AUCTION" : listingType;
+  const needsAuctionPricing = effectiveListingType !== "BUY_NOW";
+  const needsBuyNowPricing = effectiveListingType !== "AUCTION";
   const inputClass =
     "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
   const labelClass = "text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400";
@@ -132,17 +138,17 @@ export function SellerListingMobile() {
     setMessage("");
 
     const payload = {
-      listingType,
+      listingType: effectiveListingType,
       title,
       description,
-      startingBid: listingType !== "BUY_NOW" ? toCents(startingBid) : undefined,
-      buyNowPrice: listingType !== "AUCTION" ? toCents(buyNowPrice) : undefined,
+      startingBid: needsAuctionPricing ? toCents(startingBid) : undefined,
+      buyNowPrice: needsBuyNowPricing ? toCents(buyNowPrice) : undefined,
       minBidIncrement:
-        listingType !== "BUY_NOW" && minBidIncrement
+        needsAuctionPricing && minBidIncrement
           ? toCents(minBidIncrement)
           : undefined,
       endTime: endTime ? new Date(endTime).toISOString() : undefined,
-      publishNow,
+      publishNow: isLiveStreamMode ? true : publishNow,
       currency: "usd",
       categoryId: categoryId || undefined,
       item: {
@@ -157,6 +163,7 @@ export function SellerListingMobile() {
           gradingLabel: isGraded === "YES" ? gradingLabel || null : null,
           grade: isGraded === "YES" ? grade || null : null,
           certNumber: isGraded === "YES" ? certNumber.trim() || null : null,
+          listingMode: listingType,
         },
       },
       images: images.map((image, index) => ({
@@ -417,22 +424,22 @@ export function SellerListingMobile() {
       {stepIndex === 1 && (
         <section className="surface-panel rounded-3xl p-4 space-y-4">
           <div className="grid gap-2">
-            {["AUCTION", "BUY_NOW", "BOTH"].map((type) => (
+            {["AUCTION", "BUY_NOW", "BOTH", "LIVE_STREAM"].map((type) => (
               <button
                 key={type}
                 type="button"
-                onClick={() => setListingType(type)}
+                onClick={() => setListingType(type as "AUCTION" | "BUY_NOW" | "BOTH" | "LIVE_STREAM")}
                 className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold ${
                   listingType === type
                     ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
                     : "border-slate-200 text-slate-600"
                 }`}
               >
-                {type.replace("_", " ")}
+                {type === "BOTH" ? "BUY NOW + AUCTION" : type.replace("_", " ")}
               </button>
             ))}
           </div>
-          {listingType !== "BUY_NOW" && (
+          {needsAuctionPricing && (
             <input
               value={startingBid}
               onChange={(event) => setStartingBid(event.target.value)}
@@ -440,7 +447,7 @@ export function SellerListingMobile() {
               className={inputClass}
             />
           )}
-          {listingType !== "AUCTION" && (
+          {needsBuyNowPricing && (
             <input
               value={buyNowPrice}
               onChange={(event) => setBuyNowPrice(event.target.value)}
@@ -448,7 +455,7 @@ export function SellerListingMobile() {
               className={inputClass}
             />
           )}
-          {listingType !== "BUY_NOW" && (
+          {needsAuctionPricing && (
             <input
               value={minBidIncrement}
               onChange={(event) => setMinBidIncrement(event.target.value)}
@@ -468,10 +475,11 @@ export function SellerListingMobile() {
           <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-xs text-slate-600">
             <input
               type="checkbox"
-              checked={publishNow}
+              checked={isLiveStreamMode ? true : publishNow}
               onChange={(event) => setPublishNow(event.target.checked)}
+              disabled={isLiveStreamMode}
             />
-            Publish immediately
+            {isLiveStreamMode ? "Live stream listings publish immediately" : "Publish immediately"}
           </label>
           <div className="rounded-2xl bg-white/80 px-4 py-3 text-xs text-slate-500">
             Preview starting bid: {listingPreview}
@@ -483,7 +491,7 @@ export function SellerListingMobile() {
         <section className="surface-panel rounded-3xl p-4 space-y-4">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-              Photos (stored in Supabase)
+              Photos
             </p>
             <div className="mt-2 grid gap-3">
               <input
@@ -532,13 +540,36 @@ export function SellerListingMobile() {
               </div>
             )}
           </div>
+        </section>
+      )}
+
+      {stepIndex === 3 && (
+        <section className="surface-panel rounded-3xl p-4 space-y-4">
+          <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Title</p>
+            <p className="mt-1 text-sm font-semibold text-slate-900">{title || "Untitled listing"}</p>
+          </div>
+          <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Type</p>
+            <p className="mt-1 text-sm font-semibold text-slate-900">
+              {listingType === "BOTH" ? "Buy Now + Auction" : listingType.replace("_", " ")}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Pricing</p>
+            <p className="mt-1 text-sm text-slate-700">
+              {needsAuctionPricing ? `Start ${formatCurrency(toCents(startingBid) ?? 0, "USD")}` : "No bidding"}
+              {needsBuyNowPricing ? ` • Buy now ${formatCurrency(toCents(buyNowPrice) ?? 0, "USD")}` : ""}
+            </p>
+          </div>
+          <p className="text-sm text-slate-600">{description || "No description added yet."}</p>
           <button
             type="button"
             onClick={handleSubmit}
             disabled={status === "loading"}
             className="w-full rounded-full bg-[var(--royal)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[var(--royal-deep)] disabled:opacity-60"
           >
-            {status === "loading" ? "Creating..." : "Create listing"}
+            {status === "loading" ? "Creating..." : "Post listing"}
           </button>
           {message && (
             <div

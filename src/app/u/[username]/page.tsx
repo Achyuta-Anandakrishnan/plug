@@ -65,7 +65,7 @@ export default async function UsernameProfilePage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="mt-2 flex items-center justify-between gap-3">
         <Link
           href="/explore"
           className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
@@ -100,7 +100,14 @@ export default async function UsernameProfilePage({
           </div>
         </div>
 
-        {profile.bio ? <p className="mt-3 text-sm text-slate-600">{profile.bio}</p> : null}
+        <div className="mt-4 rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            Bio
+          </p>
+          <p className="mt-1 text-sm text-slate-700">
+            {profile.bio ?? "No bio added yet."}
+          </p>
+        </div>
 
         <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
           <div className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2">

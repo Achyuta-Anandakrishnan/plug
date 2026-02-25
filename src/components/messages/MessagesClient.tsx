@@ -51,6 +51,7 @@ export function MessagesClient() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,6 +119,14 @@ export function MessagesClient() {
     };
   }, [activeId]);
 
+  useEffect(() => {
+    if (!activeId) return;
+    if (conversations.some((thread) => thread.id === activeId)) return;
+    setActiveId(conversations[0]?.id ?? null);
+    setMessages([]);
+    setDraft("");
+  }, [activeId, conversations]);
+
   const filtered = useMemo(() => {
     if (!query.trim()) return conversations;
     const q = query.trim().toLowerCase();
@@ -163,6 +172,35 @@ export function MessagesClient() {
       // Keep silent; the API returns errors already in response body.
     } finally {
       setSending(false);
+    }
+  }
+
+  async function handleDeleteConversation(conversationId: string) {
+    if (!conversationId) return;
+    const confirmed = window.confirm(
+      "Delete this chat? This will remove all messages in this conversation.",
+    );
+    if (!confirmed) return;
+
+    setDeletingConversationId(conversationId);
+    setError("");
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}`, {
+        method: "DELETE",
+      });
+      const payload = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        throw new Error(payload.error ?? "Unable to delete chat.");
+      }
+      setConversations((prev) => prev.filter((thread) => thread.id !== conversationId));
+      if (activeId === conversationId) {
+        setMessages([]);
+        setDraft("");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to delete chat.");
+    } finally {
+      setDeletingConversationId(null);
     }
   }
 
@@ -276,6 +314,16 @@ export function MessagesClient() {
                 </div>
               ) : null}
             </div>
+            {activeConversation ? (
+              <button
+                type="button"
+                onClick={() => void handleDeleteConversation(activeConversation.id)}
+                disabled={deletingConversationId === activeConversation.id}
+                className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 disabled:opacity-60"
+              >
+                {deletingConversationId === activeConversation.id ? "Deleting..." : "Delete chat"}
+              </button>
+            ) : null}
           </div>
 
           <div className="mt-6 space-y-3">

@@ -35,14 +35,7 @@ export default function SignInPage() {
             <AuthButtons />
           </div>
           <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-white/60 px-4 py-3 text-xs text-slate-500">
-            Need seller verification?{" "}
-            <Link
-              href="/seller/verification"
-              className="font-semibold text-slate-700"
-            >
-              Start your application
-            </Link>
-            .
+            After sign-in, complete your profile with username and bio in settings.
           </div>
         </div>
       </section>

@@ -2,7 +2,11 @@ import { ForumPostStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
-import { ensureForumSchema, isForumSchemaMissing } from "@/lib/forum-schema";
+import {
+  ensureForumSchema,
+  isForumSchemaMissing,
+  isForumVoteSchemaMissing,
+} from "@/lib/forum-schema";
 import { ensureProfileSchema, isProfileSchemaMissing } from "@/lib/profile-schema";
 
 type UpdatePostBody = {
@@ -60,7 +64,9 @@ async function getVoteMeta(postId: string, userId?: string | null) {
       myVote = mine?.value ?? 0;
     }
   } catch (error) {
-    if (isForumSchemaMissing(error)) {
+    if (isForumVoteSchemaMissing(error)) {
+      // Vote data is optional; keep loading the post.
+    } else if (isForumSchemaMissing(error)) {
       throw error;
     }
   }

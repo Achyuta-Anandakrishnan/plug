@@ -19,7 +19,8 @@ import {
 const listingTypes = [
   { label: "Auction", value: "AUCTION" },
   { label: "Buy Now", value: "BUY_NOW" },
-  { label: "Both", value: "BOTH" },
+  { label: "Buy Now + Auction", value: "BOTH" },
+  { label: "Live Stream", value: "LIVE_STREAM" },
 ] as const;
 
 function toCents(value: string) {
@@ -44,15 +45,17 @@ export function SellerListingDesktop() {
   const [description, setDescription] = useState("");
   const [condition, setCondition] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [listingType, setListingType] = useState("AUCTION");
+  const [listingType, setListingType] = useState<
+    "AUCTION" | "BUY_NOW" | "BOTH" | "LIVE_STREAM"
+  >("AUCTION");
   const [startingBid, setStartingBid] = useState("100");
   const [buyNowPrice, setBuyNowPrice] = useState("250");
   const [minBidIncrement, setMinBidIncrement] = useState("20");
-  const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState(
     () => toDateTimeLocalInputValue(nextThursdayNinePmEst()),
   );
   const [publishNow, setPublishNow] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
   const [isGraded, setIsGraded] = useState<"YES" | "NO">("NO");
   const [gradingCompany, setGradingCompany] = useState("PSA");
   const [grade, setGrade] = useState("");
@@ -86,6 +89,10 @@ export function SellerListingDesktop() {
     () => getGradeOptions(gradingCompany),
     [gradingCompany],
   );
+  const isLiveStreamMode = listingType === "LIVE_STREAM";
+  const effectiveListingType = isLiveStreamMode ? "AUCTION" : listingType;
+  const needsAuctionPricing = effectiveListingType !== "BUY_NOW";
+  const needsBuyNowPricing = effectiveListingType !== "AUCTION";
   const inputClass =
     "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
   const labelClass = "text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400";
@@ -137,18 +144,17 @@ export function SellerListingDesktop() {
     setMessage("");
 
     const payload = {
-      listingType,
+      listingType: effectiveListingType,
       title,
       description,
-      startingBid: listingType !== "BUY_NOW" ? toCents(startingBid) : undefined,
-      buyNowPrice: listingType !== "AUCTION" ? toCents(buyNowPrice) : undefined,
+      startingBid: needsAuctionPricing ? toCents(startingBid) : undefined,
+      buyNowPrice: needsBuyNowPricing ? toCents(buyNowPrice) : undefined,
       minBidIncrement:
-        listingType !== "BUY_NOW" && minBidIncrement
+        needsAuctionPricing && minBidIncrement
           ? toCents(minBidIncrement)
           : undefined,
-      startTime: startTime ? new Date(startTime).toISOString() : undefined,
       endTime: endTime ? new Date(endTime).toISOString() : undefined,
-      publishNow,
+      publishNow: isLiveStreamMode ? true : publishNow,
       currency: "usd",
       categoryId: categoryId || undefined,
       item: {
@@ -163,6 +169,7 @@ export function SellerListingDesktop() {
           gradingLabel: isGraded === "YES" ? gradingLabel || null : null,
           grade: isGraded === "YES" ? grade || null : null,
           certNumber: isGraded === "YES" ? certNumber.trim() || null : null,
+          listingMode: listingType,
         },
       },
       images: images.map((image, index) => ({
@@ -248,7 +255,7 @@ export function SellerListingDesktop() {
             Create a live listing.
           </h1>
           <p className="text-sm leading-relaxed text-slate-600">
-            List as auction, buy now, or both. Buyers can bid in real time.
+            List as auction, buy now, both, or live stream.
           </p>
           <div className="flex flex-wrap gap-3">
           </div>
@@ -435,9 +442,6 @@ export function SellerListingDesktop() {
 
             <div className="rounded-3xl border border-white/70 bg-white/60 p-5">
               <p className="font-display text-lg text-slate-900">Media uploads</p>
-              <p className="mt-1 text-xs text-slate-500">
-                Stored in Supabase bucket. First image becomes primary.
-              </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <input
                   type="file"
@@ -513,7 +517,7 @@ export function SellerListingDesktop() {
               ))}
             </div>
 
-            {listingType !== "BUY_NOW" && (
+            {needsAuctionPricing && (
               <div className="space-y-2">
                 <p className={labelClass}>Starting bid (USD)</p>
                 <input
@@ -524,7 +528,7 @@ export function SellerListingDesktop() {
                 />
               </div>
             )}
-            {listingType !== "AUCTION" && (
+            {needsBuyNowPricing && (
               <div className="space-y-2">
                 <p className={labelClass}>Buy now price (USD)</p>
                 <input
@@ -535,7 +539,7 @@ export function SellerListingDesktop() {
                 />
               </div>
             )}
-            {listingType !== "BUY_NOW" && (
+            {needsAuctionPricing && (
               <div className="space-y-2">
                 <p className={labelClass}>Min bid increment (USD)</p>
                 <input
@@ -546,43 +550,42 @@ export function SellerListingDesktop() {
                 />
               </div>
             )}
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-2">
-                <p className={labelClass}>Start time</p>
-                <input
-                  type="datetime-local"
-                  value={startTime}
-                  onChange={(event) => setStartTime(event.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <div className="space-y-2">
-                <p className={labelClass}>End time</p>
-                <input
-                  type="datetime-local"
-                  value={endTime}
-                  onChange={(event) => setEndTime(event.target.value)}
-                  className={inputClass}
-                />
-                <p className="text-[11px] text-slate-500">
-                  Default auction end: Thursday 9:00 PM EST. Live streams can set custom duration.
-                </p>
-              </div>
+            <div className="space-y-2">
+              <p className={labelClass}>End time</p>
+              <input
+                type="datetime-local"
+                value={endTime}
+                onChange={(event) => setEndTime(event.target.value)}
+                className={inputClass}
+              />
+              <p className="text-[11px] text-slate-500">
+                Default auction end: Thursday 9:00 PM EST. Live streams can set custom duration.
+              </p>
             </div>
             <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-xs text-slate-600">
               <input
                 type="checkbox"
-                checked={publishNow}
+                checked={isLiveStreamMode ? true : publishNow}
                 onChange={(event) => setPublishNow(event.target.checked)}
+                disabled={isLiveStreamMode}
               />
-              Publish immediately (otherwise stays draft)
+              {isLiveStreamMode
+                ? "Live stream listings publish immediately"
+                : "Publish immediately (otherwise stays draft)"}
             </label>
+            <button
+              type="button"
+              onClick={() => setShowPreview((prev) => !prev)}
+              className="w-full rounded-full border border-slate-200 bg-white/90 px-6 py-3 text-sm font-semibold text-slate-700"
+            >
+              {showPreview ? "Hide preview" : "Preview listing"}
+            </button>
             <button
               type="submit"
               disabled={status === "loading"}
               className="w-full rounded-full bg-[var(--royal)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[var(--royal-deep)] disabled:opacity-60"
             >
-              {status === "loading" ? "Creating..." : "Create listing"}
+              {status === "loading" ? "Creating..." : "Post listing"}
             </button>
             {message && (
               <div
@@ -599,12 +602,37 @@ export function SellerListingDesktop() {
         </form>
       </section>
 
-      <section className="surface-panel rounded-[32px] p-8">
-        <h3 className="font-display text-xl text-slate-900">Preview</h3>
-        <p className="mt-2 text-sm text-slate-600">
-          Current bid preview: {listingPreview}
-        </p>
-      </section>
+      {showPreview && (
+        <section className="surface-panel rounded-[32px] p-8">
+          <h3 className="font-display text-xl text-slate-900">Listing preview</h3>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Title</p>
+              <p className="mt-1 text-sm font-semibold text-slate-900">{title || "Untitled listing"}</p>
+            </div>
+            <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Type</p>
+              <p className="mt-1 text-sm font-semibold text-slate-900">
+                {listingTypes.find((entry) => entry.value === listingType)?.label ?? listingType}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Pricing</p>
+              <p className="mt-1 text-sm text-slate-700">
+                {needsAuctionPricing ? `Start ${formatCurrency(toCents(startingBid) ?? 0, "USD")}` : "No bidding"}
+                {needsBuyNowPricing ? ` • Buy now ${formatCurrency(toCents(buyNowPrice) ?? 0, "USD")}` : ""}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Media</p>
+              <p className="mt-1 text-sm text-slate-700">{images.length} image(s)</p>
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-slate-600">
+            {description || "No description added yet."}
+          </p>
+        </section>
+      )}
     </div>
   );
 }

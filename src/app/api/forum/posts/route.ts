@@ -2,7 +2,11 @@ import { ForumPostStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
-import { ensureForumSchema, isForumSchemaMissing } from "@/lib/forum-schema";
+import {
+  ensureForumSchema,
+  isForumSchemaMissing,
+  isForumVoteSchemaMissing,
+} from "@/lib/forum-schema";
 import { ensureProfileSchema, isProfileSchemaMissing } from "@/lib/profile-schema";
 
 type CreatePostBody = {
@@ -141,10 +145,13 @@ export async function GET(request: Request) {
         }
       }
     } catch (error) {
-      if (isForumSchemaMissing(error)) {
+      if (isForumVoteSchemaMissing(error)) {
+        // Keep forum readable even if vote schema is not deployed yet.
+      } else if (isForumSchemaMissing(error)) {
         return jsonError("Forum database is not ready yet.", 503);
+      } else {
+        throw error;
       }
-      throw error;
     }
   }
 

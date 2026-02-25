@@ -68,7 +68,9 @@ export function ForumPostClient() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`/api/forum/posts/${postId}`);
+      const response = await fetch(`/api/forum/posts/${postId}`, {
+        cache: "no-store",
+      });
       if (!response.ok) {
         const payload = (await response.json().catch(() => ({}))) as { error?: string };
         setError(payload.error || "Unable to load post.");
@@ -125,8 +127,7 @@ export function ForumPostClient() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchPost();
+    void fetchPost();
   }, [fetchPost]);
 
   const headerMeta = useMemo(() => {

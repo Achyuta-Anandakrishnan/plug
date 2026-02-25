@@ -131,5 +131,19 @@ export function isForumSchemaMissing(error: unknown) {
     ? String((error as { message?: unknown }).message ?? "")
     : "";
   if (code === "42P01" || code === "42704") return true;
-  return message.includes("ForumPost") || message.includes("ForumComment") || message.includes("ForumPostVote");
+  return message.includes("ForumPost") || message.includes("ForumComment");
+}
+
+export function isForumVoteSchemaMissing(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const code = "code" in error ? String((error as { code?: unknown }).code ?? "") : "";
+  const message = "message" in error
+    ? String((error as { message?: unknown }).message ?? "")
+    : "";
+  const metaModel = "meta" in error && (error as { meta?: { modelName?: unknown } }).meta
+    ? String((error as { meta?: { modelName?: unknown } }).meta?.modelName ?? "")
+    : "";
+  if (code === "P2021" && metaModel === "ForumPostVote") return true;
+  if (code === "42P01") return message.includes("ForumPostVote");
+  return message.includes("ForumPostVote");
 }

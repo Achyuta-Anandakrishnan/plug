@@ -46,6 +46,10 @@ export function isProfileSchemaMissing(error: unknown) {
   const message = "message" in error
     ? String((error as { message?: unknown }).message ?? "")
     : "";
+  const metaColumn = "meta" in error && (error as { meta?: { column?: unknown } }).meta
+    ? String((error as { meta?: { column?: unknown } }).meta?.column ?? "")
+    : "";
   if (code === "42703") return true;
+  if (code === "P2022" && ["username", "bio", "displayName"].includes(metaColumn)) return true;
   return message.includes("username") || message.includes("bio");
 }

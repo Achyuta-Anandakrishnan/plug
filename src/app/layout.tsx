@@ -21,7 +21,7 @@ export default function RootLayout({
         <AppProviders>
           <div className="flex min-h-screen flex-col">
             <SiteHeader />
-            <main className="page-container flex-1 pb-28 pt-6 sm:pb-24 sm:pt-10 lg:pt-12">
+            <main className="page-container flex-1 pb-28 pt-8 sm:pb-24 sm:pt-12 lg:pt-14">
               {children}
             </main>
             <SiteFooter />

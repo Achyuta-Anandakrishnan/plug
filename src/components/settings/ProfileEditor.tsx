@@ -234,13 +234,13 @@ export function ProfileEditor() {
                 />
               </label>
               <label className="grid gap-1">
-                <span className="text-xs text-slate-500">Description</span>
+                <span className="text-xs text-slate-500">Bio</span>
                 <textarea
                   value={bio}
                   onChange={(event) => setBio(event.target.value)}
                   rows={3}
                   className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-                  placeholder="Tell buyers and sellers about you..."
+                  placeholder="Tell buyers and sellers about yourself..."
                 />
               </label>
               <label className="grid gap-1">

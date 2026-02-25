@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
-import { ensureForumSchema, isForumSchemaMissing } from "@/lib/forum-schema";
+import {
+  ensureForumSchema,
+  isForumSchemaMissing,
+  isForumVoteSchemaMissing,
+} from "@/lib/forum-schema";
 
 type VoteBody = {
   value?: -1 | 0 | 1;
@@ -80,6 +84,9 @@ export async function POST(
       myVote: mine?.value ?? 0,
     });
   } catch (error) {
+    if (isForumVoteSchemaMissing(error)) {
+      return jsonError("Forum voting is not ready yet.", 503);
+    }
     if (isForumSchemaMissing(error)) {
       return jsonError("Forum database is not ready yet.", 503);
     }

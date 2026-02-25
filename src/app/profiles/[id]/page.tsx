@@ -64,7 +64,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="mt-2 flex items-center justify-between gap-3">
         <Link
           href="/explore"
           className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
@@ -84,8 +84,16 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
           <div>
             <h1 className="text-base font-semibold text-slate-900">{profile.displayName ?? profile.name ?? "User"}</h1>
             <p className="text-xs text-slate-500">Member since {new Date(profile.createdAt).toLocaleDateString()}</p>
-            {profile.bio ? <p className="mt-1 text-sm text-slate-600">{profile.bio}</p> : null}
           </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            Bio
+          </p>
+          <p className="mt-1 text-sm text-slate-700">
+            {profile.bio ?? "No bio added yet."}
+          </p>
         </div>
 
         <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">

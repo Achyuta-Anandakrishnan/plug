@@ -66,56 +66,58 @@ export default function ListingsPage() {
         </div>
 
         <div className="surface-panel rounded-3xl p-3 sm:p-4">
-          <div className="flex flex-wrap gap-2">
-            {[
-              { key: "ALL", label: "All" },
-              { key: "BUY_NOW", label: "Buy now" },
-              { key: "AUCTION", label: "Auctions" },
-            ].map((entry) => (
-              <button
-                key={entry.key}
-                type="button"
-                onClick={() => setTab(entry.key as ListingTab)}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
-                  tab === entry.key
-                    ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                    : "border-slate-200 bg-white/90 text-slate-600"
-                }`}
-              >
-                {entry.label}
-              </button>
-            ))}
-          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: "ALL", label: "All" },
+                { key: "BUY_NOW", label: "Buy now" },
+                { key: "AUCTION", label: "Auctions" },
+              ].map((entry) => (
+                <button
+                  key={entry.key}
+                  type="button"
+                  onClick={() => setTab(entry.key as ListingTab)}
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
+                    tab === entry.key
+                      ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
+                      : "border-slate-200 bg-white/90 text-slate-600"
+                  }`}
+                >
+                  {entry.label}
+                </button>
+              ))}
+            </div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            {QUICK_CATEGORIES.map((entry) => (
-              <button
-                key={entry.label}
-                type="button"
-                onClick={() => setCategorySlug(entry.slug)}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
-                  categorySlug === entry.slug
-                    ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                    : "border-slate-200 bg-white/90 text-slate-600"
-                }`}
-              >
-                {entry.label}
-              </button>
-            ))}
-            {additionalCategories.map((category) => (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setCategorySlug(category.slug)}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
-                  categorySlug === category.slug
-                    ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                    : "border-slate-200 bg-white/90 text-slate-600"
-                }`}
-              >
-                {category.name}
-              </button>
-            ))}
+            <div className="flex flex-wrap gap-2 md:justify-end">
+              {QUICK_CATEGORIES.map((entry) => (
+                <button
+                  key={entry.label}
+                  type="button"
+                  onClick={() => setCategorySlug(entry.slug)}
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
+                    categorySlug === entry.slug
+                      ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
+                      : "border-slate-200 bg-white/90 text-slate-600"
+                  }`}
+                >
+                  {entry.label}
+                </button>
+              ))}
+              {additionalCategories.map((category) => (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => setCategorySlug(category.slug)}
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
+                    categorySlug === category.slug
+                      ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
+                      : "border-slate-200 bg-white/90 text-slate-600"
+                  }`}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
