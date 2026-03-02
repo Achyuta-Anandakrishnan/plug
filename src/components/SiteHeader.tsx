@@ -17,11 +17,11 @@ const ThemeToggle = dynamic(
 function Brand() {
   return (
     <Link href="/" className="flex items-center gap-3">
-      <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/90 shadow-lg shadow-blue-500/20 sm:h-10 sm:w-10">
+      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/90 shadow-lg shadow-blue-500/20 sm:h-10 sm:w-10">
         <Image src="/vyre-mark.svg" alt="Vyre logo" width={28} height={28} />
       </div>
       <div>
-        <p className="font-display text-base text-slate-900 sm:text-lg">Vyre</p>
+        <p className="font-display text-xl text-slate-900 sm:text-lg">Vyre</p>
       </div>
     </Link>
   );
@@ -85,13 +85,6 @@ export function SiteHeader() {
     ];
   }, []);
 
-  const mobilePrimaryItems = [
-    { label: "Streams", href: "/streams" },
-    { label: "Listings", href: "/listings" },
-    { label: "Search", href: "/explore" },
-    { label: "Forum", href: "/forum" },
-  ];
-
   useEffect(() => {
     if (!canUseDom) return;
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -109,27 +102,31 @@ export function SiteHeader() {
             aria-label="Close menu"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="fixed bottom-0 left-0 right-0 z-[1000] max-h-[84vh] overflow-y-auto rounded-t-3xl border-t border-white/70 bg-white p-4 shadow-[0_-24px_60px_rgba(15,23,42,0.24)]">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Menu</p>
+          <div className="fixed left-0 top-0 z-[1000] flex h-full w-[min(86vw,360px)] flex-col overflow-y-auto border-r border-white/70 bg-white/95 px-5 pb-6 pt-[calc(1.25rem+var(--safe-top))] shadow-[24px_0_60px_rgba(15,23,42,0.24)] backdrop-blur-xl">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <p className="font-display text-2xl text-slate-900">Menu</p>
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600"
+                className="rounded-full border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600"
               >
                 Close
               </button>
             </div>
-            <div className="mb-3">
+            <div className="mb-5">
               <ThemeToggle />
             </div>
-            <nav className="grid gap-2 text-sm font-medium text-slate-700">
+            <nav className="grid gap-3 text-lg font-semibold text-slate-800">
               {navItems.map((item) => (
                 <Link
                   key={item.href + item.label}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3"
+                  className={`rounded-2xl border px-4 py-3.5 transition ${
+                    pathname === item.href || pathname?.startsWith(`${item.href}/`)
+                      ? "border-blue-100 bg-blue-50 text-[var(--royal)]"
+                      : "border-white/70 bg-white/80"
+                  }`}
                 >
                   {item.label}
                 </Link>
@@ -138,18 +135,18 @@ export function SiteHeader() {
                 <Link
                   href="/admin/profiles"
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3"
+                  className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3.5"
                 >
                   Admin
                 </Link>
               )}
             </nav>
-            <div className="mt-4 grid gap-2">
+            <div className="mt-auto grid gap-3 pt-6">
               <AccountActions signedIn={Boolean(session?.user?.id)} />
               <Link
                 href={isVerifiedSeller ? "/sell" : "/seller/verification"}
                 onClick={() => setMobileOpen(false)}
-                className="rounded-full bg-[var(--royal)] px-4 py-3 text-center text-sm font-semibold text-white"
+                className="rounded-full bg-[var(--royal)] px-4 py-3.5 text-center text-base font-semibold text-white"
               >
                 {isVerifiedSeller ? "Create listing" : "Get verified"}
               </Link>
@@ -163,8 +160,19 @@ export function SiteHeader() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-white/40 bg-white/80 backdrop-blur-xl">
-        <div className="page-container flex items-center justify-between py-4 sm:py-4">
-          <Brand />
+        <div className="page-container flex items-center justify-between py-3 sm:py-4">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setMobileOpen((prev) => !prev)}
+              className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 md:hidden"
+              aria-expanded={mobileOpen}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            >
+              {mobileOpen ? "Close" : "Menu"}
+            </button>
+            <Brand />
+          </div>
 
           <nav className="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex lg:gap-6">
             {navItems.map((item) => (
@@ -183,23 +191,6 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-            <Link
-              href="/messages"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 transition hover:border-slate-300 hover:text-slate-900 md:hidden"
-              aria-label="Messages"
-              title="Messages"
-            >
-              <BellIcon />
-            </Link>
-            <button
-              type="button"
-              onClick={() => setMobileOpen((prev) => !prev)}
-              className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 md:hidden"
-              aria-expanded={mobileOpen}
-            >
-              {mobileOpen ? "Close" : "Menu"}
-            </button>
-
             <div className="hidden md:block">
               <ThemeToggle />
             </div>
@@ -224,32 +215,6 @@ export function SiteHeader() {
           </div>
         </div>
       </header>
-      <nav className="safe-bottom-nav fixed bottom-0 left-0 right-0 z-40 border-t border-white/60 bg-white/95 backdrop-blur md:hidden">
-        <div className="grid grid-cols-5">
-          {mobilePrimaryItems.map((item) => {
-            const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`px-1 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.16em] ${
-                  active ? "text-[var(--royal)]" : "text-slate-500"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-          <button
-            type="button"
-            onClick={() => setMobileOpen(true)}
-            className="px-1 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500"
-          >
-            More
-          </button>
-        </div>
-      </nav>
       {mobileDrawer}
     </>
   );

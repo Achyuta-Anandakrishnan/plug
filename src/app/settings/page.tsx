@@ -9,16 +9,19 @@ export default function SettingsPage() {
   const { data: session } = useSession();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+    <div className="ios-screen">
+      <section className="ios-hero space-y-3">
+        <p className="ios-kicker">
           Settings
         </p>
-        <h1 className="font-display text-3xl text-slate-900">Account</h1>
-      </div>
+        <h1 className="ios-title">Account</h1>
+        <p className="ios-subtitle">
+          Profile, referral tools, and account state in a cleaner iPhone layout.
+        </p>
+      </section>
 
-      <div className="surface-panel rounded-[28px] p-5">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+      <div className="ios-panel p-5">
+        <p className="ios-kicker">
           Profile
         </p>
         <div className="mt-4">

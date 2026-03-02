@@ -36,7 +36,7 @@ export function AuctionCard({
   return (
     <Link
       href={`/streams/${id}`}
-      className="group relative aspect-[4/5] w-full overflow-hidden rounded-[20px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.22)] sm:aspect-[5/7] sm:rounded-[24px]"
+      className="group relative aspect-[0.8] w-full overflow-hidden rounded-[24px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.22)] sm:aspect-[5/7] sm:rounded-[28px]"
     >
       {imageUrl ? (
         <Image
@@ -61,55 +61,55 @@ export function AuctionCard({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(27,77,255,0.26),_transparent_55%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(to_top,_rgba(2,6,23,0.86),_rgba(2,6,23,0.24)_55%,_rgba(2,6,23,0.06))]" />
 
-      <div className="absolute left-3 top-3 right-3 flex items-start justify-between gap-2">
+      <div className="absolute left-3 top-3 right-3 flex items-start justify-between gap-2 sm:left-4 sm:right-4 sm:top-4">
         <div className="flex flex-wrap gap-2">
           {badge ? (
-            <span className="rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-800">
+            <span className="rounded-full bg-white/85 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-800">
               {badge}
             </span>
           ) : null}
           {category ? (
-            <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/90">
+            <span className="rounded-full bg-white/15 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/90">
               {category}
             </span>
           ) : null}
         </div>
         {listingType !== "AUCTION" && buyNowPrice ? (
-          <span className="rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-800">
+          <span className="rounded-full bg-white/85 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-800">
             Buy now {formatCurrency(buyNowPrice, currency)}
           </span>
         ) : null}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-3">
-        <div className="space-y-1.5">
+      <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
+        <div className="space-y-2">
           <div>
-            <h3 className="font-display text-sm font-semibold leading-tight text-white sm:text-base">
+            <h3 className="font-display text-base font-semibold leading-tight text-white sm:text-lg">
               {title}
             </h3>
-            <p className="text-[11px] text-white/70">{sellerName}</p>
+            <p className="mt-1 text-xs text-white/72 sm:text-[13px]">{sellerName}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-white">
-            <div className="rounded-2xl bg-white/10 px-2.5 py-2">
+            <div className="rounded-[20px] bg-white/10 px-3 py-2.5">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">
                 Current
               </p>
-              <p className="font-display text-sm sm:text-base">
+              <p className="font-display text-base sm:text-lg">
                 {formatCurrency(currentBid, currency)}
               </p>
             </div>
-            <div className="rounded-2xl bg-white/10 px-2.5 py-2 text-right">
+            <div className="rounded-[20px] bg-white/10 px-3 py-2.5 text-right">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">
                 Time
               </p>
-              <p className="font-display text-sm text-[rgba(165,190,255,0.98)] sm:text-base">
+              <p className="font-display text-base text-[rgba(165,190,255,0.98)] sm:text-lg">
                 {formatSeconds(timeLeft)}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-white/70">
+          <div className="flex items-center justify-between text-xs text-white/72 sm:text-[13px]">
             <span>{watchers} watching</span>
             <span className="font-semibold text-white">{gradeLabel ?? "Enter"}</span>
           </div>

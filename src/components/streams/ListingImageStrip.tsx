@@ -27,9 +27,9 @@ export function ListingImageStrip({ images, compact = false }: ListingImageStrip
   const activeImage = ordered[Math.min(active, ordered.length - 1)];
 
   return (
-    <section className={`surface-panel rounded-3xl ${compact ? "p-3" : "p-4"}`}>
+    <section className={`ios-panel ${compact ? "p-3" : "p-4"}`}>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h3 className="font-display text-lg text-slate-900">Listing photos</h3>
+        <h3 className="font-display text-2xl text-slate-900">Listing photos</h3>
         <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Front / Back + extras</span>
       </div>
 

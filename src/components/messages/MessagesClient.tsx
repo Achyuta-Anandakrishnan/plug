@@ -206,7 +206,7 @@ export function MessagesClient() {
 
   if (!session?.user?.id) {
     return (
-      <div className="surface-panel rounded-[28px] p-6">
+      <div className="ios-panel p-6">
         <p className="text-sm text-slate-600">Sign in to view your inbox.</p>
         <button
           onClick={() => signIn()}
@@ -219,13 +219,14 @@ export function MessagesClient() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-3xl text-slate-900">Inbox</h1>
-        <p className="text-sm text-slate-600">
+    <div className="ios-screen">
+      <section className="ios-hero space-y-3">
+        <p className="ios-kicker">Direct messages</p>
+        <h1 className="ios-title">Inbox</h1>
+        <p className="ios-subtitle">
           Direct messages between buyers, sellers, and support.
         </p>
-      </div>
+      </section>
 
       {error && (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -233,23 +234,23 @@ export function MessagesClient() {
         </div>
       )}
 
-      <section className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <div className="surface-panel rounded-[28px] p-4">
+      <section className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="ios-panel p-4">
           <div className="mb-3">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search conversations"
-              className="w-full rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+              className="ios-input text-sm"
             />
           </div>
 
           {loading ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-4 py-6 text-sm text-slate-500">
+            <div className="ios-empty">
               Loading conversations...
             </div>
           ) : filtered.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-4 py-6 text-sm text-slate-500">
+            <div className="ios-empty">
               No conversations yet.
             </div>
           ) : (
@@ -289,10 +290,10 @@ export function MessagesClient() {
           )}
         </div>
 
-        <div className="surface-panel rounded-[28px] p-6">
+        <div className="ios-panel p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="font-display text-lg text-slate-900">
+              <p className="font-display text-2xl text-slate-900">
                 {activeTitle}
               </p>
               <p className="text-xs text-slate-400">
@@ -328,11 +329,11 @@ export function MessagesClient() {
 
           <div className="mt-6 space-y-3">
             {messagesLoading ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-4 py-6 text-sm text-slate-500">
+              <div className="ios-empty">
                 Loading messages...
               </div>
             ) : messages.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-4 py-6 text-sm text-slate-500">
+              <div className="ios-empty">
                 No messages yet.
               </div>
             ) : (
@@ -372,7 +373,7 @@ export function MessagesClient() {
                   void handleSend();
                 }
               }}
-              className="flex-1 rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm text-slate-700 outline-none focus:border-[var(--royal)] disabled:opacity-60"
+              className="ios-input flex-1 text-sm disabled:opacity-60"
             />
             <button
               type="button"

@@ -39,7 +39,7 @@ export default function RootLayout({
           <NativeShell />
           <div className="app-shell flex min-h-screen flex-col">
             <SiteHeader />
-            <main className="page-container mobile-safe-main flex-1 pt-12 sm:pt-16 lg:pt-20">
+            <main className="page-container mobile-safe-main flex-1 pt-5 sm:pt-16 lg:pt-20">
               {children}
             </main>
             <SiteFooter />

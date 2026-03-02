@@ -58,16 +58,16 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="space-y-10">
-      <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
+    <div className="ios-screen">
+      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">
         <div className="space-y-6">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+          <p className="ios-kicker">
             Create account
           </p>
-          <h1 className="font-display text-3xl text-slate-900 sm:text-4xl">
+          <h1 className="ios-title">
             Join the most trusted live stream sales network.
           </h1>
-          <p className="text-sm leading-relaxed text-slate-600">
+          <p className="ios-subtitle">
             Every buyer is protected by escrow and verification logs. Sellers go
             through manual review before they can broadcast.
           </p>
@@ -87,8 +87,8 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <div className="glass-panel rounded-[28px] p-6 sm:p-8">
-          <h2 className="font-display text-2xl text-slate-900">Sign up</h2>
+        <div className="ios-panel p-6 sm:p-8">
+          <h2 className="font-display text-3xl text-slate-900">Sign up</h2>
           <p className="mt-2 text-sm text-slate-600">
             Pick your role and complete the trust profile.
           </p>
@@ -189,10 +189,10 @@ export default function SignupPage() {
         </div>
       </section>
 
-      <section className="surface-panel rounded-[32px] p-8">
+      <section className="ios-panel p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+            <p className="ios-kicker">
               Trust stack
             </p>
             <h2 className="font-display text-2xl text-slate-900">

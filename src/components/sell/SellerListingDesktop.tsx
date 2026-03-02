@@ -249,7 +249,7 @@ export function SellerListingDesktop() {
 
   return (
     <div className="space-y-10">
-      <section className="space-y-6">
+      <section className="space-y-6 md:hidden">
         <div className="space-y-6">
           <h1 className="font-display text-3xl text-slate-900 sm:text-4xl">
             Create a live listing.

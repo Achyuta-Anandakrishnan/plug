@@ -16,7 +16,6 @@ export function StreamsMobile() {
   const [endingSoon, setEndingSoon] = useState(false);
   const { data: auctions, loading, error } = useAuctions({
     status: "LIVE",
-    view: "streams",
   });
   const { data: categories } = useCategories();
 
@@ -37,54 +36,67 @@ export function StreamsMobile() {
   }, [activeCategory, auctions, endingSoon]);
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-4">
-        <div>
-          <h1 className="font-display text-[32px] text-slate-900">Streams</h1>
+    <div className="ios-screen">
+      <section className="ios-hero space-y-5">
+        <div className="space-y-3">
+          <p className="ios-kicker">Live floor</p>
+          <h1 className="ios-title">Streams</h1>
+          <p className="ios-subtitle">
+            Jump between live rooms, price action, and seller drops without the
+            extra chrome.
+          </p>
         </div>
-        <div className="flex gap-2">
+
+        <div className="ios-stat-grid">
+          <div className="ios-stat-card">
+            <p className="ios-stat-label">Live rooms</p>
+            <p className="ios-stat-value">{filteredStreams.length}</p>
+          </div>
+          <div className="ios-stat-card">
+            <p className="ios-stat-label">Categories</p>
+            <p className="ios-stat-value">{categories.length || 1}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
           <Link
             href="/streams/schedule"
-            className="flex-1 rounded-full border border-slate-200 px-4 py-2 text-center text-xs font-semibold text-slate-600"
+            className="ios-panel-muted rounded-[22px] px-4 py-3 text-center text-sm font-semibold text-slate-700"
           >
             Schedule
           </Link>
           <Link
             href="/streams/roster"
-            className="flex-1 rounded-full border border-slate-200 px-4 py-2 text-center text-xs font-semibold text-slate-600"
+            className="ios-panel-muted rounded-[22px] px-4 py-3 text-center text-sm font-semibold text-slate-700"
           >
             Roster
           </Link>
         </div>
-        <div className="rounded-2xl border border-white/70 bg-white/70 p-3">
-          <div className="flex items-center gap-2">
+
+        <div className="ios-panel p-3">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-slate-900">Filters</p>
             <button
               onClick={() => setEndingSoon((prev) => !prev)}
-              className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
-                endingSoon
-                  ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                  : "border-slate-200 text-slate-600"
-              }`}
+              className={`ios-chip ${endingSoon ? "ios-chip-active" : ""}`}
             >
               Ending soon
             </button>
-            <div className="flex gap-2 overflow-x-auto">
-              {["All", ...categories.map((category) => category.name)].map(
-                (category) => (
-                  <button
-                    key={category}
-                    onClick={() => setActiveCategory(category)}
-                    className={`whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
-                      activeCategory === category
-                        ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                        : "border-white/70 bg-white/70 text-slate-500"
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ),
-              )}
-            </div>
+          </div>
+          <div className="ios-chip-row">
+            {["All", ...categories.map((category) => category.name)].map(
+              (category) => (
+                <button
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`ios-chip ${
+                    activeCategory === category ? "ios-chip-active" : ""
+                  }`}
+                >
+                  {category}
+                </button>
+              ),
+            )}
           </div>
         </div>
       </section>
@@ -96,30 +108,48 @@ export function StreamsMobile() {
       )}
 
       {loading && (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+        <div className="ios-empty">
           Loading live listings...
         </div>
       )}
 
-      <section className="grid grid-cols-2 gap-2 min-[520px]:grid-cols-3">
-        {filteredStreams.map((stream) => (
-          <AuctionCard
-            key={stream.id}
-            id={stream.id}
-            title={stream.title}
-            sellerName={stream.seller?.user?.displayName ?? "Verified seller"}
-            category={stream.category?.name}
-            currentBid={stream.currentBid}
-            timeLeft={getTimeLeftSeconds(stream)}
-            watchers={stream.watchersCount}
-            badge={stream.seller?.status === "APPROVED" ? "Verified" : "Live"}
-            imageUrl={getPrimaryImageUrl(stream)}
-            listingType={stream.listingType}
-            buyNowPrice={stream.buyNowPrice}
-            currency={stream.currency?.toUpperCase()}
-            gradeLabel={getGradeLabel(stream.item?.attributes) ?? undefined}
-          />
-        ))}
+      {!loading && filteredStreams.length === 0 && (
+        <div className="ios-empty">
+          No live rooms match this filter yet.
+        </div>
+      )}
+
+      <section className="space-y-4">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="ios-kicker">Now showing</p>
+            <h2 className="ios-section-title">Live rooms</h2>
+          </div>
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
+            {filteredStreams.length} active
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {filteredStreams.map((stream) => (
+            <AuctionCard
+              key={stream.id}
+              id={stream.id}
+              title={stream.title}
+              sellerName={stream.seller?.user?.displayName ?? "Verified seller"}
+              category={stream.category?.name}
+              currentBid={stream.currentBid}
+              timeLeft={getTimeLeftSeconds(stream)}
+              watchers={stream.watchersCount}
+              badge={stream.seller?.status === "APPROVED" ? "Verified" : "Live"}
+              imageUrl={getPrimaryImageUrl(stream)}
+              listingType={stream.listingType}
+              buyNowPrice={stream.buyNowPrice}
+              currency={stream.currency?.toUpperCase()}
+              gradeLabel={getGradeLabel(stream.item?.attributes) ?? undefined}
+            />
+          ))}
+        </div>
       </section>
     </div>
   );

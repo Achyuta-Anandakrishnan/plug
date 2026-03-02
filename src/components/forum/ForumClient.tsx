@@ -108,18 +108,23 @@ export function ForumClient() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-3xl text-slate-900">Forum</h1>
-      </div>
+    <div className="ios-screen">
+      <section className="ios-hero space-y-4">
+        <div className="space-y-3">
+          <p className="ios-kicker">Community</p>
+          <h1 className="ios-title">Forum</h1>
+          <p className="ios-subtitle">
+            Threads, drafts, and replies with a tighter mobile reading layout.
+          </p>
+        </div>
 
-      <div className="surface-panel rounded-[28px] p-4">
+        <div className="ios-panel p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search posts..."
-            className="w-full rounded-full border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)] sm:flex-1"
+            className="ios-input sm:flex-1"
           />
           <div className="flex gap-2">
             <button
@@ -142,9 +147,10 @@ export function ForumClient() {
           </div>
         </div>
         <div className="mt-3 text-xs text-slate-500">{filteredInfo}</div>
-      </div>
+        </div>
+      </section>
 
-      <div className="surface-panel rounded-[28px] p-4">
+      <div className="ios-panel p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
@@ -211,13 +217,13 @@ export function ForumClient() {
       ) : null}
 
       {loading ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+        <div className="ios-empty">
           Loading posts...
         </div>
       ) : null}
 
       {!loading && activePosts.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+        <div className="ios-empty">
           {resolvedTab === "drafts" ? "No drafts yet." : "No threads yet."}
         </div>
       ) : null}

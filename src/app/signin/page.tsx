@@ -5,16 +5,16 @@ import { AuthButtons } from "@/components/AuthButtons";
 
 export default function SignInPage() {
   return (
-    <div className="space-y-10">
-      <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
+    <div className="ios-screen">
+      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_420px]">
         <div className="space-y-6">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+          <p className="ios-kicker">
             Welcome back
           </p>
-          <h1 className="font-display text-3xl text-slate-900 sm:text-4xl">
+          <h1 className="ios-title">
             Sign in to continue your live commerce desk.
           </h1>
-          <p className="text-sm leading-relaxed text-slate-600">
+          <p className="ios-subtitle">
             Access live streams, place offers, and track verification status in
             one secure account.
           </p>
@@ -26,8 +26,8 @@ export default function SignInPage() {
           </div>
         </div>
 
-        <div className="glass-panel rounded-[28px] p-6 sm:p-8">
-          <h2 className="font-display text-2xl text-slate-900">Sign in</h2>
+        <div className="ios-panel p-6 sm:p-8">
+          <h2 className="font-display text-3xl text-slate-900">Sign in</h2>
           <p className="mt-2 text-sm text-slate-600">
             Enter your username, then use a verified provider to access your account.
           </p>

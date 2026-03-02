@@ -24,16 +24,17 @@ export default async function StreamRoom({
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="ios-screen">
+      <section className="ios-hero flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Link href="/streams" className="text-sm text-slate-500">
+          <p className="ios-kicker">Live room</p>
+          <Link href="/streams" className="mt-2 inline-block text-sm text-slate-500">
             Back to streams
           </Link>
-          <h1 className="font-display text-3xl text-slate-900">
+          <h1 className="mt-3 font-display text-4xl text-slate-900">
             Live stream room
           </h1>
-          <p className="text-sm text-slate-600">
+          <p className="mt-2 text-sm text-slate-600">
             Verified seller · Dual camera · Live chat enabled
           </p>
         </div>
@@ -45,7 +46,7 @@ export default async function StreamRoom({
             Manual verification
           </span>
         </div>
-      </div>
+      </section>
 
       <StreamRoomResponsive
         auctionId={id}

@@ -59,15 +59,20 @@ export default function ListingsPage() {
   }, [categories]);
 
   return (
-    <div className="space-y-5">
-      <section className="space-y-3">
-        <div>
-          <h1 className="font-display text-3xl text-slate-900">Listings</h1>
+    <div className="ios-screen">
+      <section className="ios-hero space-y-4">
+        <div className="space-y-3">
+          <p className="ios-kicker">Market inventory</p>
+          <h1 className="ios-title">Listings</h1>
+          <p className="ios-subtitle">
+            Browse live inventory with tighter filters and a cleaner reading
+            rhythm for mobile.
+          </p>
         </div>
 
-        <div className="surface-panel rounded-3xl p-3 sm:p-4">
+        <div className="ios-panel p-3 sm:p-4">
           <div className="grid gap-3 md:grid-cols-2">
-            <div className="flex flex-wrap gap-2">
+            <div className="ios-chip-row">
               {[
                 { key: "ALL", label: "All" },
                 { key: "BUY_NOW", label: "Buy now" },
@@ -77,28 +82,20 @@ export default function ListingsPage() {
                   key={entry.key}
                   type="button"
                   onClick={() => setTab(entry.key as ListingTab)}
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
-                    tab === entry.key
-                      ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                      : "border-slate-200 bg-white/90 text-slate-600"
-                  }`}
+                  className={`ios-chip ${tab === entry.key ? "ios-chip-active" : ""}`}
                 >
                   {entry.label}
                 </button>
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-2 md:justify-end">
+            <div className="ios-chip-row md:justify-end">
               {QUICK_CATEGORIES.map((entry) => (
                 <button
                   key={entry.label}
                   type="button"
                   onClick={() => setCategorySlug(entry.slug)}
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
-                    categorySlug === entry.slug
-                      ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                      : "border-slate-200 bg-white/90 text-slate-600"
-                  }`}
+                  className={`ios-chip ${categorySlug === entry.slug ? "ios-chip-active" : ""}`}
                 >
                   {entry.label}
                 </button>
@@ -108,11 +105,7 @@ export default function ListingsPage() {
                   key={category.id}
                   type="button"
                   onClick={() => setCategorySlug(category.slug)}
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
-                    categorySlug === category.slug
-                      ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                      : "border-slate-200 bg-white/90 text-slate-600"
-                  }`}
+                  className={`ios-chip ${categorySlug === category.slug ? "ios-chip-active" : ""}`}
                 >
                   {category.name}
                 </button>
@@ -129,18 +122,29 @@ export default function ListingsPage() {
       )}
 
       {loading && (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+        <div className="ios-empty">
           Loading listings...
         </div>
       )}
 
       {!loading && filtered.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+        <div className="ios-empty">
           No listings match this filter.
         </div>
       )}
 
-      <section className="grid grid-cols-2 gap-3 min-[520px]:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
+      <section className="space-y-4">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="ios-kicker">Visible now</p>
+            <h2 className="ios-section-title">Live inventory</h2>
+          </div>
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
+            {filtered.length} results
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 min-[520px]:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
         {filtered.map((auction) => (
           <AuctionCard
             key={auction.id}
@@ -159,6 +163,7 @@ export default function ListingsPage() {
             gradeLabel={getGradeLabel(auction.item?.attributes) ?? undefined}
           />
         ))}
+        </div>
       </section>
     </div>
   );

@@ -115,18 +115,24 @@ export default function ExplorePage() {
   }, [query]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-3xl text-slate-900">Find listings</h1>
-      </div>
+    <div className="ios-screen">
+      <section className="ios-hero space-y-4">
+        <div className="space-y-3">
+          <p className="ios-kicker">Search</p>
+          <h1 className="ios-title">Find listings</h1>
+          <p className="ios-subtitle">
+            Search listings, sellers, and categories with a mobile layout that
+            stays readable instead of cramped.
+          </p>
+        </div>
 
-      <div className="surface-panel rounded-[28px] p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="ios-panel p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search Pokemon, sneakers, sealed boxes..."
-            className="w-full rounded-full border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)] sm:flex-1"
+            className="ios-input sm:flex-1"
           />
           <button
             type="button"
@@ -134,35 +140,27 @@ export default function ExplorePage() {
               setQuery("");
               setCategory(null);
             }}
-            className="rounded-full border border-slate-200 bg-white/90 px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600"
+            className="rounded-full border border-slate-200 bg-white/90 px-5 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600"
           >
             Reset
           </button>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-4 ios-chip-row">
           {QUICK_CATEGORIES.map((chip) => (
             <button
               key={chip.slug}
               type="button"
               onClick={() => setCategory(chip.slug)}
-              className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
-                activeCategory === chip.slug
-                  ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                  : "border-slate-200 bg-white/90 text-slate-600"
-              }`}
+              className={`ios-chip ${activeCategory === chip.slug ? "ios-chip-active" : ""}`}
             >
               {chip.name}
             </button>
           ))}
-          <button
-            type="button"
-            onClick={() => setCategory(null)}
-            className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
-              !activeCategory
-                ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                : "border-white/70 bg-white/70 text-slate-500"
-            }`}
+            <button
+              type="button"
+              onClick={() => setCategory(null)}
+            className={`ios-chip ${!activeCategory ? "ios-chip-active" : ""}`}
             disabled={categoriesLoading}
           >
             All
@@ -172,17 +170,14 @@ export default function ExplorePage() {
               key={category.slug}
               type="button"
               onClick={() => setCategory(category.slug)}
-              className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
-                activeCategory === category.slug
-                  ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                  : "border-white/70 bg-white/70 text-slate-500"
-              }`}
+              className={`ios-chip ${activeCategory === category.slug ? "ios-chip-active" : ""}`}
             >
               {category.name}
             </button>
           ))}
         </div>
-      </div>
+        </div>
+      </section>
 
       {error && (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -191,21 +186,21 @@ export default function ExplorePage() {
       )}
 
       {loading && (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+        <div className="ios-empty">
           Searching listings...
         </div>
       )}
 
       {!loading && auctions.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+        <div className="ios-empty">
           No matches.
         </div>
       )}
 
       {query.trim().length >= 2 && (
-        <section className="surface-panel rounded-[28px] p-4">
+        <section className="ios-panel p-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-semibold text-slate-900">Profiles</h2>
+            <h2 className="ios-section-title">Profiles</h2>
             <span className="text-xs uppercase tracking-[0.2em] text-slate-400">
               {profilesLoading ? "Searching..." : `${profiles.length} found`}
             </span>
@@ -213,7 +208,7 @@ export default function ExplorePage() {
 
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {profiles.map((profile) => (
-              <div key={profile.id} className="rounded-2xl border border-white/70 bg-white/70 p-3">
+              <div key={profile.id} className="ios-panel-muted rounded-[22px] p-4">
                 <div className="flex items-center justify-between gap-2">
                   <Link
                     href={profile.username ? `/u/${profile.username}` : `/profiles/${profile.id}`}
@@ -242,7 +237,7 @@ export default function ExplorePage() {
               </div>
             ))}
             {!profilesLoading && profiles.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-4 py-5 text-sm text-slate-500">
+              <div className="ios-empty">
                 No profile matches.
               </div>
             )}
@@ -250,7 +245,18 @@ export default function ExplorePage() {
         </section>
       )}
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+      <section className="space-y-4">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="ios-kicker">Listings</p>
+            <h2 className="ios-section-title">Results</h2>
+          </div>
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
+            {auctions.length} found
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
         {auctions.map((stream) => (
           <AuctionCard
             key={stream.id}
@@ -269,6 +275,7 @@ export default function ExplorePage() {
             gradeLabel={getGradeLabel(stream.item?.attributes) ?? undefined}
           />
         ))}
+        </div>
       </section>
     </div>
   );

@@ -200,14 +200,26 @@ export function ForumComposeClient() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+      <div className="ios-empty">
         Loading draft...
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
+    <div className="ios-screen">
+      <section className="ios-hero flex items-center justify-between gap-3">
+        <div>
+          <p className="ios-kicker">Write</p>
+          <h1 className="ios-title">
+            {draftId ? "Edit your thread" : "Start a thread"}
+          </h1>
+        </div>
+        <span className="text-xs uppercase tracking-[0.2em] text-slate-400">
+          {draftId ? "Editing draft" : "New thread"}
+        </span>
+      </section>
+
       <div className="flex items-center justify-between gap-3">
         <Link
           href="/forum"
@@ -215,23 +227,20 @@ export function ForumComposeClient() {
         >
           Back to forum
         </Link>
-        <span className="text-xs uppercase tracking-[0.2em] text-slate-400">
-          {draftId ? "Editing draft" : "New thread"}
-        </span>
       </div>
 
-      <div className="surface-panel rounded-[28px] p-4">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
+      <div className="ios-panel p-4">
+        <p className="ios-kicker">
           Compose
         </p>
-        <h1 className="text-base font-semibold text-slate-900">Write your post</h1>
+        <h2 className="ios-section-title">Write your post</h2>
 
         <div className="mt-3 grid gap-2">
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             placeholder="Title"
-            className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+            className="ios-input rounded-2xl"
           />
           <textarea
             value={body}

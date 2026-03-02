@@ -63,7 +63,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="space-y-6">
+    <div className="ios-screen">
       <div className="mt-2 flex items-center justify-between gap-3">
         <Link
           href="/explore"
@@ -74,7 +74,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         <MessageUserButton targetUserId={profile.id} />
       </div>
 
-      <section className="surface-panel rounded-[28px] p-5">
+      <section className="ios-panel p-5">
         <div className="flex items-center gap-4">
           <div className="relative h-14 w-14 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
             {profile.image ? (
@@ -82,7 +82,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
             ) : null}
           </div>
           <div>
-            <h1 className="text-base font-semibold text-slate-900">{profile.displayName ?? profile.name ?? "User"}</h1>
+            <h1 className="font-display text-3xl text-slate-900">{profile.displayName ?? profile.name ?? "User"}</h1>
             <p className="text-xs text-slate-500">Member since {new Date(profile.createdAt).toLocaleDateString()}</p>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         </div>
       </section>
 
-      <section className="surface-panel rounded-[28px] p-5">
+      <section className="ios-panel p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-display text-lg text-slate-900">Live / Scheduled listings</h2>
           <span className="text-xs uppercase tracking-[0.2em] text-slate-400">{profile.sellerProfile?.auctions.length ?? 0} active</span>
@@ -124,7 +124,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
             </Link>
           ))}
           {(profile.sellerProfile?.auctions?.length ?? 0) === 0 && (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-4 py-6 text-sm text-slate-500">
+            <div className="ios-empty">
               No active listings.
             </div>
           )}

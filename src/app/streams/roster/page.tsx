@@ -1,23 +1,26 @@
 export default function StreamRosterPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
+    <div className="ios-screen">
+      <section className="ios-hero space-y-3">
+        <p className="ios-kicker">
           Roster
         </p>
-        <h1 className="font-display text-3xl text-slate-900">
+        <h1 className="ios-title">
           Verified sellers
         </h1>
-      </div>
+        <p className="ios-subtitle">
+          A cleaner roster of approved sellers and repeat operators.
+        </p>
+      </section>
 
       <div className="grid gap-3 sm:grid-cols-2">
         {["Cobalt Labs", "Lumen Cards", "Meridian Watches", "Studio 7"].map(
           (seller) => (
             <div
               key={seller}
-              className="surface-panel rounded-2xl p-4 text-sm text-slate-600"
+              className="ios-panel p-4 text-sm text-slate-600"
             >
-              <p className="font-display text-lg text-slate-900">{seller}</p>
+              <p className="font-display text-2xl text-slate-900">{seller}</p>
               <p className="text-xs text-slate-500">Verified inventory / escrow</p>
             </div>
           ),

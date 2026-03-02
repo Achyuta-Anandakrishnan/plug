@@ -205,7 +205,7 @@ export function ForumPostClient() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+      <div className="ios-empty">
         Loading post...
       </div>
     );
@@ -229,7 +229,15 @@ export function ForumPostClient() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="ios-screen">
+      <section className="ios-hero space-y-3">
+        <p className="ios-kicker">Thread</p>
+        <h1 className="ios-title">{post.title}</h1>
+        <p className="ios-subtitle">
+          Posted by {post.author.displayName ?? "Member"} · {headerMeta}
+        </p>
+      </section>
+
       <div className="flex items-center justify-between gap-4">
         <Link
           href="/forum"
@@ -242,8 +250,8 @@ export function ForumPostClient() {
         </span>
       </div>
 
-      <article className="surface-panel rounded-[24px] p-4">
-        <h1 className="text-base font-semibold text-slate-900">{post.title}</h1>
+      <article className="ios-panel p-4">
+        <h2 className="text-base font-semibold text-slate-900">{post.title}</h2>
         <p className="mt-2 text-sm text-slate-500">
           by{" "}
           <Link
@@ -292,7 +300,7 @@ export function ForumPostClient() {
         ) : null}
       </article>
 
-      <section className="surface-panel rounded-[24px] p-4">
+      <section className="ios-panel p-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="font-display text-lg text-slate-900">Replies</h2>
           {!session?.user?.id ? (
@@ -312,7 +320,7 @@ export function ForumPostClient() {
 
         <div className="mt-4 space-y-3">
           {post.comments.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-8 text-sm text-slate-500">
+            <div className="ios-empty">
               Be the first to reply.
             </div>
           ) : (

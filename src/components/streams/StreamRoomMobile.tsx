@@ -153,7 +153,7 @@ export function StreamRoomMobile({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+      <div className="ios-empty">
         Loading stream room...
       </div>
     );
@@ -168,9 +168,9 @@ export function StreamRoomMobile({
   }
 
   return (
-    <div className="space-y-4">
-      <section className="overflow-hidden rounded-3xl border border-white/60 bg-slate-900">
-        <div className="relative h-60">
+    <div className="ios-screen">
+      <section className="overflow-hidden rounded-[32px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)]">
+        <div className="relative h-[18.5rem]">
           <LiveKitStream
             auctionId={data.id}
             isHost={Boolean(sessionUserId && data.seller?.user?.id === sessionUserId)}
@@ -179,31 +179,42 @@ export function StreamRoomMobile({
             onParticipantCount={setParticipantCount}
             onStatusChange={setStreamStatus}
           />
-          <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
+          <div className="absolute left-4 top-4 z-20 flex items-center gap-2">
             {!Boolean(sessionUserId && data.seller?.user?.id === sessionUserId) && (
-              <span className={`rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] ${streamStatus === "live" ? "bg-emerald-400/20 text-emerald-100" : "bg-white/15 text-white"}`}>
+              <span className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.2em] ${streamStatus === "live" ? "bg-emerald-400/20 text-emerald-100" : "bg-white/15 text-white"}`}>
                 {streamStatus === "live" ? "Live" : "Offline"}
               </span>
             )}
-            <span className="rounded-full bg-white/15 px-3 py-1 text-xs text-white">{formatSeconds(timeLeft)}</span>
+            <span className="rounded-full bg-white/15 px-3 py-1.5 text-xs text-white">{formatSeconds(timeLeft)}</span>
           </div>
-          <div className="absolute bottom-3 left-3 right-3 rounded-2xl bg-slate-950/55 px-3 py-2 text-white">
-            <p className="font-display text-lg">{data.title}</p>
-            <p className="text-xs text-white/70">{(participantCount ?? data.watchersCount)} watching</p>
+          <div className="absolute bottom-4 left-4 right-4 rounded-[24px] bg-slate-950/55 px-4 py-3 text-white backdrop-blur">
+            <p className="font-display text-2xl leading-tight">{data.title}</p>
+            <p className="mt-1 text-sm text-white/72">
+              {data.seller?.user?.displayName ?? "Verified seller"} · {(participantCount ?? data.watchersCount)} watching
+            </p>
           </div>
         </div>
       </section>
 
       <ListingImageStrip images={data.item?.images ?? []} compact />
 
-      <section className="surface-panel rounded-3xl p-4 space-y-3">
-        <p className="font-display text-xl text-slate-900">{formatCurrency(data.currentBid, currency)}</p>
+      <section className="ios-panel p-4 space-y-4">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="ios-kicker">Current bid</p>
+            <p className="font-display text-3xl text-slate-900">{formatCurrency(data.currentBid, currency)}</p>
+          </div>
+          <div className="text-right">
+            <p className="ios-kicker">Next bid</p>
+            <p className="font-display text-2xl text-slate-900">{formatCurrency(nextBid, currency)}</p>
+          </div>
+        </div>
         <div className="grid gap-2">
           {data.listingType !== "BUY_NOW" && (
             <button
               onClick={handleBid}
               disabled={isListingSeller || !canUseStripe}
-              className="rounded-full bg-[var(--royal)] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+              className="rounded-full bg-[var(--royal)] px-4 py-3.5 text-base font-semibold text-white disabled:opacity-60"
             >
               Bid {formatCurrency(nextBid, currency)}
             </button>
@@ -212,7 +223,7 @@ export function StreamRoomMobile({
             <button
               onClick={handleBuyNow}
               disabled={isListingSeller || !canUseStripe}
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-3 text-sm font-semibold text-slate-700 disabled:opacity-60"
+              className="rounded-full border border-slate-200 bg-white/90 px-4 py-3.5 text-base font-semibold text-slate-700 disabled:opacity-60"
             >
               Buy now {formatCurrency(data.buyNowPrice, currency)}
             </button>
@@ -220,7 +231,7 @@ export function StreamRoomMobile({
           <button
             onClick={handleMessageSeller}
             disabled={isListingSeller}
-            className="rounded-full border border-slate-200 bg-white/90 px-4 py-3 text-sm font-semibold text-slate-700 disabled:opacity-60"
+            className="rounded-full border border-slate-200 bg-white/90 px-4 py-3.5 text-base font-semibold text-slate-700 disabled:opacity-60"
           >
             Message seller
           </button>
@@ -228,12 +239,15 @@ export function StreamRoomMobile({
         {actionStatus && <p className="text-xs text-slate-600">{actionStatus}</p>}
       </section>
 
-      <section className="surface-panel rounded-3xl p-4">
+      <section className="ios-panel p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display text-lg text-slate-900">Chat</h3>
+          <h3 className="font-display text-2xl text-slate-900">Chat</h3>
           <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Scroll</span>
         </div>
         <div className="max-h-48 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+          {data.chatMessages.length === 0 && (
+            <div className="ios-empty">No chat yet. Be first to comment.</div>
+          )}
           {data.chatMessages.map((entry) => (
             <div key={entry.id} className="rounded-2xl bg-slate-100 px-3 py-2">
               <span className="block text-xs font-semibold text-slate-500">{entry.sender.displayName ?? "Guest"}</span>
@@ -246,7 +260,7 @@ export function StreamRoomMobile({
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             placeholder="Message the room"
-            className="flex-1 rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+            className="ios-input flex-1 text-sm"
           />
           <button
             onClick={handleSend}
@@ -257,12 +271,15 @@ export function StreamRoomMobile({
         </div>
       </section>
 
-      <section className="surface-panel rounded-3xl p-4">
+      <section className="ios-panel p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display text-lg text-slate-900">Recent bids</h3>
+          <h3 className="font-display text-2xl text-slate-900">Recent bids</h3>
           <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Scroll</span>
         </div>
         <div className="max-h-40 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+          {data.bids.length === 0 && (
+            <div className="ios-empty">No bids yet.</div>
+          )}
           {data.bids.map((bid) => (
             <div key={bid.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white/80 px-3 py-2">
               <span className="text-xs uppercase tracking-[0.2em] text-slate-400">{bid.bidderId.slice(0, 6)}...</span>

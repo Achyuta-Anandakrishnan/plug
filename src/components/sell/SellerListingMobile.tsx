@@ -243,10 +243,10 @@ export function SellerListingMobile() {
 
   return (
     <div className="space-y-6">
-      <section className="space-y-3">
-        <h1 className="font-display text-3xl text-slate-900">
+      <section className="space-y-3 md:hidden">
+        <h2 className="font-display text-3xl text-slate-900">
           Create a listing
-        </h1>
+        </h2>
         <p className="text-sm text-slate-600">
           Step {stepIndex + 1} of {steps.length}: {steps[stepIndex]}
         </p>

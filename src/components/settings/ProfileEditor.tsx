@@ -72,7 +72,7 @@ export function ProfileEditor() {
 
   if (!session?.user?.id) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 px-5 py-6 text-sm text-slate-600">
+      <div className="ios-empty">
         Sign in to manage your profile.
         <div className="mt-3">
           <button
@@ -159,7 +159,7 @@ export function ProfileEditor() {
   return (
     <div className="space-y-4">
       {loading ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 px-5 py-6 text-sm text-slate-500">
+        <div className="ios-empty">
           Loading profile...
         </div>
       ) : (
@@ -180,7 +180,7 @@ export function ProfileEditor() {
             </div>
           ) : null}
 
-          <div className="rounded-2xl border border-white/70 bg-white/80 p-4">
+          <div className="ios-panel-muted rounded-[24px] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               Profile photo
             </p>
@@ -210,7 +210,7 @@ export function ProfileEditor() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/70 bg-white/80 p-4">
+          <div className="ios-panel-muted rounded-[24px] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               Public profile
             </p>
@@ -220,7 +220,7 @@ export function ProfileEditor() {
                 <input
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+                  className="ios-input rounded-xl px-3 py-2 text-sm"
                   placeholder="your_username"
                 />
               </label>
@@ -229,7 +229,7 @@ export function ProfileEditor() {
                 <input
                   value={displayName}
                   onChange={(event) => setDisplayName(event.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+                  className="ios-input rounded-xl px-3 py-2 text-sm"
                   placeholder="Your name"
                 />
               </label>
@@ -239,7 +239,7 @@ export function ProfileEditor() {
                   value={bio}
                   onChange={(event) => setBio(event.target.value)}
                   rows={3}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
                   placeholder="Tell buyers and sellers about yourself..."
                 />
               </label>
@@ -248,7 +248,7 @@ export function ProfileEditor() {
                 <input
                   value={image}
                   onChange={(event) => setImage(event.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+                  className="ios-input rounded-xl px-3 py-2 text-sm"
                   placeholder="https://..."
                 />
               </label>

@@ -77,18 +77,19 @@ export default function SellerVerificationPage() {
   };
 
   return (
-    <div className="space-y-10">
-      <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_460px]">
+    <div className="ios-screen">
+      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_460px]">
         <div className="space-y-6">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Seller verification</p>
-          <h1 className="font-display text-3xl text-slate-900 sm:text-4xl">Get verified to go live.</h1>
-          <p className="text-sm leading-relaxed text-slate-600">
-            Verification is strict: identity, inventory proof, stream quality, and payout readiness.
+          <p className="ios-kicker">Seller verification</p>
+          <h1 className="ios-title">Get verified to go live.</h1>
+          <p className="ios-subtitle">
+            Approval is handled manually. We review identity, inventory quality,
+            payout readiness, and whether the seller belongs on a premium live marketplace.
           </p>
         </div>
 
-        <div className="glass-panel rounded-[32px] p-8">
-          <h2 className="font-display text-2xl text-slate-900">Verification request</h2>
+        <div className="ios-panel p-6 sm:p-8">
+          <h2 className="font-display text-3xl text-slate-900">Verification request</h2>
           <p className="mt-2 text-sm text-slate-600">Complete all required details for manual review.</p>
 
           {!session?.user?.id && (
@@ -122,15 +123,15 @@ export default function SellerVerificationPage() {
           )}
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-            <input name="name" type="text" required placeholder="Business or seller name" defaultValue={prefillName} className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]" />
-            <input name="businessName" type="text" required minLength={2} placeholder="Registered business name" className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]" />
+            <input name="name" type="text" required placeholder="Business or seller name" defaultValue={prefillName} className="ios-input rounded-2xl" />
+            <input name="businessName" type="text" required minLength={2} placeholder="Registered business name" className="ios-input rounded-2xl" />
             <input name="email" type="email" disabled value={prefillEmail} className="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-700" />
-            <input name="phone" type="tel" required placeholder="Phone number" className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]" />
+            <input name="phone" type="tel" required placeholder="Phone number" className="ios-input rounded-2xl" />
             <textarea name="inventorySummary" rows={4} required minLength={20} placeholder="Inventory summary (brands, categories, quantity range)" className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]" />
             <textarea name="streamExperience" rows={3} required minLength={10} placeholder="Streaming experience and setup details" className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]" />
             <div className="grid gap-3 sm:grid-cols-2">
-              <input name="socialHandle" type="text" placeholder="Instagram/TikTok handle" className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]" />
-              <input name="website" type="url" placeholder="Website (optional)" className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]" />
+              <input name="socialHandle" type="text" placeholder="Instagram/TikTok handle" className="ios-input rounded-2xl" />
+              <input name="website" type="url" placeholder="Website (optional)" className="ios-input rounded-2xl" />
             </div>
             <textarea name="notes" rows={3} placeholder="Anything else reviewers should know" className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]" />
 
