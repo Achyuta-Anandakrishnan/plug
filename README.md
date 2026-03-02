@@ -86,6 +86,55 @@ Note: API routes use NextAuth server sessions for auth. Admin routes may also ac
 
 See `docs/hosting.md` for the recommended stack and deployment steps.
 
+## iPhone App
+
+This repo now includes a Capacitor-based iPhone app shell that loads the same
+Next.js product inside an iOS wrapper.
+
+1. Set the web URL the phone should load:
+
+```bash
+CAPACITOR_SERVER_URL=http://YOUR_MAC_IP:3000
+```
+
+For production or TestFlight builds, use your deployed HTTPS URL instead.
+
+2. Make sure the server env uses the same reachable URL:
+
+```bash
+NEXT_PUBLIC_APP_URL=http://YOUR_MAC_IP:3000
+NEXTAUTH_URL=http://YOUR_MAC_IP:3000
+```
+
+3. Start the app server:
+
+```bash
+npm run dev
+```
+
+4. Sync native files:
+
+```bash
+npm run mobile:sync:ios
+```
+
+5. Open the iOS project in Xcode:
+
+```bash
+npm run mobile:open:ios
+```
+
+6. In Xcode, connect your iPhone, choose your device, set your signing team,
+   then click Run.
+
+Notes:
+
+- Local device testing requires your iPhone and Mac to be on the same network.
+- `localhost` only works for Simulator. A physical phone needs your Mac's LAN IP.
+- Google/Apple OAuth usually need a real HTTPS domain for provider callbacks, so
+  social sign-in may not work against a raw LAN URL.
+- This machine needs full Xcode installed before native iOS builds can complete.
+
 ## Deployment notes
 
 - Set the production branch to `main` in Vercel project settings.

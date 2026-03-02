@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { AppProviders } from "@/components/AppProviders";
+import { NativeShell } from "@/components/native/NativeShell";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
@@ -9,6 +10,21 @@ export const metadata: Metadata = {
   title: "Vyre | Verified Live Streams",
   description:
     "A sleek, secure live stream marketplace with verified sellers and buyer protections.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Vyre",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f6f9ff",
 };
 
 export default function RootLayout({
@@ -20,9 +36,10 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <AppProviders>
-          <div className="flex min-h-screen flex-col">
+          <NativeShell />
+          <div className="app-shell flex min-h-screen flex-col">
             <SiteHeader />
-            <main className="page-container flex-1 pb-28 pt-12 sm:pb-24 sm:pt-16 lg:pt-20">
+            <main className="page-container mobile-safe-main flex-1 pt-12 sm:pt-16 lg:pt-20">
               {children}
             </main>
             <SiteFooter />
