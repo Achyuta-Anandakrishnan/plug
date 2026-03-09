@@ -243,15 +243,6 @@ export function ProfileEditor() {
                   placeholder="Tell buyers and sellers about yourself..."
                 />
               </label>
-              <label className="grid gap-1">
-                <span className="text-xs text-slate-500">Photo URL (optional)</span>
-                <input
-                  value={image}
-                  onChange={(event) => setImage(event.target.value)}
-                  className="ios-input rounded-xl px-3 py-2 text-sm"
-                  placeholder="https://..."
-                />
-              </label>
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <button

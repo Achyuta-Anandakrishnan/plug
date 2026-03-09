@@ -221,7 +221,7 @@ export function MessagesClient() {
   return (
     <div className="ios-screen">
       <section className="ios-hero space-y-3">
-        <h1 className="ios-title">mmessages</h1>
+        <h1 className="ios-title">Messages</h1>
       </section>
 
       {error && (

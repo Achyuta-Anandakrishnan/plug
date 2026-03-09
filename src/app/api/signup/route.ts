@@ -15,6 +15,7 @@ type SignupBody = {
   displayName?: string;
   role?: "BUYER" | "SELLER" | "BOTH";
   applyAsSeller?: boolean;
+  referral?: string;
   captchaToken?: string;
 };
 
@@ -73,6 +74,31 @@ export async function POST(request: Request) {
         : undefined,
     },
   });
+
+  const referralCode = body.referral?.trim();
+  if (referralCode) {
+    const referrer = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: referralCode },
+          { username: referralCode.toLowerCase() },
+          { email: referralCode.toLowerCase() },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (referrer && referrer.id !== user.id) {
+      await prisma.referral.create({
+        data: {
+          referrerId: referrer.id,
+          referredEmail: email,
+          referredUserId: user.id,
+          status: "APPLIED",
+        },
+      });
+    }
+  }
 
   return jsonOk(user, { status: 201 });
 }

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AuthButtons } from "@/components/AuthButtons";
 
 export default function SignupPage() {
+  const searchParams = useSearchParams();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle",
   );
@@ -15,6 +17,11 @@ export default function SignupPage() {
   const [role, setRole] = useState("Buyer");
   const [category, setCategory] = useState("Pokemon");
   const [referral, setReferral] = useState("");
+
+  useEffect(() => {
+    const ref = (searchParams.get("ref") ?? "").trim();
+    if (ref) setReferral(ref);
+  }, [searchParams]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

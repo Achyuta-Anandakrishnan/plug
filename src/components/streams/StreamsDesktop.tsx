@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AuctionCard } from "@/components/AuctionCard";
 import { useAuctions } from "@/hooks/useAuctions";
@@ -10,11 +9,25 @@ import {
   getTimeLeftSeconds,
 } from "@/lib/auctions";
 
+function formatStart(value: string | null) {
+  if (!value) return "Time pending";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Time pending";
+  return date.toLocaleString(undefined, {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function StreamsDesktop() {
   const [endingSoon, setEndingSoon] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const { data: auctions, loading, error } = useAuctions({
     status: "LIVE",
+  });
+  const { data: scheduled } = useAuctions({
+    status: "SCHEDULED",
   });
 
   const filteredStreams = useMemo(() => {
@@ -55,7 +68,6 @@ export function StreamsDesktop() {
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_240px]">
           <div className="ios-panel p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-slate-900">Refine feed</p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setEndingSoon((prev) => !prev)}
@@ -72,15 +84,22 @@ export function StreamsDesktop() {
               </div>
             </div>
           </div>
-
-          <Link
-            href="/streams/schedule"
-            className="ios-panel-muted rounded-[24px] px-4 py-4 text-center text-sm font-semibold text-slate-700"
-          >
-            Schedule
-          </Link>
         </div>
       </section>
+
+      {scheduled.length > 0 && (
+        <section className="ios-panel p-4">
+          <h2 className="ios-section-title">Scheduled</h2>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {scheduled.slice(0, 8).map((entry) => (
+              <div key={entry.id} className="ios-panel-muted rounded-[18px] px-3 py-2">
+                <p className="text-sm font-semibold text-slate-900">{entry.title}</p>
+                <p className="text-xs text-slate-500">{formatStart(entry.startTime)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {error && (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">

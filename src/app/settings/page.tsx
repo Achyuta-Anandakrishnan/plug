@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { ReferralBar } from "@/components/settings/ReferralBar";
 import { ProfileEditor } from "@/components/settings/ProfileEditor";
 
 export default function SettingsPage() {
@@ -11,36 +10,12 @@ export default function SettingsPage() {
   return (
     <div className="ios-screen">
       <section className="ios-hero space-y-3">
-        <p className="ios-kicker">
-          Settings
-        </p>
-        <h1 className="ios-title">Account</h1>
-        <p className="ios-subtitle">
-          Profile, referral tools, and account state in a cleaner iPhone layout.
-        </p>
+        <h1 className="ios-title">Setting</h1>
       </section>
 
       <div className="ios-panel p-5">
-        <p className="ios-kicker">
-          Profile
-        </p>
-        <div className="mt-4">
+        <div>
           <ProfileEditor />
-        </div>
-
-        <div className="mt-4 grid gap-3 text-sm text-slate-600">
-          <div className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
-            <span>Email</span>
-            <span className="font-semibold text-slate-900">
-              {session?.user?.email ?? "Not signed in"}
-            </span>
-          </div>
-          <div className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
-            <span>Role</span>
-            <span className="font-semibold text-slate-900">
-              {session?.user?.role ?? "Guest"}
-            </span>
-          </div>
         </div>
 
         <div className="mt-5 flex flex-wrap gap-3">
@@ -69,8 +44,6 @@ export default function SettingsPage() {
           </Link>
         </div>
       </div>
-
-      <ReferralBar />
     </div>
   );
 }

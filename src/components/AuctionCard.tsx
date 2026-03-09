@@ -36,7 +36,7 @@ export function AuctionCard({
   return (
     <Link
       href={`/streams/${id}`}
-      className="group relative aspect-[0.8] w-full overflow-hidden rounded-[24px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.22)] sm:aspect-[5/7] sm:rounded-[28px]"
+      className="group relative aspect-[0.68] w-full overflow-hidden rounded-[22px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.22)] sm:aspect-[3/4] sm:rounded-[24px]"
     >
       {imageUrl ? (
         <Image
@@ -58,7 +58,7 @@ export function AuctionCard({
         </video>
       )}
 
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(27,77,255,0.26),_transparent_55%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(to_top,_rgba(2,6,23,0.86),_rgba(2,6,23,0.24)_55%,_rgba(2,6,23,0.06))]" />
 
       <div className="absolute left-3 top-3 right-3 flex items-start justify-between gap-2 sm:left-4 sm:right-4 sm:top-4">
@@ -103,7 +103,7 @@ export function AuctionCard({
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">
                 Time
               </p>
-              <p className="font-display text-base text-[rgba(165,190,255,0.98)] sm:text-lg">
+              <p className="font-display text-base text-white sm:text-lg">
                 {formatSeconds(timeLeft)}
               </p>
             </div>
