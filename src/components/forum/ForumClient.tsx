@@ -111,11 +111,7 @@ export function ForumClient() {
     <div className="ios-screen">
       <section className="ios-hero space-y-4">
         <div className="space-y-3">
-          <p className="ios-kicker">Community</p>
           <h1 className="ios-title">Forum</h1>
-          <p className="ios-subtitle">
-            Threads, drafts, and replies with a tighter mobile reading layout.
-          </p>
         </div>
 
         <div className="ios-panel p-4">

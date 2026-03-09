@@ -118,12 +118,7 @@ export default function ExplorePage() {
     <div className="ios-screen">
       <section className="ios-hero space-y-4">
         <div className="space-y-3">
-          <p className="ios-kicker">Search</p>
-          <h1 className="ios-title">Find listings</h1>
-          <p className="ios-subtitle">
-            Search listings, sellers, and categories with a mobile layout that
-            stays readable instead of cramped.
-          </p>
+          <h1 className="ios-title">Explore</h1>
         </div>
 
         <div className="ios-panel p-4">
@@ -248,7 +243,6 @@ export default function ExplorePage() {
       <section className="space-y-4">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="ios-kicker">Listings</p>
             <h2 className="ios-section-title">Results</h2>
           </div>
           <p className="text-xs uppercase tracking-[0.24em] text-slate-400">

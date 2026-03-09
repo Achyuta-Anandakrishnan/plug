@@ -97,7 +97,6 @@ export function LandingSlideshow() {
     <section className="surface-panel rounded-[32px] p-4 sm:p-6 lg:p-8">
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
         <div className="space-y-4">
-          <p className="text-xs uppercase tracking-[0.26em] text-slate-400">Interface map</p>
           <h2 className="font-display text-3xl text-slate-900 sm:text-4xl">{slide.title}</h2>
           <p className="text-sm leading-6 text-slate-600">{slide.blurb}</p>
 

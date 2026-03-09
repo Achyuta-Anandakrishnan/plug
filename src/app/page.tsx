@@ -96,7 +96,6 @@ export default async function Home() {
     <div className="ios-screen">
       <section className="ios-hero grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-center">
         <div className="space-y-5">
-          <p className="ios-kicker">Live marketplace</p>
           <h1 className="ios-title">Bid. Buy. Stream.</h1>
           <p className="ios-subtitle">
             Clean flow. Verified sellers. Fast checkout.

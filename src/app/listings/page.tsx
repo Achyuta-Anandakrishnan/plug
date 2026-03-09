@@ -62,11 +62,7 @@ export default function ListingsPage() {
     <div className="ios-screen">
       <section className="ios-hero space-y-4">
         <div className="space-y-3">
-          <p className="ios-kicker">Market inventory</p>
           <h1 className="ios-title">Listings</h1>
-          <p className="ios-subtitle">
-            Filter fast. Scan cards. Join stream.
-          </p>
         </div>
 
         <div className="ios-panel p-3 sm:p-4">

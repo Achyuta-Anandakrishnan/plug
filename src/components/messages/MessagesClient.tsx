@@ -221,11 +221,7 @@ export function MessagesClient() {
   return (
     <div className="ios-screen">
       <section className="ios-hero space-y-3">
-        <p className="ios-kicker">Direct messages</p>
-        <h1 className="ios-title">Inbox</h1>
-        <p className="ios-subtitle">
-          Direct messages between buyers, sellers, and support.
-        </p>
+        <h1 className="ios-title">mmessages</h1>
       </section>
 
       {error && (

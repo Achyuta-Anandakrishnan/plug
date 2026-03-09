@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AuctionCard } from "@/components/AuctionCard";
 import { useAuctions } from "@/hooks/useAuctions";
-import { useCategories } from "@/hooks/useCategories";
 import {
   getGradeLabel,
   getPrimaryImageUrl,
@@ -12,39 +11,24 @@ import {
 } from "@/lib/auctions";
 
 export function StreamsMobile() {
-  const [activeCategory, setActiveCategory] = useState("All");
   const [endingSoon, setEndingSoon] = useState(false);
   const { data: auctions, loading, error } = useAuctions({
     status: "LIVE",
   });
-  const { data: categories } = useCategories();
 
   const filteredStreams = useMemo(() => {
-    let list = [...auctions];
-
-    if (activeCategory !== "All") {
-      list = list.filter(
-        (stream) => stream.category?.name === activeCategory,
-      );
-    }
-
+    const list = [...auctions];
     if (endingSoon) {
       list.sort((a, b) => getTimeLeftSeconds(a) - getTimeLeftSeconds(b));
     }
-
     return list;
-  }, [activeCategory, auctions, endingSoon]);
+  }, [auctions, endingSoon]);
 
   return (
     <div className="ios-screen">
       <section className="ios-hero space-y-5">
         <div className="space-y-3">
-          <p className="ios-kicker">Live floor</p>
           <h1 className="ios-title">Streams</h1>
-          <p className="ios-subtitle">
-            Jump between live rooms, price action, and seller drops without the
-            extra chrome.
-          </p>
         </div>
 
         <div className="ios-stat-grid">
@@ -53,25 +37,19 @@ export function StreamsMobile() {
             <p className="ios-stat-value">{filteredStreams.length}</p>
           </div>
           <div className="ios-stat-card">
-            <p className="ios-stat-label">Categories</p>
-            <p className="ios-stat-value">{categories.length || 1}</p>
+            <p className="ios-stat-label">Verified sellers</p>
+            <p className="ios-stat-value">
+              {filteredStreams.filter((stream) => stream.seller?.status === "APPROVED").length}
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Link
-            href="/streams/schedule"
-            className="ios-panel-muted rounded-[22px] px-4 py-3 text-center text-sm font-semibold text-slate-700"
-          >
-            Schedule
-          </Link>
-          <Link
-            href="/streams/roster"
-            className="ios-panel-muted rounded-[22px] px-4 py-3 text-center text-sm font-semibold text-slate-700"
-          >
-            Roster
-          </Link>
-        </div>
+        <Link
+          href="/streams/schedule"
+          className="ios-panel-muted rounded-[22px] px-4 py-3 text-center text-sm font-semibold text-slate-700"
+        >
+          Schedule
+        </Link>
 
         <div className="ios-panel p-3">
           <div className="mb-3 flex items-center justify-between gap-3">
@@ -82,21 +60,6 @@ export function StreamsMobile() {
             >
               Ending soon
             </button>
-          </div>
-          <div className="ios-chip-row">
-            {["All", ...categories.map((category) => category.name)].map(
-              (category) => (
-                <button
-                  key={category}
-                  onClick={() => setActiveCategory(category)}
-                  className={`ios-chip ${
-                    activeCategory === category ? "ios-chip-active" : ""
-                  }`}
-                >
-                  {category}
-                </button>
-              ),
-            )}
           </div>
         </div>
       </section>
@@ -115,16 +78,13 @@ export function StreamsMobile() {
 
       {!loading && filteredStreams.length === 0 && (
         <div className="ios-empty">
-          No live rooms match this filter yet.
+          No live rooms yet.
         </div>
       )}
 
       <section className="space-y-4">
         <div className="flex items-end justify-between gap-3">
-          <div>
-            <p className="ios-kicker">Now showing</p>
-            <h2 className="ios-section-title">Live rooms</h2>
-          </div>
+          <h2 className="ios-section-title">Live rooms</h2>
           <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
             {filteredStreams.length} active
           </p>
