@@ -88,6 +88,14 @@ enum TradeOfferStatus {
   COUNTERED
 }
 
+enum TradeSettlementStatus {
+  REQUIRES_PAYMENT
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
 enum DisputeStatus {
   OPEN
   UNDER_REVIEW
@@ -195,6 +203,8 @@ model User {
   forumPostVotes ForumPostVote[]
   tradePosts     TradePost[]           @relation("TradePostOwner")
   tradeOffers    TradeOffer[]          @relation("TradeOfferProposer")
+  tradeSettlementsToPay     TradeSettlement[] @relation("TradeSettlementPayer")
+  tradeSettlementsToReceive TradeSettlement[] @relation("TradeSettlementPayee")
 }
 
 model Account {
@@ -494,6 +504,7 @@ model TradeOffer {
   post             TradePost         @relation(fields: [postId], references: [id], onDelete: Cascade)
   proposer         User              @relation("TradeOfferProposer", fields: [proposerId], references: [id], onDelete: Cascade)
   cards            TradeOfferCard[]
+  settlement       TradeSettlement?
 
   @@index([postId])
   @@index([proposerId])
@@ -517,6 +528,30 @@ model TradeOfferCard {
   offer            TradeOffer  @relation(fields: [offerId], references: [id], onDelete: Cascade)
 
   @@index([offerId])
+}
+
+model TradeSettlement {
+  id                       String               @id @default(cuid())
+  offerId                  String               @unique
+  payerId                  String
+  payeeId                  String
+  amount                   Int
+  currency                 String               @default("usd")
+  status                   TradeSettlementStatus @default(REQUIRES_PAYMENT)
+  providerPaymentIntent    String?
+  providerCheckoutSession  String?
+  providerChargeId         String?
+  paidAt                   DateTime?
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+
+  offer                    TradeOffer           @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  payer                    User                 @relation("TradeSettlementPayer", fields: [payerId], references: [id], onDelete: Cascade)
+  payee                    User                 @relation("TradeSettlementPayee", fields: [payeeId], references: [id], onDelete: Cascade)
+
+  @@index([payerId])
+  @@index([payeeId])
+  @@index([status])
 }
 
 model Dispute {

@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
-import { isTradePostStatus, normalizeTags, parseIntOrNull } from "@/lib/trades";
+import { isTradePostStatus, normalizeTags, parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
 
 type RouteContext = {
   params: Promise<{
@@ -55,6 +55,24 @@ const postInclude = {
       },
       cards: {
         orderBy: { createdAt: "asc" },
+      },
+      settlement: {
+        include: {
+          payer: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+            },
+          },
+          payee: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+            },
+          },
+        },
       },
     },
   },
@@ -180,7 +198,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   const imagePayload = Array.isArray(body.images)
     ? body.images
       .map((entry) => ({
-        url: typeof entry?.url === "string" ? entry.url.trim() : "",
+        url: toHttpUrlOrNull(entry?.url) ?? "",
         isPrimary: Boolean(entry?.isPrimary),
       }))
       .filter((entry) => entry.url)

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
-import { parseIntOrNull } from "@/lib/trades";
+import { parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
 
 type RouteContext = {
   params: Promise<{
@@ -39,6 +39,24 @@ const offerInclude = {
   },
   cards: {
     orderBy: { createdAt: "asc" },
+  },
+  settlement: {
+    include: {
+      payer: {
+        select: {
+          id: true,
+          username: true,
+          displayName: true,
+        },
+      },
+      payee: {
+        select: {
+          id: true,
+          username: true,
+          displayName: true,
+        },
+      },
+    },
   },
 } as const;
 
@@ -121,7 +139,7 @@ export async function POST(request: Request, { params }: RouteContext) {
         gradeCompany: typeof card?.gradeCompany === "string" ? card.gradeCompany.trim() : "",
         gradeLabel: typeof card?.gradeLabel === "string" ? card.gradeLabel.trim() : "",
         estimatedValue: parseIntOrNull(card?.estimatedValue),
-        imageUrl: typeof card?.imageUrl === "string" ? card.imageUrl.trim() : "",
+        imageUrl: toHttpUrlOrNull(card?.imageUrl) ?? "",
         notes: typeof card?.notes === "string" ? card.notes.trim() : "",
       }))
       .filter((card) => card.title.length > 0)

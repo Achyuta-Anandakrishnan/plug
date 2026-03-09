@@ -51,6 +51,27 @@ export type TradeOfferItem = {
     displayName: string | null;
     image?: string | null;
   };
+  settlement: {
+    id: string;
+    payerId: string;
+    payeeId: string;
+    amount: number;
+    currency: string;
+    status: "REQUIRES_PAYMENT" | "PROCESSING" | "SUCCEEDED" | "FAILED" | "CANCELED";
+    providerCheckoutSession: string | null;
+    providerPaymentIntent: string | null;
+    paidAt: string | null;
+    payer: {
+      id: string;
+      username: string | null;
+      displayName: string | null;
+    };
+    payee: {
+      id: string;
+      username: string | null;
+      displayName: string | null;
+    };
+  } | null;
   cards: Array<{
     id: string;
     title: string;
@@ -104,4 +125,14 @@ export function formatTradeDateTime(value: string) {
 export function toTagArray(value: unknown) {
   if (!Array.isArray(value)) return [];
   return value.filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0);
+}
+
+export function isValidImageUrl(value: string | null | undefined) {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
 }

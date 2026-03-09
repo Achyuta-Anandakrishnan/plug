@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
-import { TRADE_POST_STATUSES, normalizeTags, parseIntOrNull } from "@/lib/trades";
+import { TRADE_POST_STATUSES, normalizeTags, parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
 
 type CreateTradePostBody = {
   title?: string;
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
 
   const images = (body.images ?? [])
     .map((entry) => ({
-      url: typeof entry?.url === "string" ? entry.url.trim() : "",
+      url: toHttpUrlOrNull(entry?.url) ?? "",
       isPrimary: Boolean(entry?.isPrimary),
     }))
     .filter((entry) => entry.url.length > 0)

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
-import { isTradeOfferStatus } from "@/lib/trades";
+import { isTradeOfferStatus, parseIntOrNull } from "@/lib/trades";
 
 type RouteContext = {
   params: Promise<{
@@ -11,6 +11,8 @@ type RouteContext = {
 
 type UpdateOfferBody = {
   status?: string;
+  message?: string;
+  cashAdjustment?: number | string | null;
 };
 
 const offerInclude = {
@@ -24,6 +26,24 @@ const offerInclude = {
   },
   cards: {
     orderBy: { createdAt: "asc" },
+  },
+  settlement: {
+    include: {
+      payer: {
+        select: {
+          id: true,
+          username: true,
+          displayName: true,
+        },
+      },
+      payee: {
+        select: {
+          id: true,
+          username: true,
+          displayName: true,
+        },
+      },
+    },
   },
 } as const;
 
@@ -49,6 +69,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
           status: true,
         },
       },
+      settlement: true,
     },
   });
 
@@ -74,21 +95,34 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     const updated = await prisma.tradeOffer.update({
       where: { id: offer.id },
-      data: { status: "WITHDRAWN" },
+      data: {
+        status: "WITHDRAWN",
+        settlement: offer.settlement
+          ? {
+              update: { status: "CANCELED" },
+            }
+          : undefined,
+      },
       include: offerInclude,
     });
     return jsonOk(updated);
   }
 
   if (nextStatus === "ACCEPTED") {
-    if (!isOwner) {
-      return jsonError("Only the trade owner can accept offers.", 403);
+    const proposerCanAcceptCounter = offer.status === "COUNTERED" && isProposer;
+    if (!isOwner && !proposerCanAcceptCounter) {
+      return jsonError("Only the trade owner can accept this offer.", 403);
     }
     if (!["PENDING", "COUNTERED"].includes(offer.status)) {
       return jsonError("Only active offers can be accepted.");
     }
 
     const accepted = await prisma.$transaction(async (tx) => {
+      const cashAmount = offer.cashAdjustment ?? 0;
+      const amount = Math.abs(cashAmount);
+      const payerId = cashAmount >= 0 ? offer.proposerId : offer.post.ownerId;
+      const payeeId = cashAmount >= 0 ? offer.post.ownerId : offer.proposerId;
+
       await tx.tradeOffer.updateMany({
         where: {
           postId: offer.postId,
@@ -105,7 +139,35 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
       return tx.tradeOffer.update({
         where: { id: offer.id },
-        data: { status: "ACCEPTED" },
+        data: {
+          status: "ACCEPTED",
+          settlement: amount > 0
+            ? {
+                upsert: {
+                  create: {
+                    payerId,
+                    payeeId,
+                    amount,
+                    currency: "usd",
+                    status: "REQUIRES_PAYMENT",
+                  },
+                  update: {
+                    payerId,
+                    payeeId,
+                    amount,
+                    currency: "usd",
+                    status: offer.settlement?.status === "SUCCEEDED"
+                      ? "SUCCEEDED"
+                      : "REQUIRES_PAYMENT",
+                  },
+                },
+              }
+            : offer.settlement
+              ? {
+                  delete: true,
+                }
+              : undefined,
+        },
         include: offerInclude,
       });
     });
@@ -121,9 +183,31 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       return jsonError("Only active offers can be updated.");
     }
 
+    const nextCashAdjustment = body.cashAdjustment !== undefined
+      ? parseIntOrNull(body.cashAdjustment)
+      : offer.cashAdjustment;
+    if (nextCashAdjustment === null) {
+      return jsonError("Invalid counter cash adjustment.");
+    }
+
+    const nextMessage = body.message !== undefined
+      ? (body.message?.trim() || null)
+      : offer.message;
+
     const updated = await prisma.tradeOffer.update({
       where: { id: offer.id },
-      data: { status: nextStatus },
+      data: {
+        status: nextStatus,
+        message: nextStatus === "COUNTERED" ? nextMessage : offer.message,
+        cashAdjustment: nextStatus === "COUNTERED" ? nextCashAdjustment : offer.cashAdjustment,
+        settlement: offer.settlement
+          ? {
+              update: {
+                status: "CANCELED",
+              },
+            }
+          : undefined,
+      },
       include: offerInclude,
     });
     return jsonOk(updated);

@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
+import { formatCurrency } from "@/lib/format";
 import {
   formatTradeDateTime,
+  isValidImageUrl,
   toTagArray,
   tradeValueLabel,
   type TradeOfferItem,
@@ -22,6 +24,12 @@ type OfferDraftCard = {
   gradeLabel: string;
   estimatedValue: string;
   notes: string;
+};
+
+type CounterDraft = {
+  open: boolean;
+  message: string;
+  cashAdjustment: string;
 };
 
 const emptyOfferCard: OfferDraftCard = {
@@ -49,6 +57,13 @@ function offerStatusClass(status: TradeOfferItem["status"]) {
   return "border-amber-200 bg-amber-50 text-amber-700";
 }
 
+function settlementStatusClass(status: NonNullable<TradeOfferItem["settlement"]>["status"]) {
+  if (status === "SUCCEEDED") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (status === "FAILED" || status === "CANCELED") return "border-red-200 bg-red-50 text-red-700";
+  if (status === "PROCESSING") return "border-blue-200 bg-blue-50 text-blue-700";
+  return "border-amber-200 bg-amber-50 text-amber-700";
+}
+
 export default function TradeDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -59,10 +74,13 @@ export default function TradeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [actingOfferId, setActingOfferId] = useState<string | null>(null);
   const [submittingOffer, setSubmittingOffer] = useState(false);
+  const [startingCheckoutOfferId, setStartingCheckoutOfferId] = useState<string | null>(null);
   const [offerMessage, setOfferMessage] = useState("");
   const [cashAdjustment, setCashAdjustment] = useState("");
   const [offerCards, setOfferCards] = useState<OfferDraftCard[]>([{ ...emptyOfferCard }]);
+  const [counterDrafts, setCounterDrafts] = useState<Record<string, CounterDraft>>({});
 
   const refresh = async () => {
     if (!postId) return;
@@ -107,13 +125,18 @@ export default function TradeDetailPage() {
     }
   };
 
-  const updateOfferStatus = async (offerId: string, status: TradeOfferItem["status"]) => {
+  const updateOfferStatus = async (
+    offerId: string,
+    status: TradeOfferItem["status"],
+    extra?: { message?: string; cashAdjustment?: number },
+  ) => {
+    setActingOfferId(offerId);
     setError("");
     try {
       const response = await fetch(`/api/trades/offers/${offerId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, ...extra }),
       });
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) {
@@ -122,6 +145,31 @@ export default function TradeDetailPage() {
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to update offer.");
+    } finally {
+      setActingOfferId(null);
+    }
+  };
+
+  const startCheckout = async (offerId: string) => {
+    setStartingCheckoutOfferId(offerId);
+    setError("");
+    try {
+      const response = await fetch(`/api/trades/offers/${offerId}/checkout`, {
+        method: "POST",
+      });
+      const payload = (await response.json()) as { checkoutUrl?: string | null; error?: string; paid?: boolean };
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to start settlement checkout.");
+      }
+      if (payload.checkoutUrl) {
+        window.location.assign(payload.checkoutUrl);
+        return;
+      }
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to start settlement checkout.");
+    } finally {
+      setStartingCheckoutOfferId(null);
     }
   };
 
@@ -182,6 +230,56 @@ export default function TradeDetailPage() {
 
   const removeOfferCard = (index: number) => {
     setOfferCards((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const openCounterDraft = (offer: TradeOfferItem) => {
+    setCounterDrafts((prev) => ({
+      ...prev,
+      [offer.id]: {
+        open: true,
+        message: offer.message ?? "",
+        cashAdjustment: String(offer.cashAdjustment ?? 0),
+      },
+    }));
+  };
+
+  const setCounterField = (offerId: string, field: "message" | "cashAdjustment", value: string) => {
+    setCounterDrafts((prev) => ({
+      ...prev,
+      [offerId]: {
+        open: true,
+        message: prev[offerId]?.message ?? "",
+        cashAdjustment: prev[offerId]?.cashAdjustment ?? "0",
+        [field]: value,
+      },
+    }));
+  };
+
+  const closeCounterDraft = (offerId: string) => {
+    setCounterDrafts((prev) => ({
+      ...prev,
+      [offerId]: {
+        open: false,
+        message: prev[offerId]?.message ?? "",
+        cashAdjustment: prev[offerId]?.cashAdjustment ?? "0",
+      },
+    }));
+  };
+
+  const submitCounter = async (offerId: string) => {
+    const draft = counterDrafts[offerId];
+    const cash = Number(draft?.cashAdjustment ?? "0");
+    if (!Number.isFinite(cash)) {
+      setError("Counter cash adjustment must be a number in cents.");
+      return;
+    }
+
+    await updateOfferStatus(offerId, "COUNTERED", {
+      message: draft?.message?.trim() || "",
+      cashAdjustment: Math.trunc(cash),
+    });
+
+    closeCounterDraft(offerId);
   };
 
   if (loading) {
@@ -298,11 +396,20 @@ export default function TradeDetailPage() {
           <h2 className="ios-section-title">Card view</h2>
           {post.images.length > 0 ? (
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              {post.images.map((image) => (
-                <div key={image.id} className="relative h-56 overflow-hidden rounded-2xl border border-white/70 bg-white/70">
-                  <Image src={image.url} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
-                </div>
-              ))}
+              {post.images.map((image) => {
+                const canRender = isValidImageUrl(image.url);
+                return (
+                  <div key={image.id} className="relative h-56 overflow-hidden rounded-2xl border border-white/70 bg-white/70">
+                    {canRender ? (
+                      <Image src={image.url} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.2em] text-slate-400">
+                        Image unavailable
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="ios-empty mt-3">No images yet.</div>
@@ -323,7 +430,7 @@ export default function TradeDetailPage() {
               onChange={(event) => setCashAdjustment(event.target.value)}
               className="ios-input mt-3"
               inputMode="numeric"
-              placeholder="Cash adjustment (+/-)"
+              placeholder="Cash adjustment in cents (+/-)"
             />
             <div className="mt-3 space-y-2">
               {offerCards.map((card, index) => (
@@ -334,7 +441,7 @@ export default function TradeDetailPage() {
                     className="ios-input"
                     placeholder="Offered card title"
                   />
-                  <div className="mt-2 grid gap-2 grid-cols-2">
+                  <div className="mt-2 grid grid-cols-2 gap-2">
                     <input
                       value={card.cardSet}
                       onChange={(event) => replaceOfferCard(index, "cardSet", event.target.value)}
@@ -357,10 +464,10 @@ export default function TradeDetailPage() {
                       value={card.estimatedValue}
                       onChange={(event) => replaceOfferCard(index, "estimatedValue", event.target.value)}
                       className="ios-input"
-                      placeholder="Estimated value"
+                      placeholder="Estimated value (cents)"
                     />
                   </div>
-                  <div className="mt-2 grid gap-2 grid-cols-2">
+                  <div className="mt-2 grid grid-cols-2 gap-2">
                     <input
                       value={card.gradeCompany}
                       onChange={(event) => replaceOfferCard(index, "gradeCompany", event.target.value)}
@@ -438,6 +545,11 @@ export default function TradeDetailPage() {
             {post.offers.map((offer) => {
               const canManage = post.viewer.isOwner && ["PENDING", "COUNTERED"].includes(offer.status);
               const canWithdraw = offer.proposerId === currentUserId && ["PENDING", "COUNTERED"].includes(offer.status);
+              const counterDraft = counterDrafts[offer.id];
+              const settlement = offer.settlement;
+              const isSettlementPayer = settlement?.payerId === currentUserId;
+              const canPaySettlement = offer.status === "ACCEPTED" && settlement && settlement.status !== "SUCCEEDED" && isSettlementPayer;
+
               return (
                 <div key={offer.id} className="rounded-3xl border border-slate-200 bg-white/90 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -453,7 +565,10 @@ export default function TradeDetailPage() {
                   </div>
 
                   {offer.message ? <p className="mt-2 text-sm text-slate-700">{offer.message}</p> : null}
-                  <p className="mt-2 text-xs text-slate-500">Cash adjustment: {offer.cashAdjustment >= 0 ? "+" : ""}{offer.cashAdjustment}</p>
+                  <p className="mt-2 text-xs text-slate-500">
+                    Cash adjustment: {offer.cashAdjustment >= 0 ? "+" : ""}{offer.cashAdjustment} cents
+                    {offer.cashAdjustment !== 0 ? ` (${formatCurrency(Math.abs(offer.cashAdjustment), "USD")})` : ""}
+                  </p>
 
                   {offer.cards.length > 0 ? (
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -464,10 +579,41 @@ export default function TradeDetailPage() {
                             {[card.cardSet, card.cardNumber, card.condition].filter(Boolean).join(" • ")}
                           </p>
                           {card.estimatedValue ? (
-                            <p className="mt-1 text-xs text-slate-500">Est: ${card.estimatedValue.toLocaleString()}</p>
+                            <p className="mt-1 text-xs text-slate-500">Est: {formatCurrency(card.estimatedValue, "USD")}</p>
                           ) : null}
                         </div>
                       ))}
+                    </div>
+                  ) : null}
+
+                  {settlement ? (
+                    <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Cash settlement</p>
+                        <span className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${settlementStatusClass(settlement.status)}`}>
+                          {settlement.status}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-slate-700">
+                        {formatCurrency(settlement.amount, (settlement.currency || "usd").toUpperCase())}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {settlement.payer.displayName ?? settlement.payer.username ?? "Payer"} pays {settlement.payee.displayName ?? settlement.payee.username ?? "Payee"}
+                      </p>
+                      {settlement.status === "SUCCEEDED" ? (
+                        <p className="mt-2 text-xs text-emerald-700">Payment completed.</p>
+                      ) : canPaySettlement ? (
+                        <button
+                          type="button"
+                          onClick={() => void startCheckout(offer.id)}
+                          disabled={startingCheckoutOfferId === offer.id}
+                          className="mt-2 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
+                        >
+                          {startingCheckoutOfferId === offer.id ? "Opening checkout..." : "Pay with Stripe"}
+                        </button>
+                      ) : (
+                        <p className="mt-2 text-xs text-slate-500">Waiting on payer to complete Stripe checkout.</p>
+                      )}
                     </div>
                   ) : null}
 
@@ -476,21 +622,24 @@ export default function TradeDetailPage() {
                       <button
                         type="button"
                         onClick={() => void updateOfferStatus(offer.id, "ACCEPTED")}
-                        className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white"
+                        disabled={actingOfferId === offer.id}
+                        className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
                       >
                         Accept
                       </button>
                       <button
                         type="button"
-                        onClick={() => void updateOfferStatus(offer.id, "COUNTERED")}
-                        className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700"
+                        onClick={() => openCounterDraft(offer)}
+                        disabled={actingOfferId === offer.id}
+                        className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 disabled:opacity-60"
                       >
                         Counter
                       </button>
                       <button
                         type="button"
                         onClick={() => void updateOfferStatus(offer.id, "DECLINED")}
-                        className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-red-700"
+                        disabled={actingOfferId === offer.id}
+                        className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-red-700 disabled:opacity-60"
                       >
                         Decline
                       </button>
@@ -500,10 +649,47 @@ export default function TradeDetailPage() {
                       <button
                         type="button"
                         onClick={() => void updateOfferStatus(offer.id, "WITHDRAWN")}
-                        className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-red-700"
+                        disabled={actingOfferId === offer.id}
+                        className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-red-700 disabled:opacity-60"
                       >
                         Withdraw
                       </button>
+                    </div>
+                  ) : null}
+
+                  {counterDraft?.open ? (
+                    <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Counter offer</p>
+                      <textarea
+                        value={counterDraft.message}
+                        onChange={(event) => setCounterField(offer.id, "message", event.target.value)}
+                        className="mt-2 min-h-20 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+                        placeholder="Counter message"
+                      />
+                      <input
+                        value={counterDraft.cashAdjustment}
+                        onChange={(event) => setCounterField(offer.id, "cashAdjustment", event.target.value)}
+                        className="ios-input mt-2"
+                        inputMode="numeric"
+                        placeholder="Counter cash adjustment (cents)"
+                      />
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void submitCounter(offer.id)}
+                          disabled={actingOfferId === offer.id}
+                          className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
+                        >
+                          Send counter
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => closeCounterDraft(offer.id)}
+                          className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   ) : null}
                 </div>

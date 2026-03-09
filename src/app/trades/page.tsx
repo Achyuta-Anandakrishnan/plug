@@ -4,7 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
-import { formatTradeDate, toTagArray, tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
+import {
+  formatTradeDate,
+  isValidImageUrl,
+  toTagArray,
+  tradeValueLabel,
+  type TradePostListItem,
+} from "@/lib/trade-client";
 
 type TradeScope = "OPEN" | "PAUSED" | "MATCHED" | "CLOSED" | "ALL" | "MINE";
 
@@ -83,7 +89,6 @@ export default function TradesPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-3">
             <h1 className="ios-title">Trades</h1>
-            <p className="ios-subtitle">Post your cards. Match fast.</p>
           </div>
           <Link
             href="/trades/new"
@@ -162,6 +167,7 @@ export default function TradesPage() {
       <section className="grid gap-3 lg:grid-cols-2">
         {posts.map((post) => {
           const image = post.images[0]?.url || "";
+          const canRenderImage = isValidImageUrl(image);
           const tags = toTagArray(post.tags).slice(0, 3);
           return (
             <Link
@@ -171,7 +177,7 @@ export default function TradesPage() {
             >
               <div className="grid gap-3 sm:grid-cols-[120px_minmax(0,1fr)]">
                 <div className="relative h-28 overflow-hidden rounded-2xl border border-white/60 bg-white/60">
-                  {image ? (
+                  {canRenderImage ? (
                     <Image src={image} alt={post.title} fill className="object-cover" sizes="120px" />
                   ) : (
                     <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.2em] text-slate-400">

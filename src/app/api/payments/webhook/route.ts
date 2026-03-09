@@ -35,6 +35,19 @@ export async function POST(request: Request) {
         where: { payment: { providerPaymentIntent: intent.id } },
         data: { status: "PAID" },
       });
+      const tradeSettlementId = intent.metadata?.tradeSettlementId;
+      await prisma.tradeSettlement.updateMany({
+        where: tradeSettlementId
+          ? { id: tradeSettlementId }
+          : { providerPaymentIntent: intent.id },
+        data: {
+          status: "SUCCEEDED",
+          providerPaymentIntent: intent.id,
+          providerChargeId:
+            typeof intent.latest_charge === "string" ? intent.latest_charge : null,
+          paidAt: new Date(),
+        },
+      });
       break;
     }
     case "payment_intent.payment_failed": {
@@ -43,6 +56,49 @@ export async function POST(request: Request) {
         where: { providerPaymentIntent: intent.id },
         data: { status: "FAILED" },
       });
+      const tradeSettlementId = intent.metadata?.tradeSettlementId;
+      await prisma.tradeSettlement.updateMany({
+        where: tradeSettlementId
+          ? { id: tradeSettlementId }
+          : { providerPaymentIntent: intent.id },
+        data: {
+          status: "FAILED",
+          providerPaymentIntent: intent.id,
+        },
+      });
+      break;
+    }
+    case "payment_intent.canceled": {
+      const intent = event.data.object;
+      const tradeSettlementId = intent.metadata?.tradeSettlementId;
+      await prisma.tradeSettlement.updateMany({
+        where: tradeSettlementId
+          ? { id: tradeSettlementId }
+          : { providerPaymentIntent: intent.id },
+        data: {
+          status: "CANCELED",
+          providerPaymentIntent: intent.id,
+        },
+      });
+      break;
+    }
+    case "checkout.session.completed": {
+      const session = event.data.object;
+      const tradeSettlementId = session.metadata?.tradeSettlementId;
+      if (tradeSettlementId) {
+        await prisma.tradeSettlement.updateMany({
+          where: { id: tradeSettlementId },
+          data: {
+            providerCheckoutSession: session.id,
+            providerPaymentIntent:
+              typeof session.payment_intent === "string"
+                ? session.payment_intent
+                : null,
+            status: session.payment_status === "paid" ? "SUCCEEDED" : "PROCESSING",
+            paidAt: session.payment_status === "paid" ? new Date() : null,
+          },
+        });
+      }
       break;
     }
     case "charge.refunded": {
