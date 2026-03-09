@@ -102,7 +102,7 @@ export function SiteHeader() {
             aria-label="Close menu"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="fixed left-0 top-0 z-[1000] flex h-full w-[min(86vw,360px)] flex-col overflow-y-auto border-r border-white/70 bg-white/95 px-5 pb-6 pt-[calc(1.25rem+var(--safe-top))] shadow-[24px_0_60px_rgba(15,23,42,0.24)] backdrop-blur-xl">
+          <div className="fixed left-0 top-0 z-[1000] flex h-full w-[min(86vw,360px)] flex-col overflow-y-auto border-r border-white/70 bg-white/90 px-5 pb-6 pt-[calc(1.25rem+var(--safe-top))] shadow-[24px_0_60px_rgba(15,23,42,0.24)] backdrop-blur-xl">
             <div className="mb-5 flex items-center justify-between gap-3">
               <p className="font-display text-2xl text-slate-900">Menu</p>
               <button
@@ -125,7 +125,7 @@ export function SiteHeader() {
                   className={`rounded-2xl border px-4 py-3.5 transition ${
                     pathname === item.href || pathname?.startsWith(`${item.href}/`)
                       ? "border-blue-100 bg-blue-50 text-[var(--royal)]"
-                      : "border-white/70 bg-white/80"
+                      : "border-white/70 bg-white/70 text-slate-700"
                   }`}
                 >
                   {item.label}
@@ -135,7 +135,7 @@ export function SiteHeader() {
                 <Link
                   href="/admin/profiles"
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3.5"
+                  className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3.5 text-slate-700"
                 >
                   Admin
                 </Link>

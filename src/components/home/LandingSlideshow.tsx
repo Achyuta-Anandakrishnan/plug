@@ -15,45 +15,42 @@ type Slide = {
 
 const slides: Slide[] = [
   {
-    id: "trust-ai",
-    title: "AI-backed trust checks before each show",
-    blurb:
-      "Our risk model scores listing quality, seller consistency, and buyer protections before a stream goes live.",
-    metric: "97.2%",
-    metricLabel: "Fraud-risk catch rate in internal simulation",
+    id: "clean-flow",
+    title: "Clean live flow",
+    blurb: "Everything you need on one screen: item, chat, bids, and checkout.",
+    metric: "4 steps",
+    metricLabel: "List -> Go live -> Sell -> Payout",
     image: "/streams/stream-1.svg",
     bullets: [
-      "Automated listing anomaly flags",
-      "Seller verification confidence scoring",
-      "Pre-live checkout readiness checks",
+      "Fast card scan",
+      "Low-noise layout",
+      "One-tap actions",
     ],
   },
   {
     id: "conversion",
-    title: "Live-native commerce designed for conversion",
-    blurb:
-      "Listings, chat, and checkout are built for live urgency while preserving buyer safety and auditability.",
+    title: "Frictionless checkout",
+    blurb: "Buy now and bidding stay in context so buyers move fast without losing detail.",
     metric: "2.3x",
-    metricLabel: "Faster checkout completion vs static listing flow",
+    metricLabel: "Faster completion in live sessions",
     image: "/streams/stream-3.svg",
     bullets: [
-      "Real-time offer and buy-now paths",
-      "Dispute-ready event timeline",
-      "Instant seller messaging from every card",
+      "Real-time bid path",
+      "Direct seller chat",
+      "Order timeline",
     ],
   },
   {
     id: "grading",
-    title: "Structured grading metadata that scales",
-    blurb:
-      "Company-specific grade formats and cert data flow through cards, search, and stream overlays.",
+    title: "Category-ready cards",
+    blurb: "Grade labels, cert info, and condition notes stay visible across views.",
     metric: "15",
     metricLabel: "Supported grading companies",
     image: "/streams/stream-5.svg",
     bullets: [
-      "Exact company grade dropdowns",
-      "Label-tier metadata support",
-      "Cert-aware listing summaries",
+      "Exact grade options",
+      "Cert-aware details",
+      "Consistent search tags",
     ],
   },
 ];
@@ -100,7 +97,7 @@ export function LandingSlideshow() {
     <section className="surface-panel rounded-[32px] p-4 sm:p-6 lg:p-8">
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
         <div className="space-y-4">
-          <p className="text-xs uppercase tracking-[0.26em] text-slate-400">Platform intelligence</p>
+          <p className="text-xs uppercase tracking-[0.26em] text-slate-400">Interface map</p>
           <h2 className="font-display text-3xl text-slate-900 sm:text-4xl">{slide.title}</h2>
           <p className="text-sm leading-6 text-slate-600">{slide.blurb}</p>
 
@@ -142,7 +139,7 @@ export function LandingSlideshow() {
             />
             <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(2,6,23,0.72),rgba(2,6,23,0.16))]" />
             <p className="absolute bottom-3 left-3 right-3 text-xs uppercase tracking-[0.2em] text-white/90">
-              Live intelligence panel
+              Live dashboard
             </p>
           </div>
           <MiniDiagram index={active} />

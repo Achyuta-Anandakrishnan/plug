@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { AppProviders } from "@/components/AppProviders";
+import { AnimeBackdrop } from "@/components/AnimeBackdrop";
 import { NativeShell } from "@/components/native/NativeShell";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -23,6 +24,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
   themeColor: "#f6f9ff",
 };
@@ -37,12 +40,15 @@ export default function RootLayout({
       <body className="antialiased">
         <AppProviders>
           <NativeShell />
-          <div className="app-shell flex min-h-screen flex-col">
-            <SiteHeader />
-            <main className="page-container mobile-safe-main flex-1 pt-5 sm:pt-16 lg:pt-20">
-              {children}
-            </main>
-            <SiteFooter />
+          <div className="app-shell relative min-h-screen">
+            <AnimeBackdrop />
+            <div className="relative z-10 flex min-h-screen flex-col">
+              <SiteHeader />
+              <main className="page-container mobile-safe-main flex-1 pt-4 sm:pt-12 lg:pt-16">
+                {children}
+              </main>
+              <SiteFooter />
+            </div>
           </div>
           <Analytics />
         </AppProviders>

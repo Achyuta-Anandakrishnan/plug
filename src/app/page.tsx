@@ -71,45 +71,71 @@ async function getFeaturedAuctions(): Promise<FeaturedCard[]> {
   }
 }
 
+function HeroDiagram() {
+  return (
+    <svg viewBox="0 0 280 140" className="h-32 w-full" aria-hidden="true">
+      <defs>
+        <linearGradient id="heroLineA" x1="0%" x2="100%" y1="0%" y2="0%">
+          <stop offset="0%" stopColor="rgba(59,130,246,0.92)" />
+          <stop offset="100%" stopColor="rgba(147,197,253,0.92)" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="280" height="140" rx="18" fill="rgba(255,255,255,0.52)" />
+      <path d="M16 106 L56 94 L96 96 L136 68 L176 61 L216 46 L264 28" stroke="url(#heroLineA)" strokeWidth="5" fill="none" strokeLinecap="round" />
+      <path d="M16 118 L60 110 L104 103 L148 90 L192 82 L236 74 L264 68" stroke="rgba(30,64,175,0.35)" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <circle cx="264" cy="28" r="6" fill="rgba(30,64,175,0.95)" />
+    </svg>
+  );
+}
+
 export default async function Home() {
   const featured = await getFeaturedAuctions();
   const items = featured.length ? featured : mockAuctions.slice(0, 6);
 
   return (
     <div className="ios-screen">
-      <section className="ios-hero grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-center">
+      <section className="ios-hero grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-center">
         <div className="space-y-5">
-          <p className="ios-kicker">Trusted live marketplace</p>
-          <h1 className="ios-title">
-            The cleanest place to buy and sell live.
-          </h1>
+          <p className="ios-kicker">Live marketplace</p>
+          <h1 className="ios-title">Bid. Buy. Stream.</h1>
           <p className="ios-subtitle">
-            Every seller is reviewed by hand. Every live room is tied to a real listing.
-            Every transaction is built for clarity, speed, and buyer confidence.
+            Clean flow. Verified sellers. Fast checkout.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
               href="/streams"
-              className="rounded-full bg-[var(--royal)] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[var(--royal-deep)]"
+              className="rounded-full bg-[var(--royal)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[var(--royal-deep)]"
             >
               Watch streams
             </Link>
             <Link
               href="/listings"
-              className="rounded-full border border-slate-200 bg-white/90 px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300"
+              className="rounded-full border border-slate-200 bg-white/90 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300"
             >
-              Browse listings
+              Open listings
             </Link>
+          </div>
+          <div className="ios-stat-grid">
+            <div className="ios-stat-card">
+              <p className="ios-stat-label">Live rooms</p>
+              <p className="ios-stat-value">24/7</p>
+            </div>
+            <div className="ios-stat-card">
+              <p className="ios-stat-label">Mode</p>
+              <p className="ios-stat-value">Minimal</p>
+            </div>
           </div>
         </div>
 
-        <div className="ios-panel p-5">
-          <p className="ios-kicker">Why sellers move here</p>
-          <div className="mt-3 space-y-2 text-sm text-slate-600">
-            <p>1. Manual seller review before anyone can go live</p>
-            <p>2. Cleaner listings that convert faster on stream</p>
-            <p>3. Direct buyer to seller messaging with real identity attached</p>
-            <p>4. Secure checkout flow built around trust, not noise</p>
+        <div className="ios-panel p-4">
+          <p className="ios-kicker">Flow map</p>
+          <div className="mt-3 space-y-3">
+            <HeroDiagram />
+            <div className="grid grid-cols-3 gap-2 text-[11px] uppercase tracking-[0.16em] text-slate-600">
+              <span className="rounded-xl bg-white/70 px-2 py-2 text-center">Live</span>
+              <span className="rounded-xl bg-white/70 px-2 py-2 text-center">Chat</span>
+              <span className="rounded-xl bg-white/70 px-2 py-2 text-center">Checkout</span>
+            </div>
           </div>
         </div>
       </section>
@@ -120,7 +146,7 @@ export default async function Home() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="ios-kicker">Live now</p>
-            <h2 className="ios-section-title">Featured streams</h2>
+            <h2 className="ios-section-title">Featured cards</h2>
           </div>
           <Link href="/streams" className="text-sm font-semibold text-[var(--royal)]">
             View all
@@ -134,7 +160,12 @@ export default async function Home() {
       </section>
 
       <section className="ios-panel p-5 sm:p-6">
-        <p className="ios-kicker">Category coverage</p>
+        <div className="flex items-center justify-between gap-4">
+          <p className="ios-kicker">Categories</p>
+          <Link href="/explore" className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            Explore
+          </Link>
+        </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {categories.map((category) => (
             <div key={category.name} className="ios-panel-muted rounded-[22px] px-4 py-4">

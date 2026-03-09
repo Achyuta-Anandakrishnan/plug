@@ -12,11 +12,10 @@ export default function SignInPage() {
             Welcome back
           </p>
           <h1 className="ios-title">
-            Sign in to continue your live commerce desk.
+            Sign in.
           </h1>
           <p className="ios-subtitle">
-            Access live streams, place offers, and track verification status in
-            one secure account.
+            Streams, listings, messages.
           </p>
           <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-sm text-slate-600">
             New here?{" "}
@@ -28,9 +27,6 @@ export default function SignInPage() {
 
         <div className="ios-panel p-6 sm:p-8">
           <h2 className="font-display text-3xl text-slate-900">Sign in</h2>
-          <p className="mt-2 text-sm text-slate-600">
-            Enter your username, then use a verified provider to access your account.
-          </p>
           <div className="mt-6">
             <AuthButtons />
           </div>

@@ -65,8 +65,7 @@ export default function ListingsPage() {
           <p className="ios-kicker">Market inventory</p>
           <h1 className="ios-title">Listings</h1>
           <p className="ios-subtitle">
-            Browse live inventory with tighter filters and a cleaner reading
-            rhythm for mobile.
+            Filter fast. Scan cards. Join stream.
           </p>
         </div>
 

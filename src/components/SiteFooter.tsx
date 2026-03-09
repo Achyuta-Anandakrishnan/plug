@@ -11,14 +11,15 @@ export function SiteFooter() {
           <div>
             <p className="font-display text-base text-slate-900">Vyre</p>
             <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">
-              Trust-first live sales
+              Live Commerce
             </p>
           </div>
         </div>
         <div className="hidden flex-wrap gap-5 text-xs uppercase tracking-[0.24em] text-slate-400 md:flex">
-          <span>Buyer Protection</span>
-          <span>Secure Escrow</span>
-          <span>Verified Sellers</span>
+          <span>Live</span>
+          <span>Bid</span>
+          <span>Buy</span>
+          <span>Chat</span>
         </div>
         <p className="text-center text-[11px] text-slate-400 md:text-left">© 2026 Vyre Labs</p>
       </div>

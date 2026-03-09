@@ -65,33 +65,29 @@ export default function SignupPage() {
             Create account
           </p>
           <h1 className="ios-title">
-            Join the most trusted live stream sales network.
+            Join Vyre.
           </h1>
           <p className="ios-subtitle">
-            Every buyer is protected by escrow and verification logs. Sellers go
-            through manual review before they can broadcast.
+            Buy, sell, stream.
           </p>
           <div className="space-y-3 text-sm text-slate-600">
             <div className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3">
-              <span>Escrow protection</span>
-              <span className="text-xs font-semibold text-slate-800">Built-in</span>
+              <span>Escrow</span>
+              <span className="text-xs font-semibold text-slate-800">On</span>
             </div>
             <div className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3">
-              <span>Seller vetting</span>
-              <span className="text-xs font-semibold text-slate-800">Manual</span>
+              <span>Seller review</span>
+              <span className="text-xs font-semibold text-slate-800">On</span>
             </div>
             <div className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3">
-              <span>Secure messaging</span>
-              <span className="text-xs font-semibold text-slate-800">Logged</span>
+              <span>Chat</span>
+              <span className="text-xs font-semibold text-slate-800">Live</span>
             </div>
           </div>
         </div>
 
         <div className="ios-panel p-6 sm:p-8">
           <h2 className="font-display text-3xl text-slate-900">Sign up</h2>
-          <p className="mt-2 text-sm text-slate-600">
-            Pick your role and complete the trust profile.
-          </p>
           <div className="mt-6">
             <AuthButtons />
           </div>
@@ -184,7 +180,7 @@ export default function SignupPage() {
             </div>
           )}
           <div className="mt-6 rounded-2xl border border-dashed border-slate-200 bg-white/60 px-4 py-3 text-xs text-slate-500">
-            Sellers will be asked to upload ID and inventory proof after signup.
+            Seller verification follows signup.
           </div>
         </div>
       </section>
@@ -193,29 +189,29 @@ export default function SignupPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="ios-kicker">
-              Trust stack
+              Quick map
             </p>
             <h2 className="font-display text-2xl text-slate-900">
-              Verify once, unlock premium access.
+              Setup flow
             </h2>
           </div>
           <span className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white">
-            Average review 48 hours
+            Avg review 48h
           </span>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {[
             {
-              title: "Identity check",
-              detail: "Government ID and selfie match.",
+              title: "Identity",
+              detail: "ID + selfie",
             },
             {
-              title: "Inventory audit",
-              detail: "Proof of ownership and intake photos.",
+              title: "Inventory",
+              detail: "Ownership proof",
             },
             {
-              title: "Stream readiness",
-              detail: "Live onboarding and camera quality test.",
+              title: "Go live",
+              detail: "Onboarding check",
             },
           ].map((item) => (
             <div
