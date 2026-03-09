@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 
 type ListingImageStripProps = {
   images: { url: string; isPrimary: boolean }[];
@@ -16,7 +17,12 @@ function imageLabel(index: number) {
 
 export function ListingImageStrip({ images, compact = false }: ListingImageStripProps) {
   const ordered = useMemo(() => {
-    const withPrimaryFirst = [...images].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
+    const withPrimaryFirst = [...images]
+      .sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary))
+      .map((image) => ({
+        ...image,
+        url: resolveDisplayMediaUrl(image.url),
+      }));
     return withPrimaryFirst;
   }, [images]);
 

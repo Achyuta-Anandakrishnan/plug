@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
@@ -495,13 +494,17 @@ export default function NewTradePage() {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {images.map((image, index) => (
                 <div key={image.url} className="rounded-2xl border border-slate-200 bg-white p-2">
-                  <div className="relative h-24 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-                    {image.previewUrl ? (
-                      <Image src={image.previewUrl} alt={`Trade upload ${index + 1}`} fill className="object-cover" sizes="120px" unoptimized />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-slate-500">Image</div>
-                    )}
-                  </div>
+                    <div className="relative h-24 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                      {image.previewUrl ? (
+                        <img
+                          src={image.previewUrl}
+                          alt={`Trade upload ${index + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-xs text-slate-500">Image</div>
+                      )}
+                    </div>
                   <div className="mt-2 flex items-center justify-between gap-2">
                     <span className="text-[10px] uppercase tracking-[0.16em] text-slate-500">
                       {index === 0 ? "Primary" : `Image ${index + 1}`}

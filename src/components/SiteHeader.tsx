@@ -16,13 +16,15 @@ const ThemeToggle = dynamic(
 
 function Brand() {
   return (
-    <Link href="/" className="flex items-center gap-3">
-      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/90 shadow-lg shadow-black/20 sm:h-10 sm:w-10">
-        <Image src="/dalow-logo.svg" alt="dalow logo" width={28} height={28} />
-      </div>
-      <div>
-        <p className="font-display text-xl text-slate-900 sm:text-lg">dalow</p>
-      </div>
+    <Link href="/" className="flex items-center">
+      <Image
+        src="/dalow-logo.svg"
+        alt="dalow logo"
+        width={52}
+        height={52}
+        className="brand-logo h-11 w-auto sm:h-12"
+        priority
+      />
     </Link>
   );
 }

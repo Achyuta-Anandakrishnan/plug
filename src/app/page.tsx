@@ -136,7 +136,7 @@ export default async function Home() {
         </div>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
           {items.map((auction) => (
-            <AuctionCard key={auction.id} {...auction} />
+            <AuctionCard key={auction.id} {...auction} preservePlaceholderMedia />
           ))}
         </div>
       </section>

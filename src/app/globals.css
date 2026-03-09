@@ -129,6 +129,10 @@ html[data-theme="dark"] .site-nav-link:hover {
   color: #ffffff;
 }
 
+html[data-theme="dark"] .brand-logo {
+  filter: invert(1);
+}
+
 html[data-theme="dark"] .site-mobile-drawer {
   background: rgba(5, 5, 5, 0.97);
   border-right-color: rgba(255, 255, 255, 0.16);

@@ -58,7 +58,7 @@ export async function POST() {
         images: {
           create: [
             {
-              url: "/streams/stream-1.svg",
+              url: "/dalow-logo.svg",
               isPrimary: true,
               storageProvider: "DATABASE",
             },

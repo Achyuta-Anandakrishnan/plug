@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatCurrency, formatSeconds } from "@/lib/format";
+import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 
 type AuctionCardProps = {
   id: string;
@@ -16,6 +17,7 @@ type AuctionCardProps = {
   listingType?: "AUCTION" | "BUY_NOW" | "BOTH";
   buyNowPrice?: number | null;
   gradeLabel?: string;
+  preservePlaceholderMedia?: boolean;
 };
 
 export function AuctionCard({
@@ -32,31 +34,34 @@ export function AuctionCard({
   listingType = "AUCTION",
   buyNowPrice,
   gradeLabel,
+  preservePlaceholderMedia = false,
 }: AuctionCardProps) {
+  const displayImageUrl = preservePlaceholderMedia
+    ? (imageUrl ?? "/dalow-logo.svg")
+    : resolveDisplayMediaUrl(imageUrl);
+
   return (
     <Link
       href={`/streams/${id}`}
       className="group relative aspect-[0.68] w-full overflow-hidden rounded-[22px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.22)] sm:aspect-[3/4] sm:rounded-[24px]"
     >
-      {imageUrl ? (
+      <Image
+        src={displayImageUrl}
+        alt={title}
+        fill
+        sizes="(max-width: 768px) 50vw, 25vw"
+        className="object-cover transition duration-500 group-hover:scale-[1.03]"
+      />
+      {!preservePlaceholderMedia ? (
         <Image
-          src={imageUrl}
-          alt={title}
+          src="/charts/market-line.svg"
+          alt=""
+          aria-hidden="true"
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
-          className="object-cover transition duration-500 group-hover:scale-[1.03]"
+          className="object-cover opacity-25 mix-blend-screen"
         />
-      ) : (
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-        >
-          <source src="/streams/loop.mp4" type="video/mp4" />
-        </video>
-      )}
+      ) : null}
 
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(to_top,_rgba(2,6,23,0.86),_rgba(2,6,23,0.24)_55%,_rgba(2,6,23,0.06))]" />

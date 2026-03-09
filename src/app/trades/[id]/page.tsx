@@ -401,7 +401,11 @@ export default function TradeDetailPage() {
                 return (
                   <div key={image.id} className="relative h-56 overflow-hidden rounded-2xl border border-white/70 bg-white/70">
                     {canRender ? (
-                      <Image src={image.url} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+                      <img
+                        src={image.url}
+                        alt={post.title}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.2em] text-slate-400">
                         Image unavailable
@@ -412,7 +416,23 @@ export default function TradeDetailPage() {
               })}
             </div>
           ) : (
-            <div className="ios-empty mt-3">No images yet.</div>
+            <div className="relative mt-3 h-56 overflow-hidden rounded-2xl border border-white/70 bg-white/70">
+              <Image
+                src="/dalow-logo.svg"
+                alt="dalow logo"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-contain p-12"
+              />
+              <Image
+                src="/charts/market-candles.svg"
+                alt=""
+                aria-hidden="true"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover opacity-25 mix-blend-screen"
+              />
+            </div>
           )}
         </div>
 

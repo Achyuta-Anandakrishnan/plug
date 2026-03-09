@@ -10,6 +10,7 @@ import {
   LocalVideoTrack,
   LocalAudioTrack,
 } from "livekit-client";
+import { isBluePlaceholderMedia, resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 
 type LiveKitStreamProps = {
   auctionId: string;
@@ -32,6 +33,11 @@ export function LiveKitStream({
   onParticipantCount,
   onStatusChange,
 }: LiveKitStreamProps) {
+  const displayFallbackImage = resolveDisplayMediaUrl(fallbackImageUrl);
+  const displayFallbackVideo = isBluePlaceholderMedia(fallbackVideoUrl)
+    ? null
+    : fallbackVideoUrl;
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
   const [remoteVideoTrack, setRemoteVideoTrack] = useState<Track | null>(null);
@@ -245,9 +251,9 @@ export function LiveKitStream({
 
   return (
     <div className={`relative h-full w-full ${className ?? ""}`}>
-      {showFallback && fallbackVideoUrl ? (
+      {showFallback && displayFallbackVideo ? (
         <video
-          src={fallbackVideoUrl}
+          src={displayFallbackVideo}
           className="absolute inset-0 h-full w-full object-cover"
           controls
           playsInline
@@ -261,9 +267,9 @@ export function LiveKitStream({
         />
       )}
 
-      {showFallback && !fallbackVideoUrl && fallbackImageUrl && (
+      {showFallback && !displayFallbackVideo && (
         <Image
-          src={fallbackImageUrl}
+          src={displayFallbackImage}
           alt="Stream preview"
           fill
           sizes="100vw"
@@ -272,10 +278,15 @@ export function LiveKitStream({
         />
       )}
 
-      {showFallback && !fallbackVideoUrl && !fallbackImageUrl && (
-        <div className="absolute inset-0 flex items-center justify-center text-sm text-white/70">
-          Awaiting live broadcast
-        </div>
+      {showFallback && !displayFallbackVideo && (
+        <Image
+          src="/charts/market-candles.svg"
+          alt=""
+          aria-hidden="true"
+          fill
+          sizes="100vw"
+          className="object-cover opacity-30 mix-blend-screen"
+        />
       )}
 
       {isHost && (

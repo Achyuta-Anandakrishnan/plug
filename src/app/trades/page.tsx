@@ -178,11 +178,29 @@ export default function TradesPage() {
               <div className="grid gap-3 sm:grid-cols-[120px_minmax(0,1fr)]">
                 <div className="relative h-28 overflow-hidden rounded-2xl border border-white/60 bg-white/60">
                   {canRenderImage ? (
-                    <Image src={image} alt={post.title} fill className="object-cover" sizes="120px" />
+                    <img
+                      src={image}
+                      alt={post.title}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.2em] text-slate-400">
-                      No image
-                    </div>
+                    <>
+                      <Image
+                        src="/dalow-logo.svg"
+                        alt="dalow logo"
+                        fill
+                        sizes="120px"
+                        className="object-contain p-5"
+                      />
+                      <Image
+                        src="/charts/market-line.svg"
+                        alt=""
+                        aria-hidden="true"
+                        fill
+                        sizes="120px"
+                        className="object-cover opacity-25 mix-blend-screen"
+                      />
+                    </>
                   )}
                 </div>
 
