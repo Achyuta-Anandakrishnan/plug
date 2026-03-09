@@ -26,7 +26,7 @@ async function fetchText(url: string) {
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
-        "user-agent": "Mozilla/5.0 (compatible; VyreLookup/1.0)",
+        "user-agent": "Mozilla/5.0 (compatible; DalowLookup/1.0)",
       },
       cache: "no-store",
     });

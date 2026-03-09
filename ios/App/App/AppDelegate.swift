@@ -660,7 +660,7 @@ struct NativeAuthView: View {
     var body: some View {
         VStack(spacing: 14) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Vyre")
+                Text("dalow")
                     .font(.system(size: 34, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
                 Text("Native iOS")
@@ -787,7 +787,7 @@ struct NativeHomeView: View {
             }
             .padding(14)
         }
-        .navigationTitle("Vyre")
+        .navigationTitle("dalow")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {

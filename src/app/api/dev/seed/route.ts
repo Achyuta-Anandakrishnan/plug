@@ -7,10 +7,10 @@ export async function POST() {
   }
 
   const sellerUser = await prisma.user.upsert({
-    where: { email: "dev-seller@vyre.local" },
+    where: { email: "dev-seller@dalow.local" },
     update: {},
     create: {
-      email: "dev-seller@vyre.local",
+      email: "dev-seller@dalow.local",
       displayName: "Dev Seller",
       role: "SELLER",
       sellerProfile: {
@@ -24,10 +24,10 @@ export async function POST() {
   });
 
   const buyerUser = await prisma.user.upsert({
-    where: { email: "dev-buyer@vyre.local" },
+    where: { email: "dev-buyer@dalow.local" },
     update: {},
     create: {
-      email: "dev-buyer@vyre.local",
+      email: "dev-buyer@dalow.local",
       displayName: "Dev Buyer",
       role: "BUYER",
     },

@@ -20,11 +20,11 @@ function resolveAllowNavigation(serverUrl: string) {
 const serverUrl = resolveServerUrl();
 
 const config: CapacitorConfig = {
-  appId: process.env.CAPACITOR_APP_ID ?? "com.vyre.app",
-  appName: process.env.CAPACITOR_APP_NAME ?? "Vyre",
+  appId: process.env.CAPACITOR_APP_ID ?? "com.dalow.app",
+  appName: process.env.CAPACITOR_APP_NAME ?? "dalow",
   webDir: "mobile-shell",
   backgroundColor: "#f6f9ff",
-  appendUserAgent: " VyreIOSApp/1.0",
+  appendUserAgent: " DalowIOSApp/1.0",
   server: {
     url: serverUrl,
     cleartext: serverUrl.startsWith("http://"),

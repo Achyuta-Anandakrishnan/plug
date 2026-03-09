@@ -72,7 +72,7 @@ export default function SignupPage() {
             Create account
           </p>
           <h1 className="ios-title">
-            Join Vyre.
+            Join dalow.
           </h1>
           <p className="ios-subtitle">
             Buy, sell, stream.

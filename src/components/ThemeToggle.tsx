@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "vyre-theme";
+const STORAGE_KEY = "dalow-theme";
 
 type ThemeMode = "light" | "dark";
 

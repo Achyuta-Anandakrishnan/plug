@@ -1,0 +1,8 @@
+<svg width="640" height="320" viewBox="0 0 640 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="320" fill="transparent"/>
+  <text x="170" y="132" fill="#000000" font-family="Arial Rounded MT Bold, Comic Sans MS, sans-serif" font-size="108" font-weight="700">da</text>
+  <text x="176" y="230" fill="#000000" font-family="Arial Rounded MT Bold, Comic Sans MS, sans-serif" font-size="108" font-weight="700">low</text>
+  <path d="M422 52C503 52 566 109 566 184C566 256 504 302 386 304" stroke="#000000" stroke-width="24" stroke-linecap="round"/>
+  <path d="M100 250C188 286 309 292 396 257" stroke="#000000" stroke-width="14" stroke-linecap="round"/>
+  <path d="M133 262C226 287 324 287 403 260" stroke="#000000" stroke-width="7" stroke-linecap="round"/>
+</svg>

@@ -8,13 +8,13 @@ import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Vyre | Verified Live Streams",
+  title: "dalow | Verified Live Streams",
   description:
     "A sleek, secure live stream marketplace with verified sellers and buyer protections.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Vyre",
+    title: "dalow",
   },
   formatDetection: {
     telephone: false,

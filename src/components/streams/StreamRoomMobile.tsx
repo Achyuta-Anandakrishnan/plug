@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { useAuction } from "@/hooks/useAuction";
@@ -30,6 +30,7 @@ export function StreamRoomMobile({
   const [actionStatus, setActionStatus] = useState("");
   const [participantCount, setParticipantCount] = useState<number | null>(null);
   const [streamStatus, setStreamStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
+  const [chatOpen, setChatOpen] = useState(false);
 
   const timeLeft = useMemo(() => (data ? getTimeLeftSeconds(data) : 0), [data]);
 
@@ -39,6 +40,13 @@ export function StreamRoomMobile({
   const isListingSeller =
     Boolean(sessionUserId && data?.seller?.user?.id) && data?.seller?.user?.id === sessionUserId;
   const canUseStripe = Boolean(stripeEnabled);
+
+  useEffect(() => {
+    document.body.style.overflow = chatOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [chatOpen]);
 
   const handleMessageSeller = async () => {
     if (!data) return;
@@ -235,41 +243,65 @@ export function StreamRoomMobile({
           >
             Message seller
           </button>
+          <button
+            onClick={() => setChatOpen(true)}
+            className="rounded-full border border-slate-200 bg-white/90 px-4 py-3.5 text-base font-semibold text-slate-700"
+          >
+            Open chat
+          </button>
         </div>
         {actionStatus && <p className="text-xs text-slate-600">{actionStatus}</p>}
       </section>
 
-      <section className="ios-panel p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display text-2xl text-slate-900">Chat</h3>
-          <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Scroll</span>
-        </div>
-        <div className="max-h-48 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
-          {data.chatMessages.length === 0 && (
-            <div className="ios-empty">No chat yet. Be first to comment.</div>
-          )}
-          {data.chatMessages.map((entry) => (
-            <div key={entry.id} className="rounded-2xl bg-slate-100 px-3 py-2">
-              <span className="block text-xs font-semibold text-slate-500">{entry.sender.displayName ?? "Guest"}</span>
-              {entry.body}
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 flex items-center gap-2">
-          <input
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-            placeholder="Message the room"
-            className="ios-input flex-1 text-sm"
-          />
+      {chatOpen && (
+        <div className="fixed inset-0 z-[1200] md:hidden">
           <button
-            onClick={handleSend}
-            className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
-          >
-            Send
-          </button>
+            type="button"
+            className="absolute inset-0 bg-black/55"
+            onClick={() => setChatOpen(false)}
+            aria-label="Close chat"
+          />
+          <section className="absolute inset-x-0 bottom-0 top-[16vh] flex flex-col rounded-t-[28px] border border-white/60 bg-white/95 p-4 backdrop-blur-xl">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-display text-2xl text-slate-900">Chat</h3>
+              <button
+                type="button"
+                onClick={() => setChatOpen(false)}
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="flex-1 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+              {data.chatMessages.length === 0 && (
+                <div className="ios-empty">No chat yet. Be first to comment.</div>
+              )}
+              {data.chatMessages.map((entry) => (
+                <div key={entry.id} className="rounded-2xl bg-slate-100 px-3 py-2">
+                  <span className="block text-xs font-semibold text-slate-500">{entry.sender.displayName ?? "Guest"}</span>
+                  {entry.body}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-3 flex items-center gap-2">
+              <input
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                placeholder="Message the room"
+                className="ios-input flex-1 text-sm"
+              />
+              <button
+                onClick={handleSend}
+                className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+              >
+                Send
+              </button>
+            </div>
+          </section>
         </div>
-      </section>
+      )}
 
       <section className="ios-panel p-4">
         <div className="mb-3 flex items-center justify-between">
