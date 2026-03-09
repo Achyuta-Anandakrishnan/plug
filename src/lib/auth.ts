@@ -1,6 +1,7 @@
 import "server-only";
 import type { NextAuthOptions } from "next-auth";
 import { getServerSession } from "next-auth/next";
+import { headers } from "next/headers";
 import GoogleProvider from "next-auth/providers/google";
 import AppleProvider from "next-auth/providers/apple";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -8,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { getConfiguredAdminEmails, isConfiguredAdminEmail } from "@/lib/admin-email";
 import { ensureProfileSchema } from "@/lib/profile-schema";
 import { generateUniqueUsername } from "@/lib/username";
+import { verifyNativeAuthToken } from "@/lib/native-auth";
 
 const providers = [];
 const adminEmails = getConfiguredAdminEmails();
@@ -130,7 +132,49 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
+async function getNativeBearerSessionUser() {
+  try {
+    const headerStore = await headers();
+    const authHeader = headerStore.get("authorization") ?? "";
+    if (!authHeader.toLowerCase().startsWith("bearer ")) {
+      return null;
+    }
+
+    const token = authHeader.slice(7).trim();
+    const payload = verifyNativeAuthToken(token);
+    if (!payload?.sub) {
+      return null;
+    }
+
+    await ensureProfileSchema().catch(() => null);
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        role: true,
+        email: true,
+        username: true,
+      },
+    });
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      role: user.role ?? null,
+      email: user.email ?? null,
+      username: user.username ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function getSessionUser() {
+  const nativeUser = await getNativeBearerSessionUser();
+  if (nativeUser) {
+    return nativeUser;
+  }
+
   const session = await getServerSession(authOptions);
   const user = session?.user as { id?: string; role?: string; username?: string } | undefined;
   if (!user?.id) return null;
