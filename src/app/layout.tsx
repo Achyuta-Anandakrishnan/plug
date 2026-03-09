@@ -44,7 +44,7 @@ export default function RootLayout({
             <AnimeBackdrop />
             <div className="relative z-10 flex min-h-screen flex-col">
               <SiteHeader />
-              <main className="page-container mobile-safe-main flex-1 pt-12 sm:pt-24 lg:pt-28">
+              <main className="page-container mobile-safe-main flex-1">
                 {children}
               </main>
               <SiteFooter />

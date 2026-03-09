@@ -78,6 +78,7 @@ export function SiteHeader() {
     return [
       { label: "Streams", href: "/streams" },
       { label: "Listings", href: "/listings" },
+      { label: "Trades", href: "/trades" },
       { label: "Search", href: "/explore" },
       { label: "Forum", href: "/forum" },
       { label: "Messages", href: "/messages" },
@@ -102,7 +103,7 @@ export function SiteHeader() {
             aria-label="Close menu"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="fixed left-0 top-0 z-[1000] flex h-full w-[min(86vw,360px)] flex-col overflow-y-auto border-r border-white/70 bg-white/90 px-5 pb-6 pt-[calc(1.25rem+var(--safe-top))] shadow-[24px_0_60px_rgba(15,23,42,0.24)] backdrop-blur-xl">
+          <div className="site-mobile-drawer fixed left-0 top-0 z-[1000] flex h-full w-[min(86vw,360px)] flex-col overflow-y-auto border-r border-white/70 bg-white/90 px-5 pb-6 pt-[calc(1.25rem+var(--safe-top))] shadow-[24px_0_60px_rgba(15,23,42,0.24)] backdrop-blur-xl">
             <div className="mb-5 flex items-center justify-between gap-3">
               <p className="font-display text-2xl text-slate-900">Menu</p>
               <button
@@ -159,13 +160,13 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/40 bg-white/80 backdrop-blur-xl">
+      <header className="site-header sticky top-0 z-50 border-b border-white/40 bg-white/80 backdrop-blur-xl">
         <div className="page-container flex items-center justify-between py-3 sm:py-4">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileOpen((prev) => !prev)}
-              className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 md:hidden"
+              className="site-menu-trigger inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 md:hidden"
               aria-expanded={mobileOpen}
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
             >
@@ -176,7 +177,7 @@ export function SiteHeader() {
 
           <nav className="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex lg:gap-6">
             {navItems.map((item) => (
-              <Link key={item.href + item.label} href={item.href} className="transition hover:text-slate-900">
+              <Link key={item.href + item.label} href={item.href} className="site-nav-link transition hover:text-slate-900">
                 {item.label}
               </Link>
             ))}

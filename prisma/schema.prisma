@@ -72,6 +72,22 @@ enum ReferralStatus {
   EXPIRED
 }
 
+enum TradePostStatus {
+  OPEN
+  PAUSED
+  MATCHED
+  CLOSED
+  ARCHIVED
+}
+
+enum TradeOfferStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+  COUNTERED
+}
+
 enum DisputeStatus {
   OPEN
   UNDER_REVIEW
@@ -177,6 +193,8 @@ model User {
   forumPosts     ForumPost[]
   forumComments  ForumComment[]
   forumPostVotes ForumPostVote[]
+  tradePosts     TradePost[]           @relation("TradePostOwner")
+  tradeOffers    TradeOffer[]          @relation("TradeOfferProposer")
 }
 
 model Account {
@@ -417,6 +435,88 @@ model Referral {
   approvedAt      DateTime?
 
   referrer        User           @relation("ReferralReferrer", fields: [referrerId], references: [id])
+}
+
+model TradePost {
+  id               String          @id @default(cuid())
+  ownerId          String
+  title            String
+  description      String?
+  category         String?
+  cardSet          String?
+  cardNumber       String?
+  condition        String?
+  gradeCompany     String?
+  gradeLabel       String?
+  lookingFor       String
+  preferredBrands  String?
+  location         String?
+  shippingMode     String?
+  tags             Json?
+  valueMin         Int?
+  valueMax         Int?
+  status           TradePostStatus @default(OPEN)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  owner            User            @relation("TradePostOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  images           TradePostImage[]
+  offers           TradeOffer[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model TradePostImage {
+  id               String    @id @default(cuid())
+  postId           String
+  url              String
+  isPrimary        Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+
+  post             TradePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model TradeOffer {
+  id               String            @id @default(cuid())
+  postId           String
+  proposerId       String
+  message          String?
+  cashAdjustment   Int               @default(0)
+  status           TradeOfferStatus  @default(PENDING)
+  expiresAt        DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  post             TradePost         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  proposer         User              @relation("TradeOfferProposer", fields: [proposerId], references: [id], onDelete: Cascade)
+  cards            TradeOfferCard[]
+
+  @@index([postId])
+  @@index([proposerId])
+  @@index([status])
+}
+
+model TradeOfferCard {
+  id               String      @id @default(cuid())
+  offerId          String
+  title            String
+  cardSet          String?
+  cardNumber       String?
+  condition        String?
+  gradeCompany     String?
+  gradeLabel       String?
+  estimatedValue   Int?
+  imageUrl         String?
+  notes            String?
+  createdAt        DateTime    @default(now())
+
+  offer            TradeOffer  @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@index([offerId])
 }
 
 model Dispute {

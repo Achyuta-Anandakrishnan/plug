@@ -1,0 +1,172 @@
+import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
+import { jsonError, jsonOk, parseJson } from "@/lib/api";
+import { parseIntOrNull } from "@/lib/trades";
+
+type RouteContext = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+type CreateOfferCardBody = {
+  title?: string;
+  cardSet?: string;
+  cardNumber?: string;
+  condition?: string;
+  gradeCompany?: string;
+  gradeLabel?: string;
+  estimatedValue?: number | string | null;
+  imageUrl?: string;
+  notes?: string;
+};
+
+type CreateOfferBody = {
+  message?: string;
+  cashAdjustment?: number | string | null;
+  expiresAt?: string | null;
+  cards?: CreateOfferCardBody[];
+};
+
+const offerInclude = {
+  proposer: {
+    select: {
+      id: true,
+      username: true,
+      displayName: true,
+      image: true,
+    },
+  },
+  cards: {
+    orderBy: { createdAt: "asc" },
+  },
+} as const;
+
+export async function GET(_request: Request, { params }: RouteContext) {
+  const { id } = await params;
+  const sessionUser = await getSessionUser();
+  if (!sessionUser?.id) {
+    return jsonError("Authentication required.", 401);
+  }
+
+  const post = await prisma.tradePost.findUnique({
+    where: { id },
+    select: { id: true, ownerId: true },
+  });
+
+  if (!post) {
+    return jsonError("Trade post not found.", 404);
+  }
+
+  const offers = await prisma.tradeOffer.findMany({
+    where: post.ownerId === sessionUser.id
+      ? { postId: id }
+      : { postId: id, proposerId: sessionUser.id },
+    include: offerInclude,
+    orderBy: { createdAt: "desc" },
+  });
+
+  return jsonOk(offers);
+}
+
+export async function POST(request: Request, { params }: RouteContext) {
+  const { id } = await params;
+  const sessionUser = await getSessionUser();
+  if (!sessionUser?.id) {
+    return jsonError("Authentication required.", 401);
+  }
+
+  const post = await prisma.tradePost.findUnique({
+    where: { id },
+    select: { id: true, ownerId: true, status: true },
+  });
+
+  if (!post) {
+    return jsonError("Trade post not found.", 404);
+  }
+
+  if (post.ownerId === sessionUser.id) {
+    return jsonError("You cannot submit an offer on your own trade.");
+  }
+
+  if (post.status !== "OPEN") {
+    return jsonError("This trade is not open for offers right now.");
+  }
+
+  const existingActive = await prisma.tradeOffer.findFirst({
+    where: {
+      postId: id,
+      proposerId: sessionUser.id,
+      status: { in: ["PENDING", "COUNTERED"] },
+    },
+    select: { id: true },
+  });
+
+  if (existingActive) {
+    return jsonError("You already have an active offer on this trade.", 409);
+  }
+
+  const body = await parseJson<CreateOfferBody>(request);
+  if (!body) {
+    return jsonError("Invalid request body.");
+  }
+
+  const cards = Array.isArray(body.cards)
+    ? body.cards
+      .map((card) => ({
+        title: typeof card?.title === "string" ? card.title.trim() : "",
+        cardSet: typeof card?.cardSet === "string" ? card.cardSet.trim() : "",
+        cardNumber: typeof card?.cardNumber === "string" ? card.cardNumber.trim() : "",
+        condition: typeof card?.condition === "string" ? card.condition.trim() : "",
+        gradeCompany: typeof card?.gradeCompany === "string" ? card.gradeCompany.trim() : "",
+        gradeLabel: typeof card?.gradeLabel === "string" ? card.gradeLabel.trim() : "",
+        estimatedValue: parseIntOrNull(card?.estimatedValue),
+        imageUrl: typeof card?.imageUrl === "string" ? card.imageUrl.trim() : "",
+        notes: typeof card?.notes === "string" ? card.notes.trim() : "",
+      }))
+      .filter((card) => card.title.length > 0)
+      .slice(0, 16)
+    : [];
+
+  const message = body.message?.trim() || "";
+  if (!message && cards.length === 0) {
+    return jsonError("Add a message or at least one offered card.");
+  }
+
+  let expiresAt: Date | null = null;
+  if (typeof body.expiresAt === "string" && body.expiresAt.trim()) {
+    const parsed = new Date(body.expiresAt);
+    if (Number.isNaN(parsed.getTime())) {
+      return jsonError("Invalid expiration date.");
+    }
+    expiresAt = parsed;
+  }
+
+  const created = await prisma.tradeOffer.create({
+    data: {
+      postId: id,
+      proposerId: sessionUser.id,
+      message: message || null,
+      cashAdjustment: parseIntOrNull(body.cashAdjustment) ?? 0,
+      expiresAt,
+      cards: cards.length > 0
+        ? {
+            create: cards.map((card) => ({
+              title: card.title,
+              cardSet: card.cardSet || null,
+              cardNumber: card.cardNumber || null,
+              condition: card.condition || null,
+              gradeCompany: card.gradeCompany || null,
+              gradeLabel: card.gradeLabel || null,
+              estimatedValue: card.estimatedValue,
+              imageUrl: card.imageUrl || null,
+              notes: card.notes || null,
+            })),
+          }
+        : undefined,
+    },
+    include: offerInclude,
+  });
+
+  return jsonOk(created, { status: 201 });
+}
