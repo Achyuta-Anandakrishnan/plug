@@ -15,8 +15,173 @@ type LookupResult = {
   note: string;
 };
 
+type PsaCertApiResponse = {
+  PSACert?: {
+    CertNumber?: string;
+    LabelType?: string | null;
+    Year?: string | number | null;
+    Brand?: string | null;
+    Category?: string | null;
+    CardNumber?: string | null;
+    Subject?: string | null;
+    Variety?: string | null;
+    GradeDescription?: string | null;
+    CardGrade?: string | null;
+  } | null;
+};
+
+const PSA_SUCCESS_TTL_MS = 12 * 60 * 60 * 1000;
+const PSA_FAILURE_TTL_MS = 3 * 60 * 1000;
+const psaLookupCache = new Map<string, { expiresAt: number; result: LookupResult }>();
+
 function sanitize(text: string) {
   return text.replace(/\s+/g, " ").trim();
+}
+
+function asText(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function getPsaApiToken() {
+  return (
+    process.env.PSA_PUBLIC_API_KEY?.trim()
+    || process.env.PSA_API_KEY?.trim()
+    || process.env.PSA_PUBLIC_API_TOKEN?.trim()
+    || process.env.PSA_ACCESS_TOKEN?.trim()
+    || ""
+  );
+}
+
+function readPsaCache(cert: string) {
+  const entry = psaLookupCache.get(cert);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    psaLookupCache.delete(cert);
+    return null;
+  }
+  return entry.result;
+}
+
+function writePsaCache(cert: string, result: LookupResult) {
+  const ttl = result.found ? PSA_SUCCESS_TTL_MS : PSA_FAILURE_TTL_MS;
+  psaLookupCache.set(cert, {
+    expiresAt: Date.now() + ttl,
+    result,
+  });
+}
+
+function normalizePsaLabel(labelType: string | null) {
+  if (!labelType) return null;
+  const normalized = labelType.trim();
+  if (!normalized) return null;
+  if (normalized.toLowerCase() === "lighthouselabel") {
+    return "w/ Fugitive Ink Technology";
+  }
+  return normalized;
+}
+
+async function lookupPsaViaOfficialApi(cert: string): Promise<LookupResult | null> {
+  const token = getPsaApiToken();
+  if (!token) return null;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch(
+      `https://api.psacard.com/publicapi/cert/GetByCertNumber/${encodeURIComponent(cert)}`,
+      {
+        signal: controller.signal,
+        headers: {
+          accept: "application/json",
+          authorization: `bearer ${token}`,
+          "user-agent": "DalowCertLookup/1.0",
+        },
+        cache: "no-store",
+      },
+    );
+
+    if (response.status === 404) {
+      return {
+        found: false,
+        note: "No PSA certificate match found.",
+      };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        found: false,
+        note: "PSA API token is invalid or expired.",
+      };
+    }
+
+    if (response.status === 429) {
+      return {
+        found: false,
+        note: "PSA API daily quota reached. Lookup will use fallback sources.",
+      };
+    }
+
+    if (!response.ok) {
+      return {
+        found: false,
+        note: "PSA API lookup unavailable right now.",
+      };
+    }
+
+    const payload = (await response.json()) as PsaCertApiResponse;
+    const certData = payload.PSACert;
+    if (!certData) {
+      return {
+        found: false,
+        note: "No PSA certificate match found.",
+      };
+    }
+
+    const year = certData.Year !== undefined && certData.Year !== null
+      ? String(certData.Year)
+      : null;
+    const brand = asText(certData.Brand);
+    const subject = asText(certData.Subject);
+    const cardNumber = asText(certData.CardNumber);
+    const category = asText(certData.Category);
+    const variety = asText(certData.Variety);
+    const grade = asText(certData.CardGrade) ?? asText(certData.GradeDescription);
+    const label = normalizePsaLabel(asText(certData.LabelType));
+    const title = [year, brand, cardNumber ? `#${cardNumber}` : null, subject, variety]
+      .filter(Boolean)
+      .join(" ");
+
+    if (!grade) {
+      return {
+        found: false,
+        note: "No PSA certificate match found.",
+      };
+    }
+
+    return {
+      found: true,
+      grade,
+      label,
+      title: title || null,
+      year,
+      brand,
+      subject,
+      cardNumber,
+      category,
+      variety,
+      note: "PSA certificate matched via official API.",
+    };
+  } catch {
+    return {
+      found: false,
+      note: "PSA API lookup unavailable right now.",
+    };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function extractFirstMatch(text: string, patterns: RegExp[]) {
@@ -129,15 +294,26 @@ async function fetchText(url: string): Promise<FetchOutcome> {
 }
 
 async function lookupPsa(cert: string): Promise<LookupResult> {
+  const cached = readPsaCache(cert);
+  if (cached) return cached;
+
+  const viaApi = await lookupPsaViaOfficialApi(cert);
+  if (viaApi?.found) {
+    writePsaCache(cert, viaApi);
+    return viaApi;
+  }
+
   const { html, blocked } = await fetchText(`https://www.psacard.com/cert/${encodeURIComponent(cert)}`);
   if (!html) {
-    return {
+    const result = {
       found: false,
       blocked,
       note: blocked
-        ? "PSA blocked automated lookup. Add SCRAPINGBEE_API_KEY or official PSA API access."
-        : "PSA lookup unavailable right now.",
+        ? viaApi?.note ?? "PSA blocked automated lookup. Add SCRAPINGBEE_API_KEY or official PSA API access."
+        : viaApi?.note ?? "PSA lookup unavailable right now.",
     };
+    writePsaCache(cert, result);
+    return result;
   }
 
   const fields = extractDefinitionRows(html);
@@ -157,10 +333,12 @@ async function lookupPsa(cert: string): Promise<LookupResult> {
     .join(" ");
 
   if (!grade) {
-    return { found: false, note: "No PSA certificate match found." };
+    const result = { found: false, note: viaApi?.note ?? "No PSA certificate match found." };
+    writePsaCache(cert, result);
+    return result;
   }
 
-  return {
+  const result = {
     found: true,
     grade,
     label,
@@ -171,8 +349,10 @@ async function lookupPsa(cert: string): Promise<LookupResult> {
     cardNumber,
     category,
     variety,
-    note: "PSA certificate matched.",
+    note: viaApi?.note?.includes("quota") ? "PSA certificate matched via fallback." : "PSA certificate matched.",
   };
+  writePsaCache(cert, result);
+  return result;
 }
 
 async function lookupCgc(cert: string): Promise<LookupResult> {

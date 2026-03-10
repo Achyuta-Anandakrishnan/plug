@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn, useSession } from "next-auth/react";
@@ -63,6 +63,7 @@ export function SellerListingDesktop() {
   const [certNumber, setCertNumber] = useState("");
   const [lookupMessage, setLookupMessage] = useState("");
   const [lookupLoading, setLookupLoading] = useState(false);
+  const lastLookupKeyRef = useRef("");
   const [images, setImages] = useState<
     Array<{
       url: string;
@@ -204,9 +205,16 @@ export function SellerListingDesktop() {
     if (isGraded !== "YES" || certNumber.trim().length < 4) {
       setLookupLoading(false);
       setLookupMessage("");
+      lastLookupKeyRef.current = "";
       return;
     }
 
+    const lookupKey = `${gradingCompany}:${certNumber.trim()}`;
+    if (lastLookupKeyRef.current === lookupKey) {
+      return;
+    }
+
+    lastLookupKeyRef.current = lookupKey;
     let cancelled = false;
     const timer = window.setTimeout(async () => {
       setLookupLoading(true);
