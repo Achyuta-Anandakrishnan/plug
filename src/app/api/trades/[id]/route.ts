@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { isTradePostStatus, normalizeTags, parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
+import { ensureTradeSchema } from "@/lib/trade-schema";
 
 type RouteContext = {
   params: Promise<{
@@ -82,6 +83,7 @@ const postInclude = {
 } satisfies Prisma.TradePostInclude;
 
 export async function GET(_request: Request, { params }: RouteContext) {
+  await ensureTradeSchema().catch(() => null);
   const { id } = await params;
   const sessionUser = await getSessionUser();
   const post = await prisma.tradePost.findUnique({
@@ -112,6 +114,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
 }
 
 export async function PATCH(request: Request, { params }: RouteContext) {
+  await ensureTradeSchema().catch(() => null);
   const { id } = await params;
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) {
@@ -226,6 +229,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 }
 
 export async function DELETE(_request: Request, { params }: RouteContext) {
+  await ensureTradeSchema().catch(() => null);
   const { id } = await params;
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) {

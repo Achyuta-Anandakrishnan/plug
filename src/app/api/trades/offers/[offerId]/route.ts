@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { isTradeOfferStatus, parseIntOrNull } from "@/lib/trades";
+import { ensureTradeSchema } from "@/lib/trade-schema";
 
 type RouteContext = {
   params: Promise<{
@@ -48,6 +49,7 @@ const offerInclude = {
 } as const;
 
 export async function PATCH(request: Request, { params }: RouteContext) {
+  await ensureTradeSchema().catch(() => null);
   const { offerId } = await params;
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) {

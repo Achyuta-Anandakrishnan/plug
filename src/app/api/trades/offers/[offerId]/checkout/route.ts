@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk } from "@/lib/api";
 import { getStripeClient, stripeEnabled } from "@/lib/stripe";
+import { ensureTradeSchema } from "@/lib/trade-schema";
 
 type RouteContext = {
   params: Promise<{
@@ -10,6 +11,7 @@ type RouteContext = {
 };
 
 export async function POST(_request: Request, { params }: RouteContext) {
+  await ensureTradeSchema().catch(() => null);
   const { offerId } = await params;
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) {

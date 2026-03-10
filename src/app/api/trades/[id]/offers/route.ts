@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
+import { ensureTradeSchema } from "@/lib/trade-schema";
 
 type RouteContext = {
   params: Promise<{
@@ -61,6 +62,7 @@ const offerInclude = {
 } as const;
 
 export async function GET(_request: Request, { params }: RouteContext) {
+  await ensureTradeSchema().catch(() => null);
   const { id } = await params;
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) {
@@ -88,6 +90,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
 }
 
 export async function POST(request: Request, { params }: RouteContext) {
+  await ensureTradeSchema().catch(() => null);
   const { id } = await params;
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) {
