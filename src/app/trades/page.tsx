@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
+import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import {
   formatTradeDate,
   isValidImageUrl,
@@ -55,7 +56,7 @@ export default function TradesPage() {
         if (query.trim()) params.set("q", query.trim());
         if (scope === "MINE") params.set("mine", "1");
         else if (scope !== "ALL") params.set("status", scope);
-        const response = await fetch(`/api/trades?${params.toString()}`, { cache: "no-store" });
+        const response = await fetchClientApi(`/api/trades?${params.toString()}`, { cache: "no-store" });
         const payload = (await response.json()) as TradePostListItem[] & { error?: string };
         if (!response.ok) {
           throw new Error(payload.error || "Unable to load trades.");
@@ -66,7 +67,7 @@ export default function TradesPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Unable to load trades.");
+          setError(normalizeClientError(err, "Unable to load trades."));
           setLoading(false);
         }
       }

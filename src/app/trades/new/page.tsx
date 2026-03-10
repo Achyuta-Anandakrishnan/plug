@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { useCategories } from "@/hooks/useCategories";
+import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import { formatCurrency } from "@/lib/format";
 
 type TradeFormState = {
@@ -75,7 +76,7 @@ async function uploadFiles(files: File[]) {
   for (const file of files) {
     const formData = new FormData();
     formData.append("file", file);
-    const response = await fetch("/api/trades/uploads", {
+    const response = await fetchClientApi("/api/trades/uploads", {
       method: "POST",
       body: formData,
     });
@@ -143,7 +144,7 @@ export default function NewTradePage() {
       setStatus("Upload complete.");
       event.target.value = "";
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
+      setError(normalizeClientError(err, "Upload failed."));
     } finally {
       setUploading(false);
     }
@@ -174,7 +175,7 @@ export default function NewTradePage() {
     setStatus("");
 
     try {
-      const response = await fetch("/api/trades", {
+      const response = await fetchClientApi("/api/trades", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -205,7 +206,7 @@ export default function NewTradePage() {
       setStatus("Trade posted.");
       router.push(`/trades/${encodeURIComponent(payload.id)}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to create trade post.");
+      setError(normalizeClientError(err, "Unable to create trade post."));
     } finally {
       setSubmitting(false);
     }

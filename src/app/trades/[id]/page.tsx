@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
+import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import { formatCurrency } from "@/lib/format";
 import {
   formatTradeDateTime,
@@ -88,7 +89,7 @@ export default function TradeDetailPage() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`/api/trades/${encodedPostId}`, { cache: "no-store" });
+      const response = await fetchClientApi(`/api/trades/${encodedPostId}`, { cache: "no-store" });
       const payload = (await response.json()) as TradePostDetail & { error?: string };
       if (!response.ok) {
         throw new Error(payload.error || "Unable to load trade.");
@@ -96,7 +97,7 @@ export default function TradeDetailPage() {
       setPost(payload);
       setLoading(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load trade.");
+      setError(normalizeClientError(err, "Unable to load trade."));
       setLoading(false);
     }
   };
@@ -112,7 +113,7 @@ export default function TradeDetailPage() {
     setUpdatingStatus(true);
     setError("");
     try {
-      const response = await fetch(`/api/trades/${encodedPostId}`, {
+      const response = await fetchClientApi(`/api/trades/${encodedPostId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
@@ -121,7 +122,7 @@ export default function TradeDetailPage() {
       if (!response.ok) throw new Error(payload.error || "Unable to update status.");
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update status.");
+      setError(normalizeClientError(err, "Unable to update status."));
     } finally {
       setUpdatingStatus(false);
     }
@@ -135,7 +136,7 @@ export default function TradeDetailPage() {
     setActingOfferId(offerId);
     setError("");
     try {
-      const response = await fetch(`/api/trades/offers/${offerId}`, {
+      const response = await fetchClientApi(`/api/trades/offers/${offerId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, ...extra }),
@@ -146,7 +147,7 @@ export default function TradeDetailPage() {
       }
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update offer.");
+      setError(normalizeClientError(err, "Unable to update offer."));
     } finally {
       setActingOfferId(null);
     }
@@ -156,20 +157,23 @@ export default function TradeDetailPage() {
     setStartingCheckoutOfferId(offerId);
     setError("");
     try {
-      const response = await fetch(`/api/trades/offers/${offerId}/checkout`, {
+      const response = await fetchClientApi(`/api/trades/offers/${offerId}/checkout`, {
         method: "POST",
       });
       const payload = (await response.json()) as { checkoutUrl?: string | null; error?: string; paid?: boolean };
       if (!response.ok) {
         throw new Error(payload.error || "Unable to start settlement checkout.");
       }
-      if (payload.checkoutUrl) {
+      if (payload.checkoutUrl && /^https?:\/\/[^\s]+$/i.test(payload.checkoutUrl)) {
         window.location.assign(payload.checkoutUrl);
         return;
       }
+      if (payload.checkoutUrl) {
+        throw new Error("Checkout link is invalid.");
+      }
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to start settlement checkout.");
+      setError(normalizeClientError(err, "Unable to start settlement checkout."));
     } finally {
       setStartingCheckoutOfferId(null);
     }
@@ -199,7 +203,7 @@ export default function TradeDetailPage() {
     setSubmittingOffer(true);
     setError("");
     try {
-      const response = await fetch(`/api/trades/${encodedPostId}/offers`, {
+      const response = await fetchClientApi(`/api/trades/${encodedPostId}/offers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -215,7 +219,7 @@ export default function TradeDetailPage() {
       setOfferCards([{ ...emptyOfferCard }]);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to submit offer.");
+      setError(normalizeClientError(err, "Unable to submit offer."));
     } finally {
       setSubmittingOffer(false);
     }
