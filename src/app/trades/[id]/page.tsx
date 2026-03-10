@@ -84,10 +84,11 @@ export default function TradeDetailPage() {
 
   const refresh = async () => {
     if (!postId) return;
+    const encodedPostId = encodeURIComponent(postId);
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`/api/trades/${postId}`, { cache: "no-store" });
+      const response = await fetch(`/api/trades/${encodedPostId}`, { cache: "no-store" });
       const payload = (await response.json()) as TradePostDetail & { error?: string };
       if (!response.ok) {
         throw new Error(payload.error || "Unable to load trade.");
@@ -107,10 +108,11 @@ export default function TradeDetailPage() {
 
   const updatePostStatus = async (status: TradePostDetail["status"]) => {
     if (!postId) return;
+    const encodedPostId = encodeURIComponent(postId);
     setUpdatingStatus(true);
     setError("");
     try {
-      const response = await fetch(`/api/trades/${postId}`, {
+      const response = await fetch(`/api/trades/${encodedPostId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
@@ -175,6 +177,7 @@ export default function TradeDetailPage() {
 
   const submitOffer = async () => {
     if (!postId) return;
+    const encodedPostId = encodeURIComponent(postId);
     const cards = offerCards
       .map((entry) => ({
         title: entry.title.trim(),
@@ -196,7 +199,7 @@ export default function TradeDetailPage() {
     setSubmittingOffer(true);
     setError("");
     try {
-      const response = await fetch(`/api/trades/${postId}/offers`, {
+      const response = await fetch(`/api/trades/${encodedPostId}/offers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

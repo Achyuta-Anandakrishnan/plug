@@ -27,16 +27,12 @@ export default async function StreamRoom({
     <div className="ios-screen">
       <section className="ios-hero flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="ios-kicker">Live room</p>
           <Link href="/streams" className="mt-2 inline-block text-sm text-slate-500">
             Back to streams
           </Link>
           <h1 className="mt-3 font-display text-4xl text-slate-900">
-            Live stream room
+            Live stream
           </h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Verified seller · Dual camera · Live chat enabled
-          </p>
         </div>
         <div className="hidden sm:flex flex-wrap gap-3">
           <span className="rounded-full bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-600">

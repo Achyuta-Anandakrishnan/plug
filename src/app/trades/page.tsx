@@ -172,7 +172,7 @@ export default function TradesPage() {
           return (
             <Link
               key={post.id}
-              href={`/trades/${post.id}`}
+              href={`/trades/${encodeURIComponent(post.id)}`}
               className="ios-panel p-3 transition hover:-translate-y-0.5"
             >
               <div className="grid gap-3 sm:grid-cols-[120px_minmax(0,1fr)]">

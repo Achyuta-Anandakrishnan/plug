@@ -62,7 +62,7 @@ async function getFeaturedAuctions(): Promise<FeaturedCard[]> {
       imageUrl:
         auction.item?.images.find((img) => img.isPrimary)?.url
         ?? auction.item?.images[0]?.url
-        ?? "/streams/stream-1.svg",
+        ?? "/charts/market-candles.svg",
       listingType: auction.listingType,
       buyNowPrice: auction.buyNowPrice ?? undefined,
       currency: auction.currency?.toUpperCase() ?? "USD",
@@ -113,7 +113,7 @@ export default async function Home() {
         <div className="ios-panel p-3">
           <div className="relative h-44 overflow-hidden rounded-2xl border border-white/70 bg-black">
             <Image
-              src="/streams/stream-2.svg"
+              src="/charts/market-line.svg"
               alt="Live preview"
               fill
               className="object-cover"
@@ -136,7 +136,7 @@ export default async function Home() {
         </div>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
           {items.map((auction) => (
-            <AuctionCard key={auction.id} {...auction} preservePlaceholderMedia />
+            <AuctionCard key={auction.id} {...auction} />
           ))}
         </div>
       </section>

@@ -57,6 +57,19 @@ function toIntOrNull(value: string) {
   return Math.trunc(parsed);
 }
 
+function toSafeImageUrl(value: string) {
+  const trimmed = value.trim();
+  return /^https?:\/\/[^\s]+$/i.test(trimmed) ? trimmed : "";
+}
+
+function createUploadPreview(file: File, fallbackUrl: string) {
+  try {
+    return URL.createObjectURL(file);
+  } catch {
+    return fallbackUrl;
+  }
+}
+
 async function uploadFiles(files: File[]) {
   const uploads: Array<{ url: string; previewUrl: string }> = [];
   for (const file of files) {
@@ -72,7 +85,7 @@ async function uploadFiles(files: File[]) {
     }
     uploads.push({
       url: payload.url,
-      previewUrl: URL.createObjectURL(file),
+      previewUrl: createUploadPreview(file, payload.url),
     });
   }
   return uploads;
@@ -137,7 +150,17 @@ export default function NewTradePage() {
   };
 
   const removeImage = (url: string) => {
-    setImages((prev) => prev.filter((entry) => entry.url !== url));
+    setImages((prev) => {
+      const removed = prev.find((entry) => entry.url === url);
+      if (removed?.previewUrl?.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(removed.previewUrl);
+        } catch {
+          // Ignore object URL cleanup failures.
+        }
+      }
+      return prev.filter((entry) => entry.url !== url);
+    });
   };
 
   const handleSubmit = async () => {
@@ -170,7 +193,9 @@ export default function NewTradePage() {
           tags: form.tags.split(",").map((entry) => entry.trim()).filter(Boolean),
           valueMin: toIntOrNull(form.valueMin),
           valueMax: toIntOrNull(form.valueMax),
-          images: images.map((image, index) => ({ url: image.url, isPrimary: index === 0 })),
+          images: images
+            .map((image, index) => ({ url: toSafeImageUrl(image.url), isPrimary: index === 0 }))
+            .filter((image) => image.url.length > 0),
         }),
       });
       const payload = (await response.json()) as { id?: string; error?: string };
@@ -178,7 +203,7 @@ export default function NewTradePage() {
         throw new Error(payload.error || "Unable to create trade post.");
       }
       setStatus("Trade posted.");
-      router.push(`/trades/${payload.id}`);
+      router.push(`/trades/${encodeURIComponent(payload.id)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create trade post.");
     } finally {

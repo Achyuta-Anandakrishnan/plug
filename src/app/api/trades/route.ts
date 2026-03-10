@@ -23,8 +23,16 @@ type CreateTradePostBody = {
   images?: Array<{ url: string; isPrimary?: boolean }>;
 };
 
+function getSearchParams(request: Request) {
+  try {
+    return new URL(request.url).searchParams;
+  } catch {
+    return new URL(request.url, "http://localhost").searchParams;
+  }
+}
+
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+  const searchParams = getSearchParams(request);
   const sessionUser = await getSessionUser();
   const mine = searchParams.get("mine") === "1";
   const statusParam = searchParams.get("status");

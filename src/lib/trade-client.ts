@@ -128,11 +128,8 @@ export function toTagArray(value: unknown) {
 }
 
 export function isValidImageUrl(value: string | null | undefined) {
-  if (!value) return false;
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return /^https?:\/\/[^\s]+$/i.test(trimmed);
 }

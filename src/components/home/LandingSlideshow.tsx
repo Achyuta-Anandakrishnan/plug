@@ -19,7 +19,7 @@ const slides: Slide[] = [
     blurb: "Everything in one place.",
     metric: "4 steps",
     metricLabel: "List -> Go live -> Sell -> Payout",
-    image: "/streams/stream-1.svg",
+    image: "/charts/market-line.svg",
   },
   {
     id: "conversion",
@@ -27,7 +27,7 @@ const slides: Slide[] = [
     blurb: "Bids and buy-now stay in context.",
     metric: "2.3x",
     metricLabel: "Faster completion in live sessions",
-    image: "/streams/stream-3.svg",
+    image: "/charts/market-candles.svg",
   },
   {
     id: "grading",
@@ -35,7 +35,7 @@ const slides: Slide[] = [
     blurb: "Details stay visible across views.",
     metric: "15",
     metricLabel: "Supported grading companies",
-    image: "/streams/stream-5.svg",
+    image: "/charts/market-line.svg",
   },
 ];
 
