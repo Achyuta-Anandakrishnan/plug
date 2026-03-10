@@ -4,6 +4,13 @@ type LookupResult = {
   found: boolean;
   grade?: string | null;
   label?: string | null;
+  title?: string | null;
+  year?: string | null;
+  brand?: string | null;
+  subject?: string | null;
+  cardNumber?: string | null;
+  category?: string | null;
+  variety?: string | null;
   blocked?: boolean;
   note: string;
 };
@@ -20,6 +27,32 @@ function extractFirstMatch(text: string, patterns: RegExp[]) {
   return null;
 }
 
+function decodeHtmlEntities(text: string) {
+  return text
+    .replace(/&#x27;/gi, "'")
+    .replace(/&quot;/gi, "\"")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">");
+}
+
+function stripTags(text: string) {
+  return decodeHtmlEntities(text.replace(/<[^>]+>/g, " "));
+}
+
+function extractDefinitionRows(html: string) {
+  const rows: Record<string, string> = {};
+  const rowPattern = /<dt[^>]*>([\s\S]*?)<\/dt>\s*<dd[^>]*>([\s\S]*?)<\/dd>/gi;
+  let match: RegExpExecArray | null;
+  while ((match = rowPattern.exec(html))) {
+    const key = sanitize(stripTags(match[1]).toLowerCase());
+    const value = sanitize(stripTags(match[2]));
+    if (!key || !value) continue;
+    rows[key] = value;
+  }
+  return rows;
+}
+
 type FetchOutcome = {
   html: string | null;
   blocked: boolean;
@@ -31,9 +64,9 @@ function isChallengeResponse(status: number, body: string, headers: Headers) {
   return false;
 }
 
-async function fetchWithTimeout(url: string, init?: RequestInit) {
+async function fetchWithTimeout(url: string, timeoutMs = 5000, init?: RequestInit) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, {
       ...init,
@@ -63,7 +96,7 @@ async function fetchViaScrapingBee(url: string) {
   target.searchParams.set("premium_proxy", "true");
   target.searchParams.set("country_code", "us");
 
-  const result = await fetchWithTimeout(target.toString(), {
+  const result = await fetchWithTimeout(target.toString(), 20000, {
     headers: {
       accept: "text/html,application/xhtml+xml",
     },
@@ -107,10 +140,21 @@ async function lookupPsa(cert: string): Promise<LookupResult> {
     };
   }
 
-  const grade = extractFirstMatch(html, [
+  const fields = extractDefinitionRows(html);
+  const grade = fields["item grade"] ?? extractFirstMatch(html, [
     /"grade"\s*:\s*"([^"]+)"/i,
     /Grade<\/div>\s*<div[^>]*>([^<]+)</i,
   ]);
+  const year = fields.year ?? null;
+  const brand = fields["brand/title"] ?? null;
+  const subject = fields.subject ?? null;
+  const cardNumber = fields["card number"] ?? null;
+  const category = fields.category ?? null;
+  const variety = fields["variety\/pedigree"] ?? null;
+  const label = fields["label type"] ?? null;
+  const title = [year, brand, cardNumber ? `#${cardNumber}` : null, subject, variety]
+    .filter(Boolean)
+    .join(" ");
 
   if (!grade) {
     return { found: false, note: "No PSA certificate match found." };
@@ -119,6 +163,14 @@ async function lookupPsa(cert: string): Promise<LookupResult> {
   return {
     found: true,
     grade,
+    label,
+    title: title || null,
+    year,
+    brand,
+    subject,
+    cardNumber,
+    category,
+    variety,
     note: "PSA certificate matched.",
   };
 }
