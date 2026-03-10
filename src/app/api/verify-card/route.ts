@@ -7,21 +7,31 @@ type VerifyCardBody = {
   certNumber?: string;
 };
 
+type CardImages = {
+  front: string | null;
+  back: string | null;
+};
+
 type NormalizedCard = {
   found: boolean;
   grader: string;
   certNumber: string;
-  title: string | null;
-  grade: string | null;
-  label: string | null;
+  verificationStatus: "verified" | "not_found";
+  provider: string;
+  player: string | null;
   year: string | null;
   brand: string | null;
-  subject: string | null;
+  set: string | null;
   cardNumber: string | null;
+  grade: string | null;
+  title: string | null;
+  images: CardImages;
+  imageUrl: string | null;
+  imageUrls: string[];
+  label: string | null;
+  subject: string | null;
   category: string | null;
   variety: string | null;
-  imageUrl: string | null;
-  images: string[];
   note: string;
   source: "PSA_PUBLIC_API" | "LOOKUP_FALLBACK";
   cached?: boolean;
@@ -85,25 +95,116 @@ function uniqueImageUrls(values: Array<string | null | undefined>) {
   return Array.from(deduped).slice(0, 8);
 }
 
+function coerceImageUrls(input: unknown, imageUrl?: string | null) {
+  const urls: Array<string | null | undefined> = [imageUrl ?? null];
+
+  if (Array.isArray(input)) {
+    for (const entry of input) {
+      if (typeof entry === "string") urls.push(entry);
+    }
+  } else if (input && typeof input === "object") {
+    const maybeObj = input as { front?: unknown; back?: unknown };
+    if (typeof maybeObj.front === "string") urls.push(maybeObj.front);
+    if (typeof maybeObj.back === "string") urls.push(maybeObj.back);
+  }
+
+  return uniqueImageUrls(urls);
+}
+
+function buildTitleFromParts(card: {
+  title?: string | null;
+  year?: string | null;
+  brand?: string | null;
+  set?: string | null;
+  cardNumber?: string | null;
+  player?: string | null;
+  subject?: string | null;
+  variety?: string | null;
+  grader?: string;
+  certNumber?: string;
+}) {
+  const explicit = asText(card.title ?? null);
+  if (explicit) return explicit;
+
+  const effectiveBrand = asText(card.brand ?? card.set ?? null);
+  const effectivePlayer = asText(card.player ?? card.subject ?? null);
+  const parts = [
+    asText(card.year ?? null),
+    effectiveBrand,
+    asText(card.cardNumber ? `#${card.cardNumber}` : null),
+    effectivePlayer,
+    asText(card.variety ?? null),
+  ].filter((entry): entry is string => Boolean(entry));
+
+  if (parts.length > 0) return parts.join(" ");
+  return `${card.grader ?? "Graded"} cert ${card.certNumber ?? ""}`.trim();
+}
+
+function normalizeCard(input: Partial<NormalizedCard> & {
+  found: boolean;
+  grader: string;
+  certNumber: string;
+  note: string;
+  source: NormalizedCard["source"];
+}) {
+  const imageUrls = coerceImageUrls(input.imageUrls ?? input.images, input.imageUrl);
+  const images: CardImages = {
+    front: imageUrls[0] ?? null,
+    back: imageUrls[1] ?? null,
+  };
+
+  const brand = asText(input.brand ?? input.set ?? null);
+  const set = asText(input.set ?? input.brand ?? null);
+  const subject = asText(input.subject ?? input.player ?? null);
+  const player = asText(input.player ?? input.subject ?? null);
+
+  const normalized: NormalizedCard = {
+    found: Boolean(input.found),
+    grader: (input.grader || "PSA").toUpperCase(),
+    certNumber: input.certNumber,
+    verificationStatus: input.found ? "verified" : "not_found",
+    provider: (input.provider || input.grader || "PSA").toString().toLowerCase(),
+    player,
+    year: asText(input.year ?? null),
+    brand,
+    set,
+    cardNumber: asText(input.cardNumber ?? null),
+    grade: asText(input.grade ?? null),
+    title: buildTitleFromParts({
+      title: asText(input.title ?? null),
+      year: asText(input.year ?? null),
+      brand,
+      set,
+      cardNumber: asText(input.cardNumber ?? null),
+      player,
+      subject,
+      variety: asText(input.variety ?? null),
+      grader: input.grader,
+      certNumber: input.certNumber,
+    }),
+    images,
+    imageUrl: images.front,
+    imageUrls,
+    label: asText(input.label ?? null),
+    subject,
+    category: asText(input.category ?? null),
+    variety: asText(input.variety ?? null),
+    note: input.note,
+    source: input.source,
+    cached: input.cached,
+  };
+
+  return normalized;
+}
+
 function emptyCard(grader: string, certNumber: string, note: string, source: NormalizedCard["source"]): NormalizedCard {
-  return {
+  return normalizeCard({
     found: false,
     grader,
     certNumber,
-    title: null,
-    grade: null,
-    label: null,
-    year: null,
-    brand: null,
-    subject: null,
-    cardNumber: null,
-    category: null,
-    variety: null,
-    imageUrl: null,
-    images: [],
     note,
     source,
-  };
+  });
 }
 
 async function fetchWithTimeout(url: string, timeoutMs = 7000, init?: RequestInit) {
@@ -159,9 +260,7 @@ function extractPsaImageCandidates(html: string, certNumber: string) {
 
   const certScoped = imageMatches.filter((entry) => entry.includes(certPath));
   const fallbackScoped = imageMatches.filter((entry) => !/meta\.jpg/i.test(entry));
-  const urls = uniqueImageUrls(certScoped.length > 0 ? certScoped : fallbackScoped);
-
-  return urls;
+  return uniqueImageUrls(certScoped.length > 0 ? certScoped : fallbackScoped);
 }
 
 async function fetchPsaCertImages(certNumber: string): Promise<string[]> {
@@ -234,30 +333,26 @@ async function lookupViaPsaApi(certNumber: string): Promise<NormalizedCard> {
     const variety = asText(card.Variety);
     const grade = asText(card.CardGrade) ?? asText(card.GradeDescription);
     const label = normalizePsaLabel(asText(card.LabelType));
-    const title = [year, brand, cardNumber ? `#${cardNumber}` : null, subject, variety]
-      .filter(Boolean)
-      .join(" ");
+    const imageUrls = grade ? await fetchPsaCertImages(certNumber) : [];
 
-    const images = grade ? await fetchPsaCertImages(certNumber) : [];
-
-    return {
+    return normalizeCard({
       found: Boolean(grade),
       grader: "PSA",
       certNumber,
-      title: title || null,
-      grade: grade ?? null,
-      label,
       year,
       brand,
+      set: brand,
       subject,
+      player: subject,
       cardNumber,
       category,
       variety,
-      imageUrl: images[0] ?? null,
-      images,
+      grade,
+      label,
+      imageUrls,
       note: grade ? "Certificate matched via official PSA API." : "No PSA certificate match found.",
       source: "PSA_PUBLIC_API",
-    };
+    });
   } catch {
     return emptyCard("PSA", certNumber, "PSA API lookup unavailable right now.", "PSA_PUBLIC_API");
   } finally {
@@ -291,50 +386,91 @@ async function lookupViaFallback(grader: string, certNumber: string, origin: str
     error?: string;
   };
 
-  const fallbackImages = Array.isArray(payload.images)
-    ? payload.images.filter((entry): entry is string => typeof entry === "string")
-    : [];
+  const fallbackImageUrls = coerceImageUrls(payload.images, payload.imageUrl ?? null);
 
-  return {
+  return normalizeCard({
     found: Boolean(payload.found),
     grader: payload.company ?? grader,
     certNumber,
     title: payload.title ?? null,
-    grade: payload.grade ?? null,
-    label: payload.label ?? null,
     year: payload.year ?? null,
     brand: payload.brand ?? null,
+    set: payload.brand ?? null,
     subject: payload.subject ?? null,
+    player: payload.subject ?? null,
     cardNumber: payload.cardNumber ?? null,
     category: payload.category ?? null,
     variety: payload.variety ?? null,
-    imageUrl: normalizeImageUrl(payload.imageUrl) ?? normalizeImageUrl(fallbackImages[0]) ?? null,
-    images: uniqueImageUrls(fallbackImages),
+    grade: payload.grade ?? null,
+    label: payload.label ?? null,
+    imageUrls: fallbackImageUrls,
+    imageUrl: fallbackImageUrls[0] ?? null,
     note: payload.note || payload.error || "Lookup unavailable right now.",
     source: "LOOKUP_FALLBACK",
-  };
+  });
 }
 
 function mergeCards(primary: NormalizedCard, secondary: NormalizedCard): NormalizedCard {
-  const images = uniqueImageUrls([...(primary.images ?? []), ...(secondary.images ?? []), primary.imageUrl, secondary.imageUrl]);
+  const imageUrls = uniqueImageUrls([
+    ...primary.imageUrls,
+    ...secondary.imageUrls,
+    primary.images.front,
+    primary.images.back,
+    secondary.images.front,
+    secondary.images.back,
+    primary.imageUrl,
+    secondary.imageUrl,
+  ]);
 
-  return {
-    ...primary,
+  return normalizeCard({
     found: primary.found || secondary.found,
     grader: primary.grader || secondary.grader,
+    certNumber: primary.certNumber || secondary.certNumber,
     title: primary.title ?? secondary.title,
     grade: primary.grade ?? secondary.grade,
     label: primary.label ?? secondary.label,
     year: primary.year ?? secondary.year,
     brand: primary.brand ?? secondary.brand,
+    set: primary.set ?? secondary.set,
     subject: primary.subject ?? secondary.subject,
+    player: primary.player ?? secondary.player,
     cardNumber: primary.cardNumber ?? secondary.cardNumber,
     category: primary.category ?? secondary.category,
     variety: primary.variety ?? secondary.variety,
-    imageUrl: primary.imageUrl ?? secondary.imageUrl ?? images[0] ?? null,
-    images,
+    imageUrls,
     note: primary.found ? primary.note : secondary.note || primary.note,
-  };
+    source: primary.found ? primary.source : secondary.source,
+  });
+}
+
+function hydrateCachedCard(raw: unknown, grader: string, certNumber: string): NormalizedCard | null {
+  if (!raw || typeof raw !== "object") return null;
+  const value = raw as Partial<NormalizedCard> & Record<string, unknown>;
+
+  return normalizeCard({
+    found: Boolean(value.found),
+    grader: asText(value.grader) ?? grader,
+    certNumber: asText(value.certNumber) ?? certNumber,
+    title: asText(value.title),
+    grade: asText(value.grade),
+    label: asText(value.label),
+    year: asText(value.year),
+    brand: asText(value.brand),
+    set: asText(value.set) ?? asText(value.brand),
+    subject: asText(value.subject),
+    player: asText(value.player) ?? asText(value.subject),
+    cardNumber: asText(value.cardNumber),
+    category: asText(value.category),
+    variety: asText(value.variety),
+    images: value.images,
+    imageUrls: Array.isArray(value.imageUrls)
+      ? value.imageUrls.filter((entry): entry is string => typeof entry === "string")
+      : undefined,
+    imageUrl: asText(value.imageUrl),
+    note: asText(value.note) ?? "Lookup unavailable right now.",
+    source: value.source === "PSA_PUBLIC_API" ? "PSA_PUBLIC_API" : "LOOKUP_FALLBACK",
+    cached: Boolean(value.cached),
+  });
 }
 
 export async function POST(request: Request) {
@@ -366,12 +502,12 @@ export async function POST(request: Request) {
     certNumber,
   );
 
-  const cachedCard = cached[0]?.normalized as NormalizedCard | undefined;
+  const cachedCard = hydrateCachedCard(cached[0]?.normalized, grader, certNumber);
   if (cachedCard) {
     return jsonOk({
       ...cachedCard,
       cached: true,
-    } satisfies NormalizedCard);
+    });
   }
 
   const origin = request.url;
@@ -379,7 +515,7 @@ export async function POST(request: Request) {
 
   if (grader === "PSA") {
     normalized = await lookupViaPsaApi(certNumber);
-    if (!normalized.found || normalized.images.length === 0) {
+    if (!normalized.found || normalized.imageUrls.length === 0) {
       const fallback = await lookupViaFallback("PSA", certNumber, origin);
       normalized = mergeCards(normalized, fallback);
     }
@@ -387,7 +523,7 @@ export async function POST(request: Request) {
     const psaResult = await lookupViaPsaApi(certNumber);
     if (psaResult.found) {
       normalized = psaResult;
-      if (normalized.images.length === 0) {
+      if (normalized.imageUrls.length === 0) {
         const fallback = await lookupViaFallback("PSA", certNumber, origin);
         normalized = mergeCards(normalized, fallback);
       }
@@ -426,5 +562,5 @@ export async function POST(request: Request) {
   return jsonOk({
     ...normalized,
     cached: false,
-  } satisfies NormalizedCard);
+  });
 }

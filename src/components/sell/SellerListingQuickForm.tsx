@@ -7,16 +7,24 @@ import { formatCurrency } from "@/lib/format";
 
 type ListingType = "AUCTION" | "BUY_NOW" | "BOTH" | "LIVE_STREAM";
 
-type LookupPayload = {
+type VerifyPayload = {
   found?: boolean;
-  company?: string | null;
-  grade?: string | null;
-  label?: string | null;
-  title?: string | null;
+  grader?: string;
+  certNumber?: string;
+  verificationStatus?: "verified" | "not_found";
+  provider?: string;
+  player?: string | null;
   year?: string | null;
   brand?: string | null;
-  subject?: string | null;
+  set?: string | null;
   cardNumber?: string | null;
+  grade?: string | null;
+  title?: string | null;
+  images?: { front?: string | null; back?: string | null } | string[];
+  imageUrl?: string | null;
+  imageUrls?: string[];
+  label?: string | null;
+  subject?: string | null;
   category?: string | null;
   variety?: string | null;
   note?: string;
@@ -36,33 +44,65 @@ function toCents(value: string) {
   return Math.round(parsed * 100);
 }
 
-function buildTitle(cert: string, lookup: LookupPayload) {
-  const fromLookup = typeof lookup.title === "string" ? lookup.title.trim() : "";
-  if (fromLookup) return fromLookup;
-  const parts = [
-    lookup.year ?? null,
-    lookup.brand ?? null,
-    lookup.cardNumber ? `#${lookup.cardNumber}` : null,
-    lookup.subject ?? null,
-    lookup.variety ?? null,
-  ].filter((entry): entry is string => Boolean(entry && entry.trim().length > 0));
-  if (parts.length > 0) return parts.join(" ");
-  return `${lookup.company ?? "Graded"} cert ${cert}`;
+function uniqueImageUrls(values: Array<string | null | undefined>) {
+  const deduped = new Set<string>();
+  for (const value of values) {
+    if (typeof value !== "string") continue;
+    const trimmed = value.trim();
+    if (!/^https?:\/\//i.test(trimmed)) continue;
+    deduped.add(trimmed);
+  }
+  return Array.from(deduped).slice(0, 8);
 }
 
-function buildDescription(cert: string, lookup: LookupPayload) {
+function getImageUrls(payload: VerifyPayload | null) {
+  if (!payload) return [];
+  const list = Array.isArray(payload.imageUrls) ? payload.imageUrls : [];
+
+  const fromImages = Array.isArray(payload.images)
+    ? payload.images.filter((entry): entry is string => typeof entry === "string")
+    : [payload.images?.front ?? null, payload.images?.back ?? null];
+
+  return uniqueImageUrls([payload.imageUrl ?? null, ...list, ...fromImages]);
+}
+
+function buildTitle(cert: string, payload: VerifyPayload) {
+  const explicit = typeof payload.title === "string" ? payload.title.trim() : "";
+  if (explicit) return explicit;
+
+  const parts = [
+    payload.year ?? null,
+    payload.brand ?? payload.set ?? null,
+    payload.cardNumber ? `#${payload.cardNumber}` : null,
+    payload.player ?? payload.subject ?? null,
+    payload.variety ?? null,
+  ].filter((entry): entry is string => Boolean(entry && entry.trim().length > 0));
+
+  if (parts.length > 0) return parts.join(" ");
+  return `${payload.grader ?? "Graded"} cert ${cert}`;
+}
+
+function buildDescription(cert: string, payload: VerifyPayload) {
   const lines = [
-    lookup.company ? `Company: ${lookup.company}` : null,
-    lookup.grade ? `Grade: ${lookup.grade}` : null,
-    lookup.label ? `Label: ${lookup.label}` : null,
-    lookup.category ? `Category: ${lookup.category}` : null,
-    lookup.brand ? `Set: ${lookup.brand}` : null,
-    lookup.subject ? `Card: ${lookup.subject}` : null,
-    lookup.cardNumber ? `Number: ${lookup.cardNumber}` : null,
-    lookup.variety ? `Variant: ${lookup.variety}` : null,
+    payload.grader ? `Company: ${payload.grader}` : null,
+    payload.grade ? `Grade: ${payload.grade}` : null,
+    payload.label ? `Label: ${payload.label}` : null,
+    payload.category ? `Category: ${payload.category}` : null,
+    payload.brand ? `Brand: ${payload.brand}` : null,
+    payload.set ? `Set: ${payload.set}` : null,
+    payload.player ? `Player: ${payload.player}` : null,
+    payload.cardNumber ? `Card #: ${payload.cardNumber}` : null,
+    payload.variety ? `Variety: ${payload.variety}` : null,
     `Cert: ${cert}`,
   ].filter((entry): entry is string => Boolean(entry));
   return lines.join(" • ");
+}
+
+function infoLine(label: string, value: string | null | undefined) {
+  return {
+    label,
+    value: value && value.trim().length > 0 ? value : "-",
+  };
 }
 
 export function SellerListingQuickForm() {
@@ -72,14 +112,14 @@ export function SellerListingQuickForm() {
   const [certNumber, setCertNumber] = useState("");
   const [desiredPrice, setDesiredPrice] = useState("");
   const [lookupLoading, setLookupLoading] = useState(false);
-  const [lookup, setLookup] = useState<LookupPayload | null>(null);
+  const [lookup, setLookup] = useState<VerifyPayload | null>(null);
   const [lookupMessage, setLookupMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [submitMessage, setSubmitMessage] = useState("");
   const [listingId, setListingId] = useState("");
 
   useEffect(() => {
-    const cert = certNumber.trim();
+    const cert = certNumber.replace(/\s+/g, "").trim();
     if (cert.length < 4) {
       setLookup(null);
       setLookupMessage("");
@@ -91,14 +131,21 @@ export function SellerListingQuickForm() {
     const timer = window.setTimeout(async () => {
       setLookupLoading(true);
       try {
-        const response = await fetch(`/api/grading/lookup?cert=${encodeURIComponent(cert)}`);
-        const payload = (await response.json()) as LookupPayload;
+        const response = await fetch("/api/verify-card", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ grader: "AUTO", certNumber: cert }),
+        });
+
+        const payload = (await response.json()) as VerifyPayload;
         if (cancelled) return;
+
         if (!response.ok) {
           setLookup(null);
           setLookupMessage(payload.error || "Unable to verify cert right now.");
           return;
         }
+
         setLookup(payload);
         setLookupMessage(payload.note || (payload.found ? "Certificate found." : "No certificate match found."));
       } catch {
@@ -118,17 +165,29 @@ export function SellerListingQuickForm() {
   }, [certNumber]);
 
   const desiredCents = useMemo(() => toCents(desiredPrice), [desiredPrice]);
-  const canSubmit = Boolean(
-    isSeller
-      && certNumber.trim().length >= 4
-      && desiredCents !== null
-      && lookup?.found,
-  );
+  const cert = certNumber.replace(/\s+/g, "").trim();
+  const canSubmit = Boolean(isSeller && cert.length >= 4 && desiredCents !== null && lookup?.found);
 
   const previewTitle = useMemo(() => {
     if (!lookup || !lookup.found) return "Auto-filled title";
-    return buildTitle(certNumber.trim(), lookup);
-  }, [lookup, certNumber]);
+    return buildTitle(cert, lookup);
+  }, [lookup, cert]);
+
+  const certImages = useMemo(() => getImageUrls(lookup), [lookup]);
+  const previewRows = useMemo(() => {
+    return [
+      infoLine("Verification", lookup?.verificationStatus ?? (lookup?.found ? "verified" : null)),
+      infoLine("Provider", lookup?.provider ?? lookup?.grader?.toLowerCase()),
+      infoLine("Grader", lookup?.grader),
+      infoLine("Cert", cert || null),
+      infoLine("Player", lookup?.player ?? lookup?.subject),
+      infoLine("Year", lookup?.year),
+      infoLine("Brand", lookup?.brand),
+      infoLine("Set", lookup?.set ?? lookup?.brand),
+      infoLine("Card #", lookup?.cardNumber),
+      infoLine("Grade", lookup?.grade),
+    ];
+  }, [lookup, cert]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -141,10 +200,9 @@ export function SellerListingQuickForm() {
     setStatus("loading");
     setSubmitMessage("");
 
-    const cert = certNumber.trim();
     const title = buildTitle(cert, lookup);
     const description = buildDescription(cert, lookup);
-    const condition = [lookup.company, lookup.grade].filter(Boolean).join(" ").trim() || "Graded";
+    const condition = [lookup.grader, lookup.grade].filter(Boolean).join(" ").trim() || "Graded";
     const listingMode = listingType;
     const effectiveListingType = listingMode === "LIVE_STREAM" ? "AUCTION" : listingMode;
     const auctionStart = effectiveListingType === "BOTH"
@@ -167,13 +225,17 @@ export function SellerListingQuickForm() {
         condition,
         attributes: {
           isGraded: true,
-          gradingCompany: lookup.company ?? null,
+          gradingCompany: lookup.grader ?? null,
           gradingLabel: lookup.label ?? null,
           grade: lookup.grade ?? null,
           certNumber: cert,
+          verificationStatus: lookup.verificationStatus ?? (lookup.found ? "verified" : "not_found"),
+          provider: lookup.provider ?? lookup.grader?.toLowerCase() ?? null,
           year: lookup.year ?? null,
           brand: lookup.brand ?? null,
-          subject: lookup.subject ?? null,
+          set: lookup.set ?? lookup.brand ?? null,
+          subject: lookup.subject ?? lookup.player ?? null,
+          player: lookup.player ?? lookup.subject ?? null,
           cardNumber: lookup.cardNumber ?? null,
           category: lookup.category ?? null,
           variety: lookup.variety ?? null,
@@ -181,7 +243,10 @@ export function SellerListingQuickForm() {
           autoFilledFromCert: true,
         },
       },
-      images: [],
+      images: certImages.map((url, index) => ({
+        url,
+        isPrimary: index === 0,
+      })),
     };
 
     try {
@@ -270,15 +335,42 @@ export function SellerListingQuickForm() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
+      <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 space-y-4">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Preview</p>
-        <p className="mt-2 font-display text-xl text-slate-900">{previewTitle}</p>
-        <p className="mt-1 text-sm text-slate-600">
-          {(lookup?.company ?? "Grading company")} {lookup?.grade ?? "Grade"} • Cert {certNumber.trim() || "—"}
-        </p>
-        <p className="mt-2 text-sm text-slate-700">
-          Desired price: {desiredCents !== null ? formatCurrency(desiredCents, "USD") : "—"}
-        </p>
+
+        {certImages.length > 0 ? (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {certImages.slice(0, 2).map((url, index) => (
+              <div key={`${url}-${index}`} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={url}
+                  alt={index === 0 ? "Cert front" : "Cert back"}
+                  className="h-40 w-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        <div>
+          <p className="font-display text-xl text-slate-900">{previewTitle}</p>
+          <p className="mt-1 text-sm text-slate-600">
+            {(lookup?.grader ?? "Grading company")} {lookup?.grade ?? "Grade"} • Cert {cert || "-"}
+          </p>
+          <p className="mt-2 text-sm text-slate-700">
+            Desired price: {desiredCents !== null ? formatCurrency(desiredCents, "USD") : "Enter desired price"}
+          </p>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          {previewRows.map((row) => (
+            <div key={row.label} className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">{row.label}</p>
+              <p className="mt-1 text-sm text-slate-800">{row.value}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {submitMessage ? (

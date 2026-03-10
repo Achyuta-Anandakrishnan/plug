@@ -11,6 +11,10 @@ type VerifyCardPayload = {
   found?: boolean;
   grader?: string;
   certNumber?: string;
+  verificationStatus?: "verified" | "not_found";
+  provider?: string;
+  player?: string | null;
+  set?: string | null;
   title?: string | null;
   grade?: string | null;
   label?: string | null;
@@ -21,7 +25,8 @@ type VerifyCardPayload = {
   category?: string | null;
   variety?: string | null;
   imageUrl?: string | null;
-  images?: string[];
+  imageUrls?: string[];
+  images?: { front?: string | null; back?: string | null } | string[];
   note?: string;
   source?: "PSA_PUBLIC_API" | "LOOKUP_FALLBACK";
   cached?: boolean;
@@ -79,15 +84,24 @@ function uniqueImageUrls(values: Array<string | null | undefined>) {
   return Array.from(deduped).slice(0, 8);
 }
 
+function getCardImageUrls(card: VerifyCardPayload | null) {
+  if (!card) return [];
+  const urlsFromList = Array.isArray(card.imageUrls) ? card.imageUrls : [];
+  const urlsFromImages = Array.isArray(card.images)
+    ? card.images.filter((entry): entry is string => typeof entry === "string")
+    : [card.images?.front ?? null, card.images?.back ?? null];
+  return uniqueImageUrls([card.imageUrl ?? null, ...urlsFromList, ...urlsFromImages]);
+}
+
 function buildTitle(cert: string, card: VerifyCardPayload | null) {
   if (!card) return `Cert ${cert}`;
   const provided = typeof card.title === "string" ? card.title.trim() : "";
   if (provided) return provided;
   const parts = [
     card.year ?? null,
-    card.brand ?? null,
+    card.brand ?? card.set ?? null,
     card.cardNumber ? `#${card.cardNumber}` : null,
-    card.subject ?? null,
+    card.player ?? card.subject ?? null,
     card.variety ?? null,
   ].filter((entry): entry is string => Boolean(entry && entry.trim().length > 0));
   if (parts.length > 0) return parts.join(" ");
@@ -100,7 +114,9 @@ function buildDescription(cert: string, card: VerifyCardPayload | null) {
     card.grader ? `Company: ${card.grader}` : null,
     card.grade ? `Grade: ${card.grade}` : null,
     card.label ? `Label: ${card.label}` : null,
-    card.brand ? `Set: ${card.brand}` : null,
+    card.brand ? `Brand: ${card.brand}` : null,
+    card.set ? `Set: ${card.set}` : null,
+    card.player ? `Player: ${card.player}` : null,
     card.subject ? `Card: ${card.subject}` : null,
     card.cardNumber ? `Number: ${card.cardNumber}` : null,
     card.variety ? `Variant: ${card.variety}` : null,
@@ -233,7 +249,7 @@ export default function NewTradePage() {
           tags,
           valueMin,
           valueMax,
-          images: uniqueImageUrls([verifiedCard.imageUrl, ...(verifiedCard.images ?? [])]).map((url, index) => ({
+          images: getCardImageUrls(verifiedCard).map((url, index) => ({
             url,
             isPrimary: index === 0,
           })),
@@ -296,7 +312,7 @@ export default function NewTradePage() {
           tags: toTagList(manualDraft.tags, [manualDraft.gradeCompany, manualDraft.category].filter(Boolean)),
           valueMin,
           valueMax,
-          images: uniqueImageUrls([verifiedCard?.imageUrl, ...(verifiedCard?.images ?? [])]).map((url, index) => ({
+          images: getCardImageUrls(verifiedCard).map((url, index) => ({
             url,
             isPrimary: index === 0,
           })),
@@ -408,9 +424,10 @@ export default function NewTradePage() {
           <div className="space-y-3">
             <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Review</p>
-              {verifiedCard?.imageUrl ? (
+              {getCardImageUrls(verifiedCard)[0] ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={verifiedCard.imageUrl}
+                  src={getCardImageUrls(verifiedCard)[0]}
                   alt={autoTitle}
                   className="mt-2 h-32 w-full rounded-2xl border border-slate-200 object-cover"
                 />
