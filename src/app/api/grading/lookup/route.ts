@@ -2,6 +2,7 @@ import { jsonError, jsonOk } from "@/lib/api";
 
 type LookupResult = {
   found: boolean;
+  company?: string | null;
   grade?: string | null;
   label?: string | null;
   title?: string | null;
@@ -106,6 +107,7 @@ async function lookupPsaViaOfficialApi(cert: string): Promise<LookupResult | nul
     if (response.status === 404) {
       return {
         found: false,
+        company: "PSA",
         note: "No PSA certificate match found.",
       };
     }
@@ -113,6 +115,7 @@ async function lookupPsaViaOfficialApi(cert: string): Promise<LookupResult | nul
     if (response.status === 401 || response.status === 403) {
       return {
         found: false,
+        company: "PSA",
         note: "PSA API token is invalid or expired.",
       };
     }
@@ -120,6 +123,7 @@ async function lookupPsaViaOfficialApi(cert: string): Promise<LookupResult | nul
     if (response.status === 429) {
       return {
         found: false,
+        company: "PSA",
         note: "PSA API daily quota reached. Lookup will use fallback sources.",
       };
     }
@@ -127,6 +131,7 @@ async function lookupPsaViaOfficialApi(cert: string): Promise<LookupResult | nul
     if (!response.ok) {
       return {
         found: false,
+        company: "PSA",
         note: "PSA API lookup unavailable right now.",
       };
     }
@@ -136,6 +141,7 @@ async function lookupPsaViaOfficialApi(cert: string): Promise<LookupResult | nul
     if (!certData) {
       return {
         found: false,
+        company: "PSA",
         note: "No PSA certificate match found.",
       };
     }
@@ -157,12 +163,14 @@ async function lookupPsaViaOfficialApi(cert: string): Promise<LookupResult | nul
     if (!grade) {
       return {
         found: false,
+        company: "PSA",
         note: "No PSA certificate match found.",
       };
     }
 
     return {
       found: true,
+      company: "PSA",
       grade,
       label,
       title: title || null,
@@ -177,6 +185,7 @@ async function lookupPsaViaOfficialApi(cert: string): Promise<LookupResult | nul
   } catch {
     return {
       found: false,
+      company: "PSA",
       note: "PSA API lookup unavailable right now.",
     };
   } finally {
@@ -307,6 +316,7 @@ async function lookupPsa(cert: string): Promise<LookupResult> {
   if (!html) {
     const result = {
       found: false,
+      company: "PSA",
       blocked,
       note: blocked
         ? viaApi?.note ?? "PSA blocked automated lookup. Add SCRAPINGBEE_API_KEY or official PSA API access."
@@ -333,13 +343,14 @@ async function lookupPsa(cert: string): Promise<LookupResult> {
     .join(" ");
 
   if (!grade) {
-    const result = { found: false, note: viaApi?.note ?? "No PSA certificate match found." };
+    const result = { found: false, company: "PSA", note: viaApi?.note ?? "No PSA certificate match found." };
     writePsaCache(cert, result);
     return result;
   }
 
   const result = {
     found: true,
+    company: "PSA",
     grade,
     label,
     title: title || null,
@@ -360,6 +371,7 @@ async function lookupCgc(cert: string): Promise<LookupResult> {
   if (!html) {
     return {
       found: false,
+      company: "CGC",
       blocked,
       note: blocked
         ? "CGC blocked automated lookup. Add SCRAPINGBEE_API_KEY or official CGC API access."
@@ -377,11 +389,12 @@ async function lookupCgc(cert: string): Promise<LookupResult> {
   ]);
 
   if (!grade) {
-    return { found: false, note: "No CGC certificate match found." };
+    return { found: false, company: "CGC", note: "No CGC certificate match found." };
   }
 
   return {
     found: true,
+    company: "CGC",
     grade,
     label,
     note: "CGC certificate matched.",
@@ -395,6 +408,7 @@ async function lookupBeckett(cert: string): Promise<LookupResult> {
   if (!html) {
     return {
       found: false,
+      company: "BGS",
       blocked,
       note: blocked
         ? "Beckett blocked automated lookup. Add SCRAPINGBEE_API_KEY or official Beckett API access."
@@ -409,11 +423,12 @@ async function lookupBeckett(cert: string): Promise<LookupResult> {
   const label = extractFirstMatch(html, [/(Black Label|Gold Label)/i]);
 
   if (!grade) {
-    return { found: false, note: "No Beckett certificate match found." };
+    return { found: false, company: "BGS", note: "No Beckett certificate match found." };
   }
 
   return {
     found: true,
+    company: "BGS",
     grade,
     label,
     note: "Beckett certificate matched.",
@@ -425,11 +440,24 @@ export async function GET(request: Request) {
   const company = (searchParams.get("company") ?? "").trim();
   const cert = (searchParams.get("cert") ?? "").trim();
 
-  if (!company || !cert) {
-    return jsonError("company and cert are required.", 400);
+  if (!cert) {
+    return jsonError("cert is required.", 400);
   }
 
   const normalized = company.toUpperCase();
+
+  if (!normalized) {
+    const attempts = [
+      await lookupPsa(cert),
+      await lookupCgc(cert),
+      await lookupBeckett(cert),
+    ];
+    const matched = attempts.find((entry) => entry.found);
+    if (matched) return jsonOk(matched);
+    const blocked = attempts.find((entry) => entry.blocked);
+    if (blocked) return jsonOk(blocked);
+    return jsonOk(attempts[0] ?? { found: false, note: "No certificate match found." });
+  }
 
   if (normalized === "PSA") {
     return jsonOk(await lookupPsa(cert));
@@ -443,6 +471,7 @@ export async function GET(request: Request) {
 
   return jsonOk({
     found: false,
+    company: normalized,
     note: `${company} cert lookup API is not wired yet. You can still enter grade manually.`,
   } satisfies LookupResult);
 }
