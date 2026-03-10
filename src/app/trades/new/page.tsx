@@ -20,6 +20,8 @@ type VerifyCardPayload = {
   cardNumber?: string | null;
   category?: string | null;
   variety?: string | null;
+  imageUrl?: string | null;
+  images?: string[];
   note?: string;
   source?: "PSA_PUBLIC_API" | "LOOKUP_FALLBACK";
   cached?: boolean;
@@ -66,6 +68,17 @@ function toTagList(input: string, autoTags: string[] = []) {
   return Array.from(new Set([...autoTags, ...manual]));
 }
 
+function uniqueImageUrls(values: Array<string | null | undefined>) {
+  const deduped = new Set<string>();
+  for (const value of values) {
+    if (typeof value !== "string") continue;
+    const trimmed = value.trim();
+    if (!/^https?:\/\//i.test(trimmed)) continue;
+    deduped.add(trimmed);
+  }
+  return Array.from(deduped).slice(0, 8);
+}
+
 function buildTitle(cert: string, card: VerifyCardPayload | null) {
   if (!card) return `Cert ${cert}`;
   const provided = typeof card.title === "string" ? card.title.trim() : "";
@@ -103,7 +116,7 @@ export default function NewTradePage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [manualMode, setManualMode] = useState(false);
 
-  const [grader] = useState("PSA");
+  const [grader] = useState("AUTO");
   const [certNumber, setCertNumber] = useState("");
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifiedCard, setVerifiedCard] = useState<VerifyCardPayload | null>(null);
@@ -220,7 +233,10 @@ export default function NewTradePage() {
           tags,
           valueMin,
           valueMax,
-          images: [],
+          images: uniqueImageUrls([verifiedCard.imageUrl, ...(verifiedCard.images ?? [])]).map((url, index) => ({
+            url,
+            isPrimary: index === 0,
+          })),
         }),
       });
 
@@ -280,7 +296,10 @@ export default function NewTradePage() {
           tags: toTagList(manualDraft.tags, [manualDraft.gradeCompany, manualDraft.category].filter(Boolean)),
           valueMin,
           valueMax,
-          images: [],
+          images: uniqueImageUrls([verifiedCard?.imageUrl, ...(verifiedCard?.images ?? [])]).map((url, index) => ({
+            url,
+            isPrimary: index === 0,
+          })),
         }),
       });
 
@@ -389,6 +408,13 @@ export default function NewTradePage() {
           <div className="space-y-3">
             <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Review</p>
+              {verifiedCard?.imageUrl ? (
+                <img
+                  src={verifiedCard.imageUrl}
+                  alt={autoTitle}
+                  className="mt-2 h-32 w-full rounded-2xl border border-slate-200 object-cover"
+                />
+              ) : null}
               <p className="mt-2 font-display text-xl text-slate-900">{autoTitle}</p>
               <p className="mt-1 text-sm text-slate-600">
                 {(verifiedCard?.grader ?? grader)} {verifiedCard?.grade ?? "Grade"} • Cert {cert || "—"}
