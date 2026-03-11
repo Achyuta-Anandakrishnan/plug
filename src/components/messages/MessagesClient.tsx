@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
+import { CheckersLoader } from "@/components/CheckersLoader";
 
 type Conversation = {
   id: string;
@@ -275,7 +276,7 @@ export function MessagesClient() {
             </div>
 
             {loading ? (
-              <div className="ios-empty">Loading conversations...</div>
+              <CheckersLoader title="Loading conversations..." compact className="ios-empty" />
             ) : filtered.length === 0 ? (
               <div className="ios-empty">No conversations yet.</div>
             ) : (
@@ -361,7 +362,7 @@ export function MessagesClient() {
 
                 <div className="mt-4 flex-1 min-h-0 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/65 p-3.5 sm:p-4 scroll-smooth">
                   {messagesLoading ? (
-                    <div className="ios-empty">Loading messages...</div>
+                    <CheckersLoader title="Loading messages..." compact className="ios-empty" />
                   ) : messages.length === 0 ? (
                     <div className="ios-empty">No messages yet.</div>
                   ) : (

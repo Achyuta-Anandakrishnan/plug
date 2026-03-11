@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
+import { CheckersLoader } from "@/components/CheckersLoader";
 
 type ForumComposePayload = {
   id: string;
@@ -199,11 +200,7 @@ export function ForumComposeClient() {
   }, [body, loading, ready, saveDraft, session?.user?.id, title]);
 
   if (loading) {
-    return (
-      <div className="ios-empty">
-        Loading draft...
-      </div>
-    );
+    return <CheckersLoader title="Loading draft..." compact className="ios-empty" />;
   }
 
   return (

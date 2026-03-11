@@ -7,6 +7,7 @@ import { useAuction } from "@/hooks/useAuction";
 import type { AuctionDetail } from "@/hooks/useAuction";
 import { getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
+import { CheckersLoader } from "@/components/CheckersLoader";
 import { LiveKitStream } from "@/components/streams/LiveKitStream";
 import { ListingImageStrip } from "@/components/streams/ListingImageStrip";
 
@@ -165,11 +166,7 @@ export function StreamRoomMobile({
   };
 
   if (loading) {
-    return (
-      <div className="ios-empty">
-        Loading stream room...
-      </div>
-    );
+    return <CheckersLoader title="Loading stream room..." compact className="ios-empty" />;
   }
 
   if (error || !data) {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
+import { CheckersLoader } from "@/components/CheckersLoader";
 
 type ProfilePayload = {
   id: string;
@@ -159,9 +160,7 @@ export function ProfileEditor() {
   return (
     <div className="space-y-4">
       {loading ? (
-        <div className="ios-empty">
-          Loading profile...
-        </div>
+        <CheckersLoader title="Loading profile..." compact className="ios-empty" />
       ) : (
         <div className="grid gap-4">
           {setupMode ? (

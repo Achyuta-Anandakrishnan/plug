@@ -652,6 +652,82 @@ struct NativeRootView: View {
 
 // MARK: - Auth
 
+struct NativeCheckersIndicator: View {
+    private let pathA: [CGPoint] = [
+        CGPoint(x: 0.06, y: 0.06),
+        CGPoint(x: 0.28, y: 0.28),
+        CGPoint(x: 0.50, y: 0.06),
+        CGPoint(x: 0.72, y: 0.28)
+    ]
+
+    private let pathB: [CGPoint] = [
+        CGPoint(x: 0.72, y: 0.72),
+        CGPoint(x: 0.50, y: 0.50),
+        CGPoint(x: 0.28, y: 0.72),
+        CGPoint(x: 0.06, y: 0.50)
+    ]
+
+    var body: some View {
+        TimelineView(.animation) { context in
+            let a = interpolatedPoint(for: context.date, path: pathA, speed: 2.2)
+            let b = interpolatedPoint(for: context.date, path: pathB, speed: 2.5)
+
+            ZStack {
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(Color.white.opacity(0.08))
+
+                VStack(spacing: 0) {
+                    ForEach(0..<8, id: \.self) { row in
+                        HStack(spacing: 0) {
+                            ForEach(0..<8, id: \.self) { col in
+                                Rectangle()
+                                    .fill((row + col).isMultiple(of: 2) ? Color.white.opacity(0.88) : Color.black.opacity(0.9))
+                            }
+                        }
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+
+                GeometryReader { proxy in
+                    let width = proxy.size.width
+                    let pieceSize = width * 0.14
+
+                    Circle()
+                        .fill(Color.white.opacity(0.96))
+                        .overlay(Circle().stroke(Color.black.opacity(0.25), lineWidth: 0.5))
+                        .frame(width: pieceSize, height: pieceSize)
+                        .position(x: width * a.x, y: width * a.y)
+
+                    Circle()
+                        .fill(Color.black.opacity(0.95))
+                        .overlay(Circle().stroke(Color.white.opacity(0.25), lineWidth: 0.5))
+                        .frame(width: pieceSize, height: pieceSize)
+                        .position(x: width * b.x, y: width * b.y)
+                }
+            }
+        }
+        .frame(width: 18, height: 18)
+        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+    }
+
+    private func interpolatedPoint(for date: Date, path: [CGPoint], speed: Double) -> CGPoint {
+        let total = speed
+        let steps = Double(path.count)
+        let perStep = total / steps
+        let now = date.timeIntervalSinceReferenceDate
+        let local = now.truncatingRemainder(dividingBy: total)
+        let index = Int(local / perStep)
+        let nextIndex = (index + 1) % path.count
+        let progress = (local - (Double(index) * perStep)) / perStep
+        let start = path[index]
+        let end = path[nextIndex]
+        return CGPoint(
+            x: start.x + (end.x - start.x) * progress,
+            y: start.y + (end.y - start.y) * progress
+        )
+    }
+}
+
 struct NativeAuthView: View {
     @ObservedObject var store: NativeAppStore
     @State private var email = ""
@@ -688,7 +764,7 @@ struct NativeAuthView: View {
                 } label: {
                     HStack {
                         if store.loading {
-                            ProgressView().tint(.white)
+                            NativeCheckersIndicator()
                         }
                         Text(store.loading ? "Connecting" : "Continue")
                             .font(.system(size: 15, weight: .bold))

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { AuctionCard } from "@/components/AuctionCard";
+import { CheckersLoader } from "@/components/CheckersLoader";
 import { useAuctions } from "@/hooks/useAuctions";
 import { useCategories } from "@/hooks/useCategories";
 import {
@@ -221,7 +222,7 @@ export function MarketHub() {
       ) : null}
 
       {loading ? (
-        <div className="ios-empty">Loading market...</div>
+        <CheckersLoader title="Loading market..." compact className="ios-empty" />
       ) : (
         <>
           {renderSection("auctions", "Auctions", auctionsOnly, "No live auctions.")}

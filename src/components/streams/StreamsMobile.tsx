@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AuctionCard } from "@/components/AuctionCard";
+import { CheckersLoader } from "@/components/CheckersLoader";
 import { useAuctions } from "@/hooks/useAuctions";
 import {
   getGradeLabel,
@@ -91,9 +92,7 @@ export function StreamsMobile() {
       )}
 
       {loading && (
-        <div className="ios-empty">
-          Loading live listings...
-        </div>
+        <CheckersLoader title="Loading live listings..." compact className="ios-empty" />
       )}
 
       {!loading && filteredStreams.length === 0 && (

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { CheckersLoader } from "@/components/CheckersLoader";
 
 type SellerApplication = {
   id: string;
@@ -216,7 +217,7 @@ export default function SellerAdminPage() {
       <section className="grid gap-5">
         {loading && (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
-            Loading applications...
+            <CheckersLoader title="Loading applications..." compact />
           </div>
         )}
         {!loading && filtered.length === 0 && (

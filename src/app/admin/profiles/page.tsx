@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { CheckersLoader } from "@/components/CheckersLoader";
 
 type AdminProfile = {
   id: string;
@@ -103,7 +104,7 @@ export default function AdminProfilesPage() {
 
       {loading ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
-          Loading profiles...
+          <CheckersLoader title="Loading profiles..." compact />
         </div>
       ) : (
         <section className="grid gap-3 lg:grid-cols-2">

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
+import { CheckersLoader } from "@/components/CheckersLoader";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import {
   formatTradeDate,
@@ -154,9 +155,7 @@ export default function TradesPage() {
       ) : null}
 
       {loading ? (
-        <div className="ios-empty">
-          Loading trades...
-        </div>
+        <CheckersLoader title="Loading trades..." compact className="ios-empty" />
       ) : null}
 
       {!loading && posts.length === 0 ? (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
+import { CheckersLoader } from "@/components/CheckersLoader";
 
 type ForumAuthor = {
   id: string;
@@ -204,11 +205,7 @@ export function ForumPostClient() {
   };
 
   if (loading) {
-    return (
-      <div className="ios-empty">
-        Loading post...
-      </div>
-    );
+    return <CheckersLoader title="Loading post..." compact className="ios-empty" />;
   }
 
   if (error || !post) {

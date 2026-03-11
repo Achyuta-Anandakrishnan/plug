@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
+import { CheckersLoader } from "@/components/CheckersLoader";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import { formatCurrency } from "@/lib/format";
 import {
@@ -305,7 +306,7 @@ export default function TradeDetailPage() {
   };
 
   if (loading) {
-    return <div className="ios-empty">Loading trade...</div>;
+    return <CheckersLoader title="Loading trade..." compact className="ios-empty" />;
   }
 
   if (!post) {

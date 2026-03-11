@@ -7,6 +7,7 @@ import { useAuction } from "@/hooks/useAuction";
 import type { AuctionDetail } from "@/hooks/useAuction";
 import { getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
+import { CheckersLoader } from "@/components/CheckersLoader";
 import { LiveKitStream } from "@/components/streams/LiveKitStream";
 import { ListingImageStrip } from "@/components/streams/ListingImageStrip";
 
@@ -193,7 +194,7 @@ export function StreamRoomDesktop({
   if (loading) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
-        Loading stream room...
+        <CheckersLoader title="Loading stream room..." compact />
       </div>
     );
   }
