@@ -16,7 +16,9 @@ export function LandingHero({ stream, auction, trade }: LandingHeroProps) {
         <h1 className="home-v3-headline">Live. Auctions. Trades.</h1>
         <p className="home-v3-subheadline">A modern marketplace built around how the hobby actually works.</p>
         <p className="home-v3-body">
-          Buy and sell through live shows, timed auctions, and direct collector trades - all in one platform.
+          LIVE ON DALOW
+          <br />
+          Watch, bid, and buy in real time.
         </p>
         <div className="home-v3-hero-actions">
           <Link href="/listings" className="home-v3-btn is-primary">

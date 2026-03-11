@@ -5,7 +5,6 @@ import { CheckersLoader } from "@/components/CheckersLoader";
 import { LiveFilters } from "@/components/live/LiveFilters";
 import { LiveHero } from "@/components/live/LiveHero";
 import { LiveNowRail } from "@/components/live/LiveNowRail";
-import { LiveStreamCard } from "@/components/live/LiveStreamCard";
 import { LiveValueSection } from "@/components/live/LiveValueSection";
 import { StreamerSpotlight } from "@/components/live/StreamerSpotlight";
 import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveStreamTypeFilter, LiveTimingFilter, SpotlightHost } from "@/components/live/types";
@@ -143,7 +142,6 @@ export function LiveHub() {
     [upcomingStreams, query, category, streamType, sort],
   );
 
-  const featuredStream = filteredLive[0] ?? filteredUpcoming[0] ?? null;
   const liveCategories = useMemo(() => {
     const values = new Set<string>();
     for (const stream of liveStreams) {
@@ -156,8 +154,6 @@ export function LiveHub() {
     () => buildSpotlightHosts(filteredLive, filteredUpcoming),
     [filteredLive, filteredUpcoming],
   );
-
-  const discoveryItems = timing === "live" ? filteredLive : filteredUpcoming;
 
   const onToggleReminder = (streamId: string) => {
     setReminders((prev) => {
@@ -177,13 +173,10 @@ export function LiveHub() {
   return (
     <div className="live-v3-page">
       <LiveHero
-        featured={featuredStream}
         liveCount={liveStreams.length}
         upcomingCount={upcomingStreams.length}
         activeCategories={liveCategories}
       />
-
-      <LiveNowRail streams={filteredLive.slice(0, 10)} loading={liveLoading} />
 
       <LiveFilters
         query={query}
@@ -198,40 +191,33 @@ export function LiveHub() {
         onTimingChange={setTiming}
       />
 
-      <section className="live-v3-discovery">
-        <div className="live-v3-section-head">
-          <div>
-            <p>{timing === "live" ? "Live discovery" : "Upcoming discovery"}</p>
-            <h2>{timing === "live" ? "Jump into active streams" : "Find your next stream"}</h2>
-          </div>
-        </div>
-        {loading ? (
-          <CheckersLoader title="Loading live sessions..." compact className="live-v3-empty" />
-        ) : discoveryItems.length === 0 ? (
-          <div className="live-v3-empty">No streams match these filters.</div>
-        ) : (
-          <div className="live-v3-discovery-grid">
-            {discoveryItems.slice(0, 12).map((stream) => (
-              <LiveStreamCard
-                key={`${timing}-${stream.id}`}
-                stream={stream}
-                layout="grid"
-                showScheduleAction={stream.streamState === "upcoming"}
-                reminderOn={reminders.has(stream.id)}
+      {loading ? (
+        <CheckersLoader title="Loading live sessions..." compact className="live-v3-empty" />
+      ) : (
+        <>
+          {timing === "upcoming" ? (
+            <>
+              <UpcomingStreamsSection
+                streams={filteredUpcoming}
+                reminders={reminders}
                 onToggleReminder={onToggleReminder}
               />
-            ))}
-          </div>
-        )}
-      </section>
+              <LiveNowRail streams={filteredLive.slice(0, 14)} loading={liveLoading} />
+            </>
+          ) : (
+            <>
+              <LiveNowRail streams={filteredLive.slice(0, 14)} loading={liveLoading} />
+              <UpcomingStreamsSection
+                streams={filteredUpcoming}
+                reminders={reminders}
+                onToggleReminder={onToggleReminder}
+              />
+            </>
+          )}
 
-      <UpcomingStreamsSection
-        streams={filteredUpcoming}
-        reminders={reminders}
-        onToggleReminder={onToggleReminder}
-      />
-
-      <StreamerSpotlight hosts={spotlightHosts} />
+          <StreamerSpotlight hosts={spotlightHosts} />
+        </>
+      )}
 
       <LiveValueSection />
 

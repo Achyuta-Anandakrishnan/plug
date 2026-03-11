@@ -644,18 +644,24 @@ export default function TradeDetailPage() {
         ) : (
           <div className="mt-3 space-y-3">
             {post.offers.map((offer) => {
-              const canAcceptOrDecline = post.viewer.isOwner && ["PENDING", "COUNTERED"].includes(offer.status);
-              const canCounter = post.viewer.isOwner && offer.status === "PENDING";
-              const canWithdraw = offer.proposerId === currentUserId && ["PENDING", "COUNTERED"].includes(offer.status);
+              const viewerIsProposer = offer.proposerId === currentUserId;
+              const activeOffer = ["PENDING", "COUNTERED"].includes(offer.status);
+              const canDecline = activeOffer && post.viewer.isOwner;
+              const canCounter = activeOffer
+                && (post.viewer.isOwner || viewerIsProposer)
+                && (offer.status === "PENDING" ? post.viewer.isOwner : offer.gameProposedById !== currentUserId);
+              const canWithdraw = viewerIsProposer && activeOffer;
               const counterDraft = counterDrafts[offer.id];
               const settlement = offer.settlement;
               const isSettlementPayer = settlement?.payerId === currentUserId;
               const canPaySettlement = offer.status === "ACCEPTED" && settlement && settlement.status !== "SUCCEEDED" && isSettlementPayer;
               const hasGameCounter = offer.status === "COUNTERED" && Boolean(offer.gameType && offer.gameTerms);
+              const canAccept = activeOffer
+                && !hasGameCounter
+                && (post.viewer.isOwner || (viewerIsProposer && offer.status === "COUNTERED"));
               const ownerAgreed = Boolean(offer.gameOwnerAgreedAt);
               const proposerAgreed = Boolean(offer.gameProposerAgreedAt);
               const bothAgreed = ownerAgreed && proposerAgreed;
-              const viewerIsProposer = offer.proposerId === currentUserId;
               const viewerCanAgreeTerms = hasGameCounter && (
                 (post.viewer.isOwner && !ownerAgreed)
                 || (viewerIsProposer && !proposerAgreed)
@@ -732,6 +738,11 @@ export default function TradeDetailPage() {
                           </span>
                         )}
                       </div>
+                      {offer.gameResolvedAt && offer.gameWinnerId ? (
+                        <p className="mt-2 text-xs text-emerald-700">
+                          Game settled. Winner: {offer.gameWinnerId === offer.proposerId ? "Proposer" : "Owner"}.
+                        </p>
+                      ) : null}
                     </div>
                   ) : null}
 
@@ -788,16 +799,18 @@ export default function TradeDetailPage() {
                     </div>
                   ) : null}
 
-                  {canAcceptOrDecline ? (
+                  {canAccept || canDecline ? (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => void updateOfferStatus(offer.id, { status: "ACCEPTED" })}
-                        disabled={actingOfferId === offer.id}
-                        className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
-                      >
-                        Accept
-                      </button>
+                      {canAccept ? (
+                        <button
+                          type="button"
+                          onClick={() => void updateOfferStatus(offer.id, { status: "ACCEPTED" })}
+                          disabled={actingOfferId === offer.id}
+                          className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
+                        >
+                          Accept
+                        </button>
+                      ) : null}
                       {canCounter ? (
                         <button
                           type="button"
@@ -808,14 +821,16 @@ export default function TradeDetailPage() {
                           Counter
                         </button>
                       ) : null}
-                      <button
-                        type="button"
-                        onClick={() => void updateOfferStatus(offer.id, { status: "DECLINED" })}
-                        disabled={actingOfferId === offer.id}
-                        className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-red-700 disabled:opacity-60"
-                      >
-                        Decline
-                      </button>
+                      {canDecline ? (
+                        <button
+                          type="button"
+                          onClick={() => void updateOfferStatus(offer.id, { status: "DECLINED" })}
+                          disabled={actingOfferId === offer.id}
+                          className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-red-700 disabled:opacity-60"
+                        >
+                          Decline
+                        </button>
+                      ) : null}
                     </div>
                   ) : canWithdraw ? (
                     <div className="mt-3">

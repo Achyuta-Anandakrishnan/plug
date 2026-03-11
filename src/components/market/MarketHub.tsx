@@ -203,8 +203,8 @@ export function MarketHub() {
       />
 
       <div className="market-v2-live-cta">
-        <span>Looking for live streams?</span>
-        <Link href="/live">See live streams</Link>
+        <span>Want real-time action?</span>
+        <Link href="/live">Open Live</Link>
       </div>
 
       {listingsError ? (

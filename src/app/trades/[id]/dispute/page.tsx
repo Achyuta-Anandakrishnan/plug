@@ -266,6 +266,10 @@ export default function TradeDisputeGamePage() {
   const [gateLoading, setGateLoading] = useState(true);
   const [gateError, setGateError] = useState("");
   const [activeOffer, setActiveOffer] = useState<TradeOfferItem | null>(null);
+  const [ownerId, setOwnerId] = useState("");
+  const [viewerSide, setViewerSide] = useState<Side | null>(null);
+  const [resolvingWinner, setResolvingWinner] = useState<Side | null>(null);
+  const [resolutionNotice, setResolutionNotice] = useState("");
 
   const [checkersBoard, setCheckersBoard] = useState<Board>(() => createInitialBoard());
   const [checkersTurn, setCheckersTurn] = useState<Side>("BOTTOM");
@@ -279,13 +283,50 @@ export default function TradeDisputeGamePage() {
   const [chessLegalTargets, setChessLegalTargets] = useState<Square[]>([]);
   const [chessStatus, setChessStatus] = useState("White to move.");
 
-  const [coinChoice, setCoinChoice] = useState<"HEADS" | "TAILS">("HEADS");
   const [coinResult, setCoinResult] = useState<"HEADS" | "TAILS" | null>(null);
   const [coinFlipping, setCoinFlipping] = useState(false);
 
   const [pokerTop, setPokerTop] = useState<PokerCard[]>([]);
   const [pokerBottom, setPokerBottom] = useState<PokerCard[]>([]);
   const [pokerStatus, setPokerStatus] = useState("Deal a hand to settle this trade.");
+  const gameSettled = Boolean(activeOffer?.gameResolvedAt && activeOffer?.gameWinnerId);
+
+  const userIdForSide = (side: Side) => {
+    if (!activeOffer || !ownerId) return null;
+    return side === "TOP" ? ownerId : activeOffer.proposerId;
+  };
+
+  const resolveOfferByGame = async (winnerSide: Side, source: string) => {
+    if (!offerId || !activeOffer || gameSettled || resolvingWinner) return;
+    const winnerId = userIdForSide(winnerSide);
+    if (!winnerId) {
+      setGateError("Unable to map game winner to a trade participant.");
+      return;
+    }
+
+    setResolvingWinner(winnerSide);
+    setGateError("");
+    try {
+      const response = await fetchClientApi(`/api/trades/offers/${encodeURIComponent(offerId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameAction: "RESOLVE_GAME",
+          gameWinnerId: winnerId,
+        }),
+      });
+      const payload = (await response.json()) as TradeOfferItem & { error?: string };
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to settle trade from game.");
+      }
+      setActiveOffer(payload as TradeOfferItem);
+      setResolutionNotice(`${source} settled the trade. ${winnerSide === "BOTTOM" ? "Bottom" : "Top"} side wins.`);
+    } catch (err) {
+      setGateError(normalizeClientError(err, "Unable to settle trade from game."));
+    } finally {
+      setResolvingWinner(null);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -319,6 +360,17 @@ export default function TradeDisputeGamePage() {
         if (!offer.gameOwnerAgreedAt || !offer.gameProposerAgreedAt || !offer.gameLockedAt) {
           throw new Error("Both parties must agree to game terms before starting.");
         }
+        if (offer.gameResolvedAt && offer.gameWinnerId) {
+          if (!cancelled) {
+            setOwnerId(payload.ownerId);
+            setViewerSide(payload.viewer.isOwner ? "TOP" : "BOTTOM");
+            setActiveOffer(offer);
+            setMode(offer.gameType as GameMode);
+            setResolutionNotice("This game was already settled.");
+            setGateLoading(false);
+          }
+          return;
+        }
 
         const startResponse = await fetchClientApi(`/api/trades/offers/${encodeURIComponent(offerId)}`, {
           method: "PATCH",
@@ -331,6 +383,8 @@ export default function TradeDisputeGamePage() {
         }
         const startedOffer = startPayload as TradeOfferItem;
         if (!cancelled) {
+          setOwnerId(payload.ownerId);
+          setViewerSide(payload.viewer.isOwner ? "TOP" : "BOTTOM");
           setActiveOffer(startedOffer);
           setMode(startedOffer.gameType as GameMode);
           setGateLoading(false);
@@ -362,7 +416,7 @@ export default function TradeDisputeGamePage() {
   };
 
   const selectCheckersPiece = (pos: Pos) => {
-    if (checkersWinner) return;
+    if (checkersWinner || gameSettled || resolvingWinner) return;
     const piece = checkersBoard[pos.r][pos.c];
     if (!piece || piece.side !== checkersTurn) return;
 
@@ -381,7 +435,7 @@ export default function TradeDisputeGamePage() {
   };
 
   const tryCheckersMoveTo = (to: Pos) => {
-    if (!checkersSelected || checkersWinner) return;
+    if (!checkersSelected || checkersWinner || gameSettled || resolvingWinner) return;
 
     const legal = getLegalMoves(checkersBoard, checkersSelected, mustCapture || Boolean(checkersForcedPiece));
     const move = legal.find((entry) => entry.to.r === to.r && entry.to.c === to.c);
@@ -412,6 +466,7 @@ export default function TradeDisputeGamePage() {
     if (!opponentHasPieces || !opponentHasMoves) {
       setCheckersWinner(mover);
       setCheckersStatus(`${mover === "BOTTOM" ? "Bottom" : "Top"} side wins checkers.`);
+      void resolveOfferByGame(mover, "Checkers");
       return;
     }
 
@@ -430,20 +485,13 @@ export default function TradeDisputeGamePage() {
   };
 
   const updateChessStatus = (game: Chess) => {
-    if (game.isCheckmate()) {
-      setChessStatus(`${game.turn() === "w" ? "Black" : "White"} wins by checkmate.`);
-      return;
-    }
-    if (game.isDraw()) {
-      setChessStatus("Draw.");
-      return;
-    }
     const turnLabel = game.turn() === "w" ? "White" : "Black";
     setChessStatus(game.isCheck() ? `${turnLabel} to move (check).` : `${turnLabel} to move.`);
   };
 
   const onChessSquareClick = (squareRaw: string) => {
     if (!isChessSquare(squareRaw)) return;
+    if (gameSettled || resolvingWinner) return;
     const square = squareRaw as Square;
     const piece = chess.get(square);
 
@@ -458,6 +506,16 @@ export default function TradeDisputeGamePage() {
         setChessFen(chess.fen());
         setChessSelected(null);
         setChessLegalTargets([]);
+        if (chess.isCheckmate()) {
+          const winnerSide: Side = chess.turn() === "w" ? "TOP" : "BOTTOM";
+          setChessStatus(`${winnerSide === "BOTTOM" ? "Bottom" : "Top"} side wins by checkmate.`);
+          void resolveOfferByGame(winnerSide, "Chess");
+          return;
+        }
+        if (chess.isDraw()) {
+          setChessStatus("Draw. Start a new chess game to settle.");
+          return;
+        }
         updateChessStatus(chess);
         return;
       }
@@ -482,15 +540,19 @@ export default function TradeDisputeGamePage() {
   };
 
   const flipCoin = async () => {
+    if (gameSettled) return;
     setCoinFlipping(true);
     setCoinResult(null);
     await new Promise((resolve) => setTimeout(resolve, 900));
     const result = Math.random() < 0.5 ? "HEADS" : "TAILS";
     setCoinResult(result);
+    const winnerSide: Side = result === "HEADS" ? "BOTTOM" : "TOP";
+    void resolveOfferByGame(winnerSide, "Coin flip");
     setCoinFlipping(false);
   };
 
   const dealPoker = () => {
+    if (gameSettled) return;
     const deck = shuffleDeck(buildDeck());
     const topHand = deck.slice(0, 5);
     const bottomHand = deck.slice(5, 10);
@@ -502,20 +564,24 @@ export default function TradeDisputeGamePage() {
 
     if (topScore.rank > bottomScore.rank) {
       setPokerStatus(`Top side wins with ${topScore.name}.`);
+      void resolveOfferByGame("TOP", "Poker");
       return;
     }
     if (topScore.rank < bottomScore.rank) {
       setPokerStatus(`Bottom side wins with ${bottomScore.name}.`);
+      void resolveOfferByGame("BOTTOM", "Poker");
       return;
     }
 
     const tieResult = compareTie(topScore.tie, bottomScore.tie);
     if (tieResult > 0) {
       setPokerStatus(`Top side wins with ${topScore.name}.`);
+      void resolveOfferByGame("TOP", "Poker");
       return;
     }
     if (tieResult < 0) {
       setPokerStatus(`Bottom side wins with ${bottomScore.name}.`);
+      void resolveOfferByGame("BOTTOM", "Poker");
       return;
     }
     setPokerStatus(`Split pot: both sides have ${topScore.name}.`);
@@ -561,9 +627,19 @@ export default function TradeDisputeGamePage() {
         <p className="ios-subtitle">
           Agreed game: {activeOffer?.gameType ?? "-"} · Terms locked by both parties.
         </p>
+        {viewerSide ? (
+          <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
+            You are on the {viewerSide === "BOTTOM" ? "bottom" : "top"} side.
+          </p>
+        ) : null}
         {activeOffer?.gameTerms ? (
           <div className="rounded-2xl border border-slate-200 bg-white/85 px-4 py-3 text-sm text-slate-700">
             {activeOffer.gameTerms}
+          </div>
+        ) : null}
+        {resolutionNotice ? (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {resolutionNotice}
           </div>
         ) : null}
       </section>
@@ -575,7 +651,7 @@ export default function TradeDisputeGamePage() {
               key={entry.mode}
               type="button"
               onClick={() => setMode(entry.mode)}
-              disabled={entry.mode !== activeOffer?.gameType}
+              disabled={entry.mode !== activeOffer?.gameType || Boolean(resolvingWinner)}
               className={`rounded-2xl border px-4 py-3 text-left transition ${
                 mode === entry.mode
                   ? "border-slate-900 bg-slate-900 text-white"
@@ -587,6 +663,11 @@ export default function TradeDisputeGamePage() {
             </button>
           ))}
         </div>
+        {resolvingWinner ? (
+          <p className="text-sm text-slate-600">
+            Settling trade with {resolvingWinner === "BOTTOM" ? "bottom" : "top"} side as winner...
+          </p>
+        ) : null}
       </section>
 
       {mode === "checkers" ? (
@@ -600,6 +681,7 @@ export default function TradeDisputeGamePage() {
             <button
               type="button"
               onClick={resetCheckers}
+              disabled={gameSettled || Boolean(resolvingWinner)}
               className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
             >
               Reset checkers
@@ -653,6 +735,7 @@ export default function TradeDisputeGamePage() {
             <button
               type="button"
               onClick={resetChess}
+              disabled={gameSettled || Boolean(resolvingWinner)}
               className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
             >
               Reset chess
@@ -694,30 +777,12 @@ export default function TradeDisputeGamePage() {
 
       {mode === "coin" ? (
         <section className="ios-panel p-4 sm:p-5 space-y-4">
-          <p className="text-sm text-slate-600">Pick a side and flip.</p>
+          <p className="text-sm text-slate-600">Coin rules: Heads = bottom side, tails = top side.</p>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setCoinChoice("HEADS")}
-              className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] ${
-                coinChoice === "HEADS" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-700"
-              }`}
-            >
-              Heads
-            </button>
-            <button
-              type="button"
-              onClick={() => setCoinChoice("TAILS")}
-              className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] ${
-                coinChoice === "TAILS" ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-700"
-              }`}
-            >
-              Tails
-            </button>
-            <button
-              type="button"
               onClick={() => void flipCoin()}
-              disabled={coinFlipping}
+              disabled={coinFlipping || gameSettled || Boolean(resolvingWinner)}
               className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
             >
               {coinFlipping ? "Flipping..." : "Flip coin"}
@@ -729,7 +794,7 @@ export default function TradeDisputeGamePage() {
             <p className="mt-2 font-display text-4xl text-slate-900">{coinResult ?? "-"}</p>
             {coinResult ? (
               <p className="mt-2 text-sm text-slate-600">
-                {coinResult === coinChoice ? "Your pick won." : "Your pick lost."}
+                {coinResult === "HEADS" ? "Bottom side wins." : "Top side wins."}
               </p>
             ) : null}
           </div>
@@ -743,6 +808,7 @@ export default function TradeDisputeGamePage() {
             <button
               type="button"
               onClick={dealPoker}
+              disabled={gameSettled || Boolean(resolvingWinner)}
               className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white"
             >
               Deal hand

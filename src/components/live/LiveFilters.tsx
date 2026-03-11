@@ -57,7 +57,7 @@ export function LiveFilters({
         <input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Search streams, hosts, categories..."
+          placeholder="Search streams, hosts, categories"
         />
       </div>
 

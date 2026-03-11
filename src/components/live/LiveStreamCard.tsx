@@ -4,11 +4,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { LiveStreamItem } from "@/components/live/types";
-import { streamCategory, streamHost, streamImage, streamPriceLabel, streamTimeLabel, streamType, streamTypeLabel } from "@/components/live/utils";
+import {
+  streamCategory,
+  streamHost,
+  streamImage,
+  streamPriceLabel,
+  streamTimeLabel,
+  streamType,
+  streamTypeLabel,
+} from "@/components/live/utils";
 
 type LiveStreamCardProps = {
   stream: LiveStreamItem;
-  layout: "rail" | "grid";
+  layout: "featured" | "grid" | "compact";
   showScheduleAction?: boolean;
   reminderOn?: boolean;
   onToggleReminder?: (streamId: string) => void;
@@ -33,16 +41,23 @@ export function LiveStreamCard({
   const category = streamCategory(stream);
   const typeLabel = streamTypeLabel(streamType(stream));
   const stateLabel = stream.streamState === "live" ? "Live" : "Scheduled";
+  const joinLabel = stream.streamState === "live" ? "Join stream" : "View room";
+
+  const sizes = layout === "featured"
+    ? "(max-width: 1100px) 100vw, 720px"
+    : layout === "compact"
+      ? "(max-width: 1100px) 100vw, 340px"
+      : "(max-width: 1100px) 100vw, 320px";
 
   return (
-    <article className={`live-v3-stream-card ${layout === "rail" ? "is-rail" : "is-grid"} ${stream.streamState === "live" ? "is-live" : "is-upcoming"}`}>
+    <article className={`live-v3-stream-card is-${layout} ${stream.streamState === "live" ? "is-live" : "is-upcoming"}`}>
       <Link href={`/streams/${stream.id}`} className="live-v3-stream-link">
         <div className="live-v3-stream-media">
           <Image
             src={imageSrc}
-            alt="Live stream thumbnail"
+            alt={`${stream.title} thumbnail`}
             fill
-            sizes={layout === "rail" ? "(max-width: 1024px) 80vw, 360px" : "(max-width: 1024px) 60vw, 420px"}
+            sizes={sizes}
             className="object-cover"
             unoptimized
             onError={() => {
@@ -52,9 +67,7 @@ export function LiveStreamCard({
           <div className="live-v3-stream-media-overlay" />
           <div className="live-v3-stream-top">
             <span className={`live-v3-live-pill ${stream.streamState === "live" ? "is-live" : "is-upcoming"}`}>{stateLabel}</span>
-            {stream.streamState === "live" ? (
-              <span className="live-v3-viewers-pill">{stream.watchersCount} watching</span>
-            ) : null}
+            <span className="live-v3-viewers-pill">{stream.watchersCount} watching</span>
           </div>
         </div>
 
@@ -64,11 +77,14 @@ export function LiveStreamCard({
           <div className="live-v3-stream-tags">
             <span>{category}</span>
             <span>{typeLabel}</span>
+          </div>
+          <div className="live-v3-stream-meta">
             <span>{streamPriceLabel(stream)}</span>
+            <span>{streamTimeLabel(stream)}</span>
           </div>
           <div className="live-v3-stream-foot">
-            <span>{streamTimeLabel(stream)}</span>
-            <span className="live-v3-enter-pill">{stream.streamState === "live" ? "Join stream" : "View room"}</span>
+            <span className="live-v3-stream-foot-host">{host}</span>
+            <span className="live-v3-enter-pill">{joinLabel}</span>
           </div>
         </div>
       </Link>

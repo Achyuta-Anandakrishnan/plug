@@ -17,7 +17,8 @@ type UpdateOfferBody = {
   counterMode?: "STANDARD" | "GAME";
   gameType?: string | null;
   gameTerms?: string | null;
-  gameAction?: "AGREE_TERMS" | "START_GAME";
+  gameAction?: "AGREE_TERMS" | "START_GAME" | "RESOLVE_GAME";
+  gameWinnerId?: string | null;
 };
 
 const offerInclude = {
@@ -158,6 +159,93 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     return jsonOk(updated);
   }
 
+  if (body.gameAction === "RESOLVE_GAME") {
+    if (offer.status !== "COUNTERED") {
+      return jsonError("Game settlements can only resolve countered offers.", 409);
+    }
+    if (!offer.gameType || !offer.gameTerms) {
+      return jsonError("This offer does not have game terms.", 409);
+    }
+    if (!offer.gameOwnerAgreedAt || !offer.gameProposerAgreedAt || !offer.gameLockedAt) {
+      return jsonError("Both parties must agree to game terms before settlement.", 409);
+    }
+    if (!offer.gameStartedAt) {
+      return jsonError("Start the game session before resolving the result.", 409);
+    }
+    if (offer.gameResolvedAt || offer.gameWinnerId) {
+      return jsonError("This game has already been resolved.", 409);
+    }
+
+    const winnerId = typeof body.gameWinnerId === "string" ? body.gameWinnerId.trim() : "";
+    if (!winnerId) {
+      return jsonError("Winner is required to resolve game settlement.");
+    }
+    if (winnerId !== offer.post.ownerId && winnerId !== offer.proposerId) {
+      return jsonError("Winner must be one of the two trade participants.", 409);
+    }
+
+    const resolvedAt = new Date();
+    const accepted = await prisma.$transaction(async (tx) => {
+      const cashAmount = offer.cashAdjustment ?? 0;
+      const amount = Math.abs(cashAmount);
+      const payerId = cashAmount >= 0 ? offer.proposerId : offer.post.ownerId;
+      const payeeId = cashAmount >= 0 ? offer.post.ownerId : offer.proposerId;
+
+      await tx.tradeOffer.updateMany({
+        where: {
+          postId: offer.postId,
+          id: { not: offer.id },
+          status: { in: ["PENDING", "COUNTERED"] },
+        },
+        data: { status: "DECLINED" },
+      });
+
+      await tx.tradePost.update({
+        where: { id: offer.postId },
+        data: { status: "MATCHED" },
+      });
+
+      return tx.tradeOffer.update({
+        where: { id: offer.id },
+        data: {
+          status: "ACCEPTED",
+          gameWinnerId: winnerId,
+          gameResolvedAt: resolvedAt,
+          gameStartedAt: offer.gameStartedAt ?? resolvedAt,
+          settlement: amount > 0
+            ? {
+                upsert: {
+                  create: {
+                    payerId,
+                    payeeId,
+                    amount,
+                    currency: "usd",
+                    status: "REQUIRES_PAYMENT",
+                  },
+                  update: {
+                    payerId,
+                    payeeId,
+                    amount,
+                    currency: "usd",
+                    status: offer.settlement?.status === "SUCCEEDED"
+                      ? "SUCCEEDED"
+                      : "REQUIRES_PAYMENT",
+                  },
+                },
+              }
+            : offer.settlement
+              ? {
+                  delete: true,
+                }
+              : undefined,
+        },
+        include: offerInclude,
+      });
+    });
+
+    return jsonOk(accepted);
+  }
+
   const nextStatus = body.status as NonNullable<UpdateOfferBody["status"]>;
 
   if (nextStatus === "WITHDRAWN") {
@@ -184,6 +272,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   if (nextStatus === "ACCEPTED") {
+    if (offer.gameType && offer.gameTerms) {
+      return jsonError("This counter uses game settlement. Resolve the game result first.", 409);
+    }
     const proposerCanAcceptCounter = offer.status === "COUNTERED" && isProposer;
     if (!isOwner && !proposerCanAcceptCounter) {
       return jsonError("Only the trade owner can accept this offer.", 403);
@@ -251,11 +342,14 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   if (nextStatus === "COUNTERED") {
-    if (!isOwner) {
-      return jsonError("Only the trade owner can update offer state.", 403);
+    if (!["PENDING", "COUNTERED"].includes(offer.status)) {
+      return jsonError("Only active offers can be countered.", 409);
     }
-    if (offer.status !== "PENDING") {
-      return jsonError("Counter offers can only be sent once per offer.", 409);
+    if (offer.status === "PENDING" && !isOwner) {
+      return jsonError("Only the trade owner can send the first counter.", 403);
+    }
+    if (offer.status === "COUNTERED" && offer.gameProposedById === sessionUser.id) {
+      return jsonError("Wait for the other party response before countering again.", 409);
     }
 
     const nextCashAdjustment = body.cashAdjustment !== undefined
@@ -292,9 +386,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         gameType: counterMode === "GAME" ? normalizedGameType : null,
         gameTerms: counterMode === "GAME" ? normalizedGameTerms : null,
         gameTermsVersion: counterMode === "GAME" ? ((offer.gameTermsVersion ?? 0) + 1) : null,
-        gameProposedById: counterMode === "GAME" ? sessionUser.id : null,
-        gameOwnerAgreedAt: counterMode === "GAME" ? now : null,
-        gameProposerAgreedAt: null,
+        gameProposedById: sessionUser.id,
+        gameOwnerAgreedAt: counterMode === "GAME" ? (isOwner ? now : null) : null,
+        gameProposerAgreedAt: counterMode === "GAME" ? (isProposer ? now : null) : null,
         gameLockedAt: null,
         gameStartedAt: null,
         gameResolvedAt: null,

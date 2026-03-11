@@ -1,23 +1,15 @@
 const LIVE_VALUE_POINTS = [
   {
     title: "Real-time bidding and discovery",
-    detail: "Collectors see inventory move in the moment, not hours later.",
+    detail: "Inventory moves in the moment, not hours later.",
   },
   {
     title: "Faster collectible sales",
-    detail: "Live energy compresses time-to-sale for high-demand items.",
+    detail: "Live energy compresses time-to-sale for high-demand cards.",
   },
   {
     title: "Direct buyer-seller interaction",
-    detail: "Hosts answer questions instantly and convert without friction.",
-  },
-  {
-    title: "Community momentum",
-    detail: "Chat, bids, and stream presence make the hobby feel alive.",
-  },
-  {
-    title: "Collector-native format",
-    detail: "Built around live breaks, auctions, and trusted stream hosts.",
+    detail: "Hosts answer in real time and close with less friction.",
   },
 ];
 
@@ -26,8 +18,8 @@ export function LiveValueSection() {
     <section className="live-v3-value">
       <div className="live-v3-section-head">
         <div>
-          <p>Why live works on dalow</p>
-          <h2>Built for high-energy hobby commerce.</h2>
+          <p>Why collect live on dalow</p>
+          <h2>Purpose-built for hobby momentum</h2>
         </div>
       </div>
       <div className="live-v3-value-grid">

@@ -8,6 +8,8 @@ type UpcomingStreamsSectionProps = {
 };
 
 export function UpcomingStreamsSection({ streams, reminders, onToggleReminder }: UpcomingStreamsSectionProps) {
+  const visibleStreams = streams.slice(0, 8);
+
   return (
     <section id="upcoming" className="live-v3-upcoming">
       <div className="live-v3-section-head">
@@ -15,13 +17,16 @@ export function UpcomingStreamsSection({ streams, reminders, onToggleReminder }:
           <p>Upcoming streams</p>
           <h2>Plan your next session</h2>
         </div>
+        <p className="live-v3-section-copy">Follow hosts and set reminders for scheduled drops.</p>
       </div>
 
-      {streams.length === 0 ? (
-        <div className="live-v3-empty">No upcoming streams scheduled yet.</div>
+      {visibleStreams.length === 0 ? (
+        <div className="live-v3-empty">
+          No upcoming streams scheduled yet. Follow hosts or create a live session to get started.
+        </div>
       ) : (
         <div className="live-v3-upcoming-grid">
-          {streams.slice(0, 8).map((stream) => (
+          {visibleStreams.map((stream) => (
             <LiveStreamCard
               key={stream.id}
               stream={stream}

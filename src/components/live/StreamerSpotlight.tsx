@@ -11,8 +11,9 @@ export function StreamerSpotlight({ hosts }: StreamerSpotlightProps) {
       <div className="live-v3-section-head">
         <div>
           <p>Hosts to watch</p>
-          <h2>Trending streamers</h2>
+          <h2>Streamers driving the market</h2>
         </div>
+        <p className="live-v3-section-copy">Discover reliable sellers and follow their upcoming shows.</p>
       </div>
 
       {hosts.length === 0 ? (
