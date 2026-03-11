@@ -55,6 +55,8 @@ export function MarketHub() {
       { id: "pokemon", label: "Pokemon", slug: "pokemon" },
       { id: "sports", label: "Sports", slug: "sports" },
       { id: "funko", label: "Funko", slug: "funko" },
+      { id: "tcg", label: "TCG", slug: "tcg" },
+      { id: "vintage", label: "Vintage", slug: "vintage" },
     ];
     const seen = new Set(base.map((entry) => entry.slug).filter(Boolean));
     const extras = categories

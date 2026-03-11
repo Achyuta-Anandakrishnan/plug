@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -8,11 +7,6 @@ import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { isPrimaryAdminEmail } from "@/lib/admin-email";
-
-const ThemeToggle = dynamic(
-  () => import("@/components/ThemeToggle").then((mod) => mod.ThemeToggle),
-  { ssr: false },
-);
 
 function Brand() {
   return (
@@ -29,39 +23,35 @@ function Brand() {
   );
 }
 
-function BellIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-4 w-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M15 17h5l-1.4-1.4a2 2 0 0 1-.6-1.4V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
-      <path d="M9.5 19a2.5 2.5 0 0 0 5 0" />
-    </svg>
-  );
-}
+function UserMenu({ signedIn }: { signedIn: boolean }) {
+  if (!signedIn) {
+    return (
+      <Link
+        href="/signin"
+        className="rounded-full border border-slate-200 bg-white/90 px-3.5 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-300 sm:px-4 sm:py-2 sm:text-sm"
+      >
+        Sign in
+      </Link>
+    );
+  }
 
-function AccountActions({ signedIn }: { signedIn: boolean }) {
-  return signedIn ? (
-    <button
-      onClick={() => signOut()}
-      className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 sm:px-4 sm:py-2 sm:text-sm"
-    >
-      Sign out
-    </button>
-  ) : (
-    <Link
-      href="/signin"
-      className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 sm:px-4 sm:py-2 sm:text-sm"
-    >
-      Sign in
-    </Link>
+  return (
+    <details className="site-user-menu relative">
+      <summary className="cursor-pointer list-none rounded-full border border-slate-200 bg-white/90 px-3.5 py-1.5 text-xs font-medium text-slate-700 transition hover:border-slate-300 sm:px-4 sm:py-2 sm:text-sm">
+        Account
+      </summary>
+      <div className="absolute right-0 mt-2 grid min-w-[170px] gap-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-lg shadow-black/10">
+        <Link href="/settings" className="rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100">
+          Settings
+        </Link>
+        <button
+          onClick={() => signOut()}
+          className="rounded-xl px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100"
+        >
+          Sign out
+        </button>
+      </div>
+    </details>
   );
 }
 
@@ -83,7 +73,6 @@ export function SiteHeader() {
       { label: "Trades", href: "/trades" },
       { label: "Forum", href: "/forum" },
       { label: "Messages", href: "/messages" },
-      { label: "Settings", href: "/settings" },
     ],
     [],
   );
@@ -123,9 +112,6 @@ export function SiteHeader() {
                   Close
                 </button>
               </div>
-              <div className="mb-5">
-                <ThemeToggle />
-              </div>
               <nav className="grid gap-3 text-lg font-semibold text-slate-800">
                 {navItems.map((item) => (
                   <Link
@@ -152,13 +138,31 @@ export function SiteHeader() {
                 )}
               </nav>
               <div className="mt-auto grid gap-3 pt-6">
-                <AccountActions signedIn={Boolean(session?.user?.id)} />
+                {session?.user?.id ? (
+                  <button
+                    onClick={() => {
+                      void signOut();
+                      setMobileOpen(false);
+                    }}
+                    className="rounded-full border border-slate-200 px-4 py-3 text-center text-base font-medium text-slate-700"
+                  >
+                    Sign out
+                  </button>
+                ) : (
+                  <Link
+                    href="/signin"
+                    onClick={() => setMobileOpen(false)}
+                    className="rounded-full border border-slate-200 px-4 py-3 text-center text-base font-medium text-slate-700"
+                  >
+                    Sign in
+                  </Link>
+                )}
                 <Link
                   href={isVerifiedSeller ? "/sell" : "/seller/verification"}
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-full bg-[var(--royal)] px-4 py-3.5 text-center text-base font-semibold text-white"
+                  className="rounded-full bg-[var(--royal)] px-4 py-3.5 text-center text-base font-medium text-white"
                 >
-                  {isVerifiedSeller ? "Create listing" : "Get verified"}
+                  Create listing
                 </Link>
               </div>
             </div>
@@ -184,7 +188,7 @@ export function SiteHeader() {
             <Brand />
           </div>
 
-          <nav className="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex lg:gap-6">
+          <nav className="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -204,28 +208,14 @@ export function SiteHeader() {
             )}
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
-
-            <div className="hidden md:flex md:items-center md:gap-3">
-              <Link
-                href="/messages"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-                aria-label="Messages"
-                title="Messages"
-              >
-                <BellIcon />
-              </Link>
-              <AccountActions signedIn={Boolean(session?.user?.id)} />
-              <Link
-                href={isVerifiedSeller ? "/sell" : "/seller/verification"}
-                className="rounded-full bg-[var(--royal)] px-3.5 py-1.5 text-xs font-semibold text-white shadow-lg shadow-black/35 transition hover:bg-[var(--royal-deep)] sm:px-5 sm:py-2 sm:text-sm"
-              >
-                {isVerifiedSeller ? "Create listing" : "Get verified"}
-              </Link>
-            </div>
+          <div className="hidden items-center gap-3 md:flex">
+            <Link
+              href={isVerifiedSeller ? "/sell" : "/seller/verification"}
+              className="rounded-full bg-[var(--royal)] px-4 py-2 text-sm font-medium text-white shadow-lg shadow-black/25 transition hover:bg-[var(--royal-deep)]"
+            >
+              Create listing
+            </Link>
+            <UserMenu signedIn={Boolean(session?.user?.id)} />
           </div>
         </div>
       </header>

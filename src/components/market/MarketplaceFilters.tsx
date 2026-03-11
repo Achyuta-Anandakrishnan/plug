@@ -7,7 +7,7 @@ export const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
   { value: "ending", label: "Ending Soon" },
   { value: "price-low", label: "Price Low to High" },
   { value: "price-high", label: "Price High to Low" },
-  { value: "popular", label: "Most Popular" },
+  { value: "popular", label: "Most Watched" },
 ];
 
 type MarketplaceFiltersProps = {

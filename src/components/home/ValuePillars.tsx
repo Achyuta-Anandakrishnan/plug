@@ -2,27 +2,23 @@ type Pillar = {
   id: "live" | "auctions" | "trades";
   title: string;
   description: string;
-  bullets: string[];
 };
 
 const PILLARS: Pillar[] = [
   {
     id: "live",
     title: "Live",
-    description: "Run real-time shows, move inventory faster, and engage buyers in the room.",
-    bullets: ["Live breaks and streams", "Seller chat and engagement", "Real-time buyer activity"],
+    description: "Run real-time shows and move inventory fast.",
   },
   {
     id: "auctions",
     title: "Auctions",
-    description: "List high-demand inventory and let urgency drive authentic price discovery.",
-    bullets: ["Timed bidding flow", "Ending-soon momentum", "Premium auction experience"],
+    description: "Timed bidding that drives real price discovery.",
   },
   {
     id: "trades",
     title: "Trades",
-    description: "Match collectors, negotiate item-for-item deals, and keep the hobby social.",
-    bullets: ["Collector-to-collector offers", "Counter and settle workflows", "Value-based trade matching"],
+    description: "Collector-to-collector negotiation.",
   },
 ];
 
@@ -63,11 +59,6 @@ export function ValuePillars() {
             </div>
             <h3>{pillar.title}</h3>
             <p>{pillar.description}</p>
-            <ul>
-              {pillar.bullets.map((bullet) => (
-                <li key={bullet}>{bullet}</li>
-              ))}
-            </ul>
           </article>
         ))}
       </div>

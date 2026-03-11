@@ -17,7 +17,7 @@ export function MarketplaceSearch({ value, onChange }: MarketplaceSearchProps) {
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="Search cards, sets, players, certs"
+        placeholder="Search cards, sets, players, cert numbers"
         className="market-v2-search-input"
       />
     </label>

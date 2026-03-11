@@ -19,7 +19,6 @@ export function ListingCard({ listing, density, buyLoading, onBuyNow }: ListingC
   const [watching, setWatching] = useState(false);
   const currency = listing.currency?.toUpperCase() || "USD";
   const grade = getGradeLabel(listing.item?.attributes);
-  const seller = listing.seller?.user?.displayName ?? "Seller";
   const fallbackImage = "/placeholders/pokemon-generic.svg";
   const image = useMemo(
     () => resolveDisplayMediaUrl(getPrimaryImageUrl(listing), fallbackImage),
@@ -29,6 +28,13 @@ export function ListingCard({ listing, density, buyLoading, onBuyNow }: ListingC
   const price = listing.listingType === "AUCTION"
     ? formatCurrency(listing.currentBid, currency)
     : formatCurrency(listing.buyNowPrice ?? listing.currentBid, currency);
+  const badgeLabel = listing.listingType === "BOTH"
+    ? "Auction / Buy"
+    : listing.listingType.replace("_", " ");
+  const metadata = grade || "Grading details pending";
+  const timeMeta = listing.listingType === "BUY_NOW"
+    ? "Buy now"
+    : formatSeconds(getTimeLeftSeconds(listing));
 
   const densityClass = density === "compact" ? "is-compact" : "is-comfy";
 
@@ -38,15 +44,6 @@ export function ListingCard({ listing, density, buyLoading, onBuyNow }: ListingC
 
   return (
     <article className={`market-v2-listing-card ${densityClass}`}>
-      <button
-        type="button"
-        onClick={() => setWatching((prev) => !prev)}
-        className={`market-v2-watch-btn ${watching ? "is-active" : ""}`}
-        aria-label={watching ? "Remove from watchlist" : "Add to watchlist"}
-      >
-        {watching ? "♥" : "♡"}
-      </button>
-
       <Link href={`/auctions/${listing.id}`} className="market-v2-listing-link">
         <div className="market-v2-listing-media">
           <Image
@@ -66,30 +63,28 @@ export function ListingCard({ listing, density, buyLoading, onBuyNow }: ListingC
 
         <div className="market-v2-listing-body">
           <div className="market-v2-listing-topline">
-            <span className="market-v2-listing-type">
-              {listing.listingType === "BOTH" ? "Auction + Buy" : listing.listingType.replace("_", " ")}
-            </span>
+            <span className="market-v2-listing-badge">{badgeLabel}</span>
             {listing.category?.name ? <span className="market-v2-listing-cat">{listing.category.name}</span> : null}
           </div>
 
           <h3 className="market-v2-listing-title">{listing.title}</h3>
-
-          <div className="market-v2-listing-meta">
-            <span>{seller}</span>
-            {grade ? <span>{grade}</span> : null}
-          </div>
-
-          <div className="market-v2-listing-footer">
-            <div>
-              <p className="market-v2-listing-price">{price}</p>
-              {listing.listingType !== "BUY_NOW" ? (
-                <p className="market-v2-listing-time">{formatSeconds(getTimeLeftSeconds(listing))}</p>
-              ) : null}
-            </div>
-            <span className="market-v2-listing-watchers">{listing.watchersCount} watching</span>
-          </div>
+          <p className="market-v2-listing-meta">{metadata}</p>
+          <p className="market-v2-listing-price">{price}</p>
         </div>
       </Link>
+
+      <div className="market-v2-listing-footer-row">
+        <span className="market-v2-listing-time">{timeMeta}</span>
+        <span className="market-v2-listing-watchers">{listing.watchersCount} watching</span>
+        <button
+          type="button"
+          onClick={() => setWatching((prev) => !prev)}
+          className={`market-v2-watch-btn ${watching ? "is-active" : ""}`}
+          aria-label={watching ? "Remove from watchlist" : "Add to watchlist"}
+        >
+          {watching ? "♥" : "♡"}
+        </button>
+      </div>
 
       {listing.listingType !== "AUCTION" && listing.buyNowPrice ? (
         <button
