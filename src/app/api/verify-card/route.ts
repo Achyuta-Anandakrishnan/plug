@@ -51,6 +51,11 @@ type PsaCertApiResponse = {
   } | null;
 };
 
+type PsaCertImageResponseItem = {
+  IsFrontImage?: boolean;
+  ImageURL?: string | null;
+};
+
 function asText(value: unknown) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -207,78 +212,40 @@ function emptyCard(grader: string, certNumber: string, note: string, source: Nor
   });
 }
 
-async function fetchWithTimeout(url: string, timeoutMs = 7000, init?: RequestInit) {
+async function fetchPsaCertImages(certNumber: string, token: string): Promise<string[]> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const timer = setTimeout(() => controller.abort(), 8000);
   try {
-    const response = await fetch(url, {
-      ...init,
-      signal: controller.signal,
-      headers: {
-        "user-agent": "Mozilla/5.0 (compatible; DalowVerifyCard/1.0)",
-        ...(init?.headers ?? {}),
+    const response = await fetch(
+      `https://api.psacard.com/publicapi/cert/GetImagesByCertNumber/${encodeURIComponent(certNumber)}`,
+      {
+        signal: controller.signal,
+        headers: {
+          accept: "application/json",
+          authorization: `bearer ${token}`,
+          "user-agent": "DalowVerifyCard/1.0",
+        },
+        cache: "no-store",
       },
-      cache: "no-store",
-    });
-    const text = await response.text();
-    return { response, text };
+    );
+
+    if (!response.ok) return [];
+    const payload = (await response.json()) as PsaCertImageResponseItem[] | null;
+    if (!Array.isArray(payload) || payload.length === 0) return [];
+
+    const front = payload.find((entry) => entry.IsFrontImage)?.ImageURL ?? null;
+    const back = payload.find((entry) => entry.IsFrontImage === false)?.ImageURL ?? null;
+    const ordered = [
+      front,
+      back,
+      ...payload.map((entry) => entry.ImageURL ?? null),
+    ];
+    return uniqueImageUrls(ordered);
   } catch {
-    return null;
+    return [];
   } finally {
     clearTimeout(timer);
   }
-}
-
-function isChallengeResponse(status: number, body: string, headers: Headers) {
-  if (headers.get("cf-mitigated") === "challenge") return true;
-  if (status === 403 && /just a moment/i.test(body)) return true;
-  return false;
-}
-
-async function fetchViaScrapingBee(url: string) {
-  const apiKey = process.env.SCRAPINGBEE_API_KEY?.trim();
-  if (!apiKey) return null;
-
-  const target = new URL("https://app.scrapingbee.com/api/v1/");
-  target.searchParams.set("api_key", apiKey);
-  target.searchParams.set("url", url);
-  target.searchParams.set("render_js", "false");
-  target.searchParams.set("premium_proxy", "true");
-  target.searchParams.set("country_code", "us");
-
-  const result = await fetchWithTimeout(target.toString(), 20000, {
-    headers: { accept: "text/html,application/xhtml+xml" },
-  });
-
-  if (!result || !result.response.ok) return null;
-  return result.text;
-}
-
-function extractPsaImageCandidates(html: string, certNumber: string) {
-  const certPath = `/cert/${encodeURIComponent(certNumber)}/`;
-  const imageMatches = html.match(/https?:\/\/[^"\s>]+\.(?:jpg|jpeg|png|webp)/ig) ?? [];
-
-  const certScoped = imageMatches.filter((entry) => entry.includes(certPath));
-  const fallbackScoped = imageMatches.filter((entry) => !/meta\.jpg/i.test(entry));
-  return uniqueImageUrls(certScoped.length > 0 ? certScoped : fallbackScoped);
-}
-
-async function fetchPsaCertImages(certNumber: string): Promise<string[]> {
-  const certUrl = `https://www.psacard.com/cert/${encodeURIComponent(certNumber)}`;
-  const direct = await fetchWithTimeout(certUrl, 7000);
-
-  if (direct?.response.ok) {
-    const urls = extractPsaImageCandidates(direct.text, certNumber);
-    if (urls.length > 0) return urls;
-  }
-
-  if (direct && !isChallengeResponse(direct.response.status, direct.text, direct.response.headers)) {
-    return [];
-  }
-
-  const proxiedHtml = await fetchViaScrapingBee(certUrl);
-  if (!proxiedHtml) return [];
-  return extractPsaImageCandidates(proxiedHtml, certNumber);
 }
 
 async function lookupViaPsaApi(certNumber: string): Promise<NormalizedCard> {
@@ -333,7 +300,7 @@ async function lookupViaPsaApi(certNumber: string): Promise<NormalizedCard> {
     const variety = asText(card.Variety);
     const grade = asText(card.CardGrade) ?? asText(card.GradeDescription);
     const label = normalizePsaLabel(asText(card.LabelType));
-    const imageUrls = grade ? await fetchPsaCertImages(certNumber) : [];
+    const imageUrls = grade ? await fetchPsaCertImages(certNumber, token) : [];
 
     return normalizeCard({
       found: Boolean(grade),
