@@ -6,6 +6,7 @@ import { isAdminEmail } from "@/lib/admin";
 
 type StreamSessionBody = {
   auctionId?: string;
+  scheduleAt?: string;
 };
 
 export async function POST(request: Request) {
@@ -19,17 +20,27 @@ export async function POST(request: Request) {
   }
 
   const body = await parseJson<StreamSessionBody>(request);
-  if (!body?.auctionId) {
-    return jsonError("auctionId is required.");
-  }
-
-  const auction = await prisma.auction.findUnique({
-    where: { id: body.auctionId },
-    include: { seller: true },
-  });
+  const requestedAuctionId = body?.auctionId?.trim();
+  let auction = requestedAuctionId
+    ? await prisma.auction.findUnique({
+      where: { id: requestedAuctionId },
+      include: { seller: true },
+    })
+    : null;
 
   if (!auction) {
-    return jsonError("Auction not found.", 404);
+    auction = await prisma.auction.findFirst({
+      where: {
+        seller: { userId: sessionUser.id },
+        status: { in: ["LIVE", "SCHEDULED", "DRAFT"] },
+      },
+      include: { seller: true },
+      orderBy: { updatedAt: "desc" },
+    });
+  }
+
+  if (!auction) {
+    return jsonError("No eligible listing found. Create a listing first.", 404);
   }
 
   if (
@@ -42,8 +53,24 @@ export async function POST(request: Request) {
     return jsonError("Seller verification pending approval.", 403);
   }
 
+  let scheduledStart: Date | null = null;
+  if (body?.scheduleAt) {
+    const parsedScheduleAt = new Date(body.scheduleAt);
+    if (Number.isNaN(parsedScheduleAt.valueOf())) {
+      return jsonError("Invalid scheduleAt.");
+    }
+    if (parsedScheduleAt <= new Date()) {
+      return jsonError("scheduleAt must be in the future.");
+    }
+    scheduledStart = parsedScheduleAt;
+  }
+
   let session = await prisma.streamSession.findFirst({
-    where: { auctionId: auction.id, provider: "LIVEKIT" },
+    where: {
+      auctionId: auction.id,
+      provider: "LIVEKIT",
+      status: { in: ["CREATED", "LIVE"] },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -56,6 +83,16 @@ export async function POST(request: Request) {
         provider: "LIVEKIT",
         status: "CREATED",
         roomName,
+      },
+    });
+  }
+
+  if (scheduledStart) {
+    await prisma.auction.update({
+      where: { id: auction.id },
+      data: {
+        status: "SCHEDULED",
+        startTime: scheduledStart,
       },
     });
   }
@@ -99,7 +136,11 @@ export async function PATCH(request: Request) {
   }
 
   const session = await prisma.streamSession.findFirst({
-    where: { auctionId: auction.id, provider: "LIVEKIT" },
+    where: {
+      auctionId: auction.id,
+      provider: "LIVEKIT",
+      status: { in: ["CREATED", "LIVE"] },
+    },
     orderBy: { createdAt: "desc" },
   });
 

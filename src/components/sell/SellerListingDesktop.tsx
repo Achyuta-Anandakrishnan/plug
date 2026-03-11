@@ -20,7 +20,6 @@ const listingTypes = [
   { label: "Auction", value: "AUCTION" },
   { label: "Buy Now", value: "BUY_NOW" },
   { label: "Buy Now + Auction", value: "BOTH" },
-  { label: "Live Stream", value: "LIVE_STREAM" },
 ] as const;
 
 function toCents(value: string) {
@@ -46,7 +45,7 @@ export function SellerListingDesktop() {
   const [condition, setCondition] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [listingType, setListingType] = useState<
-    "AUCTION" | "BUY_NOW" | "BOTH" | "LIVE_STREAM"
+    "AUCTION" | "BUY_NOW" | "BOTH"
   >("AUCTION");
   const [startingBid, setStartingBid] = useState("100");
   const [buyNowPrice, setBuyNowPrice] = useState("250");
@@ -54,7 +53,7 @@ export function SellerListingDesktop() {
   const [endTime, setEndTime] = useState(
     () => toDateTimeLocalInputValue(nextThursdayNinePmEst()),
   );
-  const [publishNow, setPublishNow] = useState(true);
+  const [publishNow, setPublishNow] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [isGraded, setIsGraded] = useState<"YES" | "NO">("NO");
   const [gradingCompany, setGradingCompany] = useState("PSA");
@@ -90,10 +89,8 @@ export function SellerListingDesktop() {
     () => getGradeOptions(gradingCompany),
     [gradingCompany],
   );
-  const isLiveStreamMode = listingType === "LIVE_STREAM";
-  const effectiveListingType = isLiveStreamMode ? "AUCTION" : listingType;
-  const needsAuctionPricing = effectiveListingType !== "BUY_NOW";
-  const needsBuyNowPricing = effectiveListingType !== "AUCTION";
+  const needsAuctionPricing = listingType !== "BUY_NOW";
+  const needsBuyNowPricing = listingType !== "AUCTION";
   const inputClass =
     "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
   const labelClass = "text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400";
@@ -145,7 +142,7 @@ export function SellerListingDesktop() {
     setMessage("");
 
     const payload = {
-      listingType: effectiveListingType,
+      listingType,
       title,
       description,
       startingBid: needsAuctionPricing ? toCents(startingBid) : undefined,
@@ -155,7 +152,7 @@ export function SellerListingDesktop() {
           ? toCents(minBidIncrement)
           : undefined,
       endTime: endTime ? new Date(endTime).toISOString() : undefined,
-      publishNow: isLiveStreamMode ? true : publishNow,
+      publishNow,
       currency: "usd",
       categoryId: categoryId || undefined,
       item: {
@@ -260,10 +257,10 @@ export function SellerListingDesktop() {
       <section className="space-y-6 md:hidden">
         <div className="space-y-6">
           <h1 className="font-display text-3xl text-slate-900 sm:text-4xl">
-            Create a live listing.
+            Create listing
           </h1>
           <p className="text-sm leading-relaxed text-slate-600">
-            List as auction, buy now, both, or live stream.
+            Auction, buy now, or both.
           </p>
           <div className="flex flex-wrap gap-3">
           </div>
@@ -276,7 +273,7 @@ export function SellerListingDesktop() {
               <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
                 {session?.user?.id
                   ? "Your account is not a seller yet. Submit seller verification for manual review."
-                  : "Sign in to publish live listings."}
+                  : "Sign in to publish listings."}
               </div>
               {!session?.user?.id && (
                 <button
@@ -290,12 +287,12 @@ export function SellerListingDesktop() {
           )}
           {listingId && (
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              Listing live.{" "}
+              Listing created.{" "}
               <Link
                 href={`/streams/${listingId}`}
                 className="font-semibold underline"
               >
-                Open stream room
+                Open listing
               </Link>
             </div>
           )}
@@ -567,19 +564,16 @@ export function SellerListingDesktop() {
                 className={inputClass}
               />
               <p className="text-[11px] text-slate-500">
-                Default auction end: Thursday 9:00 PM EST. Live streams can set custom duration.
+                Default auction end: Thursday 9:00 PM EST.
               </p>
             </div>
             <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-xs text-slate-600">
               <input
                 type="checkbox"
-                checked={isLiveStreamMode ? true : publishNow}
+                checked={publishNow}
                 onChange={(event) => setPublishNow(event.target.checked)}
-                disabled={isLiveStreamMode}
               />
-              {isLiveStreamMode
-                ? "Live stream listings publish immediately"
-                : "Publish immediately (otherwise stays draft)"}
+              Publish immediately (otherwise stays draft)
             </label>
             <button
               type="button"

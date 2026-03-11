@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AuctionCard } from "@/components/AuctionCard";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import { useAuctions } from "@/hooks/useAuctions";
@@ -26,10 +26,26 @@ export function StreamsDesktop() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const { data: auctions, loading, error } = useAuctions({
     status: "LIVE",
+    view: "streams",
   });
   const { data: scheduled } = useAuctions({
     status: "SCHEDULED",
+    view: "streams",
   });
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const scheduledFuture = useMemo(
+    () =>
+      scheduled.filter(
+        (entry) => entry.startTime && new Date(entry.startTime).getTime() > nowMs,
+      ),
+    [scheduled, nowMs],
+  );
 
   const filteredStreams = useMemo(() => {
     let list = [...auctions];
@@ -88,11 +104,11 @@ export function StreamsDesktop() {
         </div>
       </section>
 
-      {scheduled.length > 0 && (
+      {scheduledFuture.length > 0 && (
         <section className="ios-panel p-4">
           <h2 className="ios-section-title">Scheduled</h2>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {scheduled.slice(0, 8).map((entry) => (
+            {scheduledFuture.slice(0, 8).map((entry) => (
               <div key={entry.id} className="ios-panel-muted rounded-[18px] px-3 py-2">
                 <p className="text-sm font-semibold text-slate-900">{entry.title}</p>
                 <p className="text-xs text-slate-500">{formatStart(entry.startTime)}</p>

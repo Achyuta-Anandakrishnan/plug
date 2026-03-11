@@ -42,7 +42,7 @@ export function SellerListingMobile() {
   const [condition, setCondition] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [listingType, setListingType] = useState<
-    "AUCTION" | "BUY_NOW" | "BOTH" | "LIVE_STREAM"
+    "AUCTION" | "BUY_NOW" | "BOTH"
   >("AUCTION");
   const [startingBid, setStartingBid] = useState("100");
   const [buyNowPrice, setBuyNowPrice] = useState("250");
@@ -50,7 +50,7 @@ export function SellerListingMobile() {
   const [endTime, setEndTime] = useState(
     () => toDateTimeLocalInputValue(nextThursdayNinePmEst()),
   );
-  const [publishNow, setPublishNow] = useState(true);
+  const [publishNow, setPublishNow] = useState(false);
   const [isGraded, setIsGraded] = useState<"YES" | "NO">("NO");
   const [gradingCompany, setGradingCompany] = useState("PSA");
   const [grade, setGrade] = useState("");
@@ -85,10 +85,8 @@ export function SellerListingMobile() {
     () => getGradeOptions(gradingCompany),
     [gradingCompany],
   );
-  const isLiveStreamMode = listingType === "LIVE_STREAM";
-  const effectiveListingType = isLiveStreamMode ? "AUCTION" : listingType;
-  const needsAuctionPricing = effectiveListingType !== "BUY_NOW";
-  const needsBuyNowPricing = effectiveListingType !== "AUCTION";
+  const needsAuctionPricing = listingType !== "BUY_NOW";
+  const needsBuyNowPricing = listingType !== "AUCTION";
   const inputClass =
     "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
   const labelClass = "text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400";
@@ -139,7 +137,7 @@ export function SellerListingMobile() {
     setMessage("");
 
     const payload = {
-      listingType: effectiveListingType,
+      listingType,
       title,
       description,
       startingBid: needsAuctionPricing ? toCents(startingBid) : undefined,
@@ -149,7 +147,7 @@ export function SellerListingMobile() {
           ? toCents(minBidIncrement)
           : undefined,
       endTime: endTime ? new Date(endTime).toISOString() : undefined,
-      publishNow: isLiveStreamMode ? true : publishNow,
+      publishNow,
       currency: "usd",
       categoryId: categoryId || undefined,
       item: {
@@ -432,11 +430,11 @@ export function SellerListingMobile() {
       {stepIndex === 1 && (
         <section className="surface-panel rounded-3xl p-4 space-y-4">
           <div className="grid gap-2">
-            {["AUCTION", "BUY_NOW", "BOTH", "LIVE_STREAM"].map((type) => (
+            {["AUCTION", "BUY_NOW", "BOTH"].map((type) => (
               <button
                 key={type}
                 type="button"
-                onClick={() => setListingType(type as "AUCTION" | "BUY_NOW" | "BOTH" | "LIVE_STREAM")}
+                onClick={() => setListingType(type as "AUCTION" | "BUY_NOW" | "BOTH")}
                 className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold ${
                   listingType === type
                     ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
@@ -478,16 +476,15 @@ export function SellerListingMobile() {
             className={inputClass}
           />
           <p className="text-[11px] text-slate-500">
-            Default auction end: Thursday 9:00 PM EST. Live streams can set custom duration.
+            Default auction end: Thursday 9:00 PM EST.
           </p>
           <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-xs text-slate-600">
             <input
               type="checkbox"
-              checked={isLiveStreamMode ? true : publishNow}
+              checked={publishNow}
               onChange={(event) => setPublishNow(event.target.checked)}
-              disabled={isLiveStreamMode}
             />
-            {isLiveStreamMode ? "Live stream listings publish immediately" : "Publish immediately"}
+            Publish immediately
           </label>
           <div className="rounded-2xl bg-white/80 px-4 py-3 text-xs text-slate-500">
             Preview starting bid: {listingPreview}
@@ -592,12 +589,12 @@ export function SellerListingMobile() {
           )}
           {listingId && (
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              Listing live.{" "}
+              Listing created.{" "}
               <Link
                 href={`/streams/${listingId}`}
                 className="font-semibold underline"
               >
-                Open stream room
+                Open listing
               </Link>
             </div>
           )}

@@ -1,5 +1,6 @@
 import UIKit
 import SwiftUI
+import AuthenticationServices
 import Capacitor
 
 @UIApplicationMain
@@ -75,20 +76,31 @@ struct NativeAuctionSeller: Decodable {
     let userId: String?
 }
 
+struct NativeStreamSession: Decodable, Identifiable {
+    let id: String
+    let auctionId: String?
+    let status: String
+    let createdAt: String
+    let updatedAt: String
+}
+
 struct NativeAuction: Decodable, Identifiable {
     let id: String
     let title: String
     let description: String?
+    let status: String?
     let currentBid: Int
     let buyNowPrice: Int?
     let currency: String
     let listingType: String
     let watchersCount: Int
+    let startTime: String?
     let endTime: String?
     let extendedTime: String?
     let category: NativeAuctionCategory?
     let seller: NativeAuctionSeller?
     let item: NativeAuctionItem?
+    let streamSessions: [NativeStreamSession]?
 }
 
 struct NativeChatSender: Decodable {
@@ -200,6 +212,10 @@ struct NativeAPIClient {
         return components.url
     }
 
+    func makeExternalURL(path: String, query: [URLQueryItem] = []) -> URL? {
+        makeURL(path: path, query: query)
+    }
+
     func request<T: Decodable>(
         path: String,
         method: String = "GET",
@@ -254,6 +270,15 @@ struct NativeAPIClient {
 
 private struct EmptyResponse: Decodable {}
 
+final class NativeAuthPresentationContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first(where: { $0.isKeyWindow }) ?? ASPresentationAnchor()
+    }
+}
+
 // MARK: - App Store
 
 @MainActor
@@ -264,6 +289,7 @@ final class NativeAppStore: ObservableObject {
     @Published var categories: [NativeCategory] = []
     @Published var homeAuctions: [NativeAuction] = []
     @Published var streamAuctions: [NativeAuction] = []
+    @Published var scheduledStreamAuctions: [NativeAuction] = []
     @Published var listingAuctions: [NativeAuction] = []
 
     @Published var conversations: [NativeConversation] = []
@@ -275,6 +301,8 @@ final class NativeAppStore: ObservableObject {
 
     private let tokenKey = "native.auth.token"
     private let client = NativeAPIClient()
+    private let authPresentationContextProvider = NativeAuthPresentationContextProvider()
+    private var authSession: ASWebAuthenticationSession?
 
     var authToken: String? {
         UserDefaults.standard.string(forKey: tokenKey)
@@ -294,6 +322,7 @@ final class NativeAppStore: ObservableObject {
         categories = []
         homeAuctions = []
         streamAuctions = []
+        scheduledStreamAuctions = []
         listingAuctions = []
         conversations = []
         conversationMessages = [:]
@@ -332,6 +361,81 @@ final class NativeAppStore: ObservableObject {
         }
     }
 
+    func signInWithGoogle() {
+        if loading { return }
+        loading = true
+        bannerMessage = nil
+
+        guard let authURL = client.makeExternalURL(
+            path: "/api/native/auth/google/start",
+            query: [URLQueryItem(name: "redirect_uri", value: "dalow://auth/native")]
+        ) else {
+            loading = false
+            bannerMessage = "Invalid Google auth URL."
+            return
+        }
+
+        let session = ASWebAuthenticationSession(
+            url: authURL,
+            callbackURLScheme: "dalow"
+        ) { [weak self] callbackURL, error in
+            Task { @MainActor in
+                guard let self else { return }
+                defer {
+                    self.loading = false
+                    self.authSession = nil
+                }
+
+                if let sessionError = error as? ASWebAuthenticationSessionError,
+                   sessionError.code == .canceledLogin {
+                    self.bannerMessage = "Google sign-in canceled."
+                    return
+                }
+                if let error {
+                    self.bannerMessage = error.localizedDescription
+                    return
+                }
+                guard let callbackURL else {
+                    self.bannerMessage = "Google sign-in did not return a callback."
+                    return
+                }
+
+                guard let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false) else {
+                    self.bannerMessage = "Invalid Google callback."
+                    return
+                }
+
+                let queryItems = components.queryItems ?? []
+                if let authError = queryItems.first(where: { $0.name == "error" })?.value,
+                   !authError.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    self.bannerMessage = authError
+                    return
+                }
+
+                guard let token = queryItems.first(where: { $0.name == "token" })?.value,
+                      !token.isEmpty else {
+                    self.bannerMessage = "Missing native auth token from Google callback."
+                    return
+                }
+
+                UserDefaults.standard.set(token, forKey: self.tokenKey)
+                self.bannerMessage = "Connected with Google."
+                await self.refreshAll()
+                await self.refreshProfile()
+            }
+        }
+
+        session.presentationContextProvider = authPresentationContextProvider
+        session.prefersEphemeralWebBrowserSession = true
+        authSession = session
+
+        if !session.start() {
+            loading = false
+            authSession = nil
+            bannerMessage = "Unable to open Google sign-in."
+        }
+    }
+
     func refreshAll() async {
         guard let token = authToken else { return }
         loading = true
@@ -339,7 +443,8 @@ final class NativeAppStore: ObservableObject {
 
         async let categoriesTask: [NativeCategory] = fetchCategories(token: token)
         async let homeTask: [NativeAuction] = fetchAuctions(token: token, view: nil, limit: 10)
-        async let streamsTask: [NativeAuction] = fetchAuctions(token: token, view: "streams", limit: 30)
+        async let streamsTask: [NativeAuction] = fetchAuctions(token: token, status: "LIVE", view: "streams", limit: 30)
+        async let scheduledStreamsTask: [NativeAuction] = fetchAuctions(token: token, status: "SCHEDULED", view: "streams", limit: 30)
         async let listingsTask: [NativeAuction] = fetchAuctions(token: token, view: "listings", limit: 30)
         async let conversationsTask: [NativeConversation] = fetchConversations(token: token)
 
@@ -347,6 +452,7 @@ final class NativeAppStore: ObservableObject {
             categories = try await categoriesTask
             homeAuctions = try await homeTask
             streamAuctions = try await streamsTask
+            scheduledStreamAuctions = try await scheduledStreamsTask
             listingAuctions = try await listingsTask
             conversations = try await conversationsTask
         } catch {
@@ -378,9 +484,14 @@ final class NativeAppStore: ObservableObject {
         try await client.request(path: "/api/categories", token: token)
     }
 
-    private func fetchAuctions(token: String, view: String?, limit: Int) async throws -> [NativeAuction] {
+    private func fetchAuctions(
+        token: String,
+        status: String = "LIVE",
+        view: String?,
+        limit: Int
+    ) async throws -> [NativeAuction] {
         var query = [
-            URLQueryItem(name: "status", value: "LIVE"),
+            URLQueryItem(name: "status", value: status),
             URLQueryItem(name: "limit", value: String(limit)),
         ]
         if let view {
@@ -498,6 +609,53 @@ final class NativeAppStore: ObservableObject {
         }
     }
 
+    func startStream(auctionId: String? = nil, scheduleAt: Date? = nil) async -> String? {
+        guard let token = authToken else { return nil }
+        do {
+            var body: [String: Any] = [:]
+            if let auctionId, !auctionId.isEmpty {
+                body["auctionId"] = auctionId
+            }
+            if let scheduleAt {
+                body["scheduleAt"] = ISO8601DateFormatter().string(from: scheduleAt)
+            }
+
+            let payload = try client.makeJSONBody(body)
+            let session: NativeStreamSession = try await client.request(
+                path: "/api/streams/session",
+                method: "POST",
+                token: token,
+                bodyData: payload
+            )
+            await refreshAll()
+            bannerMessage = scheduleAt == nil ? "Stream ready." : "Stream scheduled."
+            return session.auctionId
+        } catch {
+            bannerMessage = error.localizedDescription
+            return nil
+        }
+    }
+
+    func endStream(auctionId: String) async {
+        guard let token = authToken else { return }
+        do {
+            let payload = try client.makeJSONBody([
+                "auctionId": auctionId,
+                "status": "ENDED",
+            ])
+            let _: NativeStreamSession = try await client.request(
+                path: "/api/streams/session",
+                method: "PATCH",
+                token: token,
+                bodyData: payload
+            )
+            bannerMessage = "Stream ended."
+            await refreshAll()
+        } catch {
+            bannerMessage = error.localizedDescription
+        }
+    }
+
     func saveProfile(username: String, displayName: String, bio: String) async {
         guard let token = authToken else { return }
         do {
@@ -579,23 +737,23 @@ extension View {
 struct NativeBackdropView: View {
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(red: 0.06, green: 0.12, blue: 0.26), Color(red: 0.03, green: 0.05, blue: 0.12)], startPoint: .topLeading, endPoint: .bottomTrailing)
+            LinearGradient(colors: [Color(red: 0.05, green: 0.06, blue: 0.10), Color(red: 0.01, green: 0.02, blue: 0.04)], startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
 
             RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(Color.blue.opacity(0.22))
+                .fill(Color.white.opacity(0.08))
                 .frame(width: 220, height: 180)
                 .rotationEffect(.degrees(-15))
                 .offset(x: -140, y: -320)
 
             RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(Color.pink.opacity(0.2))
+                .fill(Color(red: 0.18, green: 0.20, blue: 0.27).opacity(0.26))
                 .frame(width: 210, height: 170)
                 .rotationEffect(.degrees(18))
                 .offset(x: 140, y: -260)
 
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.cyan.opacity(0.18))
+                .fill(Color(red: 0.12, green: 0.14, blue: 0.19).opacity(0.34))
                 .frame(width: 150, height: 120)
                 .rotationEffect(.degrees(-10))
                 .offset(x: 120, y: 330)
@@ -748,6 +906,35 @@ struct NativeAuthView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             VStack(spacing: 10) {
+                Button {
+                    store.signInWithGoogle()
+                } label: {
+                    HStack {
+                        if store.loading {
+                            NativeCheckersIndicator()
+                        }
+                        Image(systemName: "globe")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(store.loading ? "Connecting..." : "Continue with Google")
+                            .font(.system(size: 15, weight: .bold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .foregroundStyle(.white)
+                    .background(
+                        LinearGradient(colors: [Color(red: 0.14, green: 0.17, blue: 0.24), Color(red: 0.05, green: 0.06, blue: 0.10)], startPoint: .leading, endPoint: .trailing),
+                        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    )
+                }
+                .disabled(store.loading)
+
+                Text("or email fallback")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .textCase(.uppercase)
+                    .tracking(1.4)
+                    .foregroundStyle(Color.white.opacity(0.64))
+                    .padding(.top, 2)
+
                 TextField("Email", text: $email)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
@@ -762,20 +949,12 @@ struct NativeAuthView: View {
                 Button {
                     Task { await store.signIn(email: email, displayName: displayName) }
                 } label: {
-                    HStack {
-                        if store.loading {
-                            NativeCheckersIndicator()
-                        }
-                        Text(store.loading ? "Connecting" : "Continue")
-                            .font(.system(size: 15, weight: .bold))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .foregroundStyle(.white)
-                    .background(
-                        LinearGradient(colors: [Color.blue, Color.indigo], startPoint: .leading, endPoint: .trailing),
-                        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    )
+                    Text(store.loading ? "Connecting..." : "Continue with Email")
+                        .font(.system(size: 14, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 11)
+                        .foregroundStyle(.white)
+                        .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
                 .disabled(store.loading)
             }
@@ -801,17 +980,10 @@ struct NativeMainTabView: View {
             }
 
             NavigationStack {
-                NativeMarketplaceView(title: "Streams", mode: .streams, store: store)
+                NativeMarketplaceView(title: "Market", mode: .listings, store: store)
             }
             .tabItem {
-                Label("Streams", systemImage: "play.rectangle.fill")
-            }
-
-            NavigationStack {
-                NativeMarketplaceView(title: "Listings", mode: .listings, store: store)
-            }
-            .tabItem {
-                Label("Listings", systemImage: "square.grid.2x2.fill")
+                Label("Market", systemImage: "square.grid.2x2.fill")
             }
 
             NavigationStack {
@@ -828,7 +1000,7 @@ struct NativeMainTabView: View {
                 Label("Settings", systemImage: "gearshape.fill")
             }
         }
-        .tint(.blue)
+        .tint(Color(red: 0.82, green: 0.84, blue: 0.90))
     }
 }
 
@@ -893,7 +1065,7 @@ struct NativeWaveDiagram: View {
                         control2: CGPoint(x: size.width * 0.65, y: size.height * 0.95)
                     )
                 }
-                context.stroke(pathA, with: .color(.blue), lineWidth: 4)
+                context.stroke(pathA, with: .color(Color(red: 0.82, green: 0.84, blue: 0.90)), lineWidth: 4)
 
                 let pathB = Path { path in
                     path.move(to: CGPoint(x: 0, y: size.height * 0.78))
@@ -903,7 +1075,7 @@ struct NativeWaveDiagram: View {
                         control2: CGPoint(x: size.width * 0.72, y: size.height * 0.98)
                     )
                 }
-                context.stroke(pathB, with: .color(.cyan), lineWidth: 3)
+                context.stroke(pathB, with: .color(Color.white.opacity(0.56)), lineWidth: 3)
             }
             .background(Color.white.opacity(0.22), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(
@@ -927,12 +1099,15 @@ struct NativeMarketplaceView: View {
     @ObservedObject var store: NativeAppStore
 
     @State private var selectedCategory = ""
+    @State private var streamExpanded = false
+    @State private var streamActionLoading = false
+    @State private var endingStreamId: String?
 
     var sourceAuctions: [NativeAuction] {
         mode == .streams ? store.streamAuctions : store.listingAuctions
     }
 
-    var filteredAuctions: [NativeAuction] {
+    var filteredListings: [NativeAuction] {
         guard !selectedCategory.isEmpty else { return sourceAuctions }
         return sourceAuctions.filter { auction in
             let slug = (auction.category?.name ?? "").lowercased()
@@ -940,9 +1115,60 @@ struct NativeMarketplaceView: View {
         }
     }
 
+    var scheduledFutureStreams: [NativeAuction] {
+        store.scheduledStreamAuctions.filter { auction in
+            guard let startTime = auction.startTime else { return false }
+            guard let date = parseISODate(startTime) else { return false }
+            return date > Date()
+        }
+    }
+
+    var railStreams: [NativeAuction] {
+        var seen = Set<String>()
+        var combined: [NativeAuction] = []
+        for stream in (store.streamAuctions + scheduledFutureStreams) {
+            if seen.contains(stream.id) { continue }
+            seen.insert(stream.id)
+            combined.append(stream)
+        }
+        return combined
+    }
+
+    var canManageStreams: Bool {
+        let role = store.sessionUser?.role?.uppercased() ?? ""
+        return role == "SELLER" || role == "ADMIN"
+    }
+
+    private func streamStatusLabel(_ auction: NativeAuction) -> String {
+        if auction.streamSessions?.first?.status.uppercased() == "LIVE" {
+            return "Live"
+        }
+        return "Scheduled"
+    }
+
+    private func streamMetaLabel(_ auction: NativeAuction) -> String {
+        if auction.streamSessions?.first?.status.uppercased() == "LIVE" {
+            return "\(auction.watchersCount) watching"
+        }
+        guard let start = auction.startTime,
+              let date = parseISODate(start) else {
+            return "Scheduled"
+        }
+        return date.formatted(date: .abbreviated, time: .shortened)
+    }
+
+    private func parseISODate(_ value: String) -> Date? {
+        let fractionalFormatter = ISO8601DateFormatter()
+        fractionalFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = fractionalFormatter.date(from: value) {
+            return date
+        }
+        return ISO8601DateFormatter().date(from: value)
+    }
+
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
+            VStack(spacing: 14) {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         FilterChip(label: "All", selected: selectedCategory.isEmpty) {
@@ -957,7 +1183,147 @@ struct NativeMarketplaceView: View {
                     .padding(.horizontal, 14)
                 }
 
-                NativeAuctionGrid(auctions: filteredAuctions, store: store)
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Text("Streams")
+                            .font(.system(size: 20, weight: .heavy, design: .rounded))
+                            .foregroundStyle(.white)
+                        Spacer()
+                        if canManageStreams {
+                            HStack(spacing: 8) {
+                                Button(streamActionLoading ? "..." : "Start") {
+                                    Task {
+                                        streamActionLoading = true
+                                        _ = await store.startStream()
+                                        streamActionLoading = false
+                                    }
+                                }
+                                .buttonStyle(PrimaryGlassButton())
+                                .disabled(streamActionLoading)
+
+                                Button(streamActionLoading ? "..." : "Schedule") {
+                                    Task {
+                                        streamActionLoading = true
+                                        let scheduledTime =
+                                            Calendar.current.date(byAdding: .hour, value: 1, to: Date())
+                                            ?? Date().addingTimeInterval(3600)
+                                        _ = await store.startStream(scheduleAt: scheduledTime)
+                                        streamActionLoading = false
+                                    }
+                                }
+                                .buttonStyle(SecondaryGlassButton())
+                                .disabled(streamActionLoading)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 14)
+
+                    if railStreams.isEmpty {
+                        Text("No live or scheduled streams.")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.74))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .glassPanel(16)
+                            .padding(.horizontal, 14)
+                    } else {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                ForEach(railStreams) { stream in
+                                    let streamImage = stream.item?.images.first(where: { $0.isPrimary == true })?.url
+                                        ?? stream.item?.images.first?.url
+                                    let isLive = stream.streamSessions?.first?.status.uppercased() == "LIVE"
+                                    let isHost = store.sessionUser?.id == stream.seller?.user?.id
+
+                                    ZStack(alignment: .topTrailing) {
+                                        NavigationLink {
+                                            NativeAuctionDetailView(store: store, auction: stream)
+                                        } label: {
+                                            VStack(alignment: .leading, spacing: 8) {
+                                                ZStack(alignment: .bottomLeading) {
+                                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                        .fill(Color.white.opacity(0.08))
+                                                        .frame(width: 150, height: 188)
+                                                    if let streamImage, let url = URL(string: streamImage) {
+                                                        AsyncImage(url: url) { image in
+                                                            image.resizable().scaledToFill()
+                                                        } placeholder: {
+                                                            Rectangle().fill(Color.white.opacity(0.16))
+                                                        }
+                                                        .frame(width: 150, height: 188)
+                                                        .clipped()
+                                                        .cornerRadius(14)
+                                                    }
+                                                    Text(streamStatusLabel(stream))
+                                                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                                                        .textCase(.uppercase)
+                                                        .tracking(1.5)
+                                                        .padding(.horizontal, 8)
+                                                        .padding(.vertical, 4)
+                                                        .background(Color.black.opacity(0.55), in: Capsule())
+                                                        .foregroundStyle(.white)
+                                                        .padding(8)
+                                                }
+                                                Text(stream.title)
+                                                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                                                    .foregroundStyle(.white)
+                                                    .lineLimit(2)
+                                                Text(streamMetaLabel(stream))
+                                                    .font(.system(size: 11, weight: .medium))
+                                                    .foregroundStyle(.white.opacity(0.76))
+                                                    .lineLimit(1)
+                                            }
+                                            .frame(width: 150)
+                                        }
+                                        .buttonStyle(.plain)
+
+                                        if isLive && isHost {
+                                            Button(endingStreamId == stream.id ? "..." : "End") {
+                                                Task {
+                                                    endingStreamId = stream.id
+                                                    await store.endStream(auctionId: stream.id)
+                                                    endingStreamId = nil
+                                                }
+                                            }
+                                            .buttonStyle(SecondaryGlassButton())
+                                            .padding(6)
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 14)
+                        }
+                    }
+
+                    HStack {
+                        Spacer()
+                        Button(streamExpanded ? "Collapse" : "Expand") {
+                            streamExpanded.toggle()
+                        }
+                        .buttonStyle(SecondaryGlassButton())
+                    }
+                    .padding(.horizontal, 14)
+
+                    if streamExpanded && !railStreams.isEmpty {
+                        NativeAuctionGrid(auctions: railStreams, store: store)
+                    }
+                }
+
+                if mode != .streams {
+                    SectionHeader(title: "Cards")
+                        .padding(.horizontal, 14)
+                    if filteredListings.isEmpty {
+                        Text("No listings.")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.74))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .glassPanel(16)
+                            .padding(.horizontal, 14)
+                    } else {
+                        NativeAuctionGrid(auctions: filteredListings, store: store)
+                    }
+                }
             }
             .padding(.vertical, 10)
         }
@@ -984,11 +1350,11 @@ struct NativeAuctionGrid: View {
     @ObservedObject var store: NativeAppStore
 
     private var columns: [GridItem] {
-        [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
+        [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
     }
 
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 10) {
+        LazyVGrid(columns: columns, spacing: 12) {
             ForEach(auctions) { auction in
                 NavigationLink {
                     NativeAuctionDetailView(store: store, auction: auction)
@@ -1015,11 +1381,11 @@ struct NativeAuctionCardView: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(
-                    LinearGradient(colors: [Color.blue.opacity(0.42), Color.purple.opacity(0.22)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    LinearGradient(colors: [Color.white.opacity(0.16), Color(red: 0.16, green: 0.18, blue: 0.24).opacity(0.32)], startPoint: .topLeading, endPoint: .bottomTrailing)
                 )
-                .frame(height: 228)
+                .frame(height: 246)
 
             if let imageURL {
                 AsyncImage(url: imageURL) { image in
@@ -1027,24 +1393,24 @@ struct NativeAuctionCardView: View {
                 } placeholder: {
                     Rectangle().fill(Color.white.opacity(0.16))
                 }
-                .frame(height: 228)
+                .frame(height: 246)
                 .clipped()
-                .cornerRadius(18)
+                .cornerRadius(20)
             }
 
             LinearGradient(colors: [Color.black.opacity(0.78), Color.clear], startPoint: .bottom, endPoint: .top)
-                .cornerRadius(18)
-                .frame(height: 228)
+                .cornerRadius(20)
+                .frame(height: 246)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(auction.title)
                     .font(.system(size: 14, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
-                    .lineLimit(1)
+                    .lineLimit(2)
 
                 Text(auction.seller?.user?.displayName ?? "Seller")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.78))
+                    .foregroundStyle(.white.opacity(0.74))
                     .lineLimit(1)
 
                 HStack {
@@ -1055,10 +1421,10 @@ struct NativeAuctionCardView: View {
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white)
             }
-            .padding(10)
+            .padding(12)
         }
         .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(Color.white.opacity(0.32), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.18), radius: 12, y: 7)
@@ -1422,7 +1788,7 @@ struct FilterChip: View {
                 .foregroundStyle(selected ? Color.white : Color.white.opacity(0.82))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 7)
-                .background(selected ? Color.blue.opacity(0.72) : Color.white.opacity(0.18), in: Capsule())
+                .background(selected ? Color.white.opacity(0.34) : Color.white.opacity(0.18), in: Capsule())
                 .overlay(
                     Capsule().stroke(Color.white.opacity(selected ? 0.3 : 0.22), lineWidth: 1)
                 )
@@ -1439,7 +1805,7 @@ struct PrimaryGlassButton: ButtonStyle {
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(
-                LinearGradient(colors: [Color.blue, Color.indigo], startPoint: .leading, endPoint: .trailing),
+                LinearGradient(colors: [Color(red: 0.14, green: 0.17, blue: 0.24), Color(red: 0.05, green: 0.06, blue: 0.10)], startPoint: .leading, endPoint: .trailing),
                 in: RoundedRectangle(cornerRadius: 12, style: .continuous)
             )
             .scaleEffect(configuration.isPressed ? 0.98 : 1)

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import { formatCurrency } from "@/lib/format";
 
-type ListingType = "AUCTION" | "BUY_NOW" | "BOTH" | "LIVE_STREAM";
+type ListingType = "AUCTION" | "BUY_NOW" | "BOTH";
 type CertGrader = "PSA" | "CDC" | "BGS" | "BVG";
 
 type VerifyPayload = {
@@ -36,7 +36,6 @@ const listingTypes: Array<{ value: ListingType; label: string }> = [
   { value: "AUCTION", label: "Auction" },
   { value: "BUY_NOW", label: "Buy now" },
   { value: "BOTH", label: "Auction + buy now" },
-  { value: "LIVE_STREAM", label: "Live stream" },
 ];
 
 const certGraders: Array<{ value: CertGrader; label: string }> = [
@@ -214,7 +213,7 @@ export function SellerListingQuickForm() {
     const description = buildDescription(cert, lookup);
     const condition = [lookup.grader, lookup.grade].filter(Boolean).join(" ").trim() || "Graded";
     const listingMode = listingType;
-    const effectiveListingType = listingMode === "LIVE_STREAM" ? "AUCTION" : listingMode;
+    const effectiveListingType = listingMode;
     const auctionStart = effectiveListingType === "BOTH"
       ? Math.max(100, Math.round(desiredCents * 0.85))
       : desiredCents;

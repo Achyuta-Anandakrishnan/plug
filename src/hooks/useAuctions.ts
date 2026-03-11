@@ -21,6 +21,12 @@ export type AuctionListItem = {
     status?: string;
     user?: { displayName: string | null; id: string } | null;
   } | null;
+  streamSessions?: Array<{
+    id: string;
+    status: "CREATED" | "LIVE" | "ENDED" | "DISABLED";
+    createdAt: string;
+    updatedAt: string;
+  }>;
   item?: {
     attributes?: Record<string, unknown> | null;
     images: { url: string; isPrimary: boolean }[];

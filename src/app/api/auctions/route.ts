@@ -16,11 +16,12 @@ const allowedStatuses = new Set<string>([
 type CreateAuctionBody = {
   sellerId?: string;
   categoryId?: string;
-  listingType?: ListingType | "LIVE_STREAM";
+  listingType?: ListingType;
   title?: string;
   description?: string;
   startingBid?: number;
   buyNowPrice?: number;
+  startTime?: string;
   endTime?: string;
   antiSnipeSeconds?: number;
   minBidIncrement?: number;
@@ -62,6 +63,7 @@ export async function GET(request: Request) {
   );
 
   const now = new Date();
+
   await prisma.auction.updateMany({
     where: {
       status: "LIVE",
@@ -73,18 +75,34 @@ export async function GET(request: Request) {
     data: { status: "ENDED" },
   });
 
-  const where: {
-    status?: AuctionStatus;
-    category?: { slug: string };
-    seller?: { userId: string };
-  } = {};
+  await prisma.streamSession.updateMany({
+    where: {
+      status: "LIVE",
+      OR: [
+        { auction: { status: { in: ["ENDED", "CANCELED"] } } },
+        {
+          auction: {
+            status: "LIVE",
+            OR: [
+              { extendedTime: { not: null, lte: now } },
+              { extendedTime: null, endTime: { not: null, lte: now } },
+            ],
+          },
+        },
+      ],
+    },
+    data: { status: "ENDED" },
+  });
+
+  const where: Prisma.AuctionWhereInput = {};
+  const andConditions: Prisma.AuctionWhereInput[] = [];
 
   if (statusParam) {
     where.status = statusParam as AuctionStatus;
     if (statusParam === "LIVE") {
-      (where as Prisma.AuctionWhereInput).AND = [
-        { OR: [{ extendedTime: { gt: now } }, { endTime: { gt: now } }, { endTime: null }] },
-      ];
+      andConditions.push({
+        OR: [{ extendedTime: { gt: now } }, { endTime: { gt: now } }, { endTime: null }],
+      });
     }
     if (statusParam === "DRAFT") {
       if (!sessionUser) {
@@ -94,12 +112,43 @@ export async function GET(request: Request) {
         where.seller = { userId: sessionUser.id };
       }
     }
+    if (statusParam === "SCHEDULED") {
+      andConditions.push({ startTime: { gt: now } });
+    }
+    if (statusParam === "ENDED" || statusParam === "CANCELED") {
+      andConditions.push({
+        OR: [
+          { extendedTime: { lte: now } },
+          { endTime: { lte: now } },
+          { status: { in: ["ENDED", "CANCELED"] } },
+        ],
+      });
+    }
   } else {
     // Safe default: only expose live listings when no status filter is requested.
     where.status = "LIVE";
-    (where as Prisma.AuctionWhereInput).AND = [
-      { OR: [{ extendedTime: { gt: now } }, { endTime: { gt: now } }, { endTime: null }] },
-    ];
+    andConditions.push({
+      OR: [{ extendedTime: { gt: now } }, { endTime: { gt: now } }, { endTime: null }],
+    });
+  }
+
+  if (view === "streams") {
+    if (where.status === "SCHEDULED") {
+      where.streamSessions = {
+        some: { status: { in: ["CREATED", "LIVE"] } },
+      };
+      andConditions.push({ startTime: { gt: now } });
+    } else {
+      where.streamSessions = {
+        some: { status: "LIVE" },
+      };
+    }
+  }
+
+  if (view === "listings") {
+    where.streamSessions = {
+      none: { status: "LIVE" },
+    };
   }
 
   if (category) {
@@ -110,7 +159,7 @@ export async function GET(request: Request) {
     // Basic search across listing + item fields.
     // (No full-text index yet; good enough for MVP.)
     const query = q.slice(0, 80);
-    (where as Prisma.AuctionWhereInput).OR = [
+    where.OR = [
       { title: { contains: query, mode: "insensitive" } },
       { description: { contains: query, mode: "insensitive" } },
       { item: { title: { contains: query, mode: "insensitive" } } },
@@ -118,15 +167,8 @@ export async function GET(request: Request) {
     ];
   }
 
-  if (view === "streams") {
-    (where as Prisma.AuctionWhereInput).streamSessions = {
-      some: { status: "LIVE" },
-    };
-  }
-  if (view === "listings") {
-    (where as Prisma.AuctionWhereInput).streamSessions = {
-      none: { status: "LIVE" },
-    };
+  if (andConditions.length > 0) {
+    where.AND = andConditions;
   }
 
   const auctions = await prisma.auction.findMany({
@@ -139,6 +181,16 @@ export async function GET(request: Request) {
           id: true,
           status: true,
           user: { select: { displayName: true, id: true } },
+        },
+      },
+      streamSessions: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
         },
       },
     },
@@ -193,17 +245,25 @@ export async function POST(request: Request) {
     return jsonError("Seller verification pending approval.", 403);
   }
 
+  const startTime = body.startTime ? new Date(body.startTime) : null;
   const endTime = body.endTime ? new Date(body.endTime) : null;
+
+  if (startTime && Number.isNaN(startTime.valueOf())) {
+    return jsonError("Invalid startTime.");
+  }
 
   if (endTime && Number.isNaN(endTime.valueOf())) {
     return jsonError("Invalid endTime.");
   }
 
-  const requestedListingType = body.listingType ?? ListingType.AUCTION;
-  const isLiveStreamListing = requestedListingType === "LIVE_STREAM";
-  const listingType = isLiveStreamListing
-    ? ListingType.AUCTION
-    : requestedListingType;
+  if (startTime && endTime && endTime <= startTime) {
+    return jsonError("endTime must be after startTime.");
+  }
+
+  const listingType = body.listingType ?? ListingType.AUCTION;
+  if (!Object.values(ListingType).includes(listingType)) {
+    return jsonError("Invalid listingType.");
+  }
   const wantsAuction =
     listingType === ListingType.AUCTION || listingType === ListingType.BOTH;
   const wantsBuyNow =
@@ -219,8 +279,8 @@ export async function POST(request: Request) {
 
   const now = new Date();
   let status: AuctionStatus = AuctionStatus.DRAFT;
-  const publishNow = isLiveStreamListing ? true : Boolean(body.publishNow);
-  const effectiveStart = publishNow ? now : null;
+  const publishNow = Boolean(body.publishNow);
+  const effectiveStart = startTime ?? (publishNow ? now : null);
   const effectiveEnd = endTime ?? (wantsAuction ? nextThursdayNinePmEst(now) : null);
 
   if (effectiveStart && effectiveStart <= now) {

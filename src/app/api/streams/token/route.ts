@@ -22,7 +22,14 @@ export async function POST(request: Request) {
 
   const auction = await prisma.auction.findUnique({
     where: { id: body.auctionId },
-    include: { seller: true, streamSessions: { orderBy: { createdAt: "desc" }, take: 1 } },
+    include: {
+      seller: true,
+      streamSessions: {
+        where: { status: { in: ["CREATED", "LIVE"] } },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
+    },
   });
 
   if (!auction) {
@@ -43,6 +50,9 @@ export async function POST(request: Request) {
   const session = auction.streamSessions[0];
   if (!session?.roomName) {
     return jsonError("Stream not started yet.", 409);
+  }
+  if (role === "viewer" && session.status !== "LIVE") {
+    return jsonError("Stream is not live yet.", 409);
   }
 
   const identity = sessionUser?.id ?? `guest-${randomUUID()}`;
