@@ -15,7 +15,7 @@ export function MarketplaceHeader({ search, tabs, filters }: MarketplaceHeaderPr
         <div>
           <h1 className="market-v2-title">Marketplace</h1>
           <p className="market-v2-subtitle">
-            Discover live breaks, auctions, and buy-now collectibles.
+            Discover auctions, buy-now listings, and rare inventory built for collectors.
           </p>
         </div>
       </div>

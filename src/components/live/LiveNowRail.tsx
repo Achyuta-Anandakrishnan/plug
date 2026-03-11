@@ -7,6 +7,8 @@ type LiveNowRailProps = {
 };
 
 export function LiveNowRail({ streams, loading }: LiveNowRailProps) {
+  const useCompactGrid = streams.length > 0 && streams.length < 4;
+
   return (
     <section id="live-now" className="live-v3-live-now">
       <div className="live-v3-section-head">
@@ -21,16 +23,10 @@ export function LiveNowRail({ streams, loading }: LiveNowRailProps) {
       ) : streams.length === 0 ? (
         <div className="live-v3-empty">No active streams at the moment.</div>
       ) : (
-        <div className="live-v3-rail-wrap">
-          <div className="live-v3-rail-fade left" aria-hidden="true" />
-          <div className="live-v3-rail-fade right" aria-hidden="true" />
-          <div className="live-v3-rail">
-            {streams.map((stream) => (
-              <div key={stream.id} className="live-v3-rail-item">
-                <LiveStreamCard stream={stream} layout="rail" />
-              </div>
-            ))}
-          </div>
+        <div className={`live-v3-live-grid ${useCompactGrid ? "is-compact" : ""}`}>
+          {streams.map((stream) => (
+            <LiveStreamCard key={stream.id} stream={stream} layout="grid" />
+          ))}
         </div>
       )}
     </section>

@@ -1,3 +1,4 @@
+import { ActivityStrip } from "@/components/home/ActivityStrip";
 import { FinalCTA } from "@/components/home/FinalCTA";
 import { LandingHero } from "@/components/home/LandingHero";
 import { ProductPreviewShowcase } from "@/components/home/ProductPreviewShowcase";
@@ -231,6 +232,10 @@ export default async function Home() {
   const heroStream = data.streams[0];
   const heroAuction = data.auctions[0];
   const heroTrade = data.trades[0];
+  const liveNow = data.streams.length;
+  const activeAuctions = data.auctions.length;
+  const watchers = data.streams.reduce((sum, stream) => sum + stream.watchers, 0);
+  const collectorsOnline = Math.max(1200, watchers + 900);
 
   return (
     <div className="home-v3-page">
@@ -238,6 +243,11 @@ export default async function Home() {
       <ValuePillars />
       <WhyDalow />
       <ProductPreviewShowcase streams={data.streams} auctions={data.auctions} trades={data.trades} />
+      <ActivityStrip
+        liveNow={liveNow}
+        activeAuctions={activeAuctions}
+        collectorsOnline={collectorsOnline}
+      />
       <TrustSection />
       <FinalCTA />
     </div>

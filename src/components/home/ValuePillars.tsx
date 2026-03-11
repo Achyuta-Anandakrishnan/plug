@@ -1,7 +1,10 @@
+import Link from "next/link";
+
 type Pillar = {
   id: "live" | "auctions" | "trades";
   title: string;
   description: string;
+  href: string;
 };
 
 const PILLARS: Pillar[] = [
@@ -9,16 +12,19 @@ const PILLARS: Pillar[] = [
     id: "live",
     title: "Live",
     description: "Run real-time shows and move inventory fast.",
+    href: "/live",
   },
   {
     id: "auctions",
     title: "Auctions",
     description: "Timed bidding that drives real price discovery.",
+    href: "/listings?mode=auctions",
   },
   {
     id: "trades",
     title: "Trades",
     description: "Collector-to-collector negotiation.",
+    href: "/trades",
   },
 ];
 
@@ -53,13 +59,14 @@ export function ValuePillars() {
       </div>
       <div className="home-v3-pillar-grid">
         {PILLARS.map((pillar) => (
-          <article key={pillar.id} className="home-v3-pillar-card">
+          <Link key={pillar.id} href={pillar.href} className="home-v3-pillar-card">
             <div className="home-v3-pillar-icon">
               <PillarIcon id={pillar.id} />
             </div>
             <h3>{pillar.title}</h3>
             <p>{pillar.description}</p>
-          </article>
+            <span className="home-v3-pillar-link">Open {pillar.title}</span>
+          </Link>
         ))}
       </div>
     </section>

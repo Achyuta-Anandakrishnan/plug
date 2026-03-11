@@ -16,7 +16,7 @@ export function ListingSection({ listings, density, buyLoadingId, onBuyNow }: Li
       <div className="market-v2-listings-head">
         <div>
           <p className="market-v2-section-kicker">Inventory</p>
-          <h2 className="market-v2-section-title">Listings</h2>
+          <h2 className="market-v2-section-title">Collector inventory</h2>
         </div>
         <p className="market-v2-count">{listings.length} items</p>
       </div>

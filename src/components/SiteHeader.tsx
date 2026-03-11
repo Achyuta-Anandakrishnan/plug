@@ -78,7 +78,11 @@ export function SiteHeader() {
   );
   const isNavActive = (item: (typeof navItems)[number]) => {
     if (item.key === "market") {
-      return pathname === "/listings";
+      return pathname === "/listings"
+        || pathname === "/explore"
+        || pathname?.startsWith("/listings/")
+        || pathname?.startsWith("/explore/")
+        || pathname?.startsWith("/auctions/");
     }
     return pathname === item.href || pathname?.startsWith(`${item.href}/`);
   };
