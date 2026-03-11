@@ -16,6 +16,7 @@ export type AuctionListItem = {
   extendedTime: string | null;
   watchersCount: number;
   currency: string;
+  createdAt?: string;
   category?: { name: string } | null;
   seller?: {
     status?: string;

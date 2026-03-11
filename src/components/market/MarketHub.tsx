@@ -1,62 +1,32 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
-import { AuctionCard } from "@/components/AuctionCard";
-import { CheckersLoader } from "@/components/CheckersLoader";
 import { useAuctions } from "@/hooks/useAuctions";
 import { useCategories } from "@/hooks/useCategories";
-import {
-  getGradeLabel,
-  getPrimaryImageUrl,
-  getTimeLeftSeconds,
-} from "@/lib/auctions";
-import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
-
-type MarketMode = "all" | "buy-now" | "auctions" | "streams";
-
-const QUICK_CATEGORIES = [
-  { label: "All", slug: "" },
-  { label: "Pokemon", slug: "pokemon" },
-  { label: "Sports", slug: "sports" },
-  { label: "Funko", slug: "funko" },
-] as const;
-
-const MODE_OPTIONS: Array<{ mode: MarketMode; label: string }> = [
-  { mode: "all", label: "All" },
-  { mode: "buy-now", label: "Buy now" },
-  { mode: "auctions", label: "Auctions" },
-  { mode: "streams", label: "Streams" },
-];
+import { ListingSection } from "@/components/market/ListingSection";
+import { ListingTabs } from "@/components/market/ListingTabs";
+import { LiveNowRail } from "@/components/market/LiveNowRail";
+import { MarketplaceFilters } from "@/components/market/MarketplaceFilters";
+import { MarketplaceHeader } from "@/components/market/MarketplaceHeader";
+import { MarketplaceSearch } from "@/components/market/MarketplaceSearch";
+import type { GridDensity, MarketListing, MarketMode, MarketStream, SortMode } from "@/components/market/types";
 
 function parseMode(value: string | null): MarketMode {
-  if (value === "buy-now" || value === "auctions" || value === "streams") {
-    return value;
-  }
+  if (value === "buy-now" || value === "auctions") return value;
   return "all";
 }
 
-function getCategoryKey(slug: string, name: string) {
-  const combined = `${slug} ${name}`.toLowerCase();
-  if (combined.includes("pokemon")) return "pokemon";
-  if (combined.includes("sport")) return "sports";
-  if (combined.includes("funko")) return "funko";
-  return slug.trim().toLowerCase();
+function parsePrice(entry: MarketListing) {
+  if (entry.listingType === "AUCTION") return entry.currentBid;
+  return entry.buyNowPrice ?? entry.currentBid;
 }
 
-function formatSchedule(startTime: string | null) {
-  if (!startTime) return "Scheduled";
-  const date = new Date(startTime);
-  if (Number.isNaN(date.getTime())) return "Scheduled";
-  return date.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+function parseCreatedAt(entry: MarketListing) {
+  if (!entry.createdAt) return 0;
+  const timestamp = new Date(entry.createdAt).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 export function MarketHub() {
@@ -67,17 +37,41 @@ export function MarketHub() {
 
   const modeFromUrl = parseMode(searchParams.get("mode"));
   const [query, setQuery] = useState("");
-  const [categorySlug, setCategorySlug] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [sortMode, setSortMode] = useState<SortMode>("newest");
+  const [gridDensity, setGridDensity] = useState<GridDensity>("comfortable");
   const [buyLoadingId, setBuyLoadingId] = useState<string | null>(null);
-  const [buyMessage, setBuyMessage] = useState("");
-  const [streamExpanded, setStreamExpanded] = useState(false);
   const [endingStreamId, setEndingStreamId] = useState<string | null>(null);
-  const [streamActionLoading, setStreamActionLoading] = useState<"start" | "schedule" | null>(null);
+  const [statusMessage, setStatusMessage] = useState("");
+
   const canManageStreams = session?.user?.role === "SELLER" || session?.user?.role === "ADMIN";
+  const currentUserId = session?.user?.id ?? null;
 
   const { data: categories } = useCategories();
-  const baseOptions = {
-    category: categorySlug || undefined,
+
+  const categoryFilters = useMemo(() => {
+    const base = [
+      { id: "all", label: "All", slug: "" },
+      { id: "pokemon", label: "Pokemon", slug: "pokemon" },
+      { id: "sports", label: "Sports", slug: "sports" },
+      { id: "funko", label: "Funko", slug: "funko" },
+    ];
+    const seen = new Set(base.map((entry) => entry.slug).filter(Boolean));
+    const extras = categories
+      .filter((category) => {
+        const slug = category.slug.toLowerCase();
+        if (seen.has(slug)) return false;
+        seen.add(slug);
+        return true;
+      })
+      .slice(0, 6)
+      .map((category) => ({ id: category.id, label: category.name, slug: category.slug }));
+
+    return [...base, ...extras];
+  }, [categories]);
+
+  const baseQuery = {
+    category: selectedCategory || undefined,
     query: query.trim() || undefined,
   } as const;
 
@@ -87,8 +81,9 @@ export function MarketHub() {
     error: listingsError,
     refresh: refreshListings,
   } = useAuctions({
-    ...baseOptions,
+    ...baseQuery,
     status: "LIVE",
+    view: "listings",
   });
 
   const {
@@ -96,7 +91,7 @@ export function MarketHub() {
     loading: liveStreamsLoading,
     refresh: refreshLiveStreams,
   } = useAuctions({
-    ...baseOptions,
+    ...baseQuery,
     status: "LIVE",
     view: "streams",
   });
@@ -106,66 +101,89 @@ export function MarketHub() {
     loading: scheduledStreamsLoading,
     refresh: refreshScheduledStreams,
   } = useAuctions({
-    ...baseOptions,
+    ...baseQuery,
     status: "SCHEDULED",
     view: "streams",
   });
 
-  const filteredListings = useMemo(() => {
+  const listingModeFiltered = useMemo(() => {
     if (modeFromUrl === "buy-now") {
       return liveListings.filter((entry) => entry.listingType !== "AUCTION");
     }
     if (modeFromUrl === "auctions") {
       return liveListings.filter((entry) => entry.listingType !== "BUY_NOW");
     }
-    if (modeFromUrl === "streams") {
-      return [];
-    }
     return liveListings;
   }, [liveListings, modeFromUrl]);
 
-  const extraCategories = useMemo(() => {
-    const seen = new Set<string>(QUICK_CATEGORIES.map((entry) => entry.slug).filter(Boolean));
-    const unique = [];
-    for (const category of categories) {
-      const key = getCategoryKey(category.slug, category.name);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      unique.push(category);
-      if (unique.length >= 8) break;
+  const sortedListings = useMemo(() => {
+    const list = [...listingModeFiltered];
+    if (sortMode === "price-low") {
+      list.sort((a, b) => parsePrice(a) - parsePrice(b));
+      return list;
     }
-    return unique;
-  }, [categories]);
+    if (sortMode === "price-high") {
+      list.sort((a, b) => parsePrice(b) - parsePrice(a));
+      return list;
+    }
+    if (sortMode === "ending") {
+      list.sort((a, b) => {
+        const aEnd = new Date(a.extendedTime ?? a.endTime ?? "").getTime();
+        const bEnd = new Date(b.extendedTime ?? b.endTime ?? "").getTime();
+        const safeA = Number.isFinite(aEnd) ? aEnd : Number.MAX_SAFE_INTEGER;
+        const safeB = Number.isFinite(bEnd) ? bEnd : Number.MAX_SAFE_INTEGER;
+        return safeA - safeB;
+      });
+      return list;
+    }
+    if (sortMode === "popular") {
+      list.sort((a, b) => b.watchersCount - a.watchersCount);
+      return list;
+    }
 
-  const railItems = useMemo(() => {
+    list.sort((a, b) => parseCreatedAt(b) - parseCreatedAt(a));
+    return list;
+  }, [listingModeFiltered, sortMode]);
+
+  const streamItems = useMemo<MarketStream[]>(() => {
     const now = Date.now();
     const scheduledFuture = scheduledStreams
       .filter((entry) => entry.startTime && new Date(entry.startTime).getTime() > now)
-      .sort((a, b) => {
-        const aTime = a.startTime ? new Date(a.startTime).getTime() : Number.MAX_SAFE_INTEGER;
-        const bTime = b.startTime ? new Date(b.startTime).getTime() : Number.MAX_SAFE_INTEGER;
-        return aTime - bTime;
-      });
+      .map((entry) => ({ ...entry, streamStatus: "scheduled" as const }));
 
-    const ids = new Set<string>();
-    const merged = [...liveStreams, ...scheduledFuture].filter((entry) => {
-      if (ids.has(entry.id)) return false;
-      ids.add(entry.id);
+    const live = liveStreams.map((entry) => ({ ...entry, streamStatus: "live" as const }));
+
+    const seen = new Set<string>();
+    const merged = [...live, ...scheduledFuture].filter((entry) => {
+      if (seen.has(entry.id)) return false;
+      seen.add(entry.id);
       return true;
+    });
+
+    merged.sort((a, b) => {
+      if (a.streamStatus !== b.streamStatus) {
+        return a.streamStatus === "live" ? -1 : 1;
+      }
+      if (a.streamStatus === "live" && b.streamStatus === "live") {
+        return b.watchersCount - a.watchersCount;
+      }
+      const aStart = a.startTime ? new Date(a.startTime).getTime() : Number.MAX_SAFE_INTEGER;
+      const bStart = b.startTime ? new Date(b.startTime).getTime() : Number.MAX_SAFE_INTEGER;
+      return aStart - bStart;
     });
 
     return merged;
   }, [liveStreams, scheduledStreams]);
 
   const setMode = (mode: MarketMode) => {
-    const next = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams.toString());
     if (mode === "all") {
-      next.delete("mode");
+      params.delete("mode");
     } else {
-      next.set("mode", mode);
+      params.set("mode", mode);
     }
-    const nextQuery = next.toString();
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   };
 
   const startBuyNow = async (auctionId: string) => {
@@ -175,7 +193,7 @@ export function MarketHub() {
     }
 
     setBuyLoadingId(auctionId);
-    setBuyMessage("");
+    setStatusMessage("");
     try {
       const response = await fetch(`/api/auctions/${auctionId}/buy`, {
         method: "POST",
@@ -190,12 +208,16 @@ export function MarketHub() {
         window.location.assign(payload.checkoutUrl);
         return;
       }
-      setBuyMessage("Checkout initialized.");
-    } catch (buyError) {
-      setBuyMessage(buyError instanceof Error ? buyError.message : "Unable to start checkout.");
+      setStatusMessage("Checkout started.");
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : "Unable to start checkout.");
     } finally {
       setBuyLoadingId(null);
     }
+  };
+
+  const refreshAllSections = async () => {
+    await Promise.all([refreshListings(), refreshLiveStreams(), refreshScheduledStreams()]);
   };
 
   const endStream = async (auctionId: string) => {
@@ -205,6 +227,7 @@ export function MarketHub() {
     }
 
     setEndingStreamId(auctionId);
+    setStatusMessage("");
     try {
       const response = await fetch("/api/streams/session", {
         method: "PATCH",
@@ -215,277 +238,57 @@ export function MarketHub() {
       if (!response.ok) {
         throw new Error(payload.error || "Unable to end stream.");
       }
-      await Promise.all([refreshLiveStreams(), refreshScheduledStreams(), refreshListings()]);
-    } catch (streamError) {
-      setBuyMessage(streamError instanceof Error ? streamError.message : "Unable to end stream.");
+      setStatusMessage("Stream ended.");
+      await refreshAllSections();
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : "Unable to end stream.");
     } finally {
       setEndingStreamId(null);
     }
   };
 
-  const startOrScheduleStream = async (mode: "start" | "schedule") => {
-    if (!session?.user?.id) {
-      await signIn();
-      return;
-    }
-
-    let scheduleAt: string | undefined;
-    if (mode === "schedule") {
-      const raw = window.prompt("Schedule stream (YYYY-MM-DD HH:MM, local time)");
-      if (!raw) return;
-      const normalized = raw.trim().replace(" ", "T");
-      const parsed = new Date(normalized);
-      if (Number.isNaN(parsed.getTime()) || parsed <= new Date()) {
-        setBuyMessage("Use a valid future date and time.");
-        return;
-      }
-      scheduleAt = parsed.toISOString();
-    }
-
-    setStreamActionLoading(mode);
-    try {
-      const response = await fetch("/api/streams/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scheduleAt }),
-      });
-      const payload = (await response.json()) as { error?: string; auctionId?: string };
-      if (!response.ok || !payload.auctionId) {
-        throw new Error(payload.error || "Unable to create stream.");
-      }
-
-      await Promise.all([refreshLiveStreams(), refreshScheduledStreams(), refreshListings()]);
-      if (mode === "schedule") {
-        setBuyMessage("Stream scheduled.");
-      } else {
-        router.push(`/streams/${payload.auctionId}`);
-      }
-    } catch (streamError) {
-      setBuyMessage(streamError instanceof Error ? streamError.message : "Unable to create stream.");
-    } finally {
-      setStreamActionLoading(null);
-    }
-  };
-
-  const streamLoading = liveStreamsLoading || scheduledStreamsLoading;
-  const listingsLoadingState = listingsLoading && modeFromUrl !== "streams";
-
   return (
-    <div className="ios-screen market-shell space-y-4">
-      <section className="ios-hero market-hero space-y-4">
-        <div className="space-y-2">
-          <h1 className="ios-title">Marketplace</h1>
-        </div>
-
-        <div className="ios-panel market-controls p-3 sm:p-4">
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search"
-            className="ios-input"
+    <div className="market-v2-page">
+      <MarketplaceHeader
+        search={<MarketplaceSearch value={query} onChange={setQuery} />}
+        tabs={<ListingTabs value={modeFromUrl} onChange={setMode} />}
+        filters={
+          <MarketplaceFilters
+            categories={categoryFilters}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            sort={sortMode}
+            onSortChange={setSortMode}
+            density={gridDensity}
+            onDensityChange={setGridDensity}
           />
+        }
+      />
 
-          <div className="ios-chip-row mt-3">
-            {MODE_OPTIONS.map((entry) => (
-              <button
-                key={entry.mode}
-                type="button"
-                onClick={() => setMode(entry.mode)}
-                className={`ios-chip ${modeFromUrl === entry.mode ? "ios-chip-active" : ""}`}
-              >
-                {entry.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="ios-chip-row mt-2">
-            {QUICK_CATEGORIES.map((entry) => (
-              <button
-                key={entry.label}
-                type="button"
-                onClick={() => setCategorySlug(entry.slug)}
-                className={`ios-chip ${categorySlug === entry.slug ? "ios-chip-active" : ""}`}
-              >
-                {entry.label}
-              </button>
-            ))}
-            {extraCategories.map((category) => (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setCategorySlug(category.slug)}
-                className={`ios-chip ${categorySlug === category.slug ? "ios-chip-active" : ""}`}
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="ios-panel market-stream-rail p-3 sm:p-4">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="ios-section-title">Streams</h2>
-          <div className="flex items-center gap-2">
-            {canManageStreams ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => void startOrScheduleStream("start")}
-                  disabled={streamActionLoading !== null}
-                  className="rounded-full border border-slate-200 bg-slate-900 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
-                >
-                  {streamActionLoading === "start" ? "Starting..." : "Start"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void startOrScheduleStream("schedule")}
-                  disabled={streamActionLoading !== null}
-                  className="rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-700 disabled:opacity-60"
-                >
-                  {streamActionLoading === "schedule" ? "Saving..." : "Schedule"}
-                </button>
-              </>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => setStreamExpanded((prev) => !prev)}
-              className="rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-700"
-            >
-              {streamExpanded ? "Collapse" : "Expand"}
-            </button>
-          </div>
-        </div>
-
-        {streamLoading ? (
-          <div className="mt-3">
-            <CheckersLoader title="Loading streams..." compact className="ios-empty" />
-          </div>
-        ) : railItems.length === 0 ? (
-          <div className="ios-empty mt-3">No live or scheduled streams.</div>
-        ) : (
-          <div className="market-stream-scroller mt-3">
-            {railItems.map((stream) => {
-              const streamImage = resolveDisplayMediaUrl(getPrimaryImageUrl(stream));
-              const isLive = stream.streamSessions?.[0]?.status === "LIVE";
-              const isHost = Boolean(session?.user?.id && stream.seller?.user?.id === session.user.id);
-
-              return (
-                <div key={stream.id} className="market-stream-card-wrap">
-                  <Link href={`/streams/${stream.id}`} className="market-stream-card" aria-label={stream.title}>
-                    <div className="market-stream-card-media">
-                      <Image
-                        src={streamImage}
-                        alt={stream.title}
-                        fill
-                        sizes="(max-width: 768px) 150px, 180px"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="market-stream-card-body">
-                      <span className={`market-stream-status ${isLive ? "is-live" : "is-scheduled"}`}>
-                        {isLive ? "Live" : "Scheduled"}
-                      </span>
-                      <p className="market-stream-title">{stream.title}</p>
-                      <p className="market-stream-meta">
-                        {isLive ? `${stream.watchersCount} watching` : formatSchedule(stream.startTime)}
-                      </p>
-                    </div>
-                  </Link>
-
-                  {isLive && isHost ? (
-                    <button
-                      type="button"
-                      onClick={() => void endStream(stream.id)}
-                      disabled={endingStreamId === stream.id}
-                      className="market-stream-end"
-                    >
-                      {endingStreamId === stream.id ? "Ending..." : "End"}
-                    </button>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {streamExpanded && railItems.length > 0 ? (
-          <div className="mt-3 grid grid-cols-2 gap-3 min-[560px]:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {railItems.map((entry) => (
-              <AuctionCard
-                key={`expanded-${entry.id}`}
-                id={entry.id}
-                title={entry.title}
-                sellerName={entry.seller?.user?.displayName ?? "Seller"}
-                category={entry.category?.name ?? undefined}
-                currentBid={entry.currentBid}
-                timeLeft={getTimeLeftSeconds(entry)}
-                watchers={entry.watchersCount}
-                badge={entry.streamSessions?.[0]?.status === "LIVE" ? "Live" : "Scheduled"}
-                imageUrl={getPrimaryImageUrl(entry)}
-                listingType={entry.listingType}
-                buyNowPrice={entry.buyNowPrice}
-                currency={entry.currency?.toUpperCase()}
-                gradeLabel={getGradeLabel(entry.item?.attributes) ?? undefined}
-              />
-            ))}
-          </div>
-        ) : null}
-      </section>
+      <LiveNowRail
+        streams={streamItems}
+        loading={liveStreamsLoading || scheduledStreamsLoading}
+        currentUserId={currentUserId}
+        canManage={canManageStreams}
+        endingStreamId={endingStreamId}
+        onEnd={(auctionId) => void endStream(auctionId)}
+      />
 
       {listingsError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {listingsError}
-        </div>
+        <div className="market-v2-error">{listingsError}</div>
       ) : null}
 
-      {buyMessage ? (
-        <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700">
-          {buyMessage}
-        </div>
-      ) : null}
+      {statusMessage ? <div className="market-v2-note">{statusMessage}</div> : null}
 
-      {modeFromUrl === "streams" ? null : listingsLoadingState ? (
-        <div className="market-loading-wrap">
-          <CheckersLoader title="Loading market..." className="ios-empty" />
-        </div>
-      ) : filteredListings.length === 0 ? (
-        <div className="ios-empty">No listings.</div>
+      {listingsLoading ? (
+        <div className="market-v2-empty">Loading listings...</div>
       ) : (
-        <section className="space-y-3">
-          <h2 className="ios-section-title">Cards</h2>
-          <div className="grid grid-cols-2 gap-3 min-[560px]:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {filteredListings.map((entry) => (
-              <div key={entry.id} className="space-y-2">
-                <AuctionCard
-                  id={entry.id}
-                  title={entry.title}
-                  sellerName={entry.seller?.user?.displayName ?? "Seller"}
-                  category={entry.category?.name ?? undefined}
-                  currentBid={entry.currentBid}
-                  timeLeft={getTimeLeftSeconds(entry)}
-                  watchers={entry.watchersCount}
-                  badge={entry.seller?.status === "APPROVED" ? "Verified" : undefined}
-                  imageUrl={getPrimaryImageUrl(entry)}
-                  listingType={entry.listingType}
-                  buyNowPrice={entry.buyNowPrice}
-                  currency={entry.currency?.toUpperCase()}
-                  gradeLabel={getGradeLabel(entry.item?.attributes) ?? undefined}
-                />
-                {entry.listingType !== "AUCTION" && entry.buyNowPrice ? (
-                  <button
-                    type="button"
-                    onClick={() => void startBuyNow(entry.id)}
-                    disabled={buyLoadingId === entry.id}
-                    className="w-full rounded-full border border-slate-200 bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
-                  >
-                    {buyLoadingId === entry.id ? "Opening..." : "Buy"}
-                  </button>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </section>
+        <ListingSection
+          listings={sortedListings}
+          density={gridDensity}
+          buyLoadingId={buyLoadingId}
+          onBuyNow={(auctionId) => void startBuyNow(auctionId)}
+        />
       )}
     </div>
   );

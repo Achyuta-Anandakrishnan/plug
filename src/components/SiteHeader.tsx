@@ -78,7 +78,6 @@ export function SiteHeader() {
 
   const navItems = useMemo(
     () => [
-      { key: "streams", label: "Streams", href: "/listings?mode=streams" },
       { key: "market", label: "Market", href: "/listings" },
       { label: "Trades", href: "/trades" },
       { label: "Forum", href: "/forum" },
@@ -87,16 +86,9 @@ export function SiteHeader() {
     ],
     [],
   );
-  const listingsMode = typeof window === "undefined"
-    ? null
-    : new URLSearchParams(window.location.search).get("mode");
-
   const isNavActive = (item: (typeof navItems)[number]) => {
-    if (item.key === "streams") {
-      return pathname === "/streams" || (pathname === "/listings" && listingsMode === "streams");
-    }
     if (item.key === "market") {
-      return pathname === "/listings" && listingsMode !== "streams";
+      return pathname === "/listings";
     }
     return pathname === item.href || pathname?.startsWith(`${item.href}/`);
   };
