@@ -85,6 +85,24 @@ export async function POST(request: Request) {
     case "checkout.session.completed": {
       const session = event.data.object;
       const tradeSettlementId = session.metadata?.tradeSettlementId;
+      const orderId = session.metadata?.orderId;
+
+      if (orderId) {
+        const paymentIntentId =
+          typeof session.payment_intent === "string" ? session.payment_intent : null;
+        await prisma.payment.updateMany({
+          where: { orderId },
+          data: {
+            providerPaymentIntent: paymentIntentId,
+            status: session.payment_status === "paid" ? "SUCCEEDED" : "PROCESSING",
+          },
+        });
+        await prisma.order.updateMany({
+          where: { id: orderId },
+          data: { status: session.payment_status === "paid" ? "PAID" : "PENDING_PAYMENT" },
+        });
+      }
+
       if (tradeSettlementId) {
         await prisma.tradeSettlement.updateMany({
           where: { id: tradeSettlementId },

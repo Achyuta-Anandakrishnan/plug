@@ -144,9 +144,14 @@ export function StreamRoomDesktop({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
-    const payload = await response.json();
+    const payload = await response.json() as { error?: string; checkoutUrl?: string | null };
     if (!response.ok) {
       setActionStatus(payload.error || "Unable to buy now.");
+      return;
+    }
+
+    if (payload.checkoutUrl && /^https?:\/\/[^\s]+$/i.test(payload.checkoutUrl)) {
+      window.location.assign(payload.checkoutUrl);
       return;
     }
 

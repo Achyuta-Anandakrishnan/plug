@@ -177,12 +177,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     return jsonOk(accepted);
   }
 
-  if (nextStatus === "DECLINED" || nextStatus === "COUNTERED") {
+  if (nextStatus === "COUNTERED") {
     if (!isOwner) {
       return jsonError("Only the trade owner can update offer state.", 403);
     }
-    if (!["PENDING", "COUNTERED"].includes(offer.status)) {
-      return jsonError("Only active offers can be updated.");
+    if (offer.status !== "PENDING") {
+      return jsonError("Counter offers can only be sent once per offer.", 409);
     }
 
     const nextCashAdjustment = body.cashAdjustment !== undefined
@@ -199,14 +199,37 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     const updated = await prisma.tradeOffer.update({
       where: { id: offer.id },
       data: {
-        status: nextStatus,
-        message: nextStatus === "COUNTERED" ? nextMessage : offer.message,
-        cashAdjustment: nextStatus === "COUNTERED" ? nextCashAdjustment : offer.cashAdjustment,
+        status: "COUNTERED",
+        message: nextMessage,
+        cashAdjustment: nextCashAdjustment,
         settlement: offer.settlement
           ? {
               update: {
                 status: "CANCELED",
               },
+            }
+          : undefined,
+      },
+      include: offerInclude,
+    });
+    return jsonOk(updated);
+  }
+
+  if (nextStatus === "DECLINED") {
+    if (!isOwner) {
+      return jsonError("Only the trade owner can update offer state.", 403);
+    }
+    if (!["PENDING", "COUNTERED"].includes(offer.status)) {
+      return jsonError("Only active offers can be declined.");
+    }
+
+    const updated = await prisma.tradeOffer.update({
+      where: { id: offer.id },
+      data: {
+        status: "DECLINED",
+        settlement: offer.settlement
+          ? {
+              update: { status: "CANCELED" },
             }
           : undefined,
       },

@@ -112,68 +112,134 @@ export async function POST(
 
   let clientSecret: string | null = null;
   let paymentIntentId: string | null = null;
+  let checkoutUrl: string | null = null;
   const stripe = getStripeClient();
   if (stripe) {
-    let intent;
-    try {
-      intent = await stripe.paymentIntents.create(
-        {
-          amount: chargeAmount,
-          currency: auction.currency,
-          capture_method: "automatic",
-          metadata: {
-            orderId: order.id,
-            auctionId: auction.id,
+    if (body?.paymentMethodId) {
+      let intent;
+      try {
+        intent = await stripe.paymentIntents.create(
+          {
+            amount: chargeAmount,
+            currency: auction.currency,
+            capture_method: "automatic",
+            metadata: {
+              orderId: order.id,
+              auctionId: auction.id,
+            },
+            payment_method: body.paymentMethodId,
+            confirm: true,
           },
-          payment_method: body?.paymentMethodId,
-          confirm: Boolean(body?.paymentMethodId),
-        },
-        {
-          // If the client retries, avoid creating multiple PaymentIntents for the same order.
-          idempotencyKey: `pi_${order.id}`,
-        },
-      );
-    } catch (error) {
+          {
+            idempotencyKey: `pi_${order.id}`,
+          },
+        );
+      } catch (error) {
+        await prisma.payment.update({
+          where: { id: order.payment?.id },
+          data: { status: "FAILED" },
+        });
+        console.error("Stripe PaymentIntent create failed", error);
+        return jsonError("Unable to initialize payment.", 502);
+      }
+
+      clientSecret = intent.client_secret ?? null;
+      paymentIntentId = intent.id;
+
+      const statusMap: Record<string, string> = {
+        requires_payment_method: "REQUIRES_PAYMENT_METHOD",
+        requires_confirmation: "REQUIRES_CONFIRMATION",
+        requires_action: "REQUIRES_CONFIRMATION",
+        processing: "PROCESSING",
+        requires_capture: "PROCESSING",
+        succeeded: "SUCCEEDED",
+        canceled: "CANCELED",
+      };
+
       await prisma.payment.update({
         where: { id: order.payment?.id },
-        data: { status: "FAILED" },
+        data: {
+          providerPaymentIntent: intent.id,
+          status: (statusMap[intent.status] ??
+            "REQUIRES_CONFIRMATION") as
+            | "REQUIRES_PAYMENT_METHOD"
+            | "REQUIRES_CONFIRMATION"
+            | "PROCESSING"
+            | "SUCCEEDED"
+            | "FAILED"
+            | "CANCELED",
+        },
       });
-      console.error("Stripe PaymentIntent create failed", error);
-      return jsonError("Unable to initialize payment.", 502);
+    } else {
+      try {
+        const origin = (() => {
+          try {
+            return new URL(request.url).origin;
+          } catch {
+            return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+          }
+        })();
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
+
+        const session = await stripe.checkout.sessions.create(
+          {
+            mode: "payment",
+            success_url: `${appUrl}/streams/${auction.id}?buy=success&order=${order.id}`,
+            cancel_url: `${appUrl}/streams/${auction.id}?buy=cancel&order=${order.id}`,
+            customer_email: sessionUser?.email ?? undefined,
+            line_items: [
+              {
+                quantity: 1,
+                price_data: {
+                  currency: auction.currency,
+                  unit_amount: chargeAmount,
+                  product_data: {
+                    name: auction.title.slice(0, 120),
+                    description: `Buy now checkout for listing ${auction.id}`.slice(0, 200),
+                  },
+                },
+              },
+            ],
+            metadata: {
+              orderId: order.id,
+              auctionId: auction.id,
+            },
+            payment_intent_data: {
+              metadata: {
+                orderId: order.id,
+                auctionId: auction.id,
+              },
+            },
+          },
+          {
+            idempotencyKey: `cs_${order.id}`,
+          },
+        );
+
+        checkoutUrl = session.url ?? null;
+        paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : null;
+        await prisma.payment.update({
+          where: { id: order.payment?.id },
+          data: {
+            providerPaymentIntent: paymentIntentId,
+            status: "REQUIRES_CONFIRMATION",
+          },
+        });
+      } catch (error) {
+        await prisma.payment.update({
+          where: { id: order.payment?.id },
+          data: { status: "FAILED" },
+        });
+        console.error("Stripe Checkout session create failed", error);
+        return jsonError("Unable to initialize checkout.", 502);
+      }
     }
-
-    clientSecret = intent.client_secret ?? null;
-    paymentIntentId = intent.id;
-
-    const statusMap: Record<string, string> = {
-      requires_payment_method: "REQUIRES_PAYMENT_METHOD",
-      requires_confirmation: "REQUIRES_CONFIRMATION",
-      requires_action: "REQUIRES_CONFIRMATION",
-      processing: "PROCESSING",
-      requires_capture: "PROCESSING",
-      succeeded: "SUCCEEDED",
-      canceled: "CANCELED",
-    };
-
-    await prisma.payment.update({
-      where: { id: order.payment?.id },
-      data: {
-        providerPaymentIntent: intent.id,
-        status: (statusMap[intent.status] ??
-          "REQUIRES_CONFIRMATION") as
-          | "REQUIRES_PAYMENT_METHOD"
-          | "REQUIRES_CONFIRMATION"
-          | "PROCESSING"
-          | "SUCCEEDED"
-          | "FAILED"
-          | "CANCELED",
-      },
-    });
   }
 
   return jsonOk({
     order,
     paymentIntentId,
     clientSecret,
+    checkoutUrl,
   });
 }

@@ -29,6 +29,7 @@
     "@prisma/client": "^6.19.2",
     "@supabase/supabase-js": "^2.95.3",
     "@vercel/analytics": "^1.6.1",
+    "chess.js": "^1.4.0",
     "livekit-client": "^2.17.1",
     "livekit-server-sdk": "^2.15.0",
     "next": "16.1.1",

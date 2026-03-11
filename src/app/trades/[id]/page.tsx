@@ -83,10 +83,12 @@ export default function TradeDetailPage() {
   const [offerCards, setOfferCards] = useState<OfferDraftCard[]>([{ ...emptyOfferCard }]);
   const [counterDrafts, setCounterDrafts] = useState<Record<string, CounterDraft>>({});
 
-  const refresh = async () => {
+  const refresh = async (options?: { silent?: boolean }) => {
     if (!postId) return;
     const encodedPostId = encodeURIComponent(postId);
-    setLoading(true);
+    if (!options?.silent) {
+      setLoading(true);
+    }
     setError("");
     try {
       const response = await fetchClientApi(`/api/trades/${encodedPostId}`, { cache: "no-store" });
@@ -95,15 +97,28 @@ export default function TradeDetailPage() {
         throw new Error(payload.error || "Unable to load trade.");
       }
       setPost(payload);
-      setLoading(false);
+      if (!options?.silent) {
+        setLoading(false);
+      }
     } catch (err) {
       setError(normalizeClientError(err, "Unable to load trade."));
-      setLoading(false);
+      if (!options?.silent) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     void refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postId]);
+
+  useEffect(() => {
+    if (!postId) return undefined;
+    const intervalId = window.setInterval(() => {
+      void refresh({ silent: true });
+    }, 8000);
+    return () => window.clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
 
@@ -322,6 +337,12 @@ export default function TradeDetailPage() {
               className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
             >
               Back
+            </Link>
+            <Link
+              href={`/trades/${encodeURIComponent(post.id)}/dispute`}
+              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
+            >
+              Play game
             </Link>
             {post.viewer.isOwner ? (
               <button
@@ -570,7 +591,8 @@ export default function TradeDetailPage() {
         ) : (
           <div className="mt-3 space-y-3">
             {post.offers.map((offer) => {
-              const canManage = post.viewer.isOwner && ["PENDING", "COUNTERED"].includes(offer.status);
+              const canAcceptOrDecline = post.viewer.isOwner && ["PENDING", "COUNTERED"].includes(offer.status);
+              const canCounter = post.viewer.isOwner && offer.status === "PENDING";
               const canWithdraw = offer.proposerId === currentUserId && ["PENDING", "COUNTERED"].includes(offer.status);
               const counterDraft = counterDrafts[offer.id];
               const settlement = offer.settlement;
@@ -578,7 +600,10 @@ export default function TradeDetailPage() {
               const canPaySettlement = offer.status === "ACCEPTED" && settlement && settlement.status !== "SUCCEEDED" && isSettlementPayer;
 
               return (
-                <div key={offer.id} className="rounded-3xl border border-slate-200 bg-white/90 p-4">
+                <div
+                  key={offer.id}
+                  className="rounded-[28px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_10px_28px_rgba(15,23,42,0.08)]"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">
@@ -600,14 +625,20 @@ export default function TradeDetailPage() {
                   {offer.cards.length > 0 ? (
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                       {offer.cards.map((card) => (
-                        <div key={card.id} className="rounded-2xl border border-slate-200 bg-white p-3">
+                        <div key={card.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-3">
                           <p className="text-sm font-semibold text-slate-900">{card.title}</p>
                           <p className="mt-1 text-xs text-slate-500">
-                            {[card.cardSet, card.cardNumber, card.condition].filter(Boolean).join(" • ")}
+                            {[card.cardSet, card.cardNumber, card.condition].filter(Boolean).join(" • ") || "No extra card details"}
                           </p>
+                          {(card.gradeCompany || card.gradeLabel) ? (
+                            <p className="mt-1 text-xs text-slate-500">
+                              {[card.gradeCompany, card.gradeLabel].filter(Boolean).join(" ")}
+                            </p>
+                          ) : null}
                           {card.estimatedValue ? (
                             <p className="mt-1 text-xs text-slate-500">Est: {formatCurrency(card.estimatedValue, "USD")}</p>
                           ) : null}
+                          {card.notes ? <p className="mt-1 text-xs text-slate-500">{card.notes}</p> : null}
                         </div>
                       ))}
                     </div>
@@ -644,7 +675,7 @@ export default function TradeDetailPage() {
                     </div>
                   ) : null}
 
-                  {canManage ? (
+                  {canAcceptOrDecline ? (
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button
                         type="button"
@@ -654,14 +685,16 @@ export default function TradeDetailPage() {
                       >
                         Accept
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => openCounterDraft(offer)}
-                        disabled={actingOfferId === offer.id}
-                        className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 disabled:opacity-60"
-                      >
-                        Counter
-                      </button>
+                      {canCounter ? (
+                        <button
+                          type="button"
+                          onClick={() => openCounterDraft(offer)}
+                          disabled={actingOfferId === offer.id}
+                          className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 disabled:opacity-60"
+                        >
+                          Counter
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => void updateOfferStatus(offer.id, "DECLINED")}
@@ -670,6 +703,12 @@ export default function TradeDetailPage() {
                       >
                         Decline
                       </button>
+                      <Link
+                        href={`/trades/${encodeURIComponent(post.id)}/dispute?offer=${encodeURIComponent(offer.id)}`}
+                        className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700"
+                      >
+                        Play game
+                      </Link>
                     </div>
                   ) : canWithdraw ? (
                     <div className="mt-3">
@@ -681,6 +720,12 @@ export default function TradeDetailPage() {
                       >
                         Withdraw
                       </button>
+                      <Link
+                        href={`/trades/${encodeURIComponent(post.id)}/dispute?offer=${encodeURIComponent(offer.id)}`}
+                        className="ml-2 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700"
+                      >
+                        Play game
+                      </Link>
                     </div>
                   ) : null}
 

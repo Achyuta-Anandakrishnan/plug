@@ -442,7 +442,8 @@ function hydrateCachedCard(raw: unknown, grader: string, certNumber: string): No
 
 export async function POST(request: Request) {
   const body = await parseJson<VerifyCardBody>(request);
-  const grader = (body?.grader ?? "AUTO").trim().toUpperCase();
+  const requestedGrader = (body?.grader ?? "PSA").trim().toUpperCase();
+  const grader = requestedGrader === "CDC" ? "CGC" : requestedGrader;
   const certNumber = (body?.certNumber ?? "").replace(/\s+/g, "").trim();
 
   if (!certNumber) {
@@ -511,7 +512,7 @@ export async function POST(request: Request) {
   await prisma.$executeRawUnsafe(
     `INSERT INTO "VerifiedCardCache"
       ("grader", "certNumber", "normalized", "sourcePayload", "verifiedAt", "expiresAt", "updatedAt")
-     VALUES ($1, $2, $3::jsonb, $4::jsonb, NOW(), $5, NOW())
+     VALUES ($1, $2, $3::jsonb, $4::jsonb, NOW(), $5::timestamp, NOW())
      ON CONFLICT ("grader", "certNumber")
      DO UPDATE SET
       "normalized" = EXCLUDED."normalized",

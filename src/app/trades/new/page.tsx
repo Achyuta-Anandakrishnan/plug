@@ -46,6 +46,8 @@ type ManualDraft = {
   tags: string;
 };
 
+type CertGrader = "PSA" | "CDC" | "BGS" | "BVG";
+
 const manualDefaults: ManualDraft = {
   title: "",
   lookingFor: "",
@@ -58,6 +60,13 @@ const manualDefaults: ManualDraft = {
   gradeLabel: "",
   tags: "",
 };
+
+const certGraders: Array<{ value: CertGrader; label: string }> = [
+  { value: "PSA", label: "PSA" },
+  { value: "CDC", label: "CDC" },
+  { value: "BGS", label: "BGS" },
+  { value: "BVG", label: "BVG" },
+];
 
 function toCents(value: string) {
   const parsed = Number(value);
@@ -132,7 +141,7 @@ export default function NewTradePage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [manualMode, setManualMode] = useState(false);
 
-  const [grader] = useState("AUTO");
+  const [grader, setGrader] = useState<CertGrader>("PSA");
   const [certNumber, setCertNumber] = useState("");
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifiedCard, setVerifiedCard] = useState<VerifyCardPayload | null>(null);
@@ -164,10 +173,11 @@ export default function NewTradePage() {
     setStatus("");
 
     try {
+      const requestGrader = grader === "CDC" ? "CGC" : grader;
       const response = await fetchClientApi("/api/verify-card", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ grader, certNumber: cert }),
+        body: JSON.stringify({ grader: requestGrader, certNumber: cert }),
       });
       const payload = (await response.json()) as VerifyCardPayload;
       if (!response.ok) {
@@ -364,7 +374,18 @@ export default function NewTradePage() {
         </div>
 
         {step === 1 ? (
-          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)_auto]">
+            <select
+              value={grader}
+              onChange={(event) => setGrader(event.target.value as CertGrader)}
+              className="ios-input"
+            >
+              {certGraders.map((entry) => (
+                <option key={entry.value} value={entry.value}>
+                  {entry.label}
+                </option>
+              ))}
+            </select>
             <input
               value={certNumber}
               onChange={(event) => setCertNumber(event.target.value)}

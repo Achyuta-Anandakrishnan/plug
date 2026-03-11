@@ -16,13 +16,13 @@ const ThemeToggle = dynamic(
 
 function Brand() {
   return (
-    <Link href="/" className="flex items-center">
+    <Link href="/" className="flex items-center" aria-label="dalow home">
       <Image
         src="/dalow-logo.svg"
         alt="dalow logo"
-        width={52}
-        height={52}
-        className="brand-logo h-11 w-auto sm:h-12"
+        width={64}
+        height={64}
+        className="brand-logo h-12 w-auto sm:h-14"
         priority
       />
     </Link>
@@ -69,24 +69,24 @@ export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
+
   const canUseDom = typeof document !== "undefined";
   const isVerifiedSeller =
     session?.user?.role === "SELLER" || session?.user?.role === "ADMIN";
-
   const isAdmin =
     session?.user?.role === "ADMIN" || isPrimaryAdminEmail(session?.user?.email);
 
-  const navItems = useMemo(() => {
-    return [
+  const navItems = useMemo(
+    () => [
       { label: "Streams", href: "/streams" },
-      { label: "Listings", href: "/listings" },
+      { label: "Market", href: "/listings" },
       { label: "Trades", href: "/trades" },
-      { label: "Search", href: "/explore" },
       { label: "Forum", href: "/forum" },
       { label: "Messages", href: "/messages" },
       { label: "Settings", href: "/settings" },
-    ];
-  }, []);
+    ],
+    [],
+  );
 
   useEffect(() => {
     if (!canUseDom) return;
@@ -96,69 +96,70 @@ export function SiteHeader() {
     };
   }, [canUseDom, mobileOpen]);
 
-  const mobileDrawer = canUseDom && mobileOpen
-    ? createPortal(
-        <div className="fixed inset-0 z-[999] pointer-events-auto md:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-slate-900/45"
-            aria-label="Close menu"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div className="site-mobile-drawer fixed left-0 top-0 z-[1000] flex h-full w-[min(86vw,360px)] flex-col overflow-y-auto border-r border-white/70 bg-white/90 px-5 pb-6 pt-[calc(1.25rem+var(--safe-top))] shadow-[24px_0_60px_rgba(15,23,42,0.24)] backdrop-blur-xl">
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <p className="font-display text-2xl text-slate-900">Menu</p>
-              <button
-                type="button"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-full border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600"
-              >
-                Close
-              </button>
-            </div>
-            <div className="mb-5">
-              <ThemeToggle />
-            </div>
-            <nav className="grid gap-3 text-lg font-semibold text-slate-800">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href + item.label}
-                  href={item.href}
+  const mobileDrawer =
+    canUseDom && mobileOpen
+      ? createPortal(
+          <div className="fixed inset-0 z-[999] pointer-events-auto md:hidden">
+            <button
+              type="button"
+              className="absolute inset-0 bg-slate-900/50"
+              aria-label="Close menu"
+              onClick={() => setMobileOpen(false)}
+            />
+            <div className="site-mobile-drawer fixed left-0 top-0 z-[1000] flex h-full w-[min(86vw,360px)] flex-col overflow-y-auto border-r border-white/70 bg-white/90 px-5 pb-6 pt-[calc(1.25rem+var(--safe-top))] shadow-[24px_0_60px_rgba(15,23,42,0.24)] backdrop-blur-xl">
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <p className="font-display text-2xl text-slate-900">Menu</p>
+                <button
+                  type="button"
                   onClick={() => setMobileOpen(false)}
-                  className={`rounded-2xl border px-4 py-3.5 transition ${
-                    pathname === item.href || pathname?.startsWith(`${item.href}/`)
-                      ? "border-blue-100 bg-blue-50 text-[var(--royal)]"
-                      : "border-white/70 bg-white/70 text-slate-700"
-                  }`}
+                  className="rounded-full border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700"
                 >
-                  {item.label}
-                </Link>
-              ))}
-              {isAdmin && (
+                  Close
+                </button>
+              </div>
+              <div className="mb-5">
+                <ThemeToggle />
+              </div>
+              <nav className="grid gap-3 text-lg font-semibold text-slate-800">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`rounded-2xl border px-4 py-3.5 transition ${
+                      pathname === item.href || pathname?.startsWith(`${item.href}/`)
+                        ? "border-blue-100 bg-blue-50 text-[var(--royal)]"
+                        : "border-white/70 bg-white/70 text-slate-700"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+                {isAdmin && (
+                  <Link
+                    href="/admin/sellers"
+                    onClick={() => setMobileOpen(false)}
+                    className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3.5 text-slate-700"
+                  >
+                    Admin
+                  </Link>
+                )}
+              </nav>
+              <div className="mt-auto grid gap-3 pt-6">
+                <AccountActions signedIn={Boolean(session?.user?.id)} />
                 <Link
-                  href="/admin/profiles"
+                  href={isVerifiedSeller ? "/sell" : "/seller/verification"}
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3.5 text-slate-700"
+                  className="rounded-full bg-[var(--royal)] px-4 py-3.5 text-center text-base font-semibold text-white"
                 >
-                  Admin
+                  {isVerifiedSeller ? "Create listing" : "Get verified"}
                 </Link>
-              )}
-            </nav>
-            <div className="mt-auto grid gap-3 pt-6">
-              <AccountActions signedIn={Boolean(session?.user?.id)} />
-              <Link
-                href={isVerifiedSeller ? "/sell" : "/seller/verification"}
-                onClick={() => setMobileOpen(false)}
-                className="rounded-full bg-[var(--royal)] px-4 py-3.5 text-center text-base font-semibold text-white"
-              >
-                {isVerifiedSeller ? "Create listing" : "Get verified"}
-              </Link>
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body,
-      )
-    : null;
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
     <>
@@ -179,13 +180,13 @@ export function SiteHeader() {
 
           <nav className="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex lg:gap-6">
             {navItems.map((item) => (
-              <Link key={item.href + item.label} href={item.href} className="site-nav-link transition hover:text-slate-900">
+              <Link key={item.href} href={item.href} className="site-nav-link transition hover:text-slate-900">
                 {item.label}
               </Link>
             ))}
             {isAdmin && (
               <Link
-                href="/admin/profiles"
+                href="/admin/sellers"
                 className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600"
               >
                 Admin

@@ -6,6 +6,7 @@ import { signIn, useSession } from "next-auth/react";
 import { formatCurrency } from "@/lib/format";
 
 type ListingType = "AUCTION" | "BUY_NOW" | "BOTH" | "LIVE_STREAM";
+type CertGrader = "PSA" | "CDC" | "BGS" | "BVG";
 
 type VerifyPayload = {
   found?: boolean;
@@ -36,6 +37,13 @@ const listingTypes: Array<{ value: ListingType; label: string }> = [
   { value: "BUY_NOW", label: "Buy now" },
   { value: "BOTH", label: "Auction + buy now" },
   { value: "LIVE_STREAM", label: "Live stream" },
+];
+
+const certGraders: Array<{ value: CertGrader; label: string }> = [
+  { value: "PSA", label: "PSA" },
+  { value: "CDC", label: "CDC" },
+  { value: "BGS", label: "BGS" },
+  { value: "BVG", label: "BVG" },
 ];
 
 function toCents(value: string) {
@@ -109,6 +117,7 @@ export function SellerListingQuickForm() {
   const { data: session } = useSession();
   const isSeller = session?.user?.role === "SELLER" || session?.user?.role === "ADMIN";
   const [listingType, setListingType] = useState<ListingType>("AUCTION");
+  const [grader, setGrader] = useState<CertGrader>("PSA");
   const [certNumber, setCertNumber] = useState("");
   const [desiredPrice, setDesiredPrice] = useState("");
   const [lookupLoading, setLookupLoading] = useState(false);
@@ -131,10 +140,11 @@ export function SellerListingQuickForm() {
     const timer = window.setTimeout(async () => {
       setLookupLoading(true);
       try {
+        const requestGrader = grader === "CDC" ? "CGC" : grader;
         const response = await fetch("/api/verify-card", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ grader: "AUTO", certNumber: cert }),
+          body: JSON.stringify({ grader: requestGrader, certNumber: cert }),
         });
 
         const payload = (await response.json()) as VerifyPayload;
@@ -162,7 +172,7 @@ export function SellerListingQuickForm() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [certNumber]);
+  }, [certNumber, grader]);
 
   const desiredCents = useMemo(() => toCents(desiredPrice), [desiredPrice]);
   const cert = certNumber.replace(/\s+/g, "").trim();
@@ -288,6 +298,20 @@ export function SellerListingQuickForm() {
       )}
 
       <div className="grid gap-3 md:grid-cols-2">
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Grader</p>
+          <select
+            value={grader}
+            onChange={(event) => setGrader(event.target.value as CertGrader)}
+            className="ios-input"
+          >
+            {certGraders.map((entry) => (
+              <option key={entry.value} value={entry.value}>
+                {entry.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="space-y-2">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Cert number</p>
           <input
