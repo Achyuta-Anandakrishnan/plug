@@ -79,6 +79,7 @@ export function SiteHeader() {
   const navItems = useMemo(
     () => [
       { key: "market", label: "Market", href: "/listings" },
+      { key: "live", label: "Live", href: "/live" },
       { label: "Trades", href: "/trades" },
       { label: "Forum", href: "/forum" },
       { label: "Messages", href: "/messages" },

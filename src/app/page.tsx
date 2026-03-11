@@ -1,139 +1,245 @@
-import Link from "next/link";
-import { AuctionCard } from "@/components/AuctionCard";
-import { LandingSlideshow } from "@/components/home/LandingSlideshow";
+import { FinalCTA } from "@/components/home/FinalCTA";
+import { LandingHero } from "@/components/home/LandingHero";
+import { ProductPreviewShowcase } from "@/components/home/ProductPreviewShowcase";
+import { TrustSection } from "@/components/home/TrustSection";
+import type { HomeAuctionPreview, HomeLiveStreamPreview, HomeTradePreview } from "@/components/home/types";
+import { ValuePillars } from "@/components/home/ValuePillars";
+import { WhyDalow } from "@/components/home/WhyDalow";
+import { formatCurrency, formatSeconds } from "@/lib/format";
+import { getGradeLabel, getTimeLeftSeconds } from "@/lib/auctions";
 import { auctions as mockAuctions } from "@/lib/mock";
+import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
+import { tradeValueLabel } from "@/lib/trade-client";
 
-type FeaturedCard = {
+type AuctionApiItem = {
   id: string;
   title: string;
-  sellerName: string;
-  category: string;
+  endTime: string | null;
+  extendedTime: string | null;
   currentBid: number;
-  timeLeft: number;
-  watchers: number;
-  badge: string;
-  imageUrl: string | null;
+  watchersCount: number;
   listingType: "AUCTION" | "BUY_NOW" | "BOTH";
-  buyNowPrice?: number;
+  buyNowPrice: number | null;
   currency: string;
+  category?: { name: string } | null;
+  seller?: {
+    status?: string;
+    user?: { displayName: string | null; id: string } | null;
+  } | null;
+  item?: {
+    attributes?: Record<string, unknown> | null;
+    images: { url: string; isPrimary: boolean }[];
+  } | null;
 };
 
-async function getFeaturedAuctions(): Promise<FeaturedCard[]> {
+type TradeApiItem = {
+  id: string;
+  title: string;
+  lookingFor: string;
+  valueMin: number | null;
+  valueMax: number | null;
+  owner: {
+    displayName: string | null;
+    username: string | null;
+  };
+  images: Array<{
+    url: string;
+    isPrimary: boolean;
+  }>;
+  _count: {
+    offers: number;
+  };
+};
+
+type HomePageData = {
+  streams: HomeLiveStreamPreview[];
+  auctions: HomeAuctionPreview[];
+  trades: HomeTradePreview[];
+};
+
+const FALLBACK_STREAMS: HomeLiveStreamPreview[] = [
+  {
+    id: "demo-live-1",
+    href: "/live",
+    title: "PSA slabs live break",
+    host: "dalow studio",
+    category: "Pokemon",
+    watchers: 124,
+    priceLabel: "Bid $420",
+    imageUrl: "/placeholders/pokemon-generic.svg",
+  },
+  {
+    id: "demo-live-2",
+    href: "/live",
+    title: "Vintage sports singles",
+    host: "Collector room",
+    category: "Sports",
+    watchers: 88,
+    priceLabel: "Bid $185",
+    imageUrl: "/placeholders/pokemon-generic.svg",
+  },
+];
+
+const FALLBACK_TRADES: HomeTradePreview[] = [
+  {
+    id: "demo-trade-1",
+    href: "/trades",
+    title: "PSA 10 Pikachu promo",
+    owner: "Collector One",
+    lookingFor: "Looking for vintage holos or sealed product.",
+    offersCount: 3,
+    valueLabel: "$1,200-$1,600",
+    imageUrl: "/placeholders/pokemon-generic.svg",
+  },
+  {
+    id: "demo-trade-2",
+    href: "/trades",
+    title: "2003 Ex Dragon lot",
+    owner: "Card Archive",
+    lookingFor: "Open to graded trades and partial cash.",
+    offersCount: 2,
+    valueLabel: "From $850",
+    imageUrl: "/placeholders/pokemon-generic.svg",
+  },
+  {
+    id: "demo-trade-3",
+    href: "/trades",
+    title: "Modern chase bundle",
+    owner: "Vault Room",
+    lookingFor: "Mainly high-end sports rookies.",
+    offersCount: 5,
+    valueLabel: "Up to $1,100",
+    imageUrl: "/placeholders/pokemon-generic.svg",
+  },
+];
+
+function appUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+}
+
+function validImage(url: string | null | undefined) {
+  if (!url) return "/placeholders/pokemon-generic.svg";
+  if (url.startsWith("/")) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  return "/placeholders/pokemon-generic.svg";
+}
+
+function primaryAuctionImage(item: AuctionApiItem) {
+  return item.item?.images.find((entry) => entry.isPrimary)?.url ?? item.item?.images[0]?.url ?? null;
+}
+
+async function fetchJson<T>(path: string): Promise<T | null> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/auctions?status=LIVE&limit=6`,
-      { cache: "no-store" },
-    );
-    if (!response.ok) return [];
-
-    const now = Date.now();
-    const featured = (await response.json()) as Array<{
-      id: string;
-      title: string;
-      currentBid: number;
-      endTime: string | null;
-      extendedTime: string | null;
-      watchersCount: number;
-      listingType: "AUCTION" | "BUY_NOW" | "BOTH";
-      buyNowPrice: number | null;
-      currency: string;
-      category?: { name: string } | null;
-      seller?: { user?: { displayName: string | null } | null; status?: string } | null;
-      item?: { images: { url: string; isPrimary: boolean }[] } | null;
-    }>;
-
-    return featured.map((auction) => ({
-      id: auction.id,
-      title: auction.title,
-      sellerName: auction.seller?.user?.displayName ?? "Verified seller",
-      category: auction.category?.name ?? "Collectible",
-      currentBid: auction.currentBid,
-      timeLeft: auction.extendedTime || auction.endTime
-        ? Math.max(
-            0,
-            Math.floor(
-              (new Date(auction.extendedTime ?? auction.endTime ?? 0).getTime() - now) / 1000,
-            ),
-          )
-        : 0,
-      watchers: auction.watchersCount,
-      badge: auction.seller?.status === "APPROVED" ? "Verified" : "Live",
-      imageUrl:
-        auction.item?.images.find((img) => img.isPrimary)?.url
-        ?? auction.item?.images[0]?.url
-        ?? null,
-      listingType: auction.listingType,
-      buyNowPrice: auction.buyNowPrice ?? undefined,
-      currency: auction.currency?.toUpperCase() ?? "USD",
-    }));
+    const response = await fetch(`${appUrl()}${path}`, { cache: "no-store" });
+    if (!response.ok) return null;
+    return (await response.json()) as T;
   } catch {
-    return [];
+    return null;
   }
 }
 
+function mapStreams(items: AuctionApiItem[] | null): HomeLiveStreamPreview[] {
+  if (!items?.length) return [];
+  return items.slice(0, 8).map((stream) => {
+    const currency = stream.currency?.toUpperCase() || "USD";
+    const priceLabel = stream.buyNowPrice && stream.buyNowPrice > 0
+      ? `Buy ${formatCurrency(stream.buyNowPrice, currency)}`
+      : `Bid ${formatCurrency(stream.currentBid, currency)}`;
+    return {
+      id: stream.id,
+      href: `/streams/${stream.id}`,
+      title: stream.title,
+      host: stream.seller?.user?.displayName ?? "Verified seller",
+      category: stream.category?.name ?? "Collectibles",
+      watchers: stream.watchersCount,
+      priceLabel,
+      imageUrl: validImage(resolveDisplayMediaUrl(primaryAuctionImage(stream))),
+    };
+  });
+}
+
+function mapAuctions(items: AuctionApiItem[] | null): HomeAuctionPreview[] {
+  const source = items?.length ? items : [];
+  return source
+    .filter((entry) => entry.listingType !== "BUY_NOW")
+    .slice(0, 8)
+    .map((auction) => {
+      const currency = auction.currency?.toUpperCase() || "USD";
+      const gradeLabel = getGradeLabel(auction.item?.attributes);
+      return {
+        id: auction.id,
+        href: `/auctions/${auction.id}`,
+        title: auction.title,
+        seller: auction.seller?.user?.displayName ?? "Verified seller",
+        category: auction.category?.name ?? "Collectibles",
+        currentBidLabel: formatCurrency(auction.currentBid, currency),
+        timeLeftLabel: formatSeconds(getTimeLeftSeconds(auction)),
+        imageUrl: validImage(resolveDisplayMediaUrl(primaryAuctionImage(auction))),
+        gradeLabel,
+      };
+    });
+}
+
+function mapTrades(items: TradeApiItem[] | null): HomeTradePreview[] {
+  if (!items?.length) return [];
+  return items.slice(0, 8).map((trade) => ({
+    id: trade.id,
+    href: `/trades/${trade.id}`,
+    title: trade.title,
+    owner: trade.owner.displayName ?? trade.owner.username ?? "Collector",
+    lookingFor: trade.lookingFor,
+    offersCount: trade._count.offers,
+    valueLabel: tradeValueLabel(trade.valueMin, trade.valueMax),
+    imageUrl: validImage(trade.images.find((entry) => entry.isPrimary)?.url ?? trade.images[0]?.url),
+  }));
+}
+
+function mapFallbackAuctions(): HomeAuctionPreview[] {
+  return mockAuctions.slice(0, 8).map((auction) => ({
+    id: auction.id,
+    href: "/listings?mode=auctions",
+    title: auction.title,
+    seller: auction.sellerName,
+    category: auction.category,
+    currentBidLabel: formatCurrency(auction.currentBid, auction.currency),
+    timeLeftLabel: formatSeconds(auction.timeLeft),
+    imageUrl: validImage(resolveDisplayMediaUrl(auction.imageUrl)),
+    gradeLabel: null,
+  }));
+}
+
+async function getHomePageData(): Promise<HomePageData> {
+  const [liveStreamsData, listingsData, tradesData] = await Promise.all([
+    fetchJson<AuctionApiItem[]>("/api/auctions?status=LIVE&view=streams&limit=8"),
+    fetchJson<AuctionApiItem[]>("/api/auctions?status=LIVE&view=listings&limit=12"),
+    fetchJson<TradeApiItem[]>("/api/trades?limit=8"),
+  ]);
+
+  const streams = mapStreams(liveStreamsData);
+  const auctions = mapAuctions(listingsData);
+  const trades = mapTrades(tradesData);
+
+  return {
+    streams: streams.length ? streams : FALLBACK_STREAMS,
+    auctions: auctions.length ? auctions : mapFallbackAuctions(),
+    trades: trades.length ? trades : FALLBACK_TRADES,
+  };
+}
+
 export default async function Home() {
-  const featured = await getFeaturedAuctions();
-  const items = featured.length ? featured : mockAuctions.slice(0, 6);
+  const data = await getHomePageData();
+  const heroStream = data.streams[0];
+  const heroAuction = data.auctions[0];
+  const heroTrade = data.trades[0];
 
   return (
-    <div className="ios-screen">
-      <section className="ios-hero grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center">
-        <div className="space-y-5">
-          <h1 className="ios-title">Bid. Buy. Stream.</h1>
-          <p className="ios-subtitle">
-            Fast checkout. Clean layout.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/listings?mode=streams"
-              className="rounded-full bg-[var(--royal)] px-6 py-3 text-sm font-semibold text-white transition"
-            >
-              Watch streams
-            </Link>
-            <Link
-              href="/listings"
-              className="rounded-full border border-slate-300 bg-white/90 px-6 py-3 text-sm font-semibold text-slate-700 transition"
-            >
-              Open listings
-            </Link>
-          </div>
-          <div className="ios-stat-grid">
-            <div className="ios-stat-card">
-              <p className="ios-stat-label">Live rooms</p>
-              <p className="ios-stat-value">24/7</p>
-            </div>
-            <div className="ios-stat-card">
-              <p className="ios-stat-label">Mode</p>
-              <p className="ios-stat-value">Minimal</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="ios-panel p-3">
-          <div className="landing-checker relative h-44 overflow-hidden rounded-2xl border border-white/70">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.28),transparent_58%)]" />
-            <div className="absolute left-3 top-3 rounded-full border border-white/50 bg-black/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
-              Live board
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <LandingSlideshow />
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="ios-section-title">Featured</h2>
-          <Link href="/listings" className="text-sm font-semibold text-[var(--royal)]">
-            View all
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
-          {items.map((auction) => (
-            <AuctionCard key={auction.id} {...auction} />
-          ))}
-        </div>
-      </section>
+    <div className="home-v3-page">
+      <LandingHero stream={heroStream} auction={heroAuction} trade={heroTrade} />
+      <ValuePillars />
+      <WhyDalow />
+      <ProductPreviewShowcase streams={data.streams} auctions={data.auctions} trades={data.trades} />
+      <TrustSection />
+      <FinalCTA />
     </div>
   );
 }

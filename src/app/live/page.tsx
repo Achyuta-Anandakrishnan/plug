@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { LiveHub } from "@/components/live/LiveHub";
 
 export default function LivePage() {
-  redirect("/listings?mode=streams");
+  return <LiveHub />;
 }

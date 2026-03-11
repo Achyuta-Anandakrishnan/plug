@@ -22,7 +22,7 @@ export function LiveNowRail({
   onEnd,
 }: LiveNowRailProps) {
   return (
-    <section className="market-v2-live-section" aria-label="Live now streams">
+    <section id="live-now" className="market-v2-live-section" aria-label="Live now streams">
       <div className="market-v2-live-head">
         <div>
           <p className="market-v2-section-kicker">Live Now</p>

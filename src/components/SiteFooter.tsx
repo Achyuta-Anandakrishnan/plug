@@ -17,9 +17,9 @@ export function SiteFooter() {
         </div>
         <div className="hidden flex-wrap gap-5 text-xs uppercase tracking-[0.24em] text-slate-400 md:flex">
           <span>Live</span>
-          <span>Bid</span>
-          <span>Buy</span>
-          <span>Chat</span>
+          <span>Auctions</span>
+          <span>Trades</span>
+          <span>Collectors</span>
         </div>
         <p className="text-center text-[11px] text-slate-400 md:text-left">© 2026 dalow Labs</p>
       </div>

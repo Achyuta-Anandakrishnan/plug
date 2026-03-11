@@ -27,8 +27,8 @@ export default async function StreamRoom({
     <div className="ios-screen">
       <section className="ios-hero flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Link href="/streams" className="mt-2 inline-block text-sm text-slate-500">
-            Back to streams
+          <Link href="/live" className="mt-2 inline-block text-sm text-slate-500">
+            Back to live
           </Link>
           <h1 className="mt-3 font-display text-4xl text-slate-900">
             Live stream

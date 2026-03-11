@@ -8,9 +8,9 @@ import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "dalow | Verified Live Streams",
+  title: "dalow | Live, Auctions, Trades",
   description:
-    "A sleek, secure live stream marketplace with verified sellers and buyer protections.",
+    "For collectors, by collectors. Live shows, auctions, and trades in one modern marketplace.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
