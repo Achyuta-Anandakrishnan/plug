@@ -773,10 +773,16 @@ html[data-theme="dark"] .checkers-cell-dark {
 }
 
 .market-stream-rail {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   border-color: rgba(0, 0, 0, 0.18);
-  background:
-    radial-gradient(circle at top right, rgba(22, 31, 56, 0.1), transparent 36%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(247, 248, 252, 0.84));
+  background: linear-gradient(180deg, rgba(249, 250, 252, 0.97), rgba(244, 246, 251, 0.96));
+}
+
+.market-stream-rail > * {
+  position: relative;
+  z-index: 1;
 }
 
 .market-stream-scroller {
@@ -904,9 +910,7 @@ html[data-theme="dark"] .market-controls {
 
 html[data-theme="dark"] .market-stream-rail {
   border-color: rgba(255, 255, 255, 0.2);
-  background:
-    radial-gradient(circle at top right, rgba(148, 163, 184, 0.14), transparent 36%),
-    linear-gradient(180deg, rgba(12, 15, 23, 0.94), rgba(8, 10, 15, 0.9));
+  background: linear-gradient(180deg, rgba(10, 13, 20, 0.98), rgba(8, 11, 17, 0.97));
 }
 
 html[data-theme="dark"] .market-stream-card {

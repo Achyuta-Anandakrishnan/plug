@@ -102,9 +102,10 @@ export function AuctionCard({
               </p>
             </div>
           </div>
-          <p className="text-[11px] text-white/68">
-            {watchers} watching{gradeLabel ? ` · ${gradeLabel}` : ""}
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] text-white/68">{watchers > 0 ? `${watchers} live` : ""}</p>
+            <span className="sr-only">{gradeLabel ?? ""}</span>
+          </div>
         </div>
       </div>
     </Link>
