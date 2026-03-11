@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { Chess, type PieceSymbol, type Square } from "chess.js";
+import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
+import { CheckersLoader } from "@/components/CheckersLoader";
+import type { TradeOfferItem, TradeGameType, TradePostDetail } from "@/lib/trade-client";
 
 type Side = "TOP" | "BOTTOM";
-type GameMode = "checkers" | "chess" | "coin" | "poker";
+type GameMode = TradeGameType;
 
 type Piece = {
   side: Side;
@@ -260,6 +263,9 @@ export default function TradeDisputeGamePage() {
   })();
 
   const [mode, setMode] = useState<GameMode>(initialMode);
+  const [gateLoading, setGateLoading] = useState(true);
+  const [gateError, setGateError] = useState("");
+  const [activeOffer, setActiveOffer] = useState<TradeOfferItem | null>(null);
 
   const [checkersBoard, setCheckersBoard] = useState<Board>(() => createInitialBoard());
   const [checkersTurn, setCheckersTurn] = useState<Side>("BOTTOM");
@@ -280,6 +286,69 @@ export default function TradeDisputeGamePage() {
   const [pokerTop, setPokerTop] = useState<PokerCard[]>([]);
   const [pokerBottom, setPokerBottom] = useState<PokerCard[]>([]);
   const [pokerStatus, setPokerStatus] = useState("Deal a hand to settle this trade.");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      if (!tradeId || !offerId) {
+        if (!cancelled) {
+          setGateError("Select an offer from the trade page before opening the game.");
+          setGateLoading(false);
+        }
+        return;
+      }
+
+      setGateLoading(true);
+      setGateError("");
+      try {
+        const response = await fetchClientApi(`/api/trades/${encodeURIComponent(tradeId)}`, {
+          cache: "no-store",
+        });
+        const payload = (await response.json()) as TradePostDetail & { error?: string };
+        if (!response.ok) {
+          throw new Error(payload.error || "Unable to load trade offer.");
+        }
+        const offer = payload.offers.find((entry) => entry.id === offerId);
+        if (!offer) {
+          throw new Error("Offer unavailable for this account.");
+        }
+        if (!offer.gameType || !offer.gameTerms) {
+          throw new Error("This counter offer has no game terms.");
+        }
+        if (!offer.gameOwnerAgreedAt || !offer.gameProposerAgreedAt || !offer.gameLockedAt) {
+          throw new Error("Both parties must agree to game terms before starting.");
+        }
+
+        const startResponse = await fetchClientApi(`/api/trades/offers/${encodeURIComponent(offerId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gameAction: "START_GAME" }),
+        });
+        const startPayload = (await startResponse.json()) as TradeOfferItem & { error?: string };
+        if (!startResponse.ok) {
+          throw new Error(startPayload.error || "Unable to start game session.");
+        }
+        const startedOffer = startPayload as TradeOfferItem;
+        if (!cancelled) {
+          setActiveOffer(startedOffer);
+          setMode(startedOffer.gameType as GameMode);
+          setGateLoading(false);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setGateError(normalizeClientError(err, "Unable to start game session."));
+          setGateLoading(false);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [offerId, tradeId]);
 
   const mustCapture = getAllMoves(checkersBoard, checkersTurn, true).length > 0;
 
@@ -452,6 +521,31 @@ export default function TradeDisputeGamePage() {
     setPokerStatus(`Split pot: both sides have ${topScore.name}.`);
   };
 
+  if (gateLoading) {
+    return <CheckersLoader title="Loading game terms..." compact className="ios-empty" />;
+  }
+
+  if (gateError) {
+    return (
+      <div className="ios-screen">
+        <section className="ios-hero space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h1 className="ios-title">Trade Game Settlement</h1>
+            <Link
+              href={`/trades/${encodeURIComponent(tradeId)}`}
+              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
+            >
+              Back to trade
+            </Link>
+          </div>
+        </section>
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {gateError}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="ios-screen">
       <section className="ios-hero space-y-3">
@@ -465,8 +559,13 @@ export default function TradeDisputeGamePage() {
           </Link>
         </div>
         <p className="ios-subtitle">
-          Choose a game and settle instantly. {offerId ? `Offer ${offerId.slice(0, 8)}...` : "No offer selected."}
+          Agreed game: {activeOffer?.gameType ?? "-"} · Terms locked by both parties.
         </p>
+        {activeOffer?.gameTerms ? (
+          <div className="rounded-2xl border border-slate-200 bg-white/85 px-4 py-3 text-sm text-slate-700">
+            {activeOffer.gameTerms}
+          </div>
+        ) : null}
       </section>
 
       <section className="ios-panel p-4 sm:p-5 space-y-4">
@@ -476,11 +575,12 @@ export default function TradeDisputeGamePage() {
               key={entry.mode}
               type="button"
               onClick={() => setMode(entry.mode)}
+              disabled={entry.mode !== activeOffer?.gameType}
               className={`rounded-2xl border px-4 py-3 text-left transition ${
                 mode === entry.mode
                   ? "border-slate-900 bg-slate-900 text-white"
                   : "border-slate-200 bg-white text-slate-800"
-              }`}
+              } ${entry.mode !== activeOffer?.gameType ? "opacity-45" : ""}`}
             >
               <p className="text-sm font-semibold uppercase tracking-[0.16em]">{entry.label}</p>
               <p className={`mt-1 text-xs ${mode === entry.mode ? "text-white/80" : "text-slate-500"}`}>{entry.description}</p>

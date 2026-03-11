@@ -496,6 +496,16 @@ model TradeOffer {
   proposerId       String
   message          String?
   cashAdjustment   Int               @default(0)
+  gameType         String?
+  gameTerms        String?
+  gameTermsVersion Int?
+  gameProposedById String?
+  gameOwnerAgreedAt DateTime?
+  gameProposerAgreedAt DateTime?
+  gameLockedAt     DateTime?
+  gameStartedAt    DateTime?
+  gameResolvedAt   DateTime?
+  gameWinnerId     String?
   status           TradeOfferStatus  @default(PENDING)
   expiresAt        DateTime?
   createdAt        DateTime          @default(now())

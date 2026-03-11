@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { AuctionCard } from "@/components/AuctionCard";
 import { LandingSlideshow } from "@/components/home/LandingSlideshow";
@@ -13,7 +12,7 @@ type FeaturedCard = {
   timeLeft: number;
   watchers: number;
   badge: string;
-  imageUrl: string;
+  imageUrl: string | null;
   listingType: "AUCTION" | "BUY_NOW" | "BOTH";
   buyNowPrice?: number;
   currency: string;
@@ -62,7 +61,7 @@ async function getFeaturedAuctions(): Promise<FeaturedCard[]> {
       imageUrl:
         auction.item?.images.find((img) => img.isPrimary)?.url
         ?? auction.item?.images[0]?.url
-        ?? "/charts/market-candles.svg",
+        ?? null,
       listingType: auction.listingType,
       buyNowPrice: auction.buyNowPrice ?? undefined,
       currency: auction.currency?.toUpperCase() ?? "USD",
@@ -86,7 +85,7 @@ export default async function Home() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/streams"
+              href="/listings?mode=streams"
               className="rounded-full bg-[var(--royal)] px-6 py-3 text-sm font-semibold text-white transition"
             >
               Watch streams
@@ -111,16 +110,11 @@ export default async function Home() {
         </div>
 
         <div className="ios-panel p-3">
-          <div className="relative h-44 overflow-hidden rounded-2xl border border-white/70 bg-black">
-            <Image
-              src="/charts/market-line.svg"
-              alt="Live preview"
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 320px"
-              priority
-            />
-            <div className="absolute inset-0 bg-black/25" />
+          <div className="landing-checker relative h-44 overflow-hidden rounded-2xl border border-white/70">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.28),transparent_58%)]" />
+            <div className="absolute left-3 top-3 rounded-full border border-white/50 bg-black/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
+              Live board
+            </div>
           </div>
         </div>
       </section>
@@ -130,7 +124,7 @@ export default async function Home() {
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="ios-section-title">Featured</h2>
-          <Link href="/streams" className="text-sm font-semibold text-[var(--royal)]">
+          <Link href="/listings" className="text-sm font-semibold text-[var(--royal)]">
             View all
           </Link>
         </div>

@@ -80,6 +80,16 @@ export async function ensureTradeSchema() {
         "proposerId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE,
         "message" TEXT,
         "cashAdjustment" INTEGER NOT NULL DEFAULT 0,
+        "gameType" TEXT,
+        "gameTerms" TEXT,
+        "gameTermsVersion" INTEGER,
+        "gameProposedById" TEXT,
+        "gameOwnerAgreedAt" TIMESTAMP(3),
+        "gameProposerAgreedAt" TIMESTAMP(3),
+        "gameLockedAt" TIMESTAMP(3),
+        "gameStartedAt" TIMESTAMP(3),
+        "gameResolvedAt" TIMESTAMP(3),
+        "gameWinnerId" TEXT,
         "status" "TradeOfferStatus" NOT NULL DEFAULT 'PENDING',
         "expiresAt" TIMESTAMP(3),
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -125,6 +135,17 @@ export async function ensureTradeSchema() {
       );
     `);
 
+    await prisma.$executeRawUnsafe(`ALTER TABLE "TradeOffer" ADD COLUMN IF NOT EXISTS "gameType" TEXT;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "TradeOffer" ADD COLUMN IF NOT EXISTS "gameTerms" TEXT;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "TradeOffer" ADD COLUMN IF NOT EXISTS "gameTermsVersion" INTEGER;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "TradeOffer" ADD COLUMN IF NOT EXISTS "gameProposedById" TEXT;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "TradeOffer" ADD COLUMN IF NOT EXISTS "gameOwnerAgreedAt" TIMESTAMP(3);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "TradeOffer" ADD COLUMN IF NOT EXISTS "gameProposerAgreedAt" TIMESTAMP(3);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "TradeOffer" ADD COLUMN IF NOT EXISTS "gameLockedAt" TIMESTAMP(3);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "TradeOffer" ADD COLUMN IF NOT EXISTS "gameStartedAt" TIMESTAMP(3);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "TradeOffer" ADD COLUMN IF NOT EXISTS "gameResolvedAt" TIMESTAMP(3);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "TradeOffer" ADD COLUMN IF NOT EXISTS "gameWinnerId" TEXT;`);
+
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TradePost_ownerId_idx" ON "TradePost"("ownerId");`);
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TradePost_status_idx" ON "TradePost"("status");`);
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TradePost_createdAt_idx" ON "TradePost"("createdAt");`);
@@ -132,6 +153,8 @@ export async function ensureTradeSchema() {
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TradeOffer_postId_idx" ON "TradeOffer"("postId");`);
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TradeOffer_proposerId_idx" ON "TradeOffer"("proposerId");`);
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TradeOffer_status_idx" ON "TradeOffer"("status");`);
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TradeOffer_gameType_idx" ON "TradeOffer"("gameType");`);
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TradeOffer_gameLockedAt_idx" ON "TradeOffer"("gameLockedAt");`);
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TradeOfferCard_offerId_idx" ON "TradeOfferCard"("offerId");`);
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TradeSettlement_payerId_idx" ON "TradeSettlement"("payerId");`);
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "TradeSettlement_payeeId_idx" ON "TradeSettlement"("payeeId");`);

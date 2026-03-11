@@ -37,13 +37,13 @@ export function AuctionCard({
   preservePlaceholderMedia = false,
 }: AuctionCardProps) {
   const displayImageUrl = preservePlaceholderMedia
-    ? (imageUrl ?? "/dalow-logo.svg")
+    ? (imageUrl ?? "/placeholders/pokemon-generic.svg")
     : resolveDisplayMediaUrl(imageUrl);
 
   return (
     <Link
       href={`/streams/${id}`}
-      className="group relative aspect-[0.68] w-full overflow-hidden rounded-[22px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)] transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(15,23,42,0.22)] sm:aspect-[3/4] sm:rounded-[24px]"
+      className="group relative aspect-[0.7] w-full overflow-hidden rounded-[22px] border border-white/45 bg-slate-900 shadow-[0_20px_40px_rgba(0,0,0,0.34)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_rgba(0,0,0,0.48)] sm:aspect-[3/4] sm:rounded-[24px]"
     >
       <Image
         src={displayImageUrl}
@@ -52,17 +52,6 @@ export function AuctionCard({
         sizes="(max-width: 768px) 50vw, 25vw"
         className="object-cover transition duration-500 group-hover:scale-[1.03]"
       />
-      {!preservePlaceholderMedia ? (
-        <Image
-          src="/charts/market-line.svg"
-          alt=""
-          aria-hidden="true"
-          fill
-          sizes="(max-width: 768px) 50vw, 25vw"
-          className="object-cover opacity-25 mix-blend-screen"
-        />
-      ) : null}
-
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(to_top,_rgba(2,6,23,0.86),_rgba(2,6,23,0.24)_55%,_rgba(2,6,23,0.06))]" />
 

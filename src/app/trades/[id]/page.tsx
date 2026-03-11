@@ -8,11 +8,13 @@ import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import { formatCurrency } from "@/lib/format";
+import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import {
   formatTradeDateTime,
   isValidImageUrl,
   toTagArray,
   tradeValueLabel,
+  type TradeGameType,
   type TradeOfferItem,
   type TradePostDetail,
 } from "@/lib/trade-client";
@@ -32,7 +34,17 @@ type CounterDraft = {
   open: boolean;
   message: string;
   cashAdjustment: string;
+  resolution: "STANDARD" | "GAME";
+  gameType: TradeGameType;
+  gameTerms: string;
 };
+
+const GAME_OPTIONS: Array<{ value: TradeGameType; label: string }> = [
+  { value: "checkers", label: "Checkers" },
+  { value: "chess", label: "Chess" },
+  { value: "coin", label: "Flip coin" },
+  { value: "poker", label: "Hand of poker" },
+];
 
 const emptyOfferCard: OfferDraftCard = {
   title: "",
@@ -47,7 +59,7 @@ const emptyOfferCard: OfferDraftCard = {
 
 function postStatusClass(status: TradePostDetail["status"]) {
   if (status === "OPEN") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (status === "MATCHED") return "border-blue-200 bg-blue-50 text-blue-700";
+  if (status === "MATCHED") return "border-slate-300 bg-slate-100 text-slate-700";
   if (status === "PAUSED") return "border-amber-200 bg-amber-50 text-amber-700";
   return "border-slate-200 bg-white text-slate-600";
 }
@@ -55,14 +67,14 @@ function postStatusClass(status: TradePostDetail["status"]) {
 function offerStatusClass(status: TradeOfferItem["status"]) {
   if (status === "ACCEPTED") return "border-emerald-200 bg-emerald-50 text-emerald-700";
   if (status === "DECLINED" || status === "WITHDRAWN") return "border-slate-200 bg-white text-slate-500";
-  if (status === "COUNTERED") return "border-blue-200 bg-blue-50 text-blue-700";
+  if (status === "COUNTERED") return "border-slate-300 bg-slate-100 text-slate-700";
   return "border-amber-200 bg-amber-50 text-amber-700";
 }
 
 function settlementStatusClass(status: NonNullable<TradeOfferItem["settlement"]>["status"]) {
   if (status === "SUCCEEDED") return "border-emerald-200 bg-emerald-50 text-emerald-700";
   if (status === "FAILED" || status === "CANCELED") return "border-red-200 bg-red-50 text-red-700";
-  if (status === "PROCESSING") return "border-blue-200 bg-blue-50 text-blue-700";
+  if (status === "PROCESSING") return "border-slate-300 bg-slate-100 text-slate-700";
   return "border-amber-200 bg-amber-50 text-amber-700";
 }
 
@@ -146,8 +158,15 @@ export default function TradeDetailPage() {
 
   const updateOfferStatus = async (
     offerId: string,
-    status: TradeOfferItem["status"],
-    extra?: { message?: string; cashAdjustment?: number },
+    payload: {
+      status?: TradeOfferItem["status"];
+      message?: string;
+      cashAdjustment?: number;
+      counterMode?: "STANDARD" | "GAME";
+      gameType?: TradeGameType;
+      gameTerms?: string;
+      gameAction?: "AGREE_TERMS" | "START_GAME";
+    },
   ) => {
     setActingOfferId(offerId);
     setError("");
@@ -155,18 +174,28 @@ export default function TradeDetailPage() {
       const response = await fetchClientApi(`/api/trades/offers/${offerId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, ...extra }),
+        body: JSON.stringify(payload),
       });
-      const payload = (await response.json()) as { error?: string };
+      const responsePayload = (await response.json()) as { error?: string };
       if (!response.ok) {
-        throw new Error(payload.error || "Unable to update offer.");
+        throw new Error(responsePayload.error || "Unable to update offer.");
       }
       await refresh();
+      return true;
     } catch (err) {
       setError(normalizeClientError(err, "Unable to update offer."));
+      return false;
     } finally {
       setActingOfferId(null);
     }
+  };
+
+  const agreeToGameTerms = async (offerId: string) => {
+    await updateOfferStatus(offerId, { gameAction: "AGREE_TERMS" });
+  };
+
+  const startGameSession = async (offerId: string) => {
+    return updateOfferStatus(offerId, { gameAction: "START_GAME" });
   };
 
   const startCheckout = async (offerId: string) => {
@@ -262,19 +291,43 @@ export default function TradeDetailPage() {
         open: true,
         message: offer.message ?? "",
         cashAdjustment: String(offer.cashAdjustment ?? 0),
+        resolution: offer.gameType ? "GAME" : "STANDARD",
+        gameType: offer.gameType ?? "checkers",
+        gameTerms: offer.gameTerms ?? "Winner takes the trade rights for this offer.",
       },
     }));
   };
 
-  const setCounterField = (offerId: string, field: "message" | "cashAdjustment", value: string) => {
+  const setCounterField = (
+    offerId: string,
+    field: "message" | "cashAdjustment" | "resolution" | "gameType" | "gameTerms",
+    value: string,
+  ) => {
     setCounterDrafts((prev) => ({
       ...prev,
-      [offerId]: {
-        open: true,
-        message: prev[offerId]?.message ?? "",
-        cashAdjustment: prev[offerId]?.cashAdjustment ?? "0",
-        [field]: value,
-      },
+      [offerId]: (() => {
+        const base: CounterDraft = {
+          open: true,
+          message: prev[offerId]?.message ?? "",
+          cashAdjustment: prev[offerId]?.cashAdjustment ?? "0",
+          resolution: prev[offerId]?.resolution ?? "STANDARD",
+          gameType: prev[offerId]?.gameType ?? "checkers",
+          gameTerms: prev[offerId]?.gameTerms ?? "Winner takes the trade rights for this offer.",
+        };
+
+        if (field === "message") return { ...base, message: value };
+        if (field === "cashAdjustment") return { ...base, cashAdjustment: value };
+        if (field === "resolution") {
+          return { ...base, resolution: value === "GAME" ? "GAME" : "STANDARD" };
+        }
+        if (field === "gameType") {
+          const nextGameType = GAME_OPTIONS.some((entry) => entry.value === value)
+            ? (value as TradeGameType)
+            : base.gameType;
+          return { ...base, gameType: nextGameType };
+        }
+        return { ...base, gameTerms: value };
+      })(),
     }));
   };
 
@@ -285,6 +338,9 @@ export default function TradeDetailPage() {
         open: false,
         message: prev[offerId]?.message ?? "",
         cashAdjustment: prev[offerId]?.cashAdjustment ?? "0",
+        resolution: prev[offerId]?.resolution ?? "STANDARD",
+        gameType: prev[offerId]?.gameType ?? "checkers",
+        gameTerms: prev[offerId]?.gameTerms ?? "Winner takes the trade rights for this offer.",
       },
     }));
   };
@@ -296,10 +352,20 @@ export default function TradeDetailPage() {
       setError("Counter cash adjustment must be a number in cents.");
       return;
     }
+    if (draft?.resolution === "GAME") {
+      if (!draft.gameTerms.trim() || draft.gameTerms.trim().length < 12) {
+        setError("Game terms must be at least 12 characters.");
+        return;
+      }
+    }
 
-    await updateOfferStatus(offerId, "COUNTERED", {
+    await updateOfferStatus(offerId, {
+      status: "COUNTERED",
       message: draft?.message?.trim() || "",
       cashAdjustment: Math.trunc(cash),
+      counterMode: draft?.resolution ?? "STANDARD",
+      gameType: draft?.gameType,
+      gameTerms: draft?.gameTerms?.trim(),
     });
 
     closeCounterDraft(offerId);
@@ -338,12 +404,6 @@ export default function TradeDetailPage() {
               className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
             >
               Back
-            </Link>
-            <Link
-              href={`/trades/${encodeURIComponent(post.id)}/dispute`}
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
-            >
-              Play game
             </Link>
             {post.viewer.isOwner ? (
               <button
@@ -447,19 +507,11 @@ export default function TradeDetailPage() {
           ) : (
             <div className="relative mt-3 h-56 overflow-hidden rounded-2xl border border-white/70 bg-white/70">
               <Image
-                src="/dalow-logo.svg"
-                alt="dalow logo"
+                src={resolveDisplayMediaUrl(null)}
+                alt="Card placeholder"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-contain p-12"
-              />
-              <Image
-                src="/charts/market-candles.svg"
-                alt=""
-                aria-hidden="true"
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover opacity-25 mix-blend-screen"
+                className="object-cover"
               />
             </div>
           )}
@@ -599,6 +651,16 @@ export default function TradeDetailPage() {
               const settlement = offer.settlement;
               const isSettlementPayer = settlement?.payerId === currentUserId;
               const canPaySettlement = offer.status === "ACCEPTED" && settlement && settlement.status !== "SUCCEEDED" && isSettlementPayer;
+              const hasGameCounter = offer.status === "COUNTERED" && Boolean(offer.gameType && offer.gameTerms);
+              const ownerAgreed = Boolean(offer.gameOwnerAgreedAt);
+              const proposerAgreed = Boolean(offer.gameProposerAgreedAt);
+              const bothAgreed = ownerAgreed && proposerAgreed;
+              const viewerIsProposer = offer.proposerId === currentUserId;
+              const viewerCanAgreeTerms = hasGameCounter && (
+                (post.viewer.isOwner && !ownerAgreed)
+                || (viewerIsProposer && !proposerAgreed)
+              );
+              const viewerCanStartGame = hasGameCounter && bothAgreed;
 
               return (
                 <div
@@ -622,6 +684,56 @@ export default function TradeDetailPage() {
                     Cash adjustment: {offer.cashAdjustment >= 0 ? "+" : ""}{offer.cashAdjustment} cents
                     {offer.cashAdjustment !== 0 ? ` (${formatCurrency(Math.abs(offer.cashAdjustment), "USD")})` : ""}
                   </p>
+
+                  {hasGameCounter ? (
+                    <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Game terms</p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900">
+                        {GAME_OPTIONS.find((entry) => entry.value === offer.gameType)?.label ?? offer.gameType}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-700">{offer.gameTerms}</p>
+                      <div className="mt-2 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.14em]">
+                        <span className={`rounded-full border px-2 py-1 ${ownerAgreed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-600"}`}>
+                          Owner {ownerAgreed ? "agreed" : "pending"}
+                        </span>
+                        <span className={`rounded-full border px-2 py-1 ${proposerAgreed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-600"}`}>
+                          Proposer {proposerAgreed ? "agreed" : "pending"}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {viewerCanAgreeTerms ? (
+                          <button
+                            type="button"
+                            onClick={() => void agreeToGameTerms(offer.id)}
+                            disabled={actingOfferId === offer.id}
+                            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 disabled:opacity-60"
+                          >
+                            Agree to terms
+                          </button>
+                        ) : null}
+                        {viewerCanStartGame ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void (async () => {
+                                const started = await startGameSession(offer.id);
+                                if (!started) return;
+                                router.push(`/trades/${encodeURIComponent(post.id)}/dispute?offer=${encodeURIComponent(offer.id)}`);
+                              })();
+                            }}
+                            disabled={actingOfferId === offer.id}
+                            className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
+                          >
+                            Play game
+                          </button>
+                        ) : (
+                          <span className="self-center text-xs text-slate-500">
+                            Game unlocks after both approvals.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
 
                   {offer.cards.length > 0 ? (
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -680,7 +792,7 @@ export default function TradeDetailPage() {
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button
                         type="button"
-                        onClick={() => void updateOfferStatus(offer.id, "ACCEPTED")}
+                        onClick={() => void updateOfferStatus(offer.id, { status: "ACCEPTED" })}
                         disabled={actingOfferId === offer.id}
                         className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
                       >
@@ -698,35 +810,23 @@ export default function TradeDetailPage() {
                       ) : null}
                       <button
                         type="button"
-                        onClick={() => void updateOfferStatus(offer.id, "DECLINED")}
+                        onClick={() => void updateOfferStatus(offer.id, { status: "DECLINED" })}
                         disabled={actingOfferId === offer.id}
                         className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-red-700 disabled:opacity-60"
                       >
                         Decline
                       </button>
-                      <Link
-                        href={`/trades/${encodeURIComponent(post.id)}/dispute?offer=${encodeURIComponent(offer.id)}`}
-                        className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700"
-                      >
-                        Play game
-                      </Link>
                     </div>
                   ) : canWithdraw ? (
                     <div className="mt-3">
                       <button
                         type="button"
-                        onClick={() => void updateOfferStatus(offer.id, "WITHDRAWN")}
+                        onClick={() => void updateOfferStatus(offer.id, { status: "WITHDRAWN" })}
                         disabled={actingOfferId === offer.id}
                         className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-red-700 disabled:opacity-60"
                       >
                         Withdraw
                       </button>
-                      <Link
-                        href={`/trades/${encodeURIComponent(post.id)}/dispute?offer=${encodeURIComponent(offer.id)}`}
-                        className="ml-2 inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700"
-                      >
-                        Play game
-                      </Link>
                     </div>
                   ) : null}
 
@@ -746,6 +846,35 @@ export default function TradeDetailPage() {
                         inputMode="numeric"
                         placeholder="Counter cash adjustment (cents)"
                       />
+                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                        <select
+                          value={counterDraft.resolution}
+                          onChange={(event) => setCounterField(offer.id, "resolution", event.target.value)}
+                          className="ios-input"
+                        >
+                          <option value="STANDARD">Standard counter</option>
+                          <option value="GAME">Counter + play game</option>
+                        </select>
+                        {counterDraft.resolution === "GAME" ? (
+                          <select
+                            value={counterDraft.gameType}
+                            onChange={(event) => setCounterField(offer.id, "gameType", event.target.value)}
+                            className="ios-input"
+                          >
+                            {GAME_OPTIONS.map((entry) => (
+                              <option key={entry.value} value={entry.value}>{entry.label}</option>
+                            ))}
+                          </select>
+                        ) : null}
+                      </div>
+                      {counterDraft.resolution === "GAME" ? (
+                        <textarea
+                          value={counterDraft.gameTerms}
+                          onChange={(event) => setCounterField(offer.id, "gameTerms", event.target.value)}
+                          className="mt-2 min-h-20 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+                          placeholder="Game terms (who plays, winner outcome, rematch rules)"
+                        />
+                      ) : null}
                       <div className="mt-2 flex flex-wrap gap-2">
                         <button
                           type="button"

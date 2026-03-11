@@ -9,33 +9,29 @@ type Slide = {
   blurb: string;
   metric: string;
   metricLabel: string;
-  image: string;
 };
 
 const slides: Slide[] = [
   {
     id: "clean-flow",
-    title: "Clean live flow",
-    blurb: "Everything in one place.",
-    metric: "4 steps",
-    metricLabel: "List -> Go live -> Sell -> Payout",
-    image: "/charts/market-line.svg",
+    title: "Unified market board",
+    blurb: "Stream, bid, and buy-now in one flow.",
+    metric: "3 modes",
+    metricLabel: "Buy now · Auctions · Live",
   },
   {
-    id: "conversion",
-    title: "Frictionless checkout",
-    blurb: "Bids and buy-now stay in context.",
-    metric: "2.3x",
-    metricLabel: "Faster completion in live sessions",
-    image: "/charts/market-candles.svg",
+    id: "latency",
+    title: "Live-first discovery",
+    blurb: "Only active streams surface in the rail.",
+    metric: "Live only",
+    metricLabel: "No stale scheduled clutter",
   },
   {
-    id: "grading",
-    title: "Category-ready cards",
-    blurb: "Details stay visible across views.",
-    metric: "15",
-    metricLabel: "Supported grading companies",
-    image: "/charts/market-line.svg",
+    id: "checkout",
+    title: "Faster checkout path",
+    blurb: "Keep context while moving from card to payment.",
+    metric: "One tap",
+    metricLabel: "Stripe flow in feed",
   },
 ];
 
@@ -70,7 +66,7 @@ export function LandingSlideshow() {
                 key={entry.id}
                 type="button"
                 onClick={() => setActive(index)}
-                className={`h-2 rounded-full transition ${index === active ? "w-8 bg-[var(--royal)]" : "w-3 bg-slate-300"}`}
+                className={`h-2 rounded-full transition ${index === active ? "w-8 bg-slate-900" : "w-3 bg-slate-300"}`}
                 aria-label={`Show slide ${index + 1}`}
               />
             ))}
@@ -80,24 +76,24 @@ export function LandingSlideshow() {
         <div className="grid gap-2">
           <div className="relative h-40 overflow-hidden rounded-2xl border border-white/70 bg-black sm:h-48">
             <Image
-              src={slide.image}
+              src="/placeholders/checkerboard.svg"
               alt={slide.title}
               fill
               sizes="(max-width: 1024px) 100vw, 320px"
               className="object-cover"
               priority
             />
-            <div className="absolute inset-0 bg-black/25" />
+            <div className="absolute inset-0 bg-black/30" />
           </div>
           <div className="relative h-24 overflow-hidden rounded-2xl border border-white/70 bg-black sm:h-28">
             <Image
-              src={secondary.image}
+              src="/placeholders/checkerboard.svg"
               alt={secondary.title}
               fill
               sizes="(max-width: 1024px) 100vw, 320px"
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-black/25" />
+            <div className="absolute inset-0 bg-black/36" />
           </div>
         </div>
       </div>

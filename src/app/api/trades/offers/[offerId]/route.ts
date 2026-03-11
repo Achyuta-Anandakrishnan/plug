@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
-import { isTradeOfferStatus, parseIntOrNull } from "@/lib/trades";
+import { isTradeGameType, isTradeOfferStatus, parseIntOrNull } from "@/lib/trades";
 import { ensureTradeSchema } from "@/lib/trade-schema";
 
 type RouteContext = {
@@ -14,6 +14,10 @@ type UpdateOfferBody = {
   status?: string;
   message?: string;
   cashAdjustment?: number | string | null;
+  counterMode?: "STANDARD" | "GAME";
+  gameType?: string | null;
+  gameTerms?: string | null;
+  gameAction?: "AGREE_TERMS" | "START_GAME";
 };
 
 const offerInclude = {
@@ -48,6 +52,19 @@ const offerInclude = {
   },
 } as const;
 
+function normalizeGameType(value: unknown) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  if (!isTradeGameType(normalized)) return null;
+  return normalized;
+}
+
+function normalizeGameTerms(value: unknown) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().replace(/\s+/g, " ");
+  return normalized.length > 0 ? normalized : null;
+}
+
 export async function PATCH(request: Request, { params }: RouteContext) {
   await ensureTradeSchema().catch(() => null);
   const { offerId } = await params;
@@ -57,7 +74,11 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   const body = await parseJson<UpdateOfferBody>(request);
-  if (!body?.status || !isTradeOfferStatus(body.status)) {
+  if (!body?.status && !body?.gameAction) {
+    return jsonError("Invalid offer update payload.");
+  }
+
+  if (body?.status && !isTradeOfferStatus(body.status)) {
     return jsonError("Invalid offer status.");
   }
 
@@ -85,7 +106,59 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     return jsonError("Not authorized to update this offer.", 403);
   }
 
-  const nextStatus = body.status;
+  if (body.gameAction === "AGREE_TERMS") {
+    if (offer.status !== "COUNTERED") {
+      return jsonError("Game terms can only be agreed on countered offers.", 409);
+    }
+    if (!offer.gameType || !offer.gameTerms) {
+      return jsonError("No game terms are attached to this counter offer.", 409);
+    }
+
+    const now = new Date();
+    const nextOwnerAgreedAt = isOwner
+      ? (offer.gameOwnerAgreedAt ?? now)
+      : offer.gameOwnerAgreedAt;
+    const nextProposerAgreedAt = isProposer
+      ? (offer.gameProposerAgreedAt ?? now)
+      : offer.gameProposerAgreedAt;
+
+    const updated = await prisma.tradeOffer.update({
+      where: { id: offer.id },
+      data: {
+        gameOwnerAgreedAt: nextOwnerAgreedAt,
+        gameProposerAgreedAt: nextProposerAgreedAt,
+        gameLockedAt: nextOwnerAgreedAt && nextProposerAgreedAt
+          ? (offer.gameLockedAt ?? now)
+          : null,
+      },
+      include: offerInclude,
+    });
+    return jsonOk(updated);
+  }
+
+  if (body.gameAction === "START_GAME") {
+    if (offer.status !== "COUNTERED") {
+      return jsonError("Game sessions can only start on countered offers.", 409);
+    }
+    if (!offer.gameType || !offer.gameTerms) {
+      return jsonError("This offer does not have game terms.", 409);
+    }
+    if (!offer.gameOwnerAgreedAt || !offer.gameProposerAgreedAt || !offer.gameLockedAt) {
+      return jsonError("Both parties must agree to game terms before starting.", 409);
+    }
+
+    const updated = await prisma.tradeOffer.update({
+      where: { id: offer.id },
+      data: {
+        gameStartedAt: offer.gameStartedAt ?? new Date(),
+      },
+      include: offerInclude,
+    });
+
+    return jsonOk(updated);
+  }
+
+  const nextStatus = body.status as NonNullable<UpdateOfferBody["status"]>;
 
   if (nextStatus === "WITHDRAWN") {
     if (!isProposer) {
@@ -196,12 +269,36 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       ? (body.message?.trim() || null)
       : offer.message;
 
+    const counterMode = body.counterMode === "GAME" ? "GAME" : "STANDARD";
+    const normalizedGameType = normalizeGameType(body.gameType);
+    const normalizedGameTerms = normalizeGameTerms(body.gameTerms);
+
+    if (counterMode === "GAME") {
+      if (!normalizedGameType) {
+        return jsonError("Choose a valid game for this counter.");
+      }
+      if (!normalizedGameTerms || normalizedGameTerms.length < 12) {
+        return jsonError("Game terms must be at least 12 characters.");
+      }
+    }
+
+    const now = new Date();
     const updated = await prisma.tradeOffer.update({
       where: { id: offer.id },
       data: {
         status: "COUNTERED",
         message: nextMessage,
         cashAdjustment: nextCashAdjustment,
+        gameType: counterMode === "GAME" ? normalizedGameType : null,
+        gameTerms: counterMode === "GAME" ? normalizedGameTerms : null,
+        gameTermsVersion: counterMode === "GAME" ? ((offer.gameTermsVersion ?? 0) + 1) : null,
+        gameProposedById: counterMode === "GAME" ? sessionUser.id : null,
+        gameOwnerAgreedAt: counterMode === "GAME" ? now : null,
+        gameProposerAgreedAt: null,
+        gameLockedAt: null,
+        gameStartedAt: null,
+        gameResolvedAt: null,
+        gameWinnerId: null,
         settlement: offer.settlement
           ? {
               update: {

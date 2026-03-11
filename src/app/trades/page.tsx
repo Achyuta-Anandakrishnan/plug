@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
+import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import {
   formatTradeDate,
   isValidImageUrl,
@@ -27,7 +28,7 @@ const scopes: Array<{ key: TradeScope; label: string }> = [
 
 function statusChip(status: TradePostListItem["status"]) {
   if (status === "OPEN") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (status === "MATCHED") return "border-blue-200 bg-blue-50 text-blue-700";
+  if (status === "MATCHED") return "border-slate-300 bg-slate-100 text-slate-700";
   if (status === "PAUSED") return "border-amber-200 bg-amber-50 text-amber-700";
   return "border-slate-200 bg-white text-slate-600";
 }
@@ -184,23 +185,13 @@ export default function TradesPage() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <>
-                      <Image
-                        src="/dalow-logo.svg"
-                        alt="dalow logo"
-                        fill
-                        sizes="120px"
-                        className="object-contain p-5"
-                      />
-                      <Image
-                        src="/charts/market-line.svg"
-                        alt=""
-                        aria-hidden="true"
-                        fill
-                        sizes="120px"
-                        className="object-cover opacity-25 mix-blend-screen"
-                      />
-                    </>
+                    <Image
+                      src={resolveDisplayMediaUrl(null)}
+                      alt="Card placeholder"
+                      fill
+                      sizes="120px"
+                      className="object-cover"
+                    />
                   )}
                 </div>
 

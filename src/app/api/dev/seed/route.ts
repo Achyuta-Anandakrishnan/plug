@@ -58,7 +58,7 @@ export async function POST() {
         images: {
           create: [
             {
-              url: "/dalow-logo.svg",
+              url: "/placeholders/pokemon-generic.svg",
               isPrimary: true,
               storageProvider: "DATABASE",
             },

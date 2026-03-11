@@ -33,11 +33,11 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={handleToggle}
-      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-slate-300"
+      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/82 px-3 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:border-slate-400"
       aria-pressed={theme === "dark"}
       aria-label="Toggle dark mode"
     >
-      <span className="h-4 w-4 rounded-full bg-[var(--royal)] shadow-inner" />
+      <span className="h-4 w-4 rounded-full bg-[var(--royal)] shadow-[inset_0_1px_2px_rgba(255,255,255,0.22)]" />
       {theme === "dark" ? "Dark" : "Light"}
     </button>
   );

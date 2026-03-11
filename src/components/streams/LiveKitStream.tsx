@@ -278,17 +278,6 @@ export function LiveKitStream({
         />
       )}
 
-      {showFallback && !displayFallbackVideo && (
-        <Image
-          src="/charts/market-candles.svg"
-          alt=""
-          aria-hidden="true"
-          fill
-          sizes="100vw"
-          className="object-cover opacity-30 mix-blend-screen"
-        />
-      )}
-
       {isHost && (
         <div className="absolute right-4 top-14 z-40 flex flex-wrap items-center justify-end gap-2 md:top-16">
           <span className="rounded-full bg-white/15 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white">

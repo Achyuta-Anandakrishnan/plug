@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5f5f5;
-  --foreground: #111111;
-  --royal: #111111;
+  --background: #f2f3f6;
+  --foreground: #0f1115;
+  --royal: #161c2b;
   --royal-deep: #000000;
   --steel: #6d6d6d;
-  --mist: #e5e5e5;
+  --mist: #e8e9ee;
   --surface: rgba(255, 255, 255, 0.9);
   --glass: rgba(255, 255, 255, 0.65);
   --border: rgba(0, 0, 0, 0.12);
@@ -28,14 +28,14 @@ html {
 }
 
 html[data-theme="dark"] {
-  --background: #080808;
-  --foreground: #f5f5f5;
-  --royal: #111111;
+  --background: #07090d;
+  --foreground: #f2f3f7;
+  --royal: #1b2233;
   --royal-deep: #000000;
-  --steel: #a6a6a6;
-  --mist: #1a1a1a;
-  --surface: rgba(14, 14, 14, 0.9);
-  --glass: rgba(14, 14, 14, 0.65);
+  --steel: #a7acb8;
+  --mist: #12151f;
+  --surface: rgba(10, 12, 18, 0.9);
+  --glass: rgba(10, 12, 18, 0.68);
   --border: rgba(255, 255, 255, 0.14);
   --shadow: 0 32px 90px rgba(0, 0, 0, 0.55);
   --halo-1: rgba(255, 255, 255, 0.09);
@@ -89,7 +89,7 @@ body {
 }
 
 .mobile-safe-main {
-  padding-top: 1.35rem;
+  padding-top: 1.9rem;
   padding-bottom: max(1.25rem, var(--safe-bottom));
 }
 
@@ -103,7 +103,7 @@ body {
   }
 
   .mobile-safe-main {
-    padding-top: 1.85rem;
+    padding-top: 2.35rem;
     padding-bottom: calc(6rem + var(--safe-bottom));
   }
 
@@ -253,6 +253,7 @@ html[data-theme="dark"] .border-white\/40 {
 .ios-screen {
   display: grid;
   gap: 1rem;
+  padding-top: 0.4rem;
 }
 
 .ios-hero {
@@ -542,6 +543,7 @@ button {
 @media (min-width: 768px) {
   .ios-screen {
     gap: 1.35rem;
+    padding-top: 0.55rem;
   }
 
   .ios-hero {
@@ -648,8 +650,9 @@ html[data-theme="dark"] .anime-card {
 }
 
 .checkers-loader-compact {
-  justify-items: start;
+  justify-items: center;
   gap: 0.6rem;
+  text-align: center;
 }
 
 .checkers-board {
@@ -661,8 +664,8 @@ html[data-theme="dark"] .anime-card {
 }
 
 .checkers-board-full {
-  width: 176px;
-  height: 176px;
+  width: clamp(148px, 26vw, 224px);
+  height: clamp(148px, 26vw, 224px);
 }
 
 .checkers-board-compact {
@@ -751,4 +754,103 @@ html[data-theme="dark"] .checkers-cell-light {
 
 html[data-theme="dark"] .checkers-cell-dark {
   background: rgba(12, 12, 12, 0.95);
+}
+
+.market-shell {
+  max-width: 100%;
+}
+
+.market-hero {
+  border-color: rgba(0, 0, 0, 0.22);
+  background:
+    radial-gradient(circle at top right, rgba(17, 28, 49, 0.16), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(246, 247, 252, 0.9));
+}
+
+.market-controls {
+  border-color: rgba(0, 0, 0, 0.16);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.market-stream-rail {
+  border-color: rgba(0, 0, 0, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(22, 31, 56, 0.1), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(247, 248, 252, 0.84));
+}
+
+.market-stream-scroller {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px, 1fr);
+  gap: 0.7rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  scrollbar-width: none;
+}
+
+.market-stream-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.market-stream-pill {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: rgba(255, 255, 255, 0.84);
+  padding: 0.55rem;
+  min-width: 0;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.market-stream-pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(15, 23, 42, 0.24);
+}
+
+.market-loading-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.landing-checker {
+  background:
+    linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+  background-size: 44px 44px;
+  background-position: 0 0, 0 22px, 22px -22px, -22px 0;
+  background-color: #0f1116;
+}
+
+html[data-theme="dark"] .market-hero {
+  border-color: rgba(255, 255, 255, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(123, 140, 176, 0.14), transparent 36%),
+    linear-gradient(180deg, rgba(10, 12, 18, 0.95), rgba(7, 9, 13, 0.92));
+}
+
+html[data-theme="dark"] .market-controls {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(14, 17, 24, 0.9);
+}
+
+html[data-theme="dark"] .market-stream-rail {
+  border-color: rgba(255, 255, 255, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(148, 163, 184, 0.14), transparent 36%),
+    linear-gradient(180deg, rgba(12, 15, 23, 0.94), rgba(8, 10, 15, 0.9));
+}
+
+html[data-theme="dark"] .market-stream-pill {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(19, 23, 33, 0.86);
+}
+
+html[data-theme="dark"] .market-stream-pill:hover {
+  border-color: rgba(255, 255, 255, 0.3);
 }

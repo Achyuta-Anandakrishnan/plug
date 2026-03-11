@@ -1,5 +1,6 @@
 export const TRADE_POST_STATUSES = ["OPEN", "PAUSED", "MATCHED", "CLOSED", "ARCHIVED"] as const;
 export const TRADE_OFFER_STATUSES = ["PENDING", "ACCEPTED", "DECLINED", "WITHDRAWN", "COUNTERED"] as const;
+export const TRADE_GAME_TYPES = ["checkers", "chess", "coin", "poker"] as const;
 export const TRADE_SETTLEMENT_STATUSES = [
   "REQUIRES_PAYMENT",
   "PROCESSING",
@@ -10,6 +11,7 @@ export const TRADE_SETTLEMENT_STATUSES = [
 
 export type TradePostStatus = (typeof TRADE_POST_STATUSES)[number];
 export type TradeOfferStatus = (typeof TRADE_OFFER_STATUSES)[number];
+export type TradeGameType = (typeof TRADE_GAME_TYPES)[number];
 export type TradeSettlementStatus = (typeof TRADE_SETTLEMENT_STATUSES)[number];
 
 export function isTradePostStatus(value: unknown): value is TradePostStatus {
@@ -18,6 +20,10 @@ export function isTradePostStatus(value: unknown): value is TradePostStatus {
 
 export function isTradeOfferStatus(value: unknown): value is TradeOfferStatus {
   return typeof value === "string" && TRADE_OFFER_STATUSES.includes(value as TradeOfferStatus);
+}
+
+export function isTradeGameType(value: unknown): value is TradeGameType {
+  return typeof value === "string" && TRADE_GAME_TYPES.includes(value as TradeGameType);
 }
 
 export function isTradeSettlementStatus(value: unknown): value is TradeSettlementStatus {

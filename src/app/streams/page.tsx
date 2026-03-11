@@ -1,5 +1,5 @@
-import { StreamsResponsive } from "@/components/streams/StreamsResponsive";
+import { redirect } from "next/navigation";
 
 export default function StreamsPage() {
-  return <StreamsResponsive />;
+  redirect("/listings?mode=streams");
 }

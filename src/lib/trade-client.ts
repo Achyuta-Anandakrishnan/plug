@@ -1,3 +1,5 @@
+export type TradeGameType = "checkers" | "chess" | "coin" | "poker";
+
 export type TradePostListItem = {
   id: string;
   ownerId: string;
@@ -41,6 +43,16 @@ export type TradeOfferItem = {
   proposerId: string;
   message: string | null;
   cashAdjustment: number;
+  gameType: TradeGameType | null;
+  gameTerms: string | null;
+  gameTermsVersion: number | null;
+  gameProposedById: string | null;
+  gameOwnerAgreedAt: string | null;
+  gameProposerAgreedAt: string | null;
+  gameLockedAt: string | null;
+  gameStartedAt: string | null;
+  gameResolvedAt: string | null;
+  gameWinnerId: string | null;
   status: "PENDING" | "ACCEPTED" | "DECLINED" | "WITHDRAWN" | "COUNTERED";
   createdAt: string;
   updatedAt: string;

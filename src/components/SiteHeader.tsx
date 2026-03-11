@@ -78,8 +78,8 @@ export function SiteHeader() {
 
   const navItems = useMemo(
     () => [
-      { label: "Streams", href: "/streams" },
-      { label: "Market", href: "/listings" },
+      { key: "streams", label: "Streams", href: "/listings?mode=streams" },
+      { key: "market", label: "Market", href: "/listings" },
       { label: "Trades", href: "/trades" },
       { label: "Forum", href: "/forum" },
       { label: "Messages", href: "/messages" },
@@ -87,6 +87,19 @@ export function SiteHeader() {
     ],
     [],
   );
+  const listingsMode = typeof window === "undefined"
+    ? null
+    : new URLSearchParams(window.location.search).get("mode");
+
+  const isNavActive = (item: (typeof navItems)[number]) => {
+    if (item.key === "streams") {
+      return pathname === "/streams" || (pathname === "/listings" && listingsMode === "streams");
+    }
+    if (item.key === "market") {
+      return pathname === "/listings" && listingsMode !== "streams";
+    }
+    return pathname === item.href || pathname?.startsWith(`${item.href}/`);
+  };
 
   useEffect(() => {
     if (!canUseDom) return;
@@ -127,8 +140,8 @@ export function SiteHeader() {
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
                     className={`rounded-2xl border px-4 py-3.5 transition ${
-                      pathname === item.href || pathname?.startsWith(`${item.href}/`)
-                        ? "border-blue-100 bg-blue-50 text-[var(--royal)]"
+                      isNavActive(item)
+                        ? "border-slate-800 bg-slate-900 text-white"
                         : "border-white/70 bg-white/70 text-slate-700"
                     }`}
                   >
@@ -180,7 +193,11 @@ export function SiteHeader() {
 
           <nav className="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex lg:gap-6">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="site-nav-link transition hover:text-slate-900">
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`site-nav-link transition hover:text-slate-900 ${isNavActive(item) ? "text-slate-900" : ""}`}
+              >
                 {item.label}
               </Link>
             ))}
@@ -211,7 +228,7 @@ export function SiteHeader() {
               <AccountActions signedIn={Boolean(session?.user?.id)} />
               <Link
                 href={isVerifiedSeller ? "/sell" : "/seller/verification"}
-                className="rounded-full bg-[var(--royal)] px-3.5 py-1.5 text-xs font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[var(--royal-deep)] sm:px-5 sm:py-2 sm:text-sm"
+                className="rounded-full bg-[var(--royal)] px-3.5 py-1.5 text-xs font-semibold text-white shadow-lg shadow-black/35 transition hover:bg-[var(--royal-deep)] sm:px-5 sm:py-2 sm:text-sm"
               >
                 {isVerifiedSeller ? "Create listing" : "Get verified"}
               </Link>

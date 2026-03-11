@@ -7,7 +7,7 @@ export function isBluePlaceholderMedia(url: string | null | undefined) {
 
 export function resolveDisplayMediaUrl(
   url: string | null | undefined,
-  fallback = "/dalow-logo.svg",
+  fallback = "/placeholders/pokemon-generic.svg",
 ) {
   if (!url || isBluePlaceholderMedia(url)) {
     return fallback;
