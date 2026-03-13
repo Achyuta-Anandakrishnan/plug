@@ -119,8 +119,8 @@ export function ForumClient() {
   };
 
   return (
-    <PageContainer className="forum-page app-page--forum app-page--snap">
-      <section className="app-screen-section">
+    <PageContainer className="forum-page app-page--forum">
+      <section className="app-section">
         <PageHeader
           title="Forum"
           subtitle="Collector discussion, market talk, and hobby knowledge in one board."
@@ -192,9 +192,6 @@ export function ForumClient() {
 
         {error ? <EmptyStateCard title="Forum unavailable" description={error} /> : null}
         {draftWarning ? <EmptyStateCard title="Drafts unavailable" description={draftWarning} /> : null}
-      </section>
-
-      <section className="app-screen-section">
         {loading ? <CheckersLoader title="Loading posts..." compact className="ios-empty" /> : null}
 
         <section className="app-section">

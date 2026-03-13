@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import {
@@ -13,7 +13,6 @@ import {
   PageHeader,
   PrimaryButton,
   SectionHeader,
-  StatPill,
 } from "@/components/product/ProductUI";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
@@ -92,14 +91,9 @@ export default function TradesPage() {
     };
   }, [query, scope, session?.user?.id]);
 
-  const openCount = useMemo(
-    () => posts.filter((entry) => entry.status === "OPEN").length,
-    [posts],
-  );
-
   return (
-    <PageContainer className="trades-page app-page--trades app-page--snap">
-      <section className="app-screen-section">
+    <PageContainer className="trades-page app-page--trades">
+      <section className="app-section">
         <PageHeader
           title="Trades"
           subtitle="Collector-to-collector exchange built around clear value and active offers."
@@ -129,12 +123,6 @@ export default function TradesPage() {
           </div>
         </DiscoveryBar>
 
-        <div className="trades-stats-row">
-          <StatPill label="Visible posts" value={posts.length} />
-          <StatPill label="Open now" value={openCount} />
-          <StatPill label="Scope" value={scope === "MINE" ? "My posts" : scope.toLowerCase()} />
-        </div>
-
         {!session?.user?.id && scope === "MINE" ? (
           <EmptyStateCard
             title="Sign in to view your trade posts."
@@ -144,9 +132,6 @@ export default function TradesPage() {
         ) : null}
 
         {error ? <EmptyStateCard title="Trade board unavailable" description={error} /> : null}
-      </section>
-
-      <section className="app-screen-section">
         {loading ? <CheckersLoader title="Loading trades..." compact className="ios-empty" /> : null}
 
         <section className="app-section">

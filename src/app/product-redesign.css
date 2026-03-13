@@ -324,6 +324,8 @@ main.page-container.mobile-safe-main {
 .app-empty-state p,
 .home-pillar-card p,
 .home-trust-card p,
+.home-signal-card p,
+.home-route-card p,
 .home-final-cta-copy p,
 .market-link-strip p,
 .forum-results-meta,
@@ -521,6 +523,8 @@ main.page-container.mobile-safe-main {
 .app-empty-state h3,
 .home-pillar-card h3,
 .home-trust-card h3,
+.home-signal-card h3,
+.home-route-card h3,
 .market-v2-listing-title,
 .trade-board-body h2,
 .forum-thread-title,
@@ -579,38 +583,38 @@ main.page-container.mobile-safe-main {
 
 .home-hero {
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  gap: 28px;
+  grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.22fr);
+  gap: 24px;
   align-items: start;
 }
 
 .home-scroll-section {
   display: grid;
-  align-content: center;
-  gap: 24px;
-  padding-block: 28px;
+  align-content: start;
+  gap: 20px;
+  padding-block: 20px;
 }
 
 .home-hero-copy {
   display: grid;
-  gap: 16px;
-  padding-top: 8px;
+  gap: 14px;
+  padding-top: 4px;
 }
 
 .home-hero-copy h1 {
   margin: 0;
   max-width: 9ch;
-  font-size: clamp(3rem, 5.5vw, 5rem);
-  line-height: 0.95;
+  font-size: clamp(2.85rem, 5vw, 4.65rem);
+  line-height: 0.92;
   letter-spacing: -0.06em;
 }
 
 .home-hero-copy > p:not(.app-eyebrow) {
   margin: 0;
-  max-width: 30rem;
+  max-width: 27rem;
   color: var(--product-text-soft);
-  font-size: 17px;
-  line-height: 1.55;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .home-hero-actions,
@@ -625,19 +629,18 @@ main.page-container.mobile-safe-main {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
-.home-hero-preview,
-.home-hero-stack,
-.home-connected-primary,
-.home-connected-secondary {
+.home-hero-preview-grid,
+.home-section-body {
   display: grid;
   gap: 16px;
 }
 
-.home-hero-preview {
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.72fr);
+.home-hero-preview-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
 }
 
 .home-surface-card {
@@ -652,7 +655,7 @@ main.page-container.mobile-safe-main {
 
 .home-surface-media {
   position: relative;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: #eef2f7;
 }
@@ -674,8 +677,8 @@ main.page-container.mobile-safe-main {
 
 .home-surface-body h3 {
   margin: 0;
-  font-size: 18px;
-  line-height: 1.15;
+  font-size: 17px;
+  line-height: 1.12;
   letter-spacing: -0.03em;
 }
 
@@ -691,48 +694,84 @@ main.page-container.mobile-safe-main {
   color: var(--product-text);
 }
 
-.home-pillars-grid,
-.home-trust-grid,
-.market-featured-grid,
-.trade-board-grid,
-.live-v3-upcoming-grid,
-.live-v3-spotlight-grid {
+.home-section-shell {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: minmax(250px, 0.34fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.home-section-intro {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.home-section-note {
+  margin: 0;
+  max-width: 24rem;
+  color: var(--product-text-soft);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.home-pillars-grid,
+.home-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
 .home-pillar-card,
-.home-trust-card {
+.home-trust-card,
+.home-signal-card,
+.home-route-card {
   display: grid;
   gap: 10px;
-  padding: 18px;
+  align-content: start;
+  min-height: 100%;
+  padding: 16px;
   border: 1px solid var(--product-border);
   border-radius: var(--product-radius);
   background: var(--product-surface);
 }
 
-.home-connected-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-  gap: 20px;
+.home-surface-card,
+.home-route-card {
+  color: inherit;
+  text-decoration: none;
 }
 
-.home-final-cta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+.home-signal-grid,
+.home-final-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.home-connected-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.home-route-card strong {
+  color: var(--product-accent);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-final-section {
+  display: grid;
+  align-content: start;
+  gap: 20px;
 }
 
 .home-final-cta-copy h2 {
   margin: 0;
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-size: clamp(1.65rem, 2.6vw, 2.3rem);
   line-height: 1.05;
   letter-spacing: -0.04em;
 }
@@ -992,6 +1031,8 @@ main.page-container.mobile-safe-main {
   gap: 20px;
 }
 
+.live-v3-upcoming-grid,
+.live-v3-spotlight-grid,
 .live-v3-live-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -1283,13 +1324,20 @@ main.page-container.mobile-safe-main {
 
 @media (max-width: 1024px) {
   .home-hero,
+  .home-section-shell,
   .home-connected-grid,
   .messages-layout {
     grid-template-columns: 1fr;
   }
 
-  .home-hero-preview {
-    grid-template-columns: 1fr;
+  .home-hero-preview-grid,
+  .home-signal-grid,
+  .home-final-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-section-intro {
+    max-width: none;
   }
 
   .home-pillars-grid,
@@ -1298,7 +1346,7 @@ main.page-container.mobile-safe-main {
   .trade-board-grid,
   .live-v3-upcoming-grid,
   .live-v3-spotlight-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .messages-chat {
@@ -1345,6 +1393,9 @@ main.page-container.mobile-safe-main {
 
   .home-pillars-grid,
   .home-trust-grid,
+  .home-hero-preview-grid,
+  .home-signal-grid,
+  .home-final-grid,
   .market-featured-grid,
   .trade-board-grid,
   .live-v3-upcoming-grid,
@@ -1383,12 +1434,13 @@ main.page-container.mobile-safe-main {
     scroll-snap-align: start;
     display: grid;
     align-content: start;
-    gap: 24px;
-    padding-block: 28px;
+    gap: 20px;
+    padding-block: 18px;
   }
 
   .home-scroll-section {
-    align-content: center;
+    height: calc(100svh - 72px);
+    min-height: 0;
   }
 
   .app-page--snap > .app-screen-section > .app-section {

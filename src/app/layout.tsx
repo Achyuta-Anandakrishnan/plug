@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { AppProviders } from "@/components/AppProviders";
-import { AnimeBackdrop } from "@/components/AnimeBackdrop";
 import { NativeShell } from "@/components/native/NativeShell";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -42,7 +41,6 @@ export default function RootLayout({
         <AppProviders>
           <NativeShell />
           <div className="app-shell relative min-h-screen">
-            <AnimeBackdrop />
             <div className="relative z-10 flex min-h-screen flex-col">
               <SiteHeader />
               <main className="page-container mobile-safe-main flex-1">
