@@ -5916,41 +5916,16 @@ html[data-theme="dark"] .messages-bubble.incoming {
   }
 }
 
-/* Viewport calibration pass: phone 390x844 (19.5:9) and laptop 1440x900 (16:10). */
-:root {
-  --dalow-phone-ratio: 390 / 844;
-  --dalow-laptop-ratio: 1440 / 900;
-  --dalow-shell-max: 1240px;
-  --dalow-shell-inline: clamp(14px, 2vw, 24px);
-  --dalow-shell-block: clamp(12px, 1.4vw, 20px);
-  --dalow-page-gap: clamp(20px, 2.2vw, 32px);
-  --dalow-panel-pad: clamp(14px, 1.4vw, 20px);
-  --dalow-grid-gap: clamp(12px, 1.2vw, 18px);
-}
-
-.page-container,
+/* Product shell cleanup: compact browsing surfaces and one final source of truth. */
 .product-shell,
 .market-v2-page,
 .live-v3-page {
-  width: min(100%, var(--dalow-shell-max));
-  max-width: var(--dalow-shell-max);
+  width: min(100%, 1200px);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px 48px;
 }
 
-.page-container {
-  padding-left: var(--dalow-shell-inline) !important;
-  padding-right: var(--dalow-shell-inline) !important;
-}
-
-.product-shell,
-.market-v2-page,
-.live-v3-page {
-  padding-left: var(--dalow-shell-inline);
-  padding-right: var(--dalow-shell-inline);
-  padding-top: var(--dalow-shell-block);
-  padding-bottom: clamp(44px, 6vw, 72px);
-}
-
-.product-shell.home-page,
 .product-shell.market-page,
 .product-shell.live-page,
 .product-shell.trades-page,
@@ -5958,115 +5933,65 @@ html[data-theme="dark"] .messages-bubble.incoming {
 .product-shell.messages-page,
 .market-v2-page,
 .live-v3-page {
-  gap: var(--dalow-page-gap);
+  gap: 32px;
 }
 
 .product-page-header {
   align-items: flex-end;
-  gap: clamp(12px, 1.5vw, 20px);
+  gap: 16px;
 }
 
 .product-page-intro {
   display: grid;
-  gap: 8px;
-  max-width: 54ch;
+  gap: 6px;
+  max-width: 40rem;
 }
 
 .product-page-copy {
   margin: 0;
   color: #64748b;
-  font-size: clamp(13px, 1.05vw, 15px);
+  font-size: 14px;
   line-height: 1.45;
 }
 
-.home-page .home-v3-hero {
-  grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
-  gap: clamp(28px, 4vw, 56px);
-  align-items: start;
-}
-
-.home-page .home-v3-hero-copy {
-  max-width: 38rem;
-}
-
-.home-page .home-v3-hero-visual {
-  width: min(100%, 560px);
-  min-height: clamp(360px, 36vw, 500px);
-}
-
-.home-page .home-v3-pillars,
-.home-page .home-v3-showcase,
-.home-page .home-v3-trust,
-.home-page .home-v3-final-cta,
-.market-page .market-v2-hero,
-.market-page .market-v2-module,
-.market-page .market-v2-listings-section,
-.live-page .live-v3-filters,
-.live-page .live-v3-live-now,
-.live-page .live-v3-upcoming,
-.live-page .live-v3-spotlight,
-.product-toolbar,
-.product-stat-card,
-.trades-page .ios-panel,
-.forum-page .ios-panel,
-.messages-page .ios-panel {
-  padding: var(--dalow-panel-pad);
-}
-
-.home-page .home-v3-final-cta {
-  padding-top: clamp(56px, 7vw, 88px);
-  padding-bottom: clamp(56px, 7vw, 88px);
-}
-
 .market-v2-module-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: var(--dalow-grid-gap);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
 }
 
 .market-v2-grid.is-comfy {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: var(--dalow-grid-gap);
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  gap: 16px;
 }
 
 .market-v2-grid.is-compact {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: var(--dalow-grid-gap);
-}
-
-.live-v3-live-grid,
-.live-v3-upcoming-grid,
-.live-v3-spotlight-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 272px), 1fr));
-  gap: var(--dalow-grid-gap);
-}
-
-.live-v3-live-grid.is-compact {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
 }
 
 .trade-board-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: var(--dalow-grid-gap);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
 }
 
 .forum-thread-list {
-  gap: var(--dalow-grid-gap);
+  gap: 16px;
 }
 
 .messages-layout {
   align-items: start;
-  grid-template-columns: minmax(280px, 0.32fr) minmax(0, 0.68fr);
+  grid-template-columns: minmax(280px, 300px) minmax(0, 1fr);
 }
 
 .messages-threads {
   display: flex;
   flex-direction: column;
-  height: clamp(460px, 62vh, 720px);
+  height: 620px;
   overflow: hidden;
 }
 
 .messages-chat {
-  min-height: clamp(460px, 62vh, 720px) !important;
+  min-height: 620px !important;
 }
 
 .forum-page .forum-header-actions {
@@ -6074,24 +5999,24 @@ html[data-theme="dark"] .messages-bubble.incoming {
 }
 
 .live-page {
-  width: min(100%, 1200px);
-  max-width: 1200px;
-  margin: 0 auto;
   gap: 32px;
+}
+
+.live-page .product-page-header {
+  justify-content: flex-start;
 }
 
 .live-page .live-v3-page-head {
   max-width: 32rem;
-  margin-bottom: 0;
+  margin: 0;
 }
 
 .live-page .product-page-intro {
-  gap: 4px;
   max-width: 32rem;
 }
 
 .live-page .product-page-title {
-  font-size: clamp(2rem, 3vw, 2.5rem);
+  font-size: clamp(2rem, 2.8vw, 2.5rem);
 }
 
 .live-page .product-page-copy {
@@ -6102,46 +6027,12 @@ html[data-theme="dark"] .messages-bubble.incoming {
 .live-page .live-v3-live-now,
 .live-page .live-v3-upcoming,
 .live-page .live-v3-spotlight {
+  padding: 16px;
   border-radius: 12px;
-}
-
-.live-page .live-v3-section-title {
-  font-size: 18px;
-}
-
-.live-page .live-v3-stream-body {
-  gap: 5px;
-  padding: 10px;
-}
-
-.live-page .live-v3-stream-body h3 {
-  font-size: 14px;
-}
-
-.live-page .live-v3-stream-body p,
-.live-page .live-v3-stream-meta {
-  font-size: 12px;
-}
-
-.live-page .live-v3-stream-foot-host {
-  font-size: 11px;
-}
-
-.live-page .live-v3-live-pill,
-.live-page .live-v3-viewers-pill {
-  padding: 4px 8px;
-  font-size: 9px;
-}
-
-.live-page .live-v3-enter-pill {
-  padding: 5px 9px;
-  font-size: 9px;
 }
 
 .live-page .live-v3-filters {
   gap: 10px;
-  padding: 16px;
-  border-radius: 12px;
 }
 
 .live-page .live-v3-search {
@@ -6153,6 +6044,13 @@ html[data-theme="dark"] .messages-bubble.incoming {
   gap: 8px;
 }
 
+.live-page .live-v3-browse-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
 .live-page .live-v3-chip,
 .live-page .live-v3-segment button,
 .live-page .live-v3-timing-toggle button {
@@ -6160,12 +6058,14 @@ html[data-theme="dark"] .messages-bubble.incoming {
   font-size: 11px;
 }
 
-.live-page .live-v3-browse-row {
-  gap: 10px;
+.live-page .live-v3-segment {
+  padding: 3px;
+  gap: 4px;
 }
 
 .live-page .live-v3-filter-tools {
   justify-content: flex-end;
+  gap: 8px;
 }
 
 .live-page .live-v3-filter-tools label span {
@@ -6178,26 +6078,131 @@ html[data-theme="dark"] .messages-bubble.incoming {
   gap: 12px;
 }
 
+.live-page .live-v3-section-title {
+  margin: 0;
+  font-size: 18px;
+}
+
 .live-page .live-v3-live-grid,
 .live-page .live-v3-upcoming-grid,
 .live-page .live-v3-spotlight-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
+}
+
+.live-page .live-v3-live-grid.is-compact {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 280px));
+  justify-content: start;
+}
+
+.live-page .live-v3-stream-card {
+  border-radius: 14px;
+}
+
+.live-page .live-v3-stream-card.is-grid .live-v3-stream-media {
+  aspect-ratio: 16 / 9;
+}
+
+.live-page .live-v3-stream-top {
+  left: 8px;
+  right: 8px;
+  top: 8px;
+}
+
+.live-page .live-v3-live-pill,
+.live-page .live-v3-viewers-pill {
+  padding: 4px 8px;
+  font-size: 9px;
+}
+
+.live-page .live-v3-stream-body {
+  gap: 6px;
+  padding: 10px;
+}
+
+.live-page .live-v3-stream-body h3 {
+  font-size: 14px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.live-page .live-v3-stream-subline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.live-page .live-v3-stream-subline span:not(:last-child)::after {
+  content: "•";
+  margin-left: 6px;
+  color: #94a3b8;
+}
+
+.live-page .live-v3-stream-meta {
+  gap: 6px;
+  font-size: 12px;
+}
+
+.live-page .live-v3-stream-type {
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  padding: 4px 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.live-page .live-v3-enter-pill {
+  padding: 5px 9px;
+  font-size: 9px;
+}
+
+.live-page .live-v3-host-card {
+  padding: 14px;
 }
 
 html[data-theme="dark"] .product-page-copy {
   color: #9fb0c9;
 }
 
+html[data-theme="dark"] .live-page .live-v3-stream-subline {
+  color: #9fb0c9;
+}
+
+html[data-theme="dark"] .live-page .live-v3-stream-subline span:not(:last-child)::after {
+  color: #7f8ea5;
+}
+
+html[data-theme="dark"] .live-page .live-v3-stream-type {
+  background: rgba(15, 23, 42, 0.74);
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #cbd5e1;
+}
+
 @media (max-width: 900px) {
   .product-shell,
   .market-v2-page,
   .live-v3-page {
-    padding-left: clamp(14px, 3vw, 20px);
-    padding-right: clamp(14px, 3vw, 20px);
-    padding-bottom: 56px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 44px;
   }
 
-  .live-page {
+  .product-shell.market-page,
+  .product-shell.live-page,
+  .product-shell.trades-page,
+  .product-shell.forum-page,
+  .product-shell.messages-page,
+  .market-v2-page,
+  .live-v3-page {
     gap: 24px;
   }
 
@@ -6210,6 +6215,14 @@ html[data-theme="dark"] .product-page-copy {
     height: auto;
     min-height: 0 !important;
   }
+
+  .live-page .live-v3-browse-row {
+    grid-template-columns: 1fr;
+  }
+
+  .live-page .live-v3-filter-tools {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 640px) {
@@ -6217,26 +6230,10 @@ html[data-theme="dark"] .product-page-copy {
     align-items: stretch;
   }
 
-  .product-page-copy {
-    font-size: 14px;
-  }
-
   .product-shell,
   .market-v2-page,
   .live-v3-page {
-    padding-left: 14px;
-    padding-right: 14px;
-    padding-top: 14px;
-    padding-bottom: 40px;
-  }
-
-  .home-page .home-v3-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .home-page .home-v3-hero-visual {
-    width: 100%;
-    min-height: 320px;
+    padding: 14px 14px 36px;
   }
 
   .live-page .live-v3-page-head,
@@ -6248,7 +6245,12 @@ html[data-theme="dark"] .product-page-copy {
   .live-page .live-v3-browse-row,
   .live-page .live-v3-filter-tools {
     align-items: stretch;
-    justify-content: flex-start;
+  }
+
+  .live-page .live-v3-live-grid,
+  .live-page .live-v3-upcoming-grid,
+  .live-page .live-v3-spotlight-grid {
+    grid-template-columns: 1fr;
   }
 
   .forum-page .forum-header-actions {

@@ -1,7 +1,6 @@
 import type { LiveCategoryFilter, LiveSortMode, LiveStreamTypeFilter, LiveTimingFilter } from "@/components/live/types";
 
 const CATEGORY_OPTIONS: Array<{ value: LiveCategoryFilter; label: string }> = [
-  { value: "all", label: "All" },
   { value: "pokemon", label: "Pokemon" },
   { value: "sports", label: "Sports" },
   { value: "anime", label: "Anime" },
@@ -65,7 +64,7 @@ export function LiveFilters({
           <button
             key={option.value}
             type="button"
-            onClick={() => onCategoryChange(option.value)}
+            onClick={() => onCategoryChange(category === option.value ? "all" : option.value)}
             className={`live-v3-chip ${category === option.value ? "is-active" : ""}`}
           >
             {option.label}

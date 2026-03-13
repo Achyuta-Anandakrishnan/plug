@@ -61,17 +61,35 @@ export function categoryMatches(stream: AuctionListItem, filter: LiveCategoryFil
     return haystack.includes("pokemon");
   }
   if (filter === "sports") {
-    return haystack.includes("sports");
+    return haystack.includes("sports")
+      || haystack.includes("baseball")
+      || haystack.includes("basketball")
+      || haystack.includes("football")
+      || haystack.includes("soccer")
+      || haystack.includes("hockey")
+      || haystack.includes("golf")
+      || haystack.includes("ufc")
+      || haystack.includes("wrestling")
+      || haystack.includes("mlb")
+      || haystack.includes("nba")
+      || haystack.includes("nfl")
+      || haystack.includes("nhl");
   }
   if (filter === "anime") {
     return haystack.includes("anime")
       || haystack.includes("dragon ball")
       || haystack.includes("one piece")
       || haystack.includes("naruto")
+      || haystack.includes("pokemon")
+      || haystack.includes("tcg")
+      || haystack.includes("card game")
+      || haystack.includes("japanese")
+      || haystack.includes("yugioh")
+      || haystack.includes("digimon")
       || haystack.includes("manga");
   }
   if (filter === "funko") {
-    return haystack.includes("funko");
+    return haystack.includes("funko") || haystack.includes("pop");
   }
   return false;
 }

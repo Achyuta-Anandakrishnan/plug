@@ -73,17 +73,16 @@ export function LiveStreamCard({
 
         <div className="live-v3-stream-body">
           <h3>{stream.title}</h3>
-          <p>{host}</p>
-          <div className="live-v3-stream-tags">
+          <div className="live-v3-stream-subline">
+            <span>{host}</span>
             <span>{category}</span>
-            <span>{typeLabel}</span>
           </div>
           <div className="live-v3-stream-meta">
             <span>{streamPriceLabel(stream)}</span>
             <span>{streamTimeLabel(stream)}</span>
           </div>
           <div className="live-v3-stream-foot">
-            <span className="live-v3-stream-foot-host">{host}</span>
+            <span className="live-v3-stream-type">{typeLabel}</span>
             <span className="live-v3-enter-pill">{joinLabel}</span>
           </div>
         </div>
