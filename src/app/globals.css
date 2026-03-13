@@ -5923,7 +5923,7 @@ html[data-theme="dark"] .messages-bubble.incoming {
   width: min(100%, 1200px);
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px 24px 48px;
+  padding: 10px 24px 40px;
 }
 
 .product-shell.market-page,
@@ -5933,35 +5933,43 @@ html[data-theme="dark"] .messages-bubble.incoming {
 .product-shell.messages-page,
 .market-v2-page,
 .live-v3-page {
-  gap: 32px;
+  gap: 24px;
 }
 
 .product-page-header {
-  align-items: flex-end;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .product-page-intro {
   display: grid;
-  gap: 6px;
-  max-width: 40rem;
+  gap: 4px;
+  max-width: 36rem;
 }
 
 .product-page-copy {
   margin: 0;
   color: #64748b;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.45;
+}
+
+.product-page-title {
+  font-size: clamp(1.85rem, 2.35vw, 2.15rem);
+}
+
+.market-v2-title {
+  font-size: clamp(2rem, 2.55vw, 2.3rem);
 }
 
 .market-v2-module-grid {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  gap: 14px;
 }
 
 .market-v2-grid.is-comfy {
   grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
-  gap: 16px;
+  gap: 14px;
 }
 
 .market-v2-grid.is-compact {
@@ -5971,11 +5979,11 @@ html[data-theme="dark"] .messages-bubble.incoming {
 
 .trade-board-grid {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
+  gap: 14px;
 }
 
 .forum-thread-list {
-  gap: 16px;
+  gap: 14px;
 }
 
 .messages-layout {
@@ -5986,20 +5994,16 @@ html[data-theme="dark"] .messages-bubble.incoming {
 .messages-threads {
   display: flex;
   flex-direction: column;
-  height: 620px;
+  height: 580px;
   overflow: hidden;
 }
 
 .messages-chat {
-  min-height: 620px !important;
+  min-height: 580px !important;
 }
 
 .forum-page .forum-header-actions {
   flex-wrap: wrap;
-}
-
-.live-page {
-  gap: 32px;
 }
 
 .live-page .product-page-header {
@@ -6007,54 +6011,58 @@ html[data-theme="dark"] .messages-bubble.incoming {
 }
 
 .live-page .live-v3-page-head {
-  max-width: 32rem;
+  max-width: 28rem;
   margin: 0;
 }
 
 .live-page .product-page-intro {
-  max-width: 32rem;
+  max-width: 28rem;
 }
 
 .live-page .product-page-title {
-  font-size: clamp(2rem, 2.8vw, 2.5rem);
+  font-size: clamp(1.9rem, 2.4vw, 2.2rem);
 }
 
 .live-page .product-page-copy {
-  max-width: 24rem;
+  max-width: 22rem;
 }
 
 .live-page .live-v3-filters,
 .live-page .live-v3-live-now,
 .live-page .live-v3-upcoming,
 .live-page .live-v3-spotlight {
-  padding: 16px;
-  border-radius: 12px;
+  padding: 14px;
+  border-radius: 10px;
 }
 
 .live-page .live-v3-filters {
-  gap: 10px;
+  gap: 8px;
+}
+
+.live-page .live-v3-page-head + .live-v3-filters {
+  margin-top: -4px;
 }
 
 .live-page .live-v3-search {
-  min-height: 50px;
+  min-height: 46px;
 }
 
 .live-page .live-v3-category-row,
 .live-page .live-v3-chip-row {
-  gap: 8px;
+  gap: 7px;
 }
 
 .live-page .live-v3-browse-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .live-page .live-v3-chip,
 .live-page .live-v3-segment button,
 .live-page .live-v3-timing-toggle button {
-  padding: 6px 12px;
+  padding: 5px 10px;
   font-size: 11px;
 }
 
@@ -6073,33 +6081,63 @@ html[data-theme="dark"] .messages-bubble.incoming {
 }
 
 .live-page .live-v3-live-now,
+.live-page .live-v3-featured,
 .live-page .live-v3-upcoming,
 .live-page .live-v3-spotlight {
   gap: 12px;
 }
 
+.live-page .live-v3-featured {
+  gap: 16px;
+}
+
+.live-page .live-v3-featured-layout {
+  grid-template-columns: minmax(0, 1.55fr) minmax(260px, 0.9fr);
+  gap: 16px;
+}
+
+.live-page .live-v3-featured-layout.is-solo {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.live-page .live-v3-featured-side {
+  gap: 14px;
+}
+
+.live-page .live-v3-live-grid-wrap {
+  display: grid;
+  gap: 18px;
+}
+
+.live-page .live-v3-section-head {
+  align-items: center;
+  gap: 12px;
+}
+
 .live-page .live-v3-section-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .live-page .live-v3-live-grid,
 .live-page .live-v3-upcoming-grid,
 .live-page .live-v3-spotlight-grid {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
 }
 
 .live-page .live-v3-live-grid.is-compact {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 280px));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
   justify-content: start;
 }
 
 .live-page .live-v3-stream-card {
-  border-radius: 14px;
+  border-radius: 12px;
 }
 
-.live-page .live-v3-stream-card.is-grid .live-v3-stream-media {
+.live-page .live-v3-stream-card.is-featured .live-v3-stream-media,
+.live-page .live-v3-stream-card.is-grid .live-v3-stream-media,
+.live-page .live-v3-stream-card.is-compact .live-v3-stream-media {
   aspect-ratio: 16 / 9;
 }
 
@@ -6120,6 +6158,10 @@ html[data-theme="dark"] .messages-bubble.incoming {
   padding: 10px;
 }
 
+.live-page .live-v3-stream-card.is-featured .live-v3-stream-body {
+  padding: 12px;
+}
+
 .live-page .live-v3-stream-body h3 {
   font-size: 14px;
   line-height: 1.3;
@@ -6127,6 +6169,10 @@ html[data-theme="dark"] .messages-bubble.incoming {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
+}
+
+.live-page .live-v3-stream-card.is-featured .live-v3-stream-body h3 {
+  font-size: 15px;
 }
 
 .live-page .live-v3-stream-subline {
@@ -6167,6 +6213,12 @@ html[data-theme="dark"] .messages-bubble.incoming {
 
 .live-page .live-v3-host-card {
   padding: 14px;
+}
+
+.trades-page .product-page-title,
+.forum-page .product-page-title,
+.messages-page .product-page-title {
+  font-size: clamp(1.75rem, 2.1vw, 2rem);
 }
 
 html[data-theme="dark"] .product-page-copy {
@@ -6223,6 +6275,14 @@ html[data-theme="dark"] .live-page .live-v3-stream-type {
   .live-page .live-v3-filter-tools {
     justify-content: flex-start;
   }
+
+  .live-page .live-v3-featured-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .live-page .live-v3-featured-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -6240,6 +6300,10 @@ html[data-theme="dark"] .live-page .live-v3-stream-type {
   .live-page .product-page-intro,
   .live-page .product-page-copy {
     max-width: none;
+  }
+
+  .live-page .live-v3-featured-side {
+    grid-template-columns: 1fr;
   }
 
   .live-page .live-v3-browse-row,
