@@ -10,9 +10,7 @@ import {
   EmptyStateCard,
   FilterChip,
   PageContainer,
-  PageHeader,
   PrimaryButton,
-  SectionHeader,
 } from "@/components/product/ProductUI";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
@@ -94,13 +92,8 @@ export default function TradesPage() {
   return (
     <PageContainer className="trades-page app-page--trades">
       <section className="app-section">
-        <PageHeader
-          title="Trades"
-          subtitle="Collector-to-collector exchange built around clear value and active offers."
-          actions={<PrimaryButton href="/trades/new">New trade</PrimaryButton>}
-        />
-
-        <DiscoveryBar className="trades-toolbar">
+        <DiscoveryBar className="app-control-bar trades-toolbar">
+          <div className="app-control-title">Trades</div>
           <div className="app-search">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
@@ -121,6 +114,7 @@ export default function TradesPage() {
               />
             ))}
           </div>
+          <PrimaryButton href="/trades/new">New trade</PrimaryButton>
         </DiscoveryBar>
 
         {!session?.user?.id && scope === "MINE" ? (
@@ -135,8 +129,6 @@ export default function TradesPage() {
         {loading ? <CheckersLoader title="Loading trades..." compact className="ios-empty" /> : null}
 
         <section className="app-section">
-          <SectionHeader title="Trade board" subtitle="Structured posts with value bands, ownership, and offer activity." />
-
           {!loading && posts.length === 0 ? (
             <EmptyStateCard title="No active trade posts right now." description="Try another status filter or check back when collectors publish new wants." />
           ) : null}

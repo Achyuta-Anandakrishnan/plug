@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import {
@@ -9,10 +9,8 @@ import {
   EmptyStateCard,
   FilterChip,
   PageContainer,
-  PageHeader,
   PrimaryButton,
   SecondaryButton,
-  SectionHeader,
 } from "@/components/product/ProductUI";
 
 type ForumAuthor = {
@@ -106,11 +104,6 @@ export function ForumClient() {
     void fetchPosts("");
   }, [fetchPosts]);
 
-  const filteredInfo = useMemo(() => {
-    if (!query.trim()) return "Latest threads";
-    return `Results for "${query.trim()}"`;
-  }, [query]);
-
   const resolvedTab = session?.user?.id ? activeTab : "published";
   const activePosts = resolvedTab === "drafts" ? draftPosts : publishedPosts;
 
@@ -121,22 +114,8 @@ export function ForumClient() {
   return (
     <PageContainer className="forum-page app-page--forum">
       <section className="app-section">
-        <PageHeader
-          title="Forum"
-          subtitle="Collector discussion, market talk, and hobby knowledge in one board."
-          actions={(
-            <>
-              {session?.user?.id ? (
-                <SecondaryButton href="/forum/new">Draft</SecondaryButton>
-              ) : (
-                <SecondaryButton onClick={() => signIn()}>Sign in</SecondaryButton>
-              )}
-              <PrimaryButton href="/forum/new">Post thread</PrimaryButton>
-            </>
-          )}
-        />
-
-        <DiscoveryBar className="forum-toolbar">
+        <DiscoveryBar className="app-control-bar forum-toolbar">
+          <div className="app-control-title">Forum</div>
           <div className="app-search">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
@@ -153,41 +132,39 @@ export function ForumClient() {
               }}
             />
           </div>
-
-          <div className="app-toolbar-row forum-toolbar-row">
-            <div className="app-chip-row">
+          <div className="app-chip-row">
+            <FilterChip
+              label="Published"
+              active={resolvedTab === "published"}
+              onClick={() => setActiveTab("published")}
+            />
+            {session?.user?.id ? (
               <FilterChip
-                label="Published"
-                active={resolvedTab === "published"}
-                onClick={() => setActiveTab("published")}
+                label="My drafts"
+                active={resolvedTab === "drafts"}
+                onClick={() => setActiveTab("drafts")}
               />
-              {session?.user?.id ? (
-                <FilterChip
-                  label="My drafts"
-                  active={resolvedTab === "drafts"}
-                  onClick={() => setActiveTab("drafts")}
-                />
-              ) : null}
-            </div>
-
-            <div className="app-toolbar-tools">
-              <button type="button" onClick={() => void handleSearch()} className="app-button app-button-primary">
-                Search
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setQuery("");
-                  void fetchPosts("");
-                }}
-                className="app-button app-button-secondary"
-              >
-                Clear
-              </button>
-            </div>
+            ) : null}
           </div>
-
-          <p className="forum-results-meta">{filteredInfo}</p>
+          <button type="button" onClick={() => void handleSearch()} className="app-button app-button-primary">
+            Search
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setQuery("");
+              void fetchPosts("");
+            }}
+            className="app-button app-button-secondary"
+          >
+            Clear
+          </button>
+          {session?.user?.id ? (
+            <SecondaryButton href="/forum/new">Draft</SecondaryButton>
+          ) : (
+            <SecondaryButton onClick={() => signIn()}>Sign in</SecondaryButton>
+          )}
+          <PrimaryButton href="/forum/new">Post thread</PrimaryButton>
         </DiscoveryBar>
 
         {error ? <EmptyStateCard title="Forum unavailable" description={error} /> : null}
@@ -195,8 +172,6 @@ export function ForumClient() {
         {loading ? <CheckersLoader title="Loading posts..." compact className="ios-empty" /> : null}
 
         <section className="app-section">
-          <SectionHeader title="Threads" subtitle="Browse active topics, replies, and recent discussion." />
-
           {!loading && activePosts.length === 0 ? (
             <EmptyStateCard
               title={resolvedTab === "drafts" ? "No drafts yet." : "No threads yet."}
