@@ -43,7 +43,7 @@ export function ListingCard({ listing, density, buyLoading, onBuyNow }: ListingC
   }, [image]);
 
   return (
-    <article className={`market-v2-listing-card ${densityClass}`}>
+    <article className={`market-v2-listing-card product-card listing-card ${densityClass}`}>
       <Link href={`/auctions/${listing.id}`} className="market-v2-listing-link">
         <div className="market-v2-listing-media">
           <Image
@@ -69,13 +69,17 @@ export function ListingCard({ listing, density, buyLoading, onBuyNow }: ListingC
 
           <h3 className="market-v2-listing-title">{listing.title}</h3>
           <p className="market-v2-listing-meta">{metadata}</p>
+          <div className="market-v2-listing-support">
+            <span>{listing.seller?.user?.displayName ?? "Verified seller"}</span>
+            <span>{listing.watchersCount} watching</span>
+          </div>
           <p className="market-v2-listing-price">{price}</p>
         </div>
       </Link>
 
       <div className="market-v2-listing-footer-row">
         <span className="market-v2-listing-time">{timeMeta}</span>
-        <span className="market-v2-listing-watchers">{listing.watchersCount} watching</span>
+        <span className="market-v2-listing-watchers">{listing.listingType === "AUCTION" ? "Active bids" : "Buy now"}</span>
         <button
           type="button"
           onClick={() => setWatching((prev) => !prev)}

@@ -1,5 +1,6 @@
 import type { LiveStreamItem } from "@/components/live/types";
 import { LiveStreamCard } from "@/components/live/LiveStreamCard";
+import { EmptyStateCard, SectionHeader } from "@/components/product/ProductUI";
 
 type LiveNowRailProps = {
   streams: LiveStreamItem[];
@@ -16,16 +17,14 @@ export function LiveNowRail({ streams, loading }: LiveNowRailProps) {
   return (
     <section id="live-now" className="live-v3-live-now">
       {loading ? (
-        <div className="live-v3-empty">Loading live streams...</div>
+        <EmptyStateCard title="Loading live streams" description="Active rooms will appear here in a moment." />
       ) : visibleStreams.length === 0 ? (
-        <div className="live-v3-empty">No active streams right now.</div>
+        <EmptyStateCard title="No active streams right now." description="Check back soon or browse upcoming sessions below." />
       ) : (
         <>
           {featuredPrimary ? (
             <div className="live-v3-featured">
-              <div className="live-v3-section-head">
-                <h2 className="live-v3-section-title">Featured live</h2>
-              </div>
+              <SectionHeader title="Featured live" subtitle="Join the most active rooms first." />
               <div className={`live-v3-featured-layout ${featuredSecondary.length === 0 ? "is-solo" : ""}`}>
                 <LiveStreamCard stream={featuredPrimary} layout="featured" />
                 {featuredSecondary.length > 0 ? (
@@ -41,9 +40,7 @@ export function LiveNowRail({ streams, loading }: LiveNowRailProps) {
 
           {gridStreams.length > 0 ? (
             <div className="live-v3-live-grid-wrap">
-              <div className="live-v3-section-head">
-                <h2 className="live-v3-section-title">Live now</h2>
-              </div>
+              <SectionHeader title="Live now" subtitle="Browse the rest of the active stream floor." />
               <div className={`live-v3-live-grid ${useCompactGrid ? "is-compact" : ""}`}>
                 {gridStreams.map((stream) => (
                   <LiveStreamCard key={stream.id} stream={stream} layout="grid" />

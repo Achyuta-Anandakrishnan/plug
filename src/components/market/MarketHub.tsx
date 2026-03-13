@@ -1,21 +1,24 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
+import { ListingCard } from "@/components/market/ListingCard";
+import { ListingGrid } from "@/components/market/ListingGrid";
+import type { GridDensity, MarketListing, MarketMode, SortMode } from "@/components/market/types";
+import {
+  DiscoveryBar,
+  EmptyStateCard,
+  FilterChip,
+  PageContainer,
+  PageHeader,
+  SectionHeader,
+  SegmentedControl,
+  SecondaryButton,
+} from "@/components/product/ProductUI";
 import { useAuctions } from "@/hooks/useAuctions";
 import { useCategories } from "@/hooks/useCategories";
-import { ListingSection } from "@/components/market/ListingSection";
-import { ListingTabs } from "@/components/market/ListingTabs";
-import { MarketplaceFilters } from "@/components/market/MarketplaceFilters";
-import { MarketplaceHeader } from "@/components/market/MarketplaceHeader";
-import { MarketplaceSearch } from "@/components/market/MarketplaceSearch";
-import type { GridDensity, MarketListing, MarketMode, SortMode } from "@/components/market/types";
-import { getPrimaryImageUrl } from "@/lib/auctions";
-import { formatCurrency } from "@/lib/format";
-import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 
 function parseMode(value: string | null): MarketMode {
   if (value === "buy-now" || value === "auctions") return value;
@@ -32,6 +35,25 @@ function parseCreatedAt(entry: MarketListing) {
   const timestamp = new Date(entry.createdAt).getTime();
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
+
+const MODE_OPTIONS: Array<{ value: MarketMode; label: string }> = [
+  { value: "all", label: "All listings" },
+  { value: "buy-now", label: "Buy now" },
+  { value: "auctions", label: "Auctions" },
+];
+
+const DENSITY_OPTIONS: Array<{ value: GridDensity; label: string }> = [
+  { value: "comfortable", label: "Comfy" },
+  { value: "compact", label: "Dense" },
+];
+
+const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
+  { value: "newest", label: "Newest" },
+  { value: "ending", label: "Ending soon" },
+  { value: "price-low", label: "Price low" },
+  { value: "price-high", label: "Price high" },
+  { value: "popular", label: "Most watched" },
+];
 
 export function MarketHub() {
   const { data: session } = useSession();
@@ -54,8 +76,8 @@ export function MarketHub() {
       { id: "all", label: "All", slug: "" },
       { id: "pokemon", label: "Pokemon", slug: "pokemon" },
       { id: "sports", label: "Sports", slug: "sports" },
+      { id: "anime", label: "Anime", slug: "anime" },
       { id: "funko", label: "Funko", slug: "funko" },
-      { id: "tcg", label: "TCG", slug: "tcg" },
       { id: "vintage", label: "Vintage", slug: "vintage" },
     ];
     const seen = new Set(base.map((entry) => entry.slug).filter(Boolean));
@@ -66,7 +88,7 @@ export function MarketHub() {
         seen.add(slug);
         return true;
       })
-      .slice(0, 6)
+      .slice(0, 4)
       .map((category) => ({ id: category.id, label: category.name, slug: category.slug }));
 
     return [...base, ...extras];
@@ -131,7 +153,7 @@ export function MarketHub() {
       [...liveListings]
         .filter((entry) => entry.listingType !== "BUY_NOW")
         .sort((a, b) => b.watchersCount - a.watchersCount)
-        .slice(0, 6),
+        .slice(0, 3),
     [liveListings],
   );
 
@@ -177,78 +199,115 @@ export function MarketHub() {
   };
 
   return (
-    <div className="market-v2-page product-shell market-page">
-      <MarketplaceHeader
-        search={<MarketplaceSearch value={query} onChange={setQuery} />}
-        tabs={<ListingTabs value={modeFromUrl} onChange={setMode} />}
-        filters={
-          <MarketplaceFilters
-            categories={categoryFilters}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            sort={sortMode}
-            onSortChange={setSortMode}
-            density={gridDensity}
-            onDensityChange={setGridDensity}
-          />
-        }
+    <PageContainer className="market-page app-page--market">
+      <PageHeader
+        title="Marketplace"
+        subtitle="Browse live auctions and buy-now inventory built for collectors."
       />
 
-      {listingsError ? (
-        <div className="market-v2-error">{listingsError}</div>
-      ) : null}
+      <DiscoveryBar className="market-toolbar">
+        <div className="app-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
+          </svg>
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search cards, sets, players, cert numbers"
+          />
+        </div>
 
-      {statusMessage ? <div className="market-v2-note">{statusMessage}</div> : null}
+        <SegmentedControl options={MODE_OPTIONS} value={modeFromUrl} onChange={setMode} />
 
-      {!listingsLoading ? (
-        <section className="market-v2-modules">
-          <article className="market-v2-module">
-            <div className="market-v2-module-head">
-              <h2 className="market-v2-section-title">Trending auctions</h2>
-            </div>
-            {trendingAuctions.length === 0 ? (
-              <div className="market-v2-empty">No trending auctions yet.</div>
-            ) : (
-              <div className="market-v2-module-grid">
-                {trendingAuctions.map((entry) => {
-                  const currency = entry.currency?.toUpperCase() || "USD";
-                  const image = resolveDisplayMediaUrl(getPrimaryImageUrl(entry), "/placeholders/pokemon-generic.svg");
-                  return (
-                    <Link key={entry.id} href={`/auctions/${entry.id}`} className="market-v2-module-card">
-                      <div className="market-v2-module-thumb">
-                        <Image
-                          src={image}
-                          alt={entry.title}
-                          fill
-                          sizes="(max-width: 900px) 50vw, 240px"
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-                      <div>
-                        <h3>{entry.title}</h3>
-                        <p>{entry.watchersCount} watching</p>
-                        <span>{formatCurrency(entry.currentBid, currency)}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </article>
-        </section>
-      ) : null}
+        <div className="app-toolbar-row market-toolbar-row">
+          <div className="app-chip-row">
+            {categoryFilters.map((category) => (
+              <FilterChip
+                key={category.id}
+                label={category.label}
+                active={selectedCategory === category.slug}
+                onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
+              />
+            ))}
+          </div>
 
-      {listingsLoading ? (
-        <div className="market-v2-empty">Loading listings...</div>
-      ) : (
-        <ListingSection
-          listings={sortedListings}
-          density={gridDensity}
-          buyLoadingId={buyLoadingId}
-          onBuyNow={(auctionId) => void startBuyNow(auctionId)}
+          <div className="app-toolbar-tools">
+            <label className="app-select-wrap">
+              <span>Sort</span>
+              <select
+                value={sortMode}
+                onChange={(event) => setSortMode(event.target.value as SortMode)}
+                className="app-select"
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <SegmentedControl options={DENSITY_OPTIONS} value={gridDensity} onChange={setGridDensity} />
+          </div>
+        </div>
+      </DiscoveryBar>
+
+      {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
+      {statusMessage ? <div className="app-inline-note">{statusMessage}</div> : null}
+
+      <section className="app-section">
+        <SectionHeader
+          title="Trending auctions"
+          subtitle="The most watched inventory live right now."
+          action={<SecondaryButton href="/live">See what is live</SecondaryButton>}
         />
-      )}
-    </div>
+        {listingsLoading ? (
+          <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
+        ) : trendingAuctions.length === 0 ? (
+          <EmptyStateCard title="No trending auctions yet." description="Once streams and listings are live, the most watched auctions will surface here." />
+        ) : (
+          <div className="market-featured-grid">
+            {trendingAuctions.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                density="comfortable"
+                buyLoading={buyLoadingId === listing.id}
+                onBuyNow={startBuyNow}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="app-section market-inventory-section">
+        <SectionHeader
+          title="Inventory"
+          subtitle="The main product surface for browsing and comparing listings."
+          action={<span className="market-count">{sortedListings.length} items</span>}
+        />
+
+        {listingsLoading ? (
+          <EmptyStateCard title="Loading listings" description="Inventory is on the way." />
+        ) : sortedListings.length === 0 ? (
+          <EmptyStateCard title="No listings match these filters." description="Try broadening the search, switching modes, or clearing a category." />
+        ) : (
+          <ListingGrid
+            listings={sortedListings}
+            density={gridDensity}
+            buyLoadingId={buyLoadingId}
+            onBuyNow={startBuyNow}
+          />
+        )}
+      </section>
+
+      <section className="market-link-strip">
+        <div>
+          <strong>Prefer real-time browsing?</strong>
+          <p>See active rooms and upcoming shows without leaving the marketplace.</p>
+        </div>
+        <Link href="/live">Open Live</Link>
+      </section>
+    </PageContainer>
   );
 }

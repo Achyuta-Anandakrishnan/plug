@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { SpotlightHost } from "@/components/live/types";
+import { EmptyStateCard, SectionHeader } from "@/components/product/ProductUI";
 
 type StreamerSpotlightProps = {
   hosts: SpotlightHost[];
@@ -8,10 +9,10 @@ type StreamerSpotlightProps = {
 export function StreamerSpotlight({ hosts }: StreamerSpotlightProps) {
   return (
     <section className="live-v3-spotlight">
-      <h2 className="live-v3-section-title">Hosts to watch</h2>
+      <SectionHeader title="Hosts to watch" subtitle="Follow reliable rooms and repeat sellers." />
 
       {hosts.length === 0 ? (
-        <div className="live-v3-empty">No host highlights yet.</div>
+        <EmptyStateCard title="No host highlights yet." description="Once host activity picks up, featured collectors will appear here." />
       ) : (
         <div className="live-v3-spotlight-grid">
           {hosts.map((host) => (

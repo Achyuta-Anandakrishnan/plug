@@ -5,6 +5,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
+import {
+  EmptyStateCard,
+  PageContainer,
+  PageHeader,
+  PrimaryButton,
+  SecondaryButton,
+} from "@/components/product/ProductUI";
 
 type Conversation = {
   id: string;
@@ -236,61 +243,46 @@ export function MessagesClient() {
       setDeletingConversationId(null);
     }
   }
+
   if (!session?.user?.id) {
     return (
-      <div className="ios-screen product-shell messages-page">
-        <section className="product-page-header">
-          <div className="product-page-intro">
-            <h1 className="product-page-title">Messages</h1>
-            <p className="product-page-copy">Keep trade negotiation, deal threads, and support in one inbox.</p>
-          </div>
-        </section>
-        <div className="ios-panel p-6">
-          <p className="text-sm text-slate-600">Sign in to view your inbox.</p>
-          <button
-            onClick={() => signIn()}
-            className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
-          >
-            Sign in
-          </button>
-        </div>
-      </div>
+      <PageContainer className="messages-page app-page--messages">
+        <PageHeader title="Messages" subtitle="Keep negotiation, logistics, and support threads in one inbox." />
+        <EmptyStateCard
+          title="Sign in to view your inbox."
+          description="Your active deals and collector conversations will show up here."
+          action={<PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>}
+        />
+      </PageContainer>
     );
   }
 
   return (
-    <div className="ios-screen product-shell messages-page">
-      <section className="product-page-header">
-        <div className="product-page-intro">
-          <h1 className="product-page-title">Messages</h1>
-          <p className="product-page-copy">Keep trade negotiation, deal threads, and support in one inbox.</p>
-        </div>
-      </section>
+    <PageContainer className="messages-page app-page--messages">
+      <PageHeader title="Messages" subtitle="Keep negotiation, logistics, and support threads in one inbox." />
 
-      {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
-      )}
+      {error ? <EmptyStateCard title="Messages unavailable" description={error} /> : null}
 
       <section className="messages-layout">
         {showThreadsPane ? (
-          <div className="ios-panel messages-threads">
-            <div className="mb-3">
+          <aside className="messages-sidebar product-card">
+            <div className="app-search">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
+              </svg>
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search conversations"
-                className="ios-input text-sm"
               />
             </div>
 
             {loading ? (
               <CheckersLoader title="Loading conversations..." compact className="ios-empty" />
             ) : filtered.length === 0 ? (
-              <div className="ios-empty">No conversations yet.</div>
+              <EmptyStateCard title="No conversations yet." description="Messages tied to trades, streams, and support will appear here." />
             ) : (
-              <div className="space-y-2 max-h-[calc(100dvh-19rem)] overflow-y-auto pr-1 lg:max-h-[64vh]">
+              <div className="messages-thread-list">
                 {filtered.map((thread) => {
                   const last = thread.messages[0]?.body ?? "";
                   const otherNames = thread.participants
@@ -308,89 +300,79 @@ export function MessagesClient() {
                         setActiveId(thread.id);
                         if (!isDesktop) setMobilePane("chat");
                       }}
-                      className={`messages-thread-item ${
-                        selected
-                          ? "is-active"
-                          : ""
-                      }`}
+                      className={`messages-thread-item ${selected ? "is-active" : ""}`}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="line-clamp-1 text-sm font-semibold text-slate-900">{title || "Conversation"}</p>
-                        <span className="text-[11px] text-slate-400">{formatTime(thread.updatedAt)}</span>
+                      <div className="messages-thread-item-top">
+                        <p>{title || "Conversation"}</p>
+                        <span>{formatTime(thread.updatedAt)}</span>
                       </div>
-                      <p className="mt-1 line-clamp-1 text-xs text-slate-500">{last}</p>
+                      <p className="messages-thread-item-preview">{last || "No messages yet."}</p>
                     </button>
                   );
                 })}
               </div>
             )}
-          </div>
+          </aside>
         ) : null}
 
         {showChatPane ? (
-          <div className="ios-panel messages-chat flex min-h-[calc(100dvh-14.5rem)] flex-col p-4 sm:p-5 lg:p-6">
+          <section className="messages-chat product-card">
             {activeConversation ? (
               <>
                 <div className="messages-chat-head">
-                  <div className="min-w-0">
-                    <div className="mb-2 flex items-center gap-2 lg:hidden">
+                  <div>
+                    {!isDesktop ? (
                       <button
                         type="button"
                         onClick={() => setMobilePane("threads")}
-                        className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700"
+                        className="messages-back-button"
                       >
                         Back
                       </button>
-                    </div>
-                    <p className="truncate text-lg font-semibold text-slate-900">{activeTitle}</p>
-                    <p className="text-[11px] text-slate-400">
-                      {activeConversation.isSupport ? "Support" : "Direct"}
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
+                    ) : null}
+                    <h2>{activeTitle}</h2>
+                    <p>{activeConversation.isSupport ? "Support thread" : "Direct conversation"}</p>
+                    <div className="messages-participants">
                       {activeConversation.participants
                         .filter((p) => p.userId !== sessionUserId)
                         .map((p) => (
                           <Link
                             key={p.userId}
                             href={p.user.username ? `/u/${p.user.username}` : `/profiles/${p.user.id}`}
-                            className="rounded-full border border-slate-200 bg-white px-2 py-1 text-[11px] text-slate-600 hover:text-slate-900"
+                            className="messages-participant-pill"
                           >
                             {p.user.displayName ?? p.user.username ?? "Member"}
                           </Link>
                         ))}
                     </div>
                   </div>
-                  <button
-                    type="button"
+                  <SecondaryButton
                     onClick={() => void handleDeleteConversation(activeConversation.id)}
                     disabled={deletingConversationId === activeConversation.id}
-                    className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-700 disabled:opacity-60"
                   >
                     {deletingConversationId === activeConversation.id ? "Deleting..." : "Delete"}
-                  </button>
+                  </SecondaryButton>
                 </div>
 
-                <div className="messages-feed mt-4 flex-1 min-h-0 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/65 p-3.5 sm:p-4 scroll-smooth">
+                <div className="messages-feed">
                   {messagesLoading ? (
                     <CheckersLoader title="Loading messages..." compact className="ios-empty" />
                   ) : messages.length === 0 ? (
-                    <div className="ios-empty">No messages yet.</div>
+                    <EmptyStateCard title="No messages yet." description="Start the conversation below." />
                   ) : (
-                    <div className="space-y-2.5">
-                      {messages.map((m) => {
-                        const isMe = m.senderId === sessionUserId;
+                    <div className="messages-bubble-list">
+                      {messages.map((message) => {
+                        const isMe = message.senderId === sessionUserId;
                         return (
                           <div
-                            key={m.id}
+                            key={message.id}
                             className={`messages-bubble ${isMe ? "outgoing" : "incoming"}`}
                           >
-                            <p className={`text-[10px] font-semibold ${isMe ? "text-white/70" : "text-slate-500"}`}>
-                              {isMe ? "You" : m.sender?.displayName ?? "User"}
+                            <p className="messages-bubble-author">
+                              {isMe ? "You" : message.sender?.displayName ?? "User"}
                             </p>
-                            <p className="mt-0.5 whitespace-pre-wrap break-words">{m.body}</p>
-                            <p className={`mt-1 text-[10px] ${isMe ? "text-white/65" : "text-slate-400"}`}>
-                              {formatTime(m.createdAt)}
-                            </p>
+                            <p className="messages-bubble-body">{message.body}</p>
+                            <p className="messages-bubble-time">{formatTime(message.createdAt)}</p>
                           </div>
                         );
                       })}
@@ -399,11 +381,11 @@ export function MessagesClient() {
                   )}
                 </div>
 
-                <div className="mt-3 flex items-center gap-2.5">
+                <div className="messages-compose">
                   <input
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    placeholder={activeId ? "iMessage" : "Select a conversation"}
+                    placeholder={activeId ? "Message" : "Select a conversation"}
                     disabled={!activeId || sending}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -411,26 +393,24 @@ export function MessagesClient() {
                         void handleSend();
                       }
                     }}
-                    className="ios-input h-10 flex-1 rounded-2xl px-3 text-sm disabled:opacity-60"
+                    className="messages-compose-input"
                   />
                   <button
                     type="button"
                     onClick={() => void handleSend()}
                     disabled={!activeId || sending || !draft.trim()}
-                    className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                    className="app-button app-button-primary"
                   >
-                    Send
+                    {sending ? "Sending..." : "Send"}
                   </button>
                 </div>
               </>
             ) : (
-              <div className="ios-empty flex-1">
-                Select a conversation.
-              </div>
+              <EmptyStateCard title="Select a conversation." description="Choose a thread on the left to start messaging." />
             )}
-          </div>
+          </section>
         ) : null}
       </section>
-    </div>
+    </PageContainer>
   );
 }

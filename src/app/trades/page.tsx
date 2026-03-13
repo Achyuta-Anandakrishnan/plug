@@ -5,6 +5,16 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
+import {
+  DiscoveryBar,
+  EmptyStateCard,
+  FilterChip,
+  PageContainer,
+  PageHeader,
+  PrimaryButton,
+  SectionHeader,
+  StatPill,
+} from "@/components/product/ProductUI";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import {
@@ -88,92 +98,72 @@ export default function TradesPage() {
   );
 
   return (
-    <div className="ios-screen product-shell trades-page">
-      <section className="product-page-header">
-        <div className="product-page-intro">
-          <h1 className="product-page-title">Trades</h1>
-          <p className="product-page-copy">Collector-to-collector listings for direct offers, swaps, and negotiated value.</p>
-        </div>
-        <Link
-          href="/trades/new"
-          className="product-page-primary"
-        >
-          New trade
-        </Link>
-      </section>
+    <PageContainer className="trades-page app-page--trades">
+      <PageHeader
+        title="Trades"
+        subtitle="Collector-to-collector exchange built around clear value and active offers."
+        actions={<PrimaryButton href="/trades/new">New trade</PrimaryButton>}
+      />
 
-      <section className="product-toolbar trades-toolbar">
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search trades"
-          className="ios-input"
-        />
-        <div className="ios-chip-row">
+      <DiscoveryBar className="trades-toolbar">
+        <div className="app-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
+          </svg>
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search trade posts"
+          />
+        </div>
+        <div className="app-chip-row">
           {scopes.map((entry) => (
-            <button
+            <FilterChip
               key={entry.key}
-              type="button"
+              label={entry.label}
+              active={scope === entry.key}
               onClick={() => setScope(entry.key)}
-              className={`ios-chip ${scope === entry.key ? "ios-chip-active" : ""}`}
-            >
-              {entry.label}
-            </button>
+            />
           ))}
         </div>
-      </section>
+      </DiscoveryBar>
 
-      <section className="product-stats">
-        <article className="product-stat-card">
-          <p>Visible posts</p>
-          <h3>{posts.length}</h3>
-        </article>
-        <article className="product-stat-card">
-          <p>Open now</p>
-          <h3>{openCount}</h3>
-        </article>
-      </section>
+      <div className="trades-stats-row">
+        <StatPill label="Visible posts" value={posts.length} />
+        <StatPill label="Open now" value={openCount} />
+        <StatPill label="Scope" value={scope === "MINE" ? "My posts" : scope.toLowerCase()} />
+      </div>
 
       {!session?.user?.id && scope === "MINE" ? (
-        <div className="ios-panel p-5">
-          <p className="text-sm text-slate-600">Sign in to view your trade posts.</p>
-          <button
-            type="button"
-            onClick={() => signIn()}
-            className="mt-3 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
-          >
-            Sign in
-          </button>
-        </div>
+        <EmptyStateCard
+          title="Sign in to view your trade posts."
+          description="Your own trade activity stays separate from the public board."
+          action={<PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>}
+        />
       ) : null}
 
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
-      ) : null}
+      {error ? <EmptyStateCard title="Trade board unavailable" description={error} /> : null}
+      {loading ? <CheckersLoader title="Loading trades..." compact className="ios-empty" /> : null}
 
-      {loading ? (
-        <CheckersLoader title="Loading trades..." compact className="ios-empty" />
-      ) : null}
+      <section className="app-section">
+        <SectionHeader title="Trade board" subtitle="Structured posts with value bands, ownership, and offer activity." />
 
-      {!loading && posts.length === 0 ? (
-        <div className="ios-empty">No trade posts found.</div>
-      ) : null}
+        {!loading && posts.length === 0 ? (
+          <EmptyStateCard title="No active trade posts right now." description="Try another status filter or check back when collectors publish new wants." />
+        ) : null}
 
-      <section className="trade-board-grid">
-        {posts.map((post) => {
-          const image = post.images[0]?.url || "";
-          const canRenderImage = isValidImageUrl(image);
-          const tags = toTagArray(post.tags).slice(0, 3);
-          return (
-            <Link
-              key={post.id}
-              href={`/trades/${encodeURIComponent(post.id)}`}
-              className="ios-panel trade-board-card"
-            >
-              <div className="grid gap-3 sm:grid-cols-[120px_minmax(0,1fr)]">
-                <div className="relative h-28 overflow-hidden rounded-2xl border border-white/60 bg-white/60">
+        <div className="trade-board-grid">
+          {posts.map((post) => {
+            const image = post.images[0]?.url || "";
+            const canRenderImage = isValidImageUrl(image);
+            const tags = toTagArray(post.tags).slice(0, 3);
+            return (
+              <Link
+                key={post.id}
+                href={`/trades/${encodeURIComponent(post.id)}`}
+                className="trade-board-card product-card"
+              >
+                <div className="trade-board-media">
                   {canRenderImage ? (
                     <img
                       src={image}
@@ -185,46 +175,37 @@ export default function TradesPage() {
                       src={resolveDisplayMediaUrl(null)}
                       alt="Card placeholder"
                       fill
-                      sizes="120px"
+                      sizes="(max-width: 900px) 100vw, 260px"
                       className="object-cover"
                     />
                   )}
                 </div>
 
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={statusChip(post.status)}>
-                      {post.status}
-                    </span>
-                    <span className="text-xs text-slate-500">{formatTradeDate(post.createdAt)}</span>
+                <div className="trade-board-body">
+                  <div className="trade-board-topline">
+                    <span className={statusChip(post.status)}>{post.status}</span>
+                    <span className="trade-board-date">{formatTradeDate(post.createdAt)}</span>
                   </div>
-                  <h2 className="mt-2 truncate text-lg font-semibold text-slate-900">{post.title}</h2>
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-600">{post.lookingFor}</p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                  <h2>{post.title}</h2>
+                  <p className="trade-board-copy">{post.lookingFor}</p>
+                  <div className="trade-board-meta">
                     <span>{tradeValueLabel(post.valueMin, post.valueMax)}</span>
-                    <span>•</span>
                     <span>{post._count.offers} offers</span>
-                    <span>•</span>
-                    <span>{post.owner.displayName ?? post.owner.username ?? "Member"}</span>
+                    <span>{post.owner.displayName ?? post.owner.username ?? "Collector"}</span>
                   </div>
                   {tags.length > 0 ? (
-                    <div className="mt-2 flex flex-wrap gap-2">
+                    <div className="trade-board-tags">
                       {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full border border-slate-200 bg-white/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600"
-                        >
-                          {tag}
-                        </span>
+                        <span key={tag}>{tag}</span>
                       ))}
                     </div>
                   ) : null}
                 </div>
-              </div>
-            </Link>
-          );
-        })}
+              </Link>
+            );
+          })}
+        </div>
       </section>
-    </div>
+    </PageContainer>
   );
 }

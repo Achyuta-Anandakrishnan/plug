@@ -7,6 +7,7 @@ import { LiveNowRail } from "@/components/live/LiveNowRail";
 import { StreamerSpotlight } from "@/components/live/StreamerSpotlight";
 import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveStreamTypeFilter, LiveTimingFilter, SpotlightHost } from "@/components/live/types";
 import { UpcomingStreamsSection } from "@/components/live/UpcomingStreamsSection";
+import { EmptyStateCard, PageContainer, PageHeader } from "@/components/product/ProductUI";
 import { categoryMatches, filterByStreamType, searchMatches, sortLiveStreams, sortUpcomingStreams, streamCategory, streamHost, withStreamState } from "@/components/live/utils";
 import { useAuctions } from "@/hooks/useAuctions";
 
@@ -162,13 +163,8 @@ export function LiveHub() {
   const showUpcomingFirst = timing === "upcoming";
 
   return (
-    <div className="live-v3-page product-shell live-page">
-      <section className="product-page-header live-v3-page-head">
-        <div className="product-page-intro">
-          <h1 className="product-page-title">Live</h1>
-          <p className="product-page-copy">Browse active streams and upcoming shows</p>
-        </div>
-      </section>
+    <PageContainer className="live-v3-page live-page app-page--live">
+      <PageHeader title="Live" subtitle="Browse active streams and upcoming shows." />
 
       <LiveFilters
         query={query}
@@ -211,7 +207,7 @@ export function LiveHub() {
         </>
       )}
 
-      {hasError ? <div className="live-v3-error">Unable to load parts of live data right now.</div> : null}
-    </div>
+      {hasError ? <EmptyStateCard title="Live data is partially unavailable." description="Some streams or hosts may be missing until the feed reconnects." /> : null}
+    </PageContainer>
   );
 }

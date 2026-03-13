@@ -6,6 +6,7 @@ import { NativeShell } from "@/components/native/NativeShell";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
+import "./product-redesign.css";
 
 export const metadata: Metadata = {
   title: "dalow | Live, Auctions, Trades",

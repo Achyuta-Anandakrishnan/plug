@@ -1,4 +1,5 @@
 import type { LiveCategoryFilter, LiveSortMode, LiveStreamTypeFilter, LiveTimingFilter } from "@/components/live/types";
+import { DiscoveryBar, FilterChip, SegmentedControl } from "@/components/product/ProductUI";
 
 const CATEGORY_OPTIONS: Array<{ value: LiveCategoryFilter; label: string }> = [
   { value: "pokemon", label: "Pokemon" },
@@ -9,9 +10,9 @@ const CATEGORY_OPTIONS: Array<{ value: LiveCategoryFilter; label: string }> = [
 
 const TYPE_OPTIONS: Array<{ value: LiveStreamTypeFilter; label: string }> = [
   { value: "all", label: "All" },
-  { value: "live-breaks", label: "Live Breaks" },
+  { value: "live-breaks", label: "Live breaks" },
   { value: "auctions", label: "Auctions" },
-  { value: "seller-shows", label: "Seller Shows" },
+  { value: "seller-shows", label: "Seller shows" },
 ];
 
 const SORT_OPTIONS: Array<{ value: LiveSortMode; label: string }> = [
@@ -19,6 +20,11 @@ const SORT_OPTIONS: Array<{ value: LiveSortMode; label: string }> = [
   { value: "ending", label: "Ending soon" },
   { value: "newest", label: "Newest live" },
   { value: "trending", label: "Trending" },
+];
+
+const TIMING_OPTIONS: Array<{ value: LiveTimingFilter; label: string }> = [
+  { value: "live", label: "Live now" },
+  { value: "upcoming", label: "Upcoming" },
 ];
 
 type LiveFiltersProps = {
@@ -47,8 +53,8 @@ export function LiveFilters({
   onTimingChange,
 }: LiveFiltersProps) {
   return (
-    <section className="live-v3-filters" aria-label="Live stream discovery filters">
-      <div className="live-v3-search">
+    <DiscoveryBar className="live-toolbar" aria-label="Live stream discovery filters">
+      <div className="app-search">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
         </svg>
@@ -59,37 +65,24 @@ export function LiveFilters({
         />
       </div>
 
-      <div className="live-v3-chip-row live-v3-category-row">
+      <div className="app-chip-row">
         {CATEGORY_OPTIONS.map((option) => (
-          <button
+          <FilterChip
             key={option.value}
-            type="button"
+            label={option.label}
+            active={category === option.value}
             onClick={() => onCategoryChange(category === option.value ? "all" : option.value)}
-            className={`live-v3-chip ${category === option.value ? "is-active" : ""}`}
-          >
-            {option.label}
-          </button>
+          />
         ))}
       </div>
 
-      <div className="live-v3-browse-row">
-        <div className="live-v3-segment" role="group" aria-label="Live stream type">
-          {TYPE_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => onStreamTypeChange(option.value)}
-              className={streamType === option.value ? "is-active" : ""}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+      <div className="app-toolbar-row live-toolbar-row">
+        <SegmentedControl options={TYPE_OPTIONS} value={streamType} onChange={onStreamTypeChange} />
 
-        <div className="live-v3-filter-tools">
-          <label>
+        <div className="app-toolbar-tools">
+          <label className="app-select-wrap">
             <span>Sort</span>
-            <select value={sort} onChange={(event) => onSortChange(event.target.value as LiveSortMode)}>
+            <select value={sort} onChange={(event) => onSortChange(event.target.value as LiveSortMode)} className="app-select">
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -97,24 +90,9 @@ export function LiveFilters({
               ))}
             </select>
           </label>
-          <div className="live-v3-timing-toggle">
-            <button
-              type="button"
-              className={timing === "live" ? "is-active" : ""}
-              onClick={() => onTimingChange("live")}
-            >
-              Live now
-            </button>
-            <button
-              type="button"
-              className={timing === "upcoming" ? "is-active" : ""}
-              onClick={() => onTimingChange("upcoming")}
-            >
-              Upcoming
-            </button>
-          </div>
+          <SegmentedControl options={TIMING_OPTIONS} value={timing} onChange={onTimingChange} />
         </div>
       </div>
-    </section>
+    </DiscoveryBar>
   );
 }

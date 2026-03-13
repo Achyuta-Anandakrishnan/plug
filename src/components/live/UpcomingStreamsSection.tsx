@@ -1,5 +1,6 @@
 import type { LiveStreamItem } from "@/components/live/types";
 import { LiveStreamCard } from "@/components/live/LiveStreamCard";
+import { EmptyStateCard, SectionHeader } from "@/components/product/ProductUI";
 
 type UpcomingStreamsSectionProps = {
   streams: LiveStreamItem[];
@@ -12,12 +13,10 @@ export function UpcomingStreamsSection({ streams, reminders, onToggleReminder }:
 
   return (
     <section id="upcoming" className="live-v3-upcoming">
-      <h2 className="live-v3-section-title">Upcoming</h2>
+      <SectionHeader title="Upcoming" subtitle="Scheduled rooms worth tracking next." />
 
       {visibleStreams.length === 0 ? (
-        <div className="live-v3-empty">
-          No upcoming streams scheduled yet.
-        </div>
+        <EmptyStateCard title="No upcoming streams scheduled yet." description="Once hosts publish future sessions, they will appear here." />
       ) : (
         <div className="live-v3-upcoming-grid">
           {visibleStreams.map((stream) => (

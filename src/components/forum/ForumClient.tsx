@@ -4,6 +4,16 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
+import {
+  DiscoveryBar,
+  EmptyStateCard,
+  FilterChip,
+  PageContainer,
+  PageHeader,
+  PrimaryButton,
+  SecondaryButton,
+  SectionHeader,
+} from "@/components/product/ProductUI";
 
 type ForumAuthor = {
   id: string;
@@ -97,7 +107,7 @@ export function ForumClient() {
   }, [fetchPosts]);
 
   const filteredInfo = useMemo(() => {
-    if (!query.trim()) return "Latest posts";
+    if (!query.trim()) return "Latest threads";
     return `Results for "${query.trim()}"`;
   }, [query]);
 
@@ -109,45 +119,31 @@ export function ForumClient() {
   };
 
   return (
-    <div className="ios-screen product-shell forum-page">
-      <section className="product-page-header">
-        <div className="product-page-intro">
-          <h1 className="product-page-title">Forum</h1>
-          <p className="product-page-copy">Questions, market talk, and collector intel in one feed.</p>
-        </div>
-        <div className="forum-header-actions">
-          {session?.user?.id ? (
-            <Link
-              href="/forum/new"
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
-            >
-              Draft
-            </Link>
-          ) : (
-            <button
-              type="button"
-              onClick={() => signIn()}
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
-            >
-              Sign in
-            </button>
-          )}
-          <Link
-            href="/forum/new"
-            className="product-page-primary"
-          >
-            Post thread
-          </Link>
-        </div>
-      </section>
+    <PageContainer className="forum-page app-page--forum">
+      <PageHeader
+        title="Forum"
+        subtitle="Collector discussion, market talk, and hobby knowledge in one board."
+        actions={(
+          <>
+            {session?.user?.id ? (
+              <SecondaryButton href="/forum/new">Draft</SecondaryButton>
+            ) : (
+              <SecondaryButton onClick={() => signIn()}>Sign in</SecondaryButton>
+            )}
+            <PrimaryButton href="/forum/new">Post thread</PrimaryButton>
+          </>
+        )}
+      />
 
-      <section className="product-toolbar forum-toolbar">
-        <div className="forum-search-row">
+      <DiscoveryBar className="forum-toolbar">
+        <div className="app-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
+          </svg>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search posts..."
-            className="ios-input sm:flex-1"
+            placeholder="Search threads"
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.preventDefault();
@@ -155,12 +151,26 @@ export function ForumClient() {
               }
             }}
           />
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleSearch}
-              className="rounded-full bg-[var(--royal)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-lg shadow-blue-500/25"
-            >
+        </div>
+
+        <div className="app-toolbar-row forum-toolbar-row">
+          <div className="app-chip-row">
+            <FilterChip
+              label="Published"
+              active={resolvedTab === "published"}
+              onClick={() => setActiveTab("published")}
+            />
+            {session?.user?.id ? (
+              <FilterChip
+                label="My drafts"
+                active={resolvedTab === "drafts"}
+                onClick={() => setActiveTab("drafts")}
+              />
+            ) : null}
+          </div>
+
+          <div className="app-toolbar-tools">
+            <button type="button" onClick={() => void handleSearch()} className="app-button app-button-primary">
               Search
             </button>
             <button
@@ -169,85 +179,60 @@ export function ForumClient() {
                 setQuery("");
                 void fetchPosts("");
               }}
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600"
+              className="app-button app-button-secondary"
             >
               Clear
             </button>
           </div>
         </div>
-        <div className="forum-filter-row">
-          <div className="ios-chip-row">
-            <button
-              type="button"
-              onClick={() => setActiveTab("published")}
-              className={`ios-chip ${resolvedTab === "published" ? "ios-chip-active" : ""}`}
+
+        <p className="forum-results-meta">{filteredInfo}</p>
+      </DiscoveryBar>
+
+      {error ? <EmptyStateCard title="Forum unavailable" description={error} /> : null}
+      {draftWarning ? <EmptyStateCard title="Drafts unavailable" description={draftWarning} /> : null}
+      {loading ? <CheckersLoader title="Loading posts..." compact className="ios-empty" /> : null}
+
+      <section className="app-section">
+        <SectionHeader title="Threads" subtitle="Browse active topics, replies, and recent discussion." />
+
+        {!loading && activePosts.length === 0 ? (
+          <EmptyStateCard
+            title={resolvedTab === "drafts" ? "No drafts yet." : "No threads yet."}
+            description={resolvedTab === "drafts" ? "Saved forum drafts will show up here." : "Be the first collector to start a discussion."}
+          />
+        ) : null}
+
+        <section className="forum-thread-list">
+          {activePosts.map((post) => (
+            <Link
+              key={post.id}
+              href={post.status === "DRAFT" ? `/forum/new?id=${post.id}` : `/forum/${post.id}`}
+              className="forum-thread-card product-card"
             >
-              Published
-            </button>
-            {session?.user?.id && (
-              <button
-                type="button"
-                onClick={() => setActiveTab("drafts")}
-                className={`ios-chip ${resolvedTab === "drafts" ? "ios-chip-active" : ""}`}
-              >
-                My drafts
-              </button>
-            )}
-          </div>
-          <p className="forum-results-meta">{filteredInfo}</p>
-        </div>
-      </section>
-
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
-      ) : null}
-      {draftWarning ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          {draftWarning}
-        </div>
-      ) : null}
-
-      {loading ? (
-        <CheckersLoader title="Loading posts..." compact className="ios-empty" />
-      ) : null}
-
-      {!loading && activePosts.length === 0 ? (
-        <div className="ios-empty">
-          {resolvedTab === "drafts" ? "No drafts yet." : "No threads yet."}
-        </div>
-      ) : null}
-
-      <section className="forum-thread-list">
-        {activePosts.map((post) => (
-          <Link
-            key={post.id}
-            href={post.status === "DRAFT" ? `/forum/new?id=${post.id}` : `/forum/${post.id}`}
-            className="forum-thread-card"
-          >
-            <div className="forum-thread-top">
-              <div className="min-w-0">
-                <p className="forum-thread-meta">
-                  Thread · {formatCompactDate(post.createdAt)} · {post._count.comments} repl{post._count.comments === 1 ? "y" : "ies"} · {post.voteScore} votes
-                </p>
-                <h3 className="forum-thread-title">
-                  {post.title}
-                </h3>
-                <p className="forum-thread-body">
-                  {post.body}
-                </p>
+              <div className="forum-thread-top">
+                <div className="forum-thread-main">
+                  <div className="forum-thread-meta">
+                    <span>{post.status === "DRAFT" ? "Draft" : "Thread"}</span>
+                    <span>{formatCompactDate(post.updatedAt)}</span>
+                    <span>{post._count.comments} repl{post._count.comments === 1 ? "y" : "ies"}</span>
+                    <span>{post.voteScore} votes</span>
+                  </div>
+                  <h3 className="forum-thread-title">{post.title}</h3>
+                  <p className="forum-thread-body">{post.body}</p>
+                </div>
+                <div className="forum-thread-status">
+                  {post.status === "DRAFT" ? "Draft" : "Open"}
+                </div>
               </div>
-              <div className="forum-thread-status">
-                {post.status === "DRAFT" ? "Draft" : "Open"}
+              <div className="forum-thread-author">
+                <span>{post.author.displayName ?? "Member"}</span>
+                <span>Last active {formatCompactDate(post.updatedAt)}</span>
               </div>
-            </div>
-            <div className="forum-thread-author">
-              by <span className="font-semibold text-slate-700">{post.author.displayName ?? "Member"}</span>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))}
+        </section>
       </section>
-    </div>
+    </PageContainer>
   );
 }
