@@ -177,7 +177,7 @@ export function MarketHub() {
   };
 
   return (
-    <div className="market-v2-page">
+    <div className="market-v2-page product-shell market-page">
       <MarketplaceHeader
         search={<MarketplaceSearch value={query} onChange={setQuery} />}
         tabs={<ListingTabs value={modeFromUrl} onChange={setMode} />}

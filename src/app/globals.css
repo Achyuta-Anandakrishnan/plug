@@ -5387,3 +5387,524 @@ html[data-theme="dark"] .live-v3-host-card {
     grid-template-columns: 1fr;
   }
 }
+
+/* Product coherence pass: shared layout grammar across Home/Market/Live/Trades/Forum/Messages. */
+.product-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-top: 20px;
+  padding-bottom: 72px;
+}
+
+.product-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.product-page-title {
+  margin: 0;
+  font-size: clamp(2rem, 4.6vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: #0b1a2b;
+}
+
+.product-page-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid #0f172a;
+  background: #0f172a;
+  color: #fff;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.product-toolbar {
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+}
+
+.product-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.product-stat-card {
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+}
+
+.product-stat-card p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.product-stat-card h3 {
+  margin: 8px 0 0;
+  color: #0b1a2b;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.product-shell.home-page {
+  display: grid;
+  gap: 72px;
+}
+
+.product-shell.home-page > section {
+  margin: 0;
+}
+
+.home-page .home-v3-hero,
+.home-page .home-v3-pillars,
+.home-page .home-v3-showcase,
+.home-page .home-v3-trust,
+.home-page .home-v3-final-cta {
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.home-page .home-v3-pillars,
+.home-page .home-v3-showcase,
+.home-page .home-v3-trust {
+  padding: 24px;
+}
+
+.home-page .home-v3-pillar-grid,
+.home-page .home-v3-showcase-grid,
+.home-page .home-v3-trust-grid {
+  gap: 24px;
+}
+
+.product-shell.market-page,
+.product-shell.live-page,
+.product-shell.trades-page,
+.product-shell.forum-page,
+.product-shell.messages-page {
+  display: grid;
+  gap: 40px;
+}
+
+.market-page .market-v2-hero,
+.live-page .live-v3-filters,
+.live-page .live-v3-live-now,
+.live-page .live-v3-upcoming,
+.live-page .live-v3-spotlight,
+.trades-page .product-toolbar,
+.forum-page .product-toolbar,
+.messages-page .ios-panel,
+.trades-page .ios-panel,
+.forum-page .ios-panel {
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.market-page .market-v2-hero,
+.market-page .market-v2-module,
+.market-page .market-v2-listings-section,
+.live-page .live-v3-filters,
+.live-page .live-v3-live-now,
+.live-page .live-v3-upcoming,
+.live-page .live-v3-spotlight {
+  padding: 24px;
+}
+
+.market-page .market-v2-hero {
+  gap: 14px;
+}
+
+.market-page .market-v2-modules {
+  gap: 24px;
+}
+
+.market-page .market-v2-module-grid,
+.market-page .market-v2-grid,
+.live-page .live-v3-live-grid,
+.live-page .live-v3-upcoming-grid,
+.live-page .live-v3-spotlight-grid {
+  gap: 24px;
+}
+
+.market-page .market-v2-listings-section {
+  margin-top: 0;
+}
+
+.market-page .market-v2-listings-head,
+.market-page .market-v2-module-head {
+  margin-bottom: 12px;
+}
+
+.live-page .live-v3-page-head {
+  display: flex;
+  align-items: center;
+}
+
+.live-page .live-v3-page-head h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4.6vw, 3rem);
+  line-height: 1.08;
+}
+
+.live-page .live-v3-section-title {
+  font-size: 24px;
+}
+
+.trades-toolbar {
+  display: grid;
+  gap: 14px;
+}
+
+.trade-board-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+}
+
+.trade-board-card {
+  display: block;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.trade-board-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.trade-status-chip {
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #475569;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.trade-status-chip.is-open {
+  border-color: #86efac;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.trade-status-chip.is-matched {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.trade-status-chip.is-paused {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.trade-status-chip.is-closed {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.forum-page .forum-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.forum-toolbar {
+  display: grid;
+  gap: 14px;
+}
+
+.forum-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.forum-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.forum-results-meta {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.forum-thread-list {
+  display: grid;
+  gap: 16px;
+}
+
+.forum-thread-card {
+  display: block;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.forum-thread-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.forum-thread-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.forum-thread-meta {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+}
+
+.forum-thread-title {
+  margin: 6px 0 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #0b1a2b;
+}
+
+.forum-thread-body {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b7280;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.forum-thread-status {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #475569;
+  padding: 4px 10px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.forum-thread-author {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.messages-layout {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 320px minmax(0, 1fr);
+}
+
+.messages-threads,
+.messages-chat {
+  border-radius: 16px;
+}
+
+.messages-threads {
+  padding: 16px;
+}
+
+.messages-thread-item {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  padding: 10px 12px;
+  text-align: left;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.messages-thread-item.is-active {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.messages-chat-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.messages-feed {
+  border-radius: 14px;
+}
+
+.messages-bubble {
+  max-width: 76%;
+  border-radius: 16px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.messages-bubble.incoming {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.messages-bubble.outgoing {
+  margin-left: auto;
+  background: #0f172a;
+  color: #fff;
+}
+
+html[data-theme="dark"] .product-page-title {
+  color: #e7edf6;
+}
+
+html[data-theme="dark"] .product-page-primary {
+  background: #e7edf6;
+  border-color: #e7edf6;
+  color: #0b1a2b;
+}
+
+html[data-theme="dark"] .product-toolbar,
+html[data-theme="dark"] .product-stat-card,
+html[data-theme="dark"] .market-page .market-v2-hero,
+html[data-theme="dark"] .market-page .market-v2-module,
+html[data-theme="dark"] .market-page .market-v2-listings-section,
+html[data-theme="dark"] .live-page .live-v3-filters,
+html[data-theme="dark"] .live-page .live-v3-live-now,
+html[data-theme="dark"] .live-page .live-v3-upcoming,
+html[data-theme="dark"] .live-page .live-v3-spotlight,
+html[data-theme="dark"] .trades-page .ios-panel,
+html[data-theme="dark"] .forum-page .ios-panel,
+html[data-theme="dark"] .messages-page .ios-panel,
+html[data-theme="dark"] .trade-board-card,
+html[data-theme="dark"] .forum-thread-card,
+html[data-theme="dark"] .messages-thread-item {
+  border-color: rgba(148, 163, 184, 0.24);
+  background: rgba(11, 18, 31, 0.88);
+  color: #cbd5e1;
+}
+
+html[data-theme="dark"] .product-stat-card p,
+html[data-theme="dark"] .forum-results-meta,
+html[data-theme="dark"] .forum-thread-author,
+html[data-theme="dark"] .forum-thread-meta {
+  color: #9fb0c9;
+}
+
+html[data-theme="dark"] .product-stat-card h3,
+html[data-theme="dark"] .forum-thread-title {
+  color: #e7edf6;
+}
+
+html[data-theme="dark"] .forum-thread-body {
+  color: #b8c4d6;
+}
+
+html[data-theme="dark"] .messages-bubble.incoming {
+  background: rgba(30, 41, 59, 0.75);
+  color: #e7edf6;
+}
+
+@media (max-width: 1024px) {
+  .messages-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .product-shell {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 56px;
+  }
+
+  .product-shell.home-page {
+    gap: 56px;
+  }
+
+  .product-shell.market-page,
+  .product-shell.live-page,
+  .product-shell.trades-page,
+  .product-shell.forum-page,
+  .product-shell.messages-page {
+    gap: 28px;
+  }
+
+  .forum-search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .trade-board-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .product-shell {
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-top: 14px;
+    padding-bottom: 44px;
+  }
+
+  .product-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .product-page-primary {
+    width: 100%;
+  }
+
+  .product-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .forum-page .forum-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

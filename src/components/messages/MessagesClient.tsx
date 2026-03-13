@@ -239,22 +239,27 @@ export function MessagesClient() {
 
   if (!session?.user?.id) {
     return (
-      <div className="ios-panel p-6">
-        <p className="text-sm text-slate-600">Sign in to view your inbox.</p>
-        <button
-          onClick={() => signIn()}
-          className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
-        >
-          Sign in
-        </button>
+      <div className="ios-screen product-shell messages-page">
+        <section className="product-page-header">
+          <h1 className="product-page-title">Messages</h1>
+        </section>
+        <div className="ios-panel p-6">
+          <p className="text-sm text-slate-600">Sign in to view your inbox.</p>
+          <button
+            onClick={() => signIn()}
+            className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Sign in
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="ios-screen">
-      <section className="ios-hero space-y-2">
-        <h1 className="ios-title">Messages</h1>
+    <div className="ios-screen product-shell messages-page">
+      <section className="product-page-header">
+        <h1 className="product-page-title">Messages</h1>
       </section>
 
       {error && (
@@ -263,9 +268,9 @@ export function MessagesClient() {
         </div>
       )}
 
-      <section className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+      <section className="messages-layout">
         {showThreadsPane ? (
-          <div className="ios-panel p-4 lg:max-h-[76vh] lg:overflow-hidden">
+          <div className="ios-panel messages-threads lg:max-h-[76vh] lg:overflow-hidden">
             <div className="mb-3">
               <input
                 value={query}
@@ -280,7 +285,7 @@ export function MessagesClient() {
             ) : filtered.length === 0 ? (
               <div className="ios-empty">No conversations yet.</div>
             ) : (
-              <div className="space-y-2.5 max-h-[calc(100dvh-19rem)] overflow-y-auto pr-1 lg:max-h-[64vh]">
+              <div className="space-y-2 max-h-[calc(100dvh-19rem)] overflow-y-auto pr-1 lg:max-h-[64vh]">
                 {filtered.map((thread) => {
                   const last = thread.messages[0]?.body ?? "";
                   const otherNames = thread.participants
@@ -298,10 +303,10 @@ export function MessagesClient() {
                         setActiveId(thread.id);
                         if (!isDesktop) setMobilePane("chat");
                       }}
-                      className={`w-full rounded-2xl border px-3.5 py-3 text-left transition ${
+                      className={`messages-thread-item ${
                         selected
-                          ? "border-slate-400 bg-white"
-                          : "border-white/70 bg-white/75"
+                          ? "is-active"
+                          : ""
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -318,10 +323,10 @@ export function MessagesClient() {
         ) : null}
 
         {showChatPane ? (
-          <div className="ios-panel flex min-h-[calc(100dvh-14.5rem)] flex-col p-4 sm:p-5 lg:min-h-[76vh] lg:p-6">
+          <div className="ios-panel messages-chat flex min-h-[calc(100dvh-14.5rem)] flex-col p-4 sm:p-5 lg:min-h-[76vh] lg:p-6">
             {activeConversation ? (
               <>
-                <div className="flex items-start justify-between gap-3">
+                <div className="messages-chat-head">
                   <div className="min-w-0">
                     <div className="mb-2 flex items-center gap-2 lg:hidden">
                       <button
@@ -332,7 +337,7 @@ export function MessagesClient() {
                         Back
                       </button>
                     </div>
-                    <p className="truncate font-display text-2xl text-slate-900">{activeTitle}</p>
+                    <p className="truncate text-lg font-semibold text-slate-900">{activeTitle}</p>
                     <p className="text-[11px] text-slate-400">
                       {activeConversation.isSupport ? "Support" : "Direct"}
                     </p>
@@ -360,7 +365,7 @@ export function MessagesClient() {
                   </button>
                 </div>
 
-                <div className="mt-4 flex-1 min-h-0 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/65 p-3.5 sm:p-4 scroll-smooth">
+                <div className="messages-feed mt-4 flex-1 min-h-0 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/65 p-3.5 sm:p-4 scroll-smooth">
                   {messagesLoading ? (
                     <CheckersLoader title="Loading messages..." compact className="ios-empty" />
                   ) : messages.length === 0 ? (
@@ -372,11 +377,7 @@ export function MessagesClient() {
                         return (
                           <div
                             key={m.id}
-                            className={`max-w-[76%] rounded-[18px] px-3.5 py-2 text-[13px] leading-5 shadow-sm ${
-                              isMe
-                                ? "ml-auto bg-slate-900 text-white"
-                                : "bg-slate-100 text-slate-900"
-                            }`}
+                            className={`messages-bubble ${isMe ? "outgoing" : "incoming"}`}
                           >
                             <p className={`text-[10px] font-semibold ${isMe ? "text-white/70" : "text-slate-500"}`}>
                               {isMe ? "You" : m.sender?.displayName ?? "User"}

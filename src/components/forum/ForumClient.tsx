@@ -109,19 +109,48 @@ export function ForumClient() {
   };
 
   return (
-    <div className="ios-screen">
-      <section className="ios-hero space-y-4">
-        <div className="space-y-3">
-          <h1 className="ios-title">Forum</h1>
+    <div className="ios-screen product-shell forum-page">
+      <section className="product-page-header">
+        <h1 className="product-page-title">Forum</h1>
+        <div className="forum-header-actions">
+          {session?.user?.id ? (
+            <Link
+              href="/forum/new"
+              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
+            >
+              Draft
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => signIn()}
+              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
+            >
+              Sign in
+            </button>
+          )}
+          <Link
+            href="/forum/new"
+            className="product-page-primary"
+          >
+            Post thread
+          </Link>
         </div>
+      </section>
 
-        <div className="ios-panel p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <section className="product-toolbar forum-toolbar">
+        <div className="forum-search-row">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search posts..."
             className="ios-input sm:flex-1"
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                void handleSearch();
+              }
+            }}
           />
           <div className="flex gap-2">
             <button
@@ -139,25 +168,16 @@ export function ForumClient() {
               }}
               className="rounded-full border border-slate-200 bg-white/90 px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600"
             >
-              Reset
+              Clear
             </button>
           </div>
         </div>
-        <div className="mt-3 text-xs text-slate-500">{filteredInfo}</div>
-        </div>
-      </section>
-
-      <div className="ios-panel p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="forum-filter-row">
+          <div className="ios-chip-row">
             <button
               type="button"
               onClick={() => setActiveTab("published")}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
-                  resolvedTab === "published"
-                    ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                    : "border-slate-200 text-slate-600"
-                }`}
+              className={`ios-chip ${resolvedTab === "published" ? "ios-chip-active" : ""}`}
             >
               Published
             </button>
@@ -165,42 +185,15 @@ export function ForumClient() {
               <button
                 type="button"
                 onClick={() => setActiveTab("drafts")}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
-                  resolvedTab === "drafts"
-                    ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                    : "border-slate-200 text-slate-600"
-                }`}
+                className={`ios-chip ${resolvedTab === "drafts" ? "ios-chip-active" : ""}`}
               >
                 My drafts
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            {session?.user?.id ? (
-              <Link
-                href="/forum/new"
-                className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
-              >
-                Draft
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={() => signIn()}
-                className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
-              >
-                Sign in
-              </button>
-            )}
-            <Link
-              href="/forum/new"
-              className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
-            >
-              Post thread
-            </Link>
-          </div>
+          <p className="forum-results-meta">{filteredInfo}</p>
         </div>
-      </div>
+      </section>
 
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -223,42 +216,35 @@ export function ForumClient() {
         </div>
       ) : null}
 
-      <div className="grid gap-3 lg:grid-cols-2">
+      <section className="forum-thread-list">
         {activePosts.map((post) => (
           <Link
             key={post.id}
             href={post.status === "DRAFT" ? `/forum/new?id=${post.id}` : `/forum/${post.id}`}
-            className="group surface-panel rounded-[24px] p-3 transition hover:-translate-y-0.5 hover:shadow-[0_22px_60px_rgba(15,23,42,0.12)]"
+            className="forum-thread-card"
           >
-            <div className="flex items-start justify-between gap-4">
+            <div className="forum-thread-top">
               <div className="min-w-0">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                  {formatCompactDate(post.createdAt)} ·{" "}
-                  {post._count.comments} repl{post._count.comments === 1 ? "y" : "ies"} · {post.voteScore} votes
+                <p className="forum-thread-meta">
+                  Thread · {formatCompactDate(post.createdAt)} · {post._count.comments} repl{post._count.comments === 1 ? "y" : "ies"} · {post.voteScore} votes
                 </p>
-                <h3 className="mt-1 truncate text-base font-semibold text-slate-900">
+                <h3 className="forum-thread-title">
                   {post.title}
                 </h3>
-                <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600">
+                <p className="forum-thread-body">
                   {post.body}
                 </p>
               </div>
-              <div className="shrink-0 rounded-2xl border border-white/70 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-700">
+              <div className="forum-thread-status">
                 {post.status === "DRAFT" ? "Draft" : "Open"}
               </div>
             </div>
-            <div className="mt-2 text-xs text-slate-500">
-              by{" "}
-              <Link
-                href={post.author.username ? `/u/${post.author.username}` : `/profiles/${post.author.id}`}
-                className="font-semibold text-slate-700 hover:underline"
-              >
-                {post.author.displayName ?? "Member"}
-              </Link>
+            <div className="forum-thread-author">
+              by <span className="font-semibold text-slate-700">{post.author.displayName ?? "Member"}</span>
             </div>
           </Link>
         ))}
-      </div>
+      </section>
     </div>
   );
 }

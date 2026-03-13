@@ -27,10 +27,11 @@ const scopes: Array<{ key: TradeScope; label: string }> = [
 ];
 
 function statusChip(status: TradePostListItem["status"]) {
-  if (status === "OPEN") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (status === "MATCHED") return "border-slate-300 bg-slate-100 text-slate-700";
-  if (status === "PAUSED") return "border-amber-200 bg-amber-50 text-amber-700";
-  return "border-slate-200 bg-white text-slate-600";
+  if (status === "OPEN") return "trade-status-chip is-open";
+  if (status === "MATCHED") return "trade-status-chip is-matched";
+  if (status === "PAUSED") return "trade-status-chip is-paused";
+  if (status === "CLOSED") return "trade-status-chip is-closed";
+  return "trade-status-chip";
 }
 
 export default function TradesPage() {
@@ -87,53 +88,47 @@ export default function TradesPage() {
   );
 
   return (
-    <div className="ios-screen">
-      <section className="ios-hero space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-3">
-            <h1 className="ios-title">Trades</h1>
-          </div>
-          <Link
-            href="/trades/new"
-            className="rounded-full bg-slate-900 px-5 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white"
-          >
-            New trade
-          </Link>
-        </div>
+    <div className="ios-screen product-shell trades-page">
+      <section className="product-page-header">
+        <h1 className="product-page-title">Trades</h1>
+        <Link
+          href="/trades/new"
+          className="product-page-primary"
+        >
+          New trade
+        </Link>
+      </section>
 
-        <div className="ios-panel p-4">
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search trades"
-              className="ios-input"
-            />
-            <div className="ios-chip-row lg:justify-end">
-              {scopes.map((entry) => (
-                <button
-                  key={entry.key}
-                  type="button"
-                  onClick={() => setScope(entry.key)}
-                  className={`ios-chip ${scope === entry.key ? "ios-chip-active" : ""}`}
-                >
-                  {entry.label}
-                </button>
-              ))}
-            </div>
-          </div>
+      <section className="product-toolbar trades-toolbar">
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search trades"
+          className="ios-input"
+        />
+        <div className="ios-chip-row">
+          {scopes.map((entry) => (
+            <button
+              key={entry.key}
+              type="button"
+              onClick={() => setScope(entry.key)}
+              className={`ios-chip ${scope === entry.key ? "ios-chip-active" : ""}`}
+            >
+              {entry.label}
+            </button>
+          ))}
         </div>
+      </section>
 
-        <div className="ios-stat-grid">
-          <div className="ios-stat-card">
-            <p className="ios-stat-label">Visible posts</p>
-            <p className="ios-stat-value">{posts.length}</p>
-          </div>
-          <div className="ios-stat-card">
-            <p className="ios-stat-label">Open now</p>
-            <p className="ios-stat-value">{openCount}</p>
-          </div>
-        </div>
+      <section className="product-stats">
+        <article className="product-stat-card">
+          <p>Visible posts</p>
+          <h3>{posts.length}</h3>
+        </article>
+        <article className="product-stat-card">
+          <p>Open now</p>
+          <h3>{openCount}</h3>
+        </article>
       </section>
 
       {!session?.user?.id && scope === "MINE" ? (
@@ -160,12 +155,10 @@ export default function TradesPage() {
       ) : null}
 
       {!loading && posts.length === 0 ? (
-        <div className="ios-empty">
-          No posts yet.
-        </div>
+        <div className="ios-empty">No trade posts found.</div>
       ) : null}
 
-      <section className="grid gap-3 lg:grid-cols-2">
+      <section className="trade-board-grid">
         {posts.map((post) => {
           const image = post.images[0]?.url || "";
           const canRenderImage = isValidImageUrl(image);
@@ -174,7 +167,7 @@ export default function TradesPage() {
             <Link
               key={post.id}
               href={`/trades/${encodeURIComponent(post.id)}`}
-              className="ios-panel p-3 transition hover:-translate-y-0.5"
+              className="ios-panel trade-board-card"
             >
               <div className="grid gap-3 sm:grid-cols-[120px_minmax(0,1fr)]">
                 <div className="relative h-28 overflow-hidden rounded-2xl border border-white/60 bg-white/60">
@@ -197,7 +190,7 @@ export default function TradesPage() {
 
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full border px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${statusChip(post.status)}`}>
+                    <span className={statusChip(post.status)}>
                       {post.status}
                     </span>
                     <span className="text-xs text-slate-500">{formatTradeDate(post.createdAt)}</span>

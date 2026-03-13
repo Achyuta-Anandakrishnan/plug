@@ -1,11 +1,9 @@
-import { ActivityStrip } from "@/components/home/ActivityStrip";
 import { FinalCTA } from "@/components/home/FinalCTA";
 import { LandingHero } from "@/components/home/LandingHero";
 import { ProductPreviewShowcase } from "@/components/home/ProductPreviewShowcase";
 import { TrustSection } from "@/components/home/TrustSection";
 import type { HomeAuctionPreview, HomeLiveStreamPreview, HomeTradePreview } from "@/components/home/types";
 import { ValuePillars } from "@/components/home/ValuePillars";
-import { WhyDalow } from "@/components/home/WhyDalow";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { getGradeLabel, getTimeLeftSeconds } from "@/lib/auctions";
 import { auctions as mockAuctions } from "@/lib/mock";
@@ -232,22 +230,12 @@ export default async function Home() {
   const heroStream = data.streams[0];
   const heroAuction = data.auctions[0];
   const heroTrade = data.trades[0];
-  const liveNow = data.streams.length;
-  const activeAuctions = data.auctions.length;
-  const watchers = data.streams.reduce((sum, stream) => sum + stream.watchers, 0);
-  const collectorsOnline = Math.max(1200, watchers + 900);
 
   return (
-    <div className="home-v3-page">
+    <div className="home-v3-page product-shell home-page">
       <LandingHero stream={heroStream} auction={heroAuction} trade={heroTrade} />
       <ValuePillars />
-      <WhyDalow />
       <ProductPreviewShowcase streams={data.streams} auctions={data.auctions} trades={data.trades} />
-      <ActivityStrip
-        liveNow={liveNow}
-        activeAuctions={activeAuctions}
-        collectorsOnline={collectorsOnline}
-      />
       <TrustSection />
       <FinalCTA />
     </div>

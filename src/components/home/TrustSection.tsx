@@ -1,15 +1,15 @@
 const TRUST_POINTS = [
   {
-    title: "Structured listings and grading context",
-    detail: "Collectors need clarity before they bid, trade, or buy. dalow keeps listing data cleaner and easier to evaluate.",
+    title: "Structured listings",
+    detail: "Clear cert and grading context keeps decisions fast.",
   },
   {
-    title: "Trust through identity and activity",
-    detail: "Seller identity, stream behavior, and transaction history create stronger confidence than anonymous marketplaces.",
+    title: "Verified identity",
+    detail: "Persistent seller and collector profiles reduce deal risk.",
   },
   {
-    title: "Built by hobby operators",
-    detail: "The platform is designed around real collector behavior, not a generic cart-and-checkout template.",
+    title: "Collector-native flows",
+    detail: "Live, auctions, and trades are first-class workflows.",
   },
 ];
 

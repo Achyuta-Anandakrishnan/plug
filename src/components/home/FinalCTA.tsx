@@ -4,9 +4,9 @@ export function FinalCTA() {
   return (
     <section className="home-v3-final-cta">
       <p>For collectors, by collectors</p>
-      <h2>Ready to list, bid, and trade on a marketplace built for the hobby?</h2>
+      <h2>Ready to sell, bid, and trade?</h2>
       <p>
-        Discover live breaks, rare inventory, and active trade opportunities in one connected platform.
+        One platform for live shows, auctions, and direct trades.
       </p>
       <div className="home-v3-final-actions">
         <Link href="/sell" className="home-v3-btn is-primary">

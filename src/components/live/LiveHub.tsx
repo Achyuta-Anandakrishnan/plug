@@ -162,7 +162,7 @@ export function LiveHub() {
   const showUpcomingFirst = timing === "upcoming";
 
   return (
-    <div className="live-v3-page">
+    <div className="live-v3-page product-shell live-page">
       <section className="live-v3-page-head">
         <h1>Live</h1>
       </section>
