@@ -5908,3 +5908,221 @@ html[data-theme="dark"] .messages-bubble.incoming {
     justify-content: space-between;
   }
 }
+
+/* Viewport calibration pass: phone 390x844 (19.5:9) and laptop 1440x900 (16:10). */
+:root {
+  --dalow-phone-ratio: 390 / 844;
+  --dalow-laptop-ratio: 1440 / 900;
+  --dalow-shell-max: 1360px;
+  --dalow-shell-inline: clamp(16px, 2.4vw, 32px);
+  --dalow-shell-block: clamp(16px, 1.8vw, 28px);
+  --dalow-page-gap: clamp(24px, 3vw, 40px);
+  --dalow-panel-pad: clamp(16px, 1.8vw, 24px);
+  --dalow-grid-gap: clamp(14px, 1.6vw, 20px);
+}
+
+.page-container,
+.product-shell,
+.market-v2-page,
+.live-v3-page {
+  width: min(100%, var(--dalow-shell-max));
+  max-width: var(--dalow-shell-max);
+}
+
+.page-container {
+  padding-left: var(--dalow-shell-inline) !important;
+  padding-right: var(--dalow-shell-inline) !important;
+}
+
+.product-shell,
+.market-v2-page,
+.live-v3-page {
+  padding-left: var(--dalow-shell-inline);
+  padding-right: var(--dalow-shell-inline);
+  padding-top: var(--dalow-shell-block);
+  padding-bottom: clamp(44px, 6vw, 72px);
+}
+
+.product-shell.home-page,
+.product-shell.market-page,
+.product-shell.live-page,
+.product-shell.trades-page,
+.product-shell.forum-page,
+.product-shell.messages-page,
+.market-v2-page,
+.live-v3-page {
+  gap: var(--dalow-page-gap);
+}
+
+.product-page-header {
+  align-items: flex-end;
+  gap: clamp(16px, 2vw, 24px);
+}
+
+.product-page-intro {
+  display: grid;
+  gap: 8px;
+  max-width: 54ch;
+}
+
+.product-page-copy {
+  margin: 0;
+  color: #64748b;
+  font-size: clamp(14px, 1.35vw, 17px);
+  line-height: 1.55;
+}
+
+.home-page .home-v3-hero {
+  grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+}
+
+.home-page .home-v3-hero-copy {
+  max-width: 38rem;
+}
+
+.home-page .home-v3-hero-visual {
+  width: min(100%, 560px);
+  min-height: clamp(360px, 36vw, 500px);
+}
+
+.home-page .home-v3-pillars,
+.home-page .home-v3-showcase,
+.home-page .home-v3-trust,
+.home-page .home-v3-final-cta,
+.market-page .market-v2-hero,
+.market-page .market-v2-module,
+.market-page .market-v2-listings-section,
+.live-page .live-v3-filters,
+.live-page .live-v3-live-now,
+.live-page .live-v3-upcoming,
+.live-page .live-v3-spotlight,
+.product-toolbar,
+.product-stat-card,
+.trades-page .ios-panel,
+.forum-page .ios-panel,
+.messages-page .ios-panel {
+  padding: var(--dalow-panel-pad);
+}
+
+.home-page .home-v3-final-cta {
+  padding-top: clamp(56px, 7vw, 88px);
+  padding-bottom: clamp(56px, 7vw, 88px);
+}
+
+.market-v2-module-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--dalow-grid-gap);
+}
+
+.market-v2-grid.is-comfy {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--dalow-grid-gap);
+}
+
+.market-v2-grid.is-compact {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--dalow-grid-gap);
+}
+
+.live-v3-live-grid,
+.live-v3-upcoming-grid,
+.live-v3-spotlight-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 272px), 1fr));
+  gap: var(--dalow-grid-gap);
+}
+
+.live-v3-live-grid.is-compact {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
+.trade-board-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--dalow-grid-gap);
+}
+
+.forum-thread-list {
+  gap: var(--dalow-grid-gap);
+}
+
+.messages-layout {
+  align-items: start;
+  grid-template-columns: minmax(280px, 0.32fr) minmax(0, 0.68fr);
+}
+
+.messages-threads {
+  display: flex;
+  flex-direction: column;
+  height: clamp(460px, 62vh, 720px);
+  overflow: hidden;
+}
+
+.messages-chat {
+  min-height: clamp(460px, 62vh, 720px) !important;
+}
+
+.forum-page .forum-header-actions {
+  flex-wrap: wrap;
+}
+
+html[data-theme="dark"] .product-page-copy {
+  color: #9fb0c9;
+}
+
+@media (max-width: 900px) {
+  .product-shell,
+  .market-v2-page,
+  .live-v3-page {
+    padding-left: clamp(14px, 3vw, 20px);
+    padding-right: clamp(14px, 3vw, 20px);
+    padding-bottom: 56px;
+  }
+
+  .messages-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .messages-threads,
+  .messages-chat {
+    height: auto;
+    min-height: 0 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .product-page-header {
+    align-items: stretch;
+  }
+
+  .product-page-copy {
+    font-size: 14px;
+  }
+
+  .product-shell,
+  .market-v2-page,
+  .live-v3-page {
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-top: 14px;
+    padding-bottom: 40px;
+  }
+
+  .home-page .home-v3-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .home-page .home-v3-hero-visual {
+    width: 100%;
+    min-height: 320px;
+  }
+
+  .forum-page .forum-header-actions {
+    justify-content: flex-start;
+  }
+
+  .forum-page .forum-header-actions .product-page-primary {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}

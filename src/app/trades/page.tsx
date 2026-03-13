@@ -90,7 +90,10 @@ export default function TradesPage() {
   return (
     <div className="ios-screen product-shell trades-page">
       <section className="product-page-header">
-        <h1 className="product-page-title">Trades</h1>
+        <div className="product-page-intro">
+          <h1 className="product-page-title">Trades</h1>
+          <p className="product-page-copy">Collector-to-collector listings for direct offers, swaps, and negotiated value.</p>
+        </div>
         <Link
           href="/trades/new"
           className="product-page-primary"

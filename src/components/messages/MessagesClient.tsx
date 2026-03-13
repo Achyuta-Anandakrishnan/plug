@@ -236,12 +236,14 @@ export function MessagesClient() {
       setDeletingConversationId(null);
     }
   }
-
   if (!session?.user?.id) {
     return (
       <div className="ios-screen product-shell messages-page">
         <section className="product-page-header">
-          <h1 className="product-page-title">Messages</h1>
+          <div className="product-page-intro">
+            <h1 className="product-page-title">Messages</h1>
+            <p className="product-page-copy">Keep trade negotiation, deal threads, and support in one inbox.</p>
+          </div>
         </section>
         <div className="ios-panel p-6">
           <p className="text-sm text-slate-600">Sign in to view your inbox.</p>
@@ -259,7 +261,10 @@ export function MessagesClient() {
   return (
     <div className="ios-screen product-shell messages-page">
       <section className="product-page-header">
-        <h1 className="product-page-title">Messages</h1>
+        <div className="product-page-intro">
+          <h1 className="product-page-title">Messages</h1>
+          <p className="product-page-copy">Keep trade negotiation, deal threads, and support in one inbox.</p>
+        </div>
       </section>
 
       {error && (
@@ -270,7 +275,7 @@ export function MessagesClient() {
 
       <section className="messages-layout">
         {showThreadsPane ? (
-          <div className="ios-panel messages-threads lg:max-h-[76vh] lg:overflow-hidden">
+          <div className="ios-panel messages-threads">
             <div className="mb-3">
               <input
                 value={query}
@@ -323,7 +328,7 @@ export function MessagesClient() {
         ) : null}
 
         {showChatPane ? (
-          <div className="ios-panel messages-chat flex min-h-[calc(100dvh-14.5rem)] flex-col p-4 sm:p-5 lg:min-h-[76vh] lg:p-6">
+          <div className="ios-panel messages-chat flex min-h-[calc(100dvh-14.5rem)] flex-col p-4 sm:p-5 lg:p-6">
             {activeConversation ? (
               <>
                 <div className="messages-chat-head">

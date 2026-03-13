@@ -163,8 +163,11 @@ export function LiveHub() {
 
   return (
     <div className="live-v3-page product-shell live-page">
-      <section className="live-v3-page-head">
-        <h1>Live</h1>
+      <section className="product-page-header live-v3-page-head">
+        <div className="product-page-intro">
+          <h1 className="product-page-title">Live</h1>
+          <p className="product-page-copy">Browse active streams and upcoming shows without leaving the marketplace.</p>
+        </div>
       </section>
 
       <LiveFilters

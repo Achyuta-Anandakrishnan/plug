@@ -111,7 +111,10 @@ export function ForumClient() {
   return (
     <div className="ios-screen product-shell forum-page">
       <section className="product-page-header">
-        <h1 className="product-page-title">Forum</h1>
+        <div className="product-page-intro">
+          <h1 className="product-page-title">Forum</h1>
+          <p className="product-page-copy">Questions, market talk, and collector intel in one feed.</p>
+        </div>
         <div className="forum-header-actions">
           {session?.user?.id ? (
             <Link
