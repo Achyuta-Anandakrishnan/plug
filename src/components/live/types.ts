@@ -3,7 +3,7 @@ import type { AuctionListItem } from "@/hooks/useAuctions";
 export type LiveTimingFilter = "live" | "upcoming";
 export type LiveSortMode = "viewers" | "ending" | "newest" | "trending";
 export type LiveStreamTypeFilter = "all" | "live-breaks" | "auctions" | "seller-shows";
-export type LiveCategoryFilter = "all" | "pokemon" | "sports" | "tcg" | "funko" | "vintage";
+export type LiveCategoryFilter = "all" | "pokemon" | "sports" | "anime" | "funko";
 
 export type LiveStreamState = "live" | "upcoming";
 

@@ -4,9 +4,8 @@ const CATEGORY_OPTIONS: Array<{ value: LiveCategoryFilter; label: string }> = [
   { value: "all", label: "All" },
   { value: "pokemon", label: "Pokemon" },
   { value: "sports", label: "Sports" },
-  { value: "tcg", label: "TCG" },
+  { value: "anime", label: "Anime" },
   { value: "funko", label: "Funko" },
-  { value: "vintage", label: "Vintage" },
 ];
 
 const TYPE_OPTIONS: Array<{ value: LiveStreamTypeFilter; label: string }> = [
@@ -61,20 +60,20 @@ export function LiveFilters({
         />
       </div>
 
-      <div className="live-v3-filter-row">
-        <div className="live-v3-chip-row">
-          {CATEGORY_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => onCategoryChange(option.value)}
-              className={`live-v3-chip ${category === option.value ? "is-active" : ""}`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+      <div className="live-v3-chip-row live-v3-category-row">
+        {CATEGORY_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onCategoryChange(option.value)}
+            className={`live-v3-chip ${category === option.value ? "is-active" : ""}`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
 
+      <div className="live-v3-browse-row">
         <div className="live-v3-segment" role="group" aria-label="Live stream type">
           {TYPE_OPTIONS.map((option) => (
             <button

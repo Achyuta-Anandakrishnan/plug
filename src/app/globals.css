@@ -4802,12 +4802,19 @@ html[data-theme="dark"] .live-v3-timing-toggle button.is-active {
   gap: 12px;
 }
 
-.live-v3-filter-tools {
+.live-v3-browse-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.live-v3-filter-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
 .live-v3-filter-tools label {
@@ -4872,7 +4879,7 @@ html[data-theme="dark"] .live-v3-timing-toggle button.is-active {
 }
 
 .live-v3-stream-card.is-grid .live-v3-stream-media {
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
 }
 
 .live-v3-stream-card.is-compact .live-v3-stream-media {
@@ -5321,13 +5328,13 @@ html[data-theme="dark"] .live-v3-stream-tags span {
 .live-v3-live-grid,
 .live-v3-upcoming-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
 }
 
 .live-v3-spotlight-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
 }
 
@@ -5913,12 +5920,12 @@ html[data-theme="dark"] .messages-bubble.incoming {
 :root {
   --dalow-phone-ratio: 390 / 844;
   --dalow-laptop-ratio: 1440 / 900;
-  --dalow-shell-max: 1360px;
-  --dalow-shell-inline: clamp(16px, 2.4vw, 32px);
-  --dalow-shell-block: clamp(16px, 1.8vw, 28px);
-  --dalow-page-gap: clamp(24px, 3vw, 40px);
-  --dalow-panel-pad: clamp(16px, 1.8vw, 24px);
-  --dalow-grid-gap: clamp(14px, 1.6vw, 20px);
+  --dalow-shell-max: 1240px;
+  --dalow-shell-inline: clamp(14px, 2vw, 24px);
+  --dalow-shell-block: clamp(12px, 1.4vw, 20px);
+  --dalow-page-gap: clamp(20px, 2.2vw, 32px);
+  --dalow-panel-pad: clamp(14px, 1.4vw, 20px);
+  --dalow-grid-gap: clamp(12px, 1.2vw, 18px);
 }
 
 .page-container,
@@ -5956,7 +5963,7 @@ html[data-theme="dark"] .messages-bubble.incoming {
 
 .product-page-header {
   align-items: flex-end;
-  gap: clamp(16px, 2vw, 24px);
+  gap: clamp(12px, 1.5vw, 20px);
 }
 
 .product-page-intro {
@@ -5968,8 +5975,8 @@ html[data-theme="dark"] .messages-bubble.incoming {
 .product-page-copy {
   margin: 0;
   color: #64748b;
-  font-size: clamp(14px, 1.35vw, 17px);
-  line-height: 1.55;
+  font-size: clamp(13px, 1.05vw, 15px);
+  line-height: 1.45;
 }
 
 .home-page .home-v3-hero {
@@ -6066,6 +6073,117 @@ html[data-theme="dark"] .messages-bubble.incoming {
   flex-wrap: wrap;
 }
 
+.live-page {
+  width: min(100%, 1200px);
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 32px;
+}
+
+.live-page .live-v3-page-head {
+  max-width: 32rem;
+  margin-bottom: 0;
+}
+
+.live-page .product-page-intro {
+  gap: 4px;
+  max-width: 32rem;
+}
+
+.live-page .product-page-title {
+  font-size: clamp(2rem, 3vw, 2.5rem);
+}
+
+.live-page .product-page-copy {
+  max-width: 24rem;
+}
+
+.live-page .live-v3-filters,
+.live-page .live-v3-live-now,
+.live-page .live-v3-upcoming,
+.live-page .live-v3-spotlight {
+  border-radius: 12px;
+}
+
+.live-page .live-v3-section-title {
+  font-size: 18px;
+}
+
+.live-page .live-v3-stream-body {
+  gap: 5px;
+  padding: 10px;
+}
+
+.live-page .live-v3-stream-body h3 {
+  font-size: 14px;
+}
+
+.live-page .live-v3-stream-body p,
+.live-page .live-v3-stream-meta {
+  font-size: 12px;
+}
+
+.live-page .live-v3-stream-foot-host {
+  font-size: 11px;
+}
+
+.live-page .live-v3-live-pill,
+.live-page .live-v3-viewers-pill {
+  padding: 4px 8px;
+  font-size: 9px;
+}
+
+.live-page .live-v3-enter-pill {
+  padding: 5px 9px;
+  font-size: 9px;
+}
+
+.live-page .live-v3-filters {
+  gap: 10px;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.live-page .live-v3-search {
+  min-height: 50px;
+}
+
+.live-page .live-v3-category-row,
+.live-page .live-v3-chip-row {
+  gap: 8px;
+}
+
+.live-page .live-v3-chip,
+.live-page .live-v3-segment button,
+.live-page .live-v3-timing-toggle button {
+  padding: 6px 12px;
+  font-size: 11px;
+}
+
+.live-page .live-v3-browse-row {
+  gap: 10px;
+}
+
+.live-page .live-v3-filter-tools {
+  justify-content: flex-end;
+}
+
+.live-page .live-v3-filter-tools label span {
+  font-size: 10px;
+}
+
+.live-page .live-v3-live-now,
+.live-page .live-v3-upcoming,
+.live-page .live-v3-spotlight {
+  gap: 12px;
+}
+
+.live-page .live-v3-live-grid,
+.live-page .live-v3-upcoming-grid,
+.live-page .live-v3-spotlight-grid {
+  gap: 14px;
+}
+
 html[data-theme="dark"] .product-page-copy {
   color: #9fb0c9;
 }
@@ -6077,6 +6195,10 @@ html[data-theme="dark"] .product-page-copy {
     padding-left: clamp(14px, 3vw, 20px);
     padding-right: clamp(14px, 3vw, 20px);
     padding-bottom: 56px;
+  }
+
+  .live-page {
+    gap: 24px;
   }
 
   .messages-layout {
@@ -6115,6 +6237,18 @@ html[data-theme="dark"] .product-page-copy {
   .home-page .home-v3-hero-visual {
     width: 100%;
     min-height: 320px;
+  }
+
+  .live-page .live-v3-page-head,
+  .live-page .product-page-intro,
+  .live-page .product-page-copy {
+    max-width: none;
+  }
+
+  .live-page .live-v3-browse-row,
+  .live-page .live-v3-filter-tools {
+    align-items: stretch;
+    justify-content: flex-start;
   }
 
   .forum-page .forum-header-actions {

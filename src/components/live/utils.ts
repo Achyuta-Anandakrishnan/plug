@@ -63,16 +63,17 @@ export function categoryMatches(stream: AuctionListItem, filter: LiveCategoryFil
   if (filter === "sports") {
     return haystack.includes("sports");
   }
-  if (filter === "tcg") {
-    return haystack.includes("tcg")
-      || haystack.includes("pokemon")
-      || haystack.includes("magic")
-      || haystack.includes("yugioh");
+  if (filter === "anime") {
+    return haystack.includes("anime")
+      || haystack.includes("dragon ball")
+      || haystack.includes("one piece")
+      || haystack.includes("naruto")
+      || haystack.includes("manga");
   }
   if (filter === "funko") {
     return haystack.includes("funko");
   }
-  return haystack.includes("vintage");
+  return false;
 }
 
 export function searchMatches(stream: AuctionListItem, query: string) {
