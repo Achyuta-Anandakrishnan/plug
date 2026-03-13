@@ -268,14 +268,14 @@ main.page-container.mobile-safe-main {
 .app-page {
   width: min(100%, var(--product-max));
   margin: 0 auto;
-  padding: 36px 24px 80px;
+  padding: 28px 24px 64px;
   display: grid;
-  gap: 72px;
+  gap: 56px;
 }
 
 .app-section {
   display: grid;
-  gap: 28px;
+  gap: 24px;
 }
 
 .app-page-header,
@@ -314,7 +314,7 @@ main.page-container.mobile-safe-main {
 
 .app-page-title {
   margin: 0;
-  font-size: clamp(2rem, 3vw, 2.6rem);
+  font-size: clamp(1.85rem, 2.55vw, 2.3rem);
   line-height: 1.02;
   letter-spacing: -0.04em;
 }
@@ -337,7 +337,7 @@ main.page-container.mobile-safe-main {
 
 .app-section-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1.1;
   letter-spacing: -0.03em;
 }
@@ -389,17 +389,10 @@ main.page-container.mobile-safe-main {
   transform: none;
 }
 
-.app-discovery-bar,
 .app-empty-state,
 .product-card,
-.live-v3-filters,
-.live-v3-upcoming,
-.live-v3-live-now,
-.live-v3-spotlight,
 .messages-sidebar,
-.messages-chat,
-.home-final-cta,
-.market-link-strip {
+.messages-chat {
   border: 1px solid var(--product-border);
   border-radius: var(--product-radius);
   background: var(--product-surface);
@@ -408,16 +401,16 @@ main.page-container.mobile-safe-main {
 
 .app-discovery-bar {
   display: grid;
-  gap: 18px;
-  padding: 20px 24px;
+  gap: 14px;
+  padding: 0;
 }
 
 .app-search {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 52px;
-  padding: 0 16px;
+  min-height: 48px;
+  padding: 0 14px;
   border: 1px solid var(--product-border);
   border-radius: 16px;
   background: var(--product-surface);
@@ -444,8 +437,8 @@ main.page-container.mobile-safe-main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
-  padding: 0 12px;
+  min-height: 32px;
+  padding: 0 11px;
   border: 1px solid var(--product-border);
   border-radius: 999px;
   background: var(--product-surface);
@@ -475,16 +468,16 @@ main.page-container.mobile-safe-main {
 .app-segment {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px;
+  gap: 4px;
+  padding: 3px;
   border: 1px solid var(--product-border);
   border-radius: 999px;
   background: var(--product-surface-muted);
 }
 
 .app-segment button {
-  min-height: 34px;
-  padding: 0 14px;
+  min-height: 32px;
+  padding: 0 12px;
   border-radius: 999px;
   color: var(--product-text-soft);
   font-size: 13px;
@@ -522,7 +515,7 @@ main.page-container.mobile-safe-main {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 20px 24px;
+  padding: 16px 18px;
 }
 
 .app-empty-state h3,
@@ -579,20 +572,29 @@ main.page-container.mobile-safe-main {
 }
 
 .home-app-page {
-  gap: 80px;
+  gap: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .home-hero {
   display: grid;
   grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  gap: 32px;
+  gap: 28px;
   align-items: start;
+}
+
+.home-scroll-section {
+  display: grid;
+  align-content: center;
+  gap: 24px;
+  padding-block: 28px;
 }
 
 .home-hero-copy {
   display: grid;
-  gap: 18px;
-  padding-top: 16px;
+  gap: 16px;
+  padding-top: 8px;
 }
 
 .home-hero-copy h1 {
@@ -631,7 +633,7 @@ main.page-container.mobile-safe-main {
 .home-connected-primary,
 .home-connected-secondary {
   display: grid;
-  gap: 18px;
+  gap: 16px;
 }
 
 .home-hero-preview {
@@ -657,8 +659,8 @@ main.page-container.mobile-safe-main {
 
 .home-surface-body {
   display: grid;
-  gap: 8px;
-  padding: 16px 18px 18px;
+  gap: 6px;
+  padding: 14px 16px 16px;
 }
 
 .home-surface-accent,
@@ -696,15 +698,15 @@ main.page-container.mobile-safe-main {
 .live-v3-upcoming-grid,
 .live-v3-spotlight-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
 }
 
 .home-pillar-card,
 .home-trust-card {
   display: grid;
-  gap: 12px;
-  padding: 24px;
+  gap: 10px;
+  padding: 18px;
   border: 1px solid var(--product-border);
   border-radius: var(--product-radius);
   background: var(--product-surface);
@@ -713,7 +715,7 @@ main.page-container.mobile-safe-main {
 .home-connected-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-  gap: 24px;
+  gap: 20px;
 }
 
 .home-final-cta {
@@ -721,7 +723,11 @@ main.page-container.mobile-safe-main {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 24px 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .home-final-cta-copy h2 {
@@ -736,7 +742,7 @@ main.page-container.mobile-safe-main {
 .trades-page,
 .forum-page,
 .messages-page {
-  gap: 64px;
+  gap: 48px;
 }
 
 .market-toolbar-row,
@@ -746,7 +752,7 @@ main.page-container.mobile-safe-main {
 }
 
 .market-featured-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
 .market-count {
@@ -759,15 +765,15 @@ main.page-container.mobile-safe-main {
 
 .market-v2-grid {
   display: grid;
-  gap: 24px;
+  gap: 20px;
 }
 
 .market-v2-grid.is-comfy {
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
 .market-v2-grid.is-compact {
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
 .listing-card,
@@ -811,8 +817,8 @@ main.page-container.mobile-safe-main {
 .trade-board-body,
 .live-v3-stream-body {
   display: grid;
-  gap: 10px;
-  padding: 18px;
+  gap: 8px;
+  padding: 14px;
 }
 
 .market-v2-listing-topline,
@@ -876,7 +882,7 @@ main.page-container.mobile-safe-main {
 .forum-thread-title,
 .live-v3-stream-body h3,
 .live-v3-host-copy h3 {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.18;
 }
 
@@ -896,7 +902,7 @@ main.page-container.mobile-safe-main {
 
 .market-v2-listing-price {
   color: var(--product-text);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
 }
 
@@ -905,7 +911,7 @@ main.page-container.mobile-safe-main {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 0 18px 18px;
+  padding: 0 14px 14px;
 }
 
 .market-v2-watch-btn,
@@ -933,14 +939,18 @@ main.page-container.mobile-safe-main {
 .market-v2-buy-btn,
 .live-v3-enter-pill,
 .live-v3-reminder-btn {
-  margin: 0 18px 18px;
+  margin: 0 14px 14px;
   background: var(--product-accent);
   color: white;
 }
 
 .market-link-strip {
   justify-content: space-between;
-  padding: 20px 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .market-link-strip strong {
@@ -956,48 +966,44 @@ main.page-container.mobile-safe-main {
 }
 
 .live-v3-page {
-  gap: 64px;
+  gap: 48px;
 }
 
 .live-v3-live-now,
 .live-v3-upcoming,
 .live-v3-spotlight {
   display: grid;
-  gap: 24px;
+  gap: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .live-v3-featured,
 .live-v3-live-grid-wrap {
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
-.live-v3-featured-layout {
+.live-v3-featured-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
-  gap: 24px;
-}
-
-.live-v3-featured-side {
-  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 20px;
 }
 
 .live-v3-live-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
 }
 
 .live-v3-live-grid.is-compact {
-  grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 280px));
   justify-content: start;
 }
 
-.live-v3-stream-card.is-featured .live-v3-stream-media {
-  aspect-ratio: 16 / 10;
-}
-
+.live-v3-stream-card.is-featured .live-v3-stream-media,
 .live-v3-stream-card.is-grid .live-v3-stream-media,
 .live-v3-stream-card.is-compact .live-v3-stream-media {
   aspect-ratio: 16 / 9;
@@ -1005,18 +1011,18 @@ main.page-container.mobile-safe-main {
 
 .live-v3-stream-top {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  right: 14px;
+  top: 10px;
+  left: 10px;
+  right: 10px;
   justify-content: space-between;
 }
 
 .live-v3-stream-body {
-  gap: 8px;
+  gap: 6px;
 }
 
 .live-v3-stream-card.is-featured .live-v3-stream-body h3 {
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .live-v3-stream-subline,
@@ -1026,8 +1032,8 @@ main.page-container.mobile-safe-main {
 
 .live-v3-host-card {
   display: grid;
-  gap: 16px;
-  padding: 20px;
+  gap: 12px;
+  padding: 16px;
 }
 
 .live-v3-host-avatar {
@@ -1054,11 +1060,12 @@ main.page-container.mobile-safe-main {
 }
 
 .trades-stats-row {
-  margin-top: -36px;
+  margin-top: -20px;
 }
 
 .trade-board-grid {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
 }
 
 .trade-board-card {
@@ -1089,13 +1096,13 @@ main.page-container.mobile-safe-main {
 
 .forum-thread-list {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .forum-thread-card {
   display: grid;
-  gap: 16px;
-  padding: 22px 24px;
+  gap: 14px;
+  padding: 18px 20px;
 }
 
 .forum-thread-top {
@@ -1135,15 +1142,15 @@ main.page-container.mobile-safe-main {
 .messages-layout {
   display: grid;
   grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
-  gap: 24px;
+  gap: 20px;
   align-items: start;
 }
 
 .messages-sidebar,
 .messages-chat {
   display: grid;
-  gap: 18px;
-  padding: 20px;
+  gap: 14px;
+  padding: 16px;
 }
 
 .messages-thread-list {
@@ -1183,7 +1190,7 @@ main.page-container.mobile-safe-main {
 }
 
 .messages-chat {
-  min-height: 620px;
+  min-height: 560px;
   align-content: start;
 }
 
@@ -1203,7 +1210,7 @@ main.page-container.mobile-safe-main {
   min-height: 340px;
   max-height: 56vh;
   overflow-y: auto;
-  padding: 18px;
+  padding: 14px;
   border: 1px solid var(--product-border);
   border-radius: 18px;
   background: var(--product-surface-muted);
@@ -1277,7 +1284,6 @@ main.page-container.mobile-safe-main {
 @media (max-width: 1024px) {
   .home-hero,
   .home-connected-grid,
-  .live-v3-featured-layout,
   .messages-layout {
     grid-template-columns: 1fr;
   }
@@ -1292,10 +1298,6 @@ main.page-container.mobile-safe-main {
   .trade-board-grid,
   .live-v3-upcoming-grid,
   .live-v3-spotlight-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .live-v3-featured-side {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1347,6 +1349,7 @@ main.page-container.mobile-safe-main {
   .trade-board-grid,
   .live-v3-upcoming-grid,
   .live-v3-spotlight-grid,
+  .live-v3-featured-grid,
   .market-v2-grid.is-comfy,
   .market-v2-grid.is-compact {
     grid-template-columns: 1fr;
@@ -1355,8 +1358,59 @@ main.page-container.mobile-safe-main {
   .live-v3-live-grid {
     grid-template-columns: 1fr;
   }
+}
 
-  .live-v3-featured-side {
-    grid-template-columns: 1fr;
+@media (min-width: 1025px) {
+  .home-app-page,
+  .app-page--snap {
+    height: calc(100svh - 72px);
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+    gap: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .home-app-page::-webkit-scrollbar,
+  .app-page--snap::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-scroll-section,
+  .app-page--snap > .app-screen-section {
+    min-height: calc(100svh - 72px);
+    scroll-snap-align: start;
+    display: grid;
+    align-content: start;
+    gap: 24px;
+    padding-block: 28px;
+  }
+
+  .home-scroll-section {
+    align-content: center;
+  }
+
+  .app-page--snap > .app-screen-section > .app-section {
+    gap: 20px;
+  }
+
+  .app-screen-section--messages {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .app-screen-section--messages > .messages-layout {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .app-screen-section--messages .messages-sidebar,
+  .app-screen-section--messages .messages-chat {
+    min-height: 0;
+  }
+
+  .app-screen-section--messages .messages-thread-list,
+  .app-screen-section--messages .messages-feed {
+    max-height: none;
   }
 }

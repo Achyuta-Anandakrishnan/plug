@@ -8,10 +8,9 @@ type LiveNowRailProps = {
 };
 
 export function LiveNowRail({ streams, loading }: LiveNowRailProps) {
-  const visibleStreams = streams.slice(0, 12);
-  const featuredPrimary = visibleStreams[0] ?? null;
-  const featuredSecondary = featuredPrimary ? visibleStreams.slice(1, 3) : [];
-  const gridStreams = featuredPrimary ? visibleStreams.slice(3) : [];
+  const visibleStreams = streams.slice(0, 16);
+  const featuredStreams = visibleStreams.slice(0, 4);
+  const gridStreams = visibleStreams.slice(4);
   const useCompactGrid = gridStreams.length > 0 && gridStreams.length < 4;
 
   return (
@@ -22,18 +21,13 @@ export function LiveNowRail({ streams, loading }: LiveNowRailProps) {
         <EmptyStateCard title="No active streams right now." description="Check back soon or browse upcoming sessions below." />
       ) : (
         <>
-          {featuredPrimary ? (
+          {featuredStreams.length > 0 ? (
             <div className="live-v3-featured">
               <SectionHeader title="Featured live" subtitle="Join the most active rooms first." />
-              <div className={`live-v3-featured-layout ${featuredSecondary.length === 0 ? "is-solo" : ""}`}>
-                <LiveStreamCard stream={featuredPrimary} layout="featured" />
-                {featuredSecondary.length > 0 ? (
-                  <div className="live-v3-featured-side">
-                    {featuredSecondary.map((stream) => (
-                      <LiveStreamCard key={stream.id} stream={stream} layout="compact" />
-                    ))}
-                  </div>
-                ) : null}
+              <div className="live-v3-featured-grid">
+                {featuredStreams.map((stream) => (
+                  <LiveStreamCard key={stream.id} stream={stream} layout="grid" />
+                ))}
               </div>
             </div>
           ) : null}

@@ -301,7 +301,7 @@ export default async function Home() {
 
   return (
     <PageContainer className="home-app-page">
-      <section className="home-hero">
+      <section className="home-scroll-section home-hero">
         <div className="home-hero-copy">
           <p className="app-eyebrow">For collectors, by collectors</p>
           <h1>Live. Auctions. Trades.</h1>
@@ -349,7 +349,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="app-section">
+      <section className="home-scroll-section app-section home-pillars-section">
         <SectionHeader title="Three core actions" subtitle="Move inventory the way the hobby already works." />
         <div className="home-pillars-grid">
           <article className="home-pillar-card">
@@ -370,7 +370,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="app-section">
+      <section className="home-scroll-section app-section home-connected-section">
         <SectionHeader title="One connected product" subtitle="Market discovery, live commerce, and negotiation live in the same workflow." />
         <div className="home-connected-grid">
           <div className="home-connected-primary">
@@ -413,7 +413,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="app-section">
+      <section className="home-scroll-section app-section home-trust-section">
         <SectionHeader title="Why collectors trust dalow" subtitle="The product stays calm, direct, and transaction-focused." />
         <div className="home-trust-grid">
           <article className="home-trust-card">
@@ -431,7 +431,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="home-final-cta">
+      <section className="home-scroll-section home-final-cta">
         <div className="home-final-cta-copy">
           <p className="app-eyebrow">Start with the surface that fits the moment</p>
           <h2>Browse inventory, join a room, or make an offer.</h2>

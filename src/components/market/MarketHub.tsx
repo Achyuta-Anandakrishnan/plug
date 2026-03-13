@@ -199,114 +199,118 @@ export function MarketHub() {
   };
 
   return (
-    <PageContainer className="market-page app-page--market">
-      <PageHeader
-        title="Marketplace"
-        subtitle="Browse live auctions and buy-now inventory built for collectors."
-      />
-
-      <DiscoveryBar className="market-toolbar">
-        <div className="app-search">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
-          </svg>
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search cards, sets, players, cert numbers"
-          />
-        </div>
-
-        <SegmentedControl options={MODE_OPTIONS} value={modeFromUrl} onChange={setMode} />
-
-        <div className="app-toolbar-row market-toolbar-row">
-          <div className="app-chip-row">
-            {categoryFilters.map((category) => (
-              <FilterChip
-                key={category.id}
-                label={category.label}
-                active={selectedCategory === category.slug}
-                onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
-              />
-            ))}
-          </div>
-
-          <div className="app-toolbar-tools">
-            <label className="app-select-wrap">
-              <span>Sort</span>
-              <select
-                value={sortMode}
-                onChange={(event) => setSortMode(event.target.value as SortMode)}
-                className="app-select"
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <SegmentedControl options={DENSITY_OPTIONS} value={gridDensity} onChange={setGridDensity} />
-          </div>
-        </div>
-      </DiscoveryBar>
-
-      {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
-      {statusMessage ? <div className="app-inline-note">{statusMessage}</div> : null}
-
-      <section className="app-section">
-        <SectionHeader
-          title="Trending auctions"
-          subtitle="The most watched inventory live right now."
-          action={<SecondaryButton href="/live">See what is live</SecondaryButton>}
-        />
-        {listingsLoading ? (
-          <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
-        ) : trendingAuctions.length === 0 ? (
-          <EmptyStateCard title="No trending auctions yet." description="Once streams and listings are live, the most watched auctions will surface here." />
-        ) : (
-          <div className="market-featured-grid">
-            {trendingAuctions.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                density="comfortable"
-                buyLoading={buyLoadingId === listing.id}
-                onBuyNow={startBuyNow}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="app-section market-inventory-section">
-        <SectionHeader
-          title="Inventory"
-          subtitle="The main product surface for browsing and comparing listings."
-          action={<span className="market-count">{sortedListings.length} items</span>}
+    <PageContainer className="market-page app-page--market app-page--snap">
+      <section className="app-screen-section">
+        <PageHeader
+          title="Marketplace"
+          subtitle="Browse live auctions and buy-now inventory built for collectors."
         />
 
-        {listingsLoading ? (
-          <EmptyStateCard title="Loading listings" description="Inventory is on the way." />
-        ) : sortedListings.length === 0 ? (
-          <EmptyStateCard title="No listings match these filters." description="Try broadening the search, switching modes, or clearing a category." />
-        ) : (
-          <ListingGrid
-            listings={sortedListings}
-            density={gridDensity}
-            buyLoadingId={buyLoadingId}
-            onBuyNow={startBuyNow}
+        <DiscoveryBar className="market-toolbar">
+          <div className="app-search">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
+            </svg>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search cards, sets, players, cert numbers"
+            />
+          </div>
+
+          <SegmentedControl options={MODE_OPTIONS} value={modeFromUrl} onChange={setMode} />
+
+          <div className="app-toolbar-row market-toolbar-row">
+            <div className="app-chip-row">
+              {categoryFilters.map((category) => (
+                <FilterChip
+                  key={category.id}
+                  label={category.label}
+                  active={selectedCategory === category.slug}
+                  onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
+                />
+              ))}
+            </div>
+
+            <div className="app-toolbar-tools">
+              <label className="app-select-wrap">
+                <span>Sort</span>
+                <select
+                  value={sortMode}
+                  onChange={(event) => setSortMode(event.target.value as SortMode)}
+                  className="app-select"
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <SegmentedControl options={DENSITY_OPTIONS} value={gridDensity} onChange={setGridDensity} />
+            </div>
+          </div>
+        </DiscoveryBar>
+
+        {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
+        {statusMessage ? <div className="app-inline-note">{statusMessage}</div> : null}
+
+        <section className="app-section">
+          <SectionHeader
+            title="Trending auctions"
+            subtitle="The most watched inventory live right now."
+            action={<SecondaryButton href="/live">See what is live</SecondaryButton>}
           />
-        )}
+          {listingsLoading ? (
+            <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
+          ) : trendingAuctions.length === 0 ? (
+            <EmptyStateCard title="No trending auctions yet." description="Once streams and listings are live, the most watched auctions will surface here." />
+          ) : (
+            <div className="market-featured-grid">
+              {trendingAuctions.map((listing) => (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  density="comfortable"
+                  buyLoading={buyLoadingId === listing.id}
+                  onBuyNow={startBuyNow}
+                />
+              ))}
+            </div>
+          )}
+        </section>
       </section>
 
-      <section className="market-link-strip">
-        <div>
-          <strong>Prefer real-time browsing?</strong>
-          <p>See active rooms and upcoming shows without leaving the marketplace.</p>
-        </div>
-        <Link href="/live">Open Live</Link>
+      <section className="app-screen-section">
+        <section className="app-section market-inventory-section">
+          <SectionHeader
+            title="Inventory"
+            subtitle="The main product surface for browsing and comparing listings."
+            action={<span className="market-count">{sortedListings.length} items</span>}
+          />
+
+          {listingsLoading ? (
+            <EmptyStateCard title="Loading listings" description="Inventory is on the way." />
+          ) : sortedListings.length === 0 ? (
+            <EmptyStateCard title="No listings match these filters." description="Try broadening the search, switching modes, or clearing a category." />
+          ) : (
+            <ListingGrid
+              listings={sortedListings}
+              density={gridDensity}
+              buyLoadingId={buyLoadingId}
+              onBuyNow={startBuyNow}
+            />
+          )}
+        </section>
+
+        <section className="market-link-strip">
+          <div>
+            <strong>Prefer real-time browsing?</strong>
+            <p>See active rooms and upcoming shows without leaving the marketplace.</p>
+          </div>
+          <Link href="/live">Open Live</Link>
+        </section>
       </section>
     </PageContainer>
   );

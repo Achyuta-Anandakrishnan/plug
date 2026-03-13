@@ -246,24 +246,27 @@ export function MessagesClient() {
 
   if (!session?.user?.id) {
     return (
-      <PageContainer className="messages-page app-page--messages">
-        <PageHeader title="Messages" subtitle="Keep negotiation, logistics, and support threads in one inbox." />
-        <EmptyStateCard
-          title="Sign in to view your inbox."
-          description="Your active deals and collector conversations will show up here."
-          action={<PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>}
-        />
+      <PageContainer className="messages-page app-page--messages app-page--snap">
+        <section className="app-screen-section">
+          <PageHeader title="Messages" subtitle="Keep negotiation, logistics, and support threads in one inbox." />
+          <EmptyStateCard
+            title="Sign in to view your inbox."
+            description="Your active deals and collector conversations will show up here."
+            action={<PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>}
+          />
+        </section>
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer className="messages-page app-page--messages">
-      <PageHeader title="Messages" subtitle="Keep negotiation, logistics, and support threads in one inbox." />
+    <PageContainer className="messages-page app-page--messages app-page--snap">
+      <section className="app-screen-section app-screen-section--messages">
+        <PageHeader title="Messages" subtitle="Keep negotiation, logistics, and support threads in one inbox." />
 
-      {error ? <EmptyStateCard title="Messages unavailable" description={error} /> : null}
+        {error ? <EmptyStateCard title="Messages unavailable" description={error} /> : null}
 
-      <section className="messages-layout">
+        <section className="messages-layout">
         {showThreadsPane ? (
           <aside className="messages-sidebar product-card">
             <div className="app-search">
@@ -410,6 +413,7 @@ export function MessagesClient() {
             )}
           </section>
         ) : null}
+        </section>
       </section>
     </PageContainer>
   );

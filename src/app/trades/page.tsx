@@ -98,113 +98,118 @@ export default function TradesPage() {
   );
 
   return (
-    <PageContainer className="trades-page app-page--trades">
-      <PageHeader
-        title="Trades"
-        subtitle="Collector-to-collector exchange built around clear value and active offers."
-        actions={<PrimaryButton href="/trades/new">New trade</PrimaryButton>}
-      />
-
-      <DiscoveryBar className="trades-toolbar">
-        <div className="app-search">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
-          </svg>
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search trade posts"
-          />
-        </div>
-        <div className="app-chip-row">
-          {scopes.map((entry) => (
-            <FilterChip
-              key={entry.key}
-              label={entry.label}
-              active={scope === entry.key}
-              onClick={() => setScope(entry.key)}
-            />
-          ))}
-        </div>
-      </DiscoveryBar>
-
-      <div className="trades-stats-row">
-        <StatPill label="Visible posts" value={posts.length} />
-        <StatPill label="Open now" value={openCount} />
-        <StatPill label="Scope" value={scope === "MINE" ? "My posts" : scope.toLowerCase()} />
-      </div>
-
-      {!session?.user?.id && scope === "MINE" ? (
-        <EmptyStateCard
-          title="Sign in to view your trade posts."
-          description="Your own trade activity stays separate from the public board."
-          action={<PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>}
+    <PageContainer className="trades-page app-page--trades app-page--snap">
+      <section className="app-screen-section">
+        <PageHeader
+          title="Trades"
+          subtitle="Collector-to-collector exchange built around clear value and active offers."
+          actions={<PrimaryButton href="/trades/new">New trade</PrimaryButton>}
         />
-      ) : null}
 
-      {error ? <EmptyStateCard title="Trade board unavailable" description={error} /> : null}
-      {loading ? <CheckersLoader title="Loading trades..." compact className="ios-empty" /> : null}
+        <DiscoveryBar className="trades-toolbar">
+          <div className="app-search">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
+            </svg>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search trade posts"
+            />
+          </div>
+          <div className="app-chip-row">
+            {scopes.map((entry) => (
+              <FilterChip
+                key={entry.key}
+                label={entry.label}
+                active={scope === entry.key}
+                onClick={() => setScope(entry.key)}
+              />
+            ))}
+          </div>
+        </DiscoveryBar>
 
-      <section className="app-section">
-        <SectionHeader title="Trade board" subtitle="Structured posts with value bands, ownership, and offer activity." />
+        <div className="trades-stats-row">
+          <StatPill label="Visible posts" value={posts.length} />
+          <StatPill label="Open now" value={openCount} />
+          <StatPill label="Scope" value={scope === "MINE" ? "My posts" : scope.toLowerCase()} />
+        </div>
 
-        {!loading && posts.length === 0 ? (
-          <EmptyStateCard title="No active trade posts right now." description="Try another status filter or check back when collectors publish new wants." />
+        {!session?.user?.id && scope === "MINE" ? (
+          <EmptyStateCard
+            title="Sign in to view your trade posts."
+            description="Your own trade activity stays separate from the public board."
+            action={<PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>}
+          />
         ) : null}
 
-        <div className="trade-board-grid">
-          {posts.map((post) => {
-            const image = post.images[0]?.url || "";
-            const canRenderImage = isValidImageUrl(image);
-            const tags = toTagArray(post.tags).slice(0, 3);
-            return (
-              <Link
-                key={post.id}
-                href={`/trades/${encodeURIComponent(post.id)}`}
-                className="trade-board-card product-card"
-              >
-                <div className="trade-board-media">
-                  {canRenderImage ? (
-                    <img
-                      src={image}
-                      alt={post.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <Image
-                      src={resolveDisplayMediaUrl(null)}
-                      alt="Card placeholder"
-                      fill
-                      sizes="(max-width: 900px) 100vw, 260px"
-                      className="object-cover"
-                    />
-                  )}
-                </div>
+        {error ? <EmptyStateCard title="Trade board unavailable" description={error} /> : null}
+      </section>
 
-                <div className="trade-board-body">
-                  <div className="trade-board-topline">
-                    <span className={statusChip(post.status)}>{post.status}</span>
-                    <span className="trade-board-date">{formatTradeDate(post.createdAt)}</span>
+      <section className="app-screen-section">
+        {loading ? <CheckersLoader title="Loading trades..." compact className="ios-empty" /> : null}
+
+        <section className="app-section">
+          <SectionHeader title="Trade board" subtitle="Structured posts with value bands, ownership, and offer activity." />
+
+          {!loading && posts.length === 0 ? (
+            <EmptyStateCard title="No active trade posts right now." description="Try another status filter or check back when collectors publish new wants." />
+          ) : null}
+
+          <div className="trade-board-grid">
+            {posts.map((post) => {
+              const image = post.images[0]?.url || "";
+              const canRenderImage = isValidImageUrl(image);
+              const tags = toTagArray(post.tags).slice(0, 3);
+              return (
+                <Link
+                  key={post.id}
+                  href={`/trades/${encodeURIComponent(post.id)}`}
+                  className="trade-board-card product-card"
+                >
+                  <div className="trade-board-media">
+                    {canRenderImage ? (
+                      <img
+                        src={image}
+                        alt={post.title}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src={resolveDisplayMediaUrl(null)}
+                        alt="Card placeholder"
+                        fill
+                        sizes="(max-width: 900px) 100vw, 260px"
+                        className="object-cover"
+                      />
+                    )}
                   </div>
-                  <h2>{post.title}</h2>
-                  <p className="trade-board-copy">{post.lookingFor}</p>
-                  <div className="trade-board-meta">
-                    <span>{tradeValueLabel(post.valueMin, post.valueMax)}</span>
-                    <span>{post._count.offers} offers</span>
-                    <span>{post.owner.displayName ?? post.owner.username ?? "Collector"}</span>
-                  </div>
-                  {tags.length > 0 ? (
-                    <div className="trade-board-tags">
-                      {tags.map((tag) => (
-                        <span key={tag}>{tag}</span>
-                      ))}
+
+                  <div className="trade-board-body">
+                    <div className="trade-board-topline">
+                      <span className={statusChip(post.status)}>{post.status}</span>
+                      <span className="trade-board-date">{formatTradeDate(post.createdAt)}</span>
                     </div>
-                  ) : null}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+                    <h2>{post.title}</h2>
+                    <p className="trade-board-copy">{post.lookingFor}</p>
+                    <div className="trade-board-meta">
+                      <span>{tradeValueLabel(post.valueMin, post.valueMax)}</span>
+                      <span>{post._count.offers} offers</span>
+                      <span>{post.owner.displayName ?? post.owner.username ?? "Collector"}</span>
+                    </div>
+                    {tags.length > 0 ? (
+                      <div className="trade-board-tags">
+                        {tags.map((tag) => (
+                          <span key={tag}>{tag}</span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
       </section>
     </PageContainer>
   );
