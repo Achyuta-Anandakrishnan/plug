@@ -14,10 +14,7 @@ export function ListingSection({ listings, density, buyLoadingId, onBuyNow }: Li
   return (
     <section className="market-v2-listings-section" aria-label="Marketplace listings">
       <div className="market-v2-listings-head">
-        <div>
-          <p className="market-v2-section-kicker">Inventory</p>
-          <h2 className="market-v2-section-title">Collector inventory</h2>
-        </div>
+        <h2 className="market-v2-section-title">Inventory</h2>
         <p className="market-v2-count">{listings.length} items</p>
       </div>
 

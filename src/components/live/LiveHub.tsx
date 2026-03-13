@@ -3,9 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import { LiveFilters } from "@/components/live/LiveFilters";
-import { LiveHero } from "@/components/live/LiveHero";
 import { LiveNowRail } from "@/components/live/LiveNowRail";
-import { LiveValueSection } from "@/components/live/LiveValueSection";
 import { StreamerSpotlight } from "@/components/live/StreamerSpotlight";
 import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveStreamTypeFilter, LiveTimingFilter, SpotlightHost } from "@/components/live/types";
 import { UpcomingStreamsSection } from "@/components/live/UpcomingStreamsSection";
@@ -142,14 +140,6 @@ export function LiveHub() {
     [upcomingStreams, query, category, streamType, sort],
   );
 
-  const liveCategories = useMemo(() => {
-    const values = new Set<string>();
-    for (const stream of liveStreams) {
-      values.add(streamCategory(stream));
-    }
-    return values.size;
-  }, [liveStreams]);
-
   const spotlightHosts = useMemo(
     () => buildSpotlightHosts(filteredLive, filteredUpcoming),
     [filteredLive, filteredUpcoming],
@@ -169,14 +159,13 @@ export function LiveHub() {
 
   const hasError = liveError || upcomingError;
   const loading = liveLoading || upcomingLoading;
+  const showUpcomingFirst = timing === "upcoming";
 
   return (
     <div className="live-v3-page">
-      <LiveHero
-        liveCount={liveStreams.length}
-        upcomingCount={upcomingStreams.length}
-        activeCategories={liveCategories}
-      />
+      <section className="live-v3-page-head">
+        <h1>Live</h1>
+      </section>
 
       <LiveFilters
         query={query}
@@ -195,7 +184,7 @@ export function LiveHub() {
         <CheckersLoader title="Loading live sessions..." compact className="live-v3-empty" />
       ) : (
         <>
-          {timing === "upcoming" ? (
+          {showUpcomingFirst ? (
             <>
               <UpcomingStreamsSection
                 streams={filteredUpcoming}
@@ -218,8 +207,6 @@ export function LiveHub() {
           <StreamerSpotlight hosts={spotlightHosts} />
         </>
       )}
-
-      <LiveValueSection />
 
       {hasError ? <div className="live-v3-error">Unable to load parts of live data right now.</div> : null}
     </div>

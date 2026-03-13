@@ -8,13 +8,7 @@ type StreamerSpotlightProps = {
 export function StreamerSpotlight({ hosts }: StreamerSpotlightProps) {
   return (
     <section className="live-v3-spotlight">
-      <div className="live-v3-section-head">
-        <div>
-          <p>Hosts to watch</p>
-          <h2>Streamers driving the market</h2>
-        </div>
-        <p className="live-v3-section-copy">Discover reliable sellers and follow their upcoming shows.</p>
-      </div>
+      <h2 className="live-v3-section-title">Hosts to watch</h2>
 
       {hosts.length === 0 ? (
         <div className="live-v3-empty">No host highlights yet.</div>

@@ -135,14 +135,6 @@ export function MarketHub() {
     [liveListings],
   );
 
-  const newlyListed = useMemo(
-    () =>
-      [...liveListings]
-        .sort((a, b) => parseCreatedAt(b) - parseCreatedAt(a))
-        .slice(0, 6),
-    [liveListings],
-  );
-
   const setMode = (mode: MarketMode) => {
     const params = new URLSearchParams(searchParams.toString());
     if (mode === "all") {
@@ -202,11 +194,6 @@ export function MarketHub() {
         }
       />
 
-      <div className="market-v2-live-cta">
-        <span>Want real-time action?</span>
-        <Link href="/live">Open Live</Link>
-      </div>
-
       {listingsError ? (
         <div className="market-v2-error">{listingsError}</div>
       ) : null}
@@ -217,10 +204,7 @@ export function MarketHub() {
         <section className="market-v2-modules">
           <article className="market-v2-module">
             <div className="market-v2-module-head">
-              <div>
-                <p className="market-v2-section-kicker">Trending auctions</p>
-                <h2 className="market-v2-section-title">Most watched right now</h2>
-              </div>
+              <h2 className="market-v2-section-title">Trending auctions</h2>
             </div>
             {trendingAuctions.length === 0 ? (
               <div className="market-v2-empty">No trending auctions yet.</div>
@@ -245,47 +229,6 @@ export function MarketHub() {
                         <h3>{entry.title}</h3>
                         <p>{entry.watchersCount} watching</p>
                         <span>{formatCurrency(entry.currentBid, currency)}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </article>
-
-          <article className="market-v2-module">
-            <div className="market-v2-module-head">
-              <div>
-                <p className="market-v2-section-kicker">Newly listed</p>
-                <h2 className="market-v2-section-title">Fresh inventory</h2>
-              </div>
-            </div>
-            {newlyListed.length === 0 ? (
-              <div className="market-v2-empty">No new listings available.</div>
-            ) : (
-              <div className="market-v2-module-grid">
-                {newlyListed.map((entry) => {
-                  const currency = entry.currency?.toUpperCase() || "USD";
-                  const image = resolveDisplayMediaUrl(getPrimaryImageUrl(entry), "/placeholders/pokemon-generic.svg");
-                  const price = entry.listingType === "AUCTION"
-                    ? formatCurrency(entry.currentBid, currency)
-                    : formatCurrency(entry.buyNowPrice ?? entry.currentBid, currency);
-                  return (
-                    <Link key={entry.id} href={`/auctions/${entry.id}`} className="market-v2-module-card">
-                      <div className="market-v2-module-thumb">
-                        <Image
-                          src={image}
-                          alt={entry.title}
-                          fill
-                          sizes="(max-width: 900px) 50vw, 240px"
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-                      <div>
-                        <h3>{entry.title}</h3>
-                        <p>{entry.category?.name ?? "Collectible"}</p>
-                        <span>{price}</span>
                       </div>
                     </Link>
                   );
