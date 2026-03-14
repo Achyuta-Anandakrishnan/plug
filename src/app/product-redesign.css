@@ -302,6 +302,12 @@ main.page-container.mobile-safe-main {
   gap: 20px;
 }
 
+.app-page,
+.app-screen-section,
+.app-section {
+  width: 100%;
+}
+
 .app-section {
   display: grid;
   gap: 12px;

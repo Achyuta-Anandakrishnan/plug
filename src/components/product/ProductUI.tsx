@@ -94,7 +94,7 @@ function ProductButton({
 }
 
 export function PageContainer({ children, className }: PageContainerProps) {
-  return <div className={classNames("app-page", className)}>{children}</div>;
+  return <div className={classNames("site-shell", "app-page", className)}>{children}</div>;
 }
 
 export function PageHeader({
