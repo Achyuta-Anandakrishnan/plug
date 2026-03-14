@@ -146,7 +146,7 @@ export function MarketHub() {
       [...liveListings]
         .filter((entry) => entry.listingType !== "BUY_NOW")
         .sort((a, b) => b.watchersCount - a.watchersCount)
-        .slice(0, 3),
+        .slice(0, 4),
     [liveListings],
   );
 
@@ -192,8 +192,8 @@ export function MarketHub() {
   };
 
   return (
-    <PageContainer className="market-page app-page--market app-page--snap">
-      <section className="app-screen-section">
+    <PageContainer className="market-page app-page--market">
+      <section className="app-section market-overview">
         <DiscoveryBar className="app-control-bar market-toolbar">
           <div className="app-control-title">Marketplace</div>
           <div className="app-search">
@@ -236,59 +236,57 @@ export function MarketHub() {
         {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
         {statusMessage ? <div className="app-inline-note">{statusMessage}</div> : null}
 
-        <section className="app-section">
-          <SectionHeader
-            title="Trending auctions"
-            subtitle="The most watched inventory live right now."
-            action={<SecondaryButton href="/live">See what is live</SecondaryButton>}
-          />
-          {listingsLoading ? (
-            <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
-          ) : trendingAuctions.length === 0 ? (
-            <EmptyStateCard title="No trending auctions yet." description="Once streams and listings are live, the most watched auctions will surface here." />
-          ) : (
-            <div className="market-featured-grid">
-              {trendingAuctions.map((listing) => (
-                <ListingCard
-                  key={listing.id}
-                  listing={listing}
-                  buyLoading={buyLoadingId === listing.id}
-                  onBuyNow={startBuyNow}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+        {trendingAuctions.length > 0 || listingsLoading ? (
+          <section className="app-section market-discovery-section">
+            <SectionHeader
+              title="Trending auctions"
+              subtitle="Most watched inventory live right now."
+              action={<SecondaryButton href="/live">See what is live</SecondaryButton>}
+            />
+            {listingsLoading ? (
+              <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
+            ) : (
+              <div className="market-featured-grid">
+                {trendingAuctions.map((listing) => (
+                  <ListingCard
+                    key={listing.id}
+                    listing={listing}
+                    buyLoading={buyLoadingId === listing.id}
+                    onBuyNow={startBuyNow}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        ) : null}
       </section>
 
-      <section className="app-screen-section">
-        <section className="app-section market-inventory-section">
-          <SectionHeader
-            title="Inventory"
-            subtitle="The main product surface for browsing and comparing listings."
-            action={<span className="market-count">{sortedListings.length} items</span>}
+      <section className="app-section market-inventory-section">
+        <SectionHeader
+          title="Inventory"
+          subtitle="Browse live listings and compare them fast."
+          action={<span className="market-count">{sortedListings.length} items</span>}
+        />
+
+        {listingsLoading ? (
+          <EmptyStateCard title="Loading listings" description="Inventory is on the way." />
+        ) : sortedListings.length === 0 ? (
+          <EmptyStateCard title="No listings match these filters." description="Try broadening the search, switching modes, or clearing a category." />
+        ) : (
+          <ListingGrid
+            listings={sortedListings}
+            buyLoadingId={buyLoadingId}
+            onBuyNow={startBuyNow}
           />
+        )}
+      </section>
 
-          {listingsLoading ? (
-            <EmptyStateCard title="Loading listings" description="Inventory is on the way." />
-          ) : sortedListings.length === 0 ? (
-            <EmptyStateCard title="No listings match these filters." description="Try broadening the search, switching modes, or clearing a category." />
-          ) : (
-            <ListingGrid
-              listings={sortedListings}
-              buyLoadingId={buyLoadingId}
-              onBuyNow={startBuyNow}
-            />
-          )}
-        </section>
-
-        <section className="market-link-strip">
-          <div>
-            <strong>Prefer real-time browsing?</strong>
-            <p>See active rooms and upcoming shows without leaving the marketplace.</p>
-          </div>
-          <Link href="/live">Open Live</Link>
-        </section>
+      <section className="market-link-strip">
+        <div>
+          <strong>Prefer real-time browsing?</strong>
+          <p>See active rooms and upcoming shows without leaving the marketplace.</p>
+        </div>
+        <Link href="/live">Open Live</Link>
       </section>
     </PageContainer>
   );

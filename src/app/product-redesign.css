@@ -19,7 +19,7 @@
   --product-shadow-soft: 0 4px 12px rgba(15, 23, 42, 0.04);
   --product-radius: 20px;
   --product-radius-sm: 14px;
-  --product-max: 1200px;
+  --product-max: 1440px;
   --product-shell-max: calc(var(--product-max) + (var(--app-shell-pad) * 2));
 }
 
@@ -857,6 +857,36 @@ main.page-container.mobile-safe-main {
   gap: 20px;
 }
 
+.market-page {
+  gap: 18px;
+}
+
+.market-page .app-section {
+  gap: 14px;
+}
+
+.market-overview {
+  gap: 14px;
+}
+
+.market-toolbar {
+  gap: 12px;
+}
+
+.market-toolbar .app-search {
+  flex: 1 1 380px;
+  min-width: 320px;
+}
+
+.market-toolbar .app-chip-row {
+  flex: 1 1 300px;
+}
+
+.market-discovery-section,
+.market-inventory-section {
+  gap: 14px;
+}
+
 .market-toolbar-row,
 .live-toolbar-row,
 .forum-toolbar-row {
@@ -864,6 +894,8 @@ main.page-container.mobile-safe-main {
 }
 
 .market-featured-grid {
+  display: grid;
+  gap: 20px;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
@@ -875,19 +907,22 @@ main.page-container.mobile-safe-main {
   text-transform: uppercase;
 }
 
+.market-page .market-v2-grid,
 .market-v2-grid {
   display: grid;
-  gap: 16px;
+  gap: 20px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 @media (min-width: 1180px) {
+  .market-page .market-v2-grid,
   .market-v2-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1440px) {
+  .market-page .market-v2-grid,
   .market-v2-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
@@ -1076,7 +1111,8 @@ main.page-container.mobile-safe-main {
 
 .market-link-strip {
   justify-content: space-between;
-  padding: 0;
+  margin-top: 2px;
+  padding: 4px 0 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -1460,6 +1496,7 @@ main.page-container.mobile-safe-main {
   .trade-board-grid,
   .live-v3-upcoming-grid,
   .live-v3-spotlight-grid,
+  .market-page .market-v2-grid,
   .market-v2-grid {
     grid-template-columns: 1fr;
   }
@@ -1526,6 +1563,7 @@ main.page-container.mobile-safe-main {
   .live-v3-upcoming-grid,
   .live-v3-spotlight-grid,
   .live-v3-featured-grid,
+  .market-page .market-v2-grid,
   .market-v2-grid {
     grid-template-columns: 1fr;
   }

@@ -1,4 +1,4 @@
-import type { LiveCategoryFilter, LiveSortMode, LiveStreamTypeFilter, LiveTimingFilter } from "@/components/live/types";
+import type { LiveCategoryFilter, LiveSortMode, LiveTimingFilter } from "@/components/live/types";
 import { DiscoveryBar, FilterChip, SegmentedControl } from "@/components/product/ProductUI";
 
 const CATEGORY_OPTIONS: Array<{ value: LiveCategoryFilter; label: string }> = [
@@ -6,13 +6,6 @@ const CATEGORY_OPTIONS: Array<{ value: LiveCategoryFilter; label: string }> = [
   { value: "sports", label: "Sports" },
   { value: "anime", label: "Anime" },
   { value: "funko", label: "Funko" },
-];
-
-const TYPE_OPTIONS: Array<{ value: LiveStreamTypeFilter; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "live-breaks", label: "Live breaks" },
-  { value: "auctions", label: "Auctions" },
-  { value: "seller-shows", label: "Seller shows" },
 ];
 
 const SORT_OPTIONS: Array<{ value: LiveSortMode; label: string }> = [
@@ -33,8 +26,6 @@ type LiveFiltersProps = {
   onQueryChange: (value: string) => void;
   category: LiveCategoryFilter;
   onCategoryChange: (value: LiveCategoryFilter) => void;
-  streamType: LiveStreamTypeFilter;
-  onStreamTypeChange: (value: LiveStreamTypeFilter) => void;
   sort: LiveSortMode;
   onSortChange: (value: LiveSortMode) => void;
   timing: LiveTimingFilter;
@@ -47,8 +38,6 @@ export function LiveFilters({
   onQueryChange,
   category,
   onCategoryChange,
-  streamType,
-  onStreamTypeChange,
   sort,
   onSortChange,
   timing,
@@ -78,7 +67,6 @@ export function LiveFilters({
           />
         ))}
       </div>
-      <SegmentedControl options={TYPE_OPTIONS} value={streamType} onChange={onStreamTypeChange} />
       <label className="app-select-wrap app-select-inline">
         <span>Sort</span>
         <select value={sort} onChange={(event) => onSortChange(event.target.value as LiveSortMode)} className="app-select">
