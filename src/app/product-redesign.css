@@ -60,14 +60,19 @@ main.page-container.mobile-safe-main {
 
 .site-header-row,
 .site-footer-row {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 24px;
 }
 
 .site-header-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   min-height: var(--app-header-height);
+}
+
+.site-footer-row {
+  display: flex;
+  justify-content: space-between;
 }
 
 .site-header-left,
@@ -89,8 +94,15 @@ main.page-container.mobile-safe-main {
   width: auto;
 }
 
+.site-header-left {
+  justify-self: start;
+}
+
 .site-nav {
   gap: 10px;
+  justify-self: center;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .site-nav-link,
@@ -129,6 +141,11 @@ main.page-container.mobile-safe-main {
 
 .site-account-menu {
   position: relative;
+}
+
+.site-header-actions {
+  justify-self: end;
+  white-space: nowrap;
 }
 
 .site-account-menu summary {
