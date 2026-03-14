@@ -492,6 +492,11 @@ main.page-container.mobile-safe-main {
   flex-shrink: 0;
 }
 
+.app-toolbar-spacer {
+  flex: 1 1 auto;
+  min-width: 24px;
+}
+
 .app-select-wrap.app-select-inline {
   display: flex;
   align-items: center;

@@ -276,6 +276,7 @@ export function MessagesClient() {
               placeholder="Search conversations"
             />
           </div>
+          <div className="app-toolbar-spacer" aria-hidden="true" />
         </DiscoveryBar>
 
         {error ? <EmptyStateCard title="Messages unavailable" description={error} /> : null}

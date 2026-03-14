@@ -146,6 +146,7 @@ export function ForumClient() {
               />
             ) : null}
           </div>
+          <div className="app-toolbar-spacer" aria-hidden="true" />
           <button type="button" onClick={() => void handleSearch()} className="app-button app-button-primary">
             Search
           </button>

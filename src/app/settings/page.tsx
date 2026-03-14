@@ -17,6 +17,7 @@ export default function SettingsPage() {
       <section className="app-section">
         <DiscoveryBar className="app-control-bar settings-toolbar">
           <div className="app-control-title">Settings</div>
+          <div className="app-toolbar-spacer" aria-hidden="true" />
           {session?.user?.id ? (
             <SecondaryButton onClick={() => void signOut()}>Sign out</SecondaryButton>
           ) : (

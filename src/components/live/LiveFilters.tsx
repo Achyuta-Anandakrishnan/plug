@@ -67,6 +67,7 @@ export function LiveFilters({
           />
         ))}
       </div>
+      <div className="app-toolbar-spacer" aria-hidden="true" />
       <label className="app-select-wrap app-select-inline">
         <span>Sort</span>
         <select value={sort} onChange={(event) => onSortChange(event.target.value as LiveSortMode)} className="app-select">

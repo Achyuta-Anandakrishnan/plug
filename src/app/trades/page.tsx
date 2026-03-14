@@ -114,6 +114,7 @@ export default function TradesPage() {
               />
             ))}
           </div>
+          <div className="app-toolbar-spacer" aria-hidden="true" />
           <PrimaryButton href="/trades/new">New trade</PrimaryButton>
         </DiscoveryBar>
 

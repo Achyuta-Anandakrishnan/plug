@@ -217,6 +217,7 @@ export function MarketHub() {
               />
             ))}
           </div>
+          <div className="app-toolbar-spacer" aria-hidden="true" />
           <label className="app-select-wrap app-select-inline">
             <span>Sort</span>
             <select
