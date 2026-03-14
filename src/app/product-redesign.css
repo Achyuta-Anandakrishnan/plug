@@ -1,7 +1,7 @@
 :root {
   --app-header-height: 72px;
   --app-footer-height: 80px;
-  --app-shell-pad: 24px;
+  --app-shell-pad: clamp(24px, 3vw, 40px);
   --app-frame-height: calc(100svh - var(--app-header-height) - var(--app-footer-height));
   --product-bg: #f7f8fa;
   --product-surface: #ffffff;
@@ -19,8 +19,6 @@
   --product-shadow-soft: 0 4px 12px rgba(15, 23, 42, 0.04);
   --product-radius: 20px;
   --product-radius-sm: 14px;
-  --product-max: 1440px;
-  --product-shell-max: calc(var(--product-max) + (var(--app-shell-pad) * 2));
 }
 
 html,
@@ -53,7 +51,7 @@ main.page-container.mobile-safe-main {
 .site-shell {
   box-sizing: border-box;
   width: 100%;
-  max-width: var(--product-shell-max);
+  max-width: none;
   margin: 0 auto;
   padding-inline: var(--app-shell-pad);
 }
@@ -293,7 +291,7 @@ main.page-container.mobile-safe-main {
 .app-page {
   box-sizing: border-box;
   width: 100%;
-  max-width: var(--product-shell-max);
+  max-width: none;
   margin: 0 auto;
   min-height: var(--app-frame-height);
   padding: 16px var(--app-shell-pad) 20px;
@@ -929,7 +927,7 @@ main.page-container.mobile-safe-main {
 
 .market-featured-grid.is-sparse {
   grid-template-columns: repeat(auto-fit, minmax(260px, 340px));
-  justify-content: center;
+  justify-content: start;
 }
 
 .market-count {
@@ -950,7 +948,7 @@ main.page-container.mobile-safe-main {
 .market-page .market-v2-grid.is-sparse,
 .market-v2-grid.is-sparse {
   grid-template-columns: repeat(auto-fit, minmax(260px, 340px));
-  justify-content: center;
+  justify-content: start;
 }
 
 @media (min-width: 1180px) {
@@ -1217,18 +1215,18 @@ main.page-container.mobile-safe-main {
 
 .live-v3-live-grid.is-compact {
   grid-template-columns: repeat(auto-fit, minmax(240px, 280px));
-  justify-content: center;
+  justify-content: start;
 }
 
 .live-page .live-v3-live-grid.is-compact {
   grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
-  justify-content: center;
+  justify-content: start;
 }
 
 .live-v3-upcoming-grid.is-sparse,
 .live-v3-spotlight-grid.is-sparse {
   grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
-  justify-content: center;
+  justify-content: start;
 }
 
 .live-v3-stream-card.is-featured .live-v3-stream-media,
