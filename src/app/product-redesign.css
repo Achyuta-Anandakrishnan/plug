@@ -1,6 +1,8 @@
 :root {
   --app-header-height: 72px;
   --app-footer-height: 80px;
+  --app-shell-pad: 24px;
+  --app-frame-height: calc(100svh - var(--app-header-height) - var(--app-footer-height));
   --product-bg: #f7f8fa;
   --product-surface: #ffffff;
   --product-surface-muted: #f9fafb;
@@ -18,6 +20,7 @@
   --product-radius: 20px;
   --product-radius-sm: 14px;
   --product-max: 1200px;
+  --product-shell-max: calc(var(--product-max) + (var(--app-shell-pad) * 2));
 }
 
 html,
@@ -35,7 +38,7 @@ main.page-container.mobile-safe-main {
   max-width: none;
   margin: 0;
   padding: 0;
-  min-height: calc(100svh - var(--app-header-height) - var(--app-footer-height));
+  min-height: var(--app-frame-height);
 }
 
 .site-header {
@@ -49,9 +52,10 @@ main.page-container.mobile-safe-main {
 
 .site-shell {
   box-sizing: border-box;
-  width: min(100%, var(--product-max));
+  width: 100%;
+  max-width: var(--product-shell-max);
   margin: 0 auto;
-  padding-inline: 24px;
+  padding-inline: var(--app-shell-pad);
 }
 
 .site-header-row,
@@ -271,10 +275,11 @@ main.page-container.mobile-safe-main {
 
 .app-page {
   box-sizing: border-box;
-  width: min(100%, var(--product-max));
+  width: 100%;
+  max-width: var(--product-shell-max);
   margin: 0 auto;
-  min-height: calc(100svh - var(--app-header-height) - var(--app-footer-height));
-  padding: 16px 24px 20px;
+  min-height: var(--app-frame-height);
+  padding: 16px var(--app-shell-pad) 20px;
   display: grid;
   align-content: start;
   gap: 20px;
@@ -1094,6 +1099,16 @@ main.page-container.mobile-safe-main {
   gap: 48px;
 }
 
+.live-page .live-v3-live-now,
+.live-page .live-v3-upcoming,
+.live-page .live-v3-spotlight {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .live-v3-live-now,
 .live-v3-upcoming,
 .live-v3-spotlight {
@@ -1127,6 +1142,11 @@ main.page-container.mobile-safe-main {
 
 .live-v3-live-grid.is-compact {
   grid-template-columns: repeat(auto-fit, minmax(240px, 280px));
+  justify-content: start;
+}
+
+.live-page .live-v3-live-grid.is-compact {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
   justify-content: start;
 }
 
@@ -1271,6 +1291,14 @@ main.page-container.mobile-safe-main {
   grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
+}
+
+.settings-page {
+  gap: 18px;
+}
+
+.settings-panel {
+  padding: 18px;
 }
 
 .messages-sidebar,
@@ -1444,11 +1472,7 @@ main.page-container.mobile-safe-main {
 @media (max-width: 768px) {
   :root {
     --app-footer-height: 0px;
-  }
-
-  .site-shell,
-  .app-page {
-    padding-inline: 16px;
+    --app-shell-pad: 16px;
   }
 
   .site-footer {
@@ -1514,7 +1538,7 @@ main.page-container.mobile-safe-main {
 @media (min-width: 1025px) {
   .home-app-page,
   .app-page--snap {
-    height: calc(100svh - var(--app-header-height) - var(--app-footer-height));
+    height: var(--app-frame-height);
     overflow-y: auto;
     scroll-snap-type: y mandatory;
     scrollbar-width: none;
@@ -1530,7 +1554,7 @@ main.page-container.mobile-safe-main {
 
   .home-scroll-section,
   .app-page--snap > .app-screen-section {
-    min-height: calc(100svh - var(--app-header-height) - var(--app-footer-height));
+    min-height: var(--app-frame-height);
     scroll-snap-align: start;
     display: grid;
     align-content: start;
@@ -1539,7 +1563,7 @@ main.page-container.mobile-safe-main {
   }
 
   .home-scroll-section {
-    height: calc(100svh - var(--app-header-height) - var(--app-footer-height));
+    height: var(--app-frame-height);
     min-height: 0;
   }
 

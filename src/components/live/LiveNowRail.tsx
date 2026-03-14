@@ -9,8 +9,9 @@ type LiveNowRailProps = {
 
 export function LiveNowRail({ streams, loading }: LiveNowRailProps) {
   const visibleStreams = streams.slice(0, 16);
-  const featuredStreams = visibleStreams.slice(0, 4);
-  const gridStreams = visibleStreams.slice(4);
+  const useSingleGrid = visibleStreams.length <= 4;
+  const featuredStreams = useSingleGrid ? [] : visibleStreams.slice(0, 4);
+  const gridStreams = useSingleGrid ? visibleStreams : visibleStreams.slice(4);
   const useCompactGrid = gridStreams.length > 0 && gridStreams.length < 4;
 
   return (
@@ -19,6 +20,15 @@ export function LiveNowRail({ streams, loading }: LiveNowRailProps) {
         <EmptyStateCard title="Loading live streams" description="Active rooms will appear here in a moment." />
       ) : visibleStreams.length === 0 ? (
         <EmptyStateCard title="No active streams right now." description="Check back soon or browse upcoming sessions below." />
+      ) : useSingleGrid ? (
+        <div className="live-v3-live-grid-wrap">
+          <SectionHeader title="Live now" subtitle="Join the active rooms on the floor right now." />
+          <div className={`live-v3-live-grid ${useCompactGrid ? "is-compact" : ""}`}>
+            {gridStreams.map((stream) => (
+              <LiveStreamCard key={stream.id} stream={stream} layout="grid" />
+            ))}
+          </div>
+        </div>
       ) : (
         <>
           {featuredStreams.length > 0 ? (

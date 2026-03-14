@@ -6,9 +6,9 @@ import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import {
+  DiscoveryBar,
   EmptyStateCard,
   PageContainer,
-  PageHeader,
   PrimaryButton,
   SecondaryButton,
 } from "@/components/product/ProductUI";
@@ -248,7 +248,9 @@ export function MessagesClient() {
     return (
       <PageContainer className="messages-page app-page--messages app-page--snap">
         <section className="app-screen-section">
-          <PageHeader title="Messages" subtitle="Keep negotiation, logistics, and support threads in one inbox." />
+          <DiscoveryBar className="app-control-bar messages-toolbar">
+            <div className="app-control-title">Messages</div>
+          </DiscoveryBar>
           <EmptyStateCard
             title="Sign in to view your inbox."
             description="Your active deals and collector conversations will show up here."
@@ -262,24 +264,25 @@ export function MessagesClient() {
   return (
     <PageContainer className="messages-page app-page--messages app-page--snap">
       <section className="app-screen-section app-screen-section--messages">
-        <PageHeader title="Messages" subtitle="Keep negotiation, logistics, and support threads in one inbox." />
+        <DiscoveryBar className="app-control-bar messages-toolbar">
+          <div className="app-control-title">Messages</div>
+          <div className="app-search">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
+            </svg>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search conversations"
+            />
+          </div>
+        </DiscoveryBar>
 
         {error ? <EmptyStateCard title="Messages unavailable" description={error} /> : null}
 
         <section className="messages-layout">
         {showThreadsPane ? (
           <aside className="messages-sidebar product-card">
-            <div className="app-search">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
-              </svg>
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search conversations"
-              />
-            </div>
-
             {loading ? (
               <CheckersLoader title="Loading conversations..." compact className="ios-empty" />
             ) : filtered.length === 0 ? (
