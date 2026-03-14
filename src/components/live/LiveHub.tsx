@@ -7,7 +7,7 @@ import { LiveNowRail } from "@/components/live/LiveNowRail";
 import { StreamerSpotlight } from "@/components/live/StreamerSpotlight";
 import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveStreamTypeFilter, LiveTimingFilter, SpotlightHost } from "@/components/live/types";
 import { UpcomingStreamsSection } from "@/components/live/UpcomingStreamsSection";
-import { EmptyStateCard, PageContainer, PageHeader } from "@/components/product/ProductUI";
+import { EmptyStateCard, PageContainer } from "@/components/product/ProductUI";
 import { categoryMatches, filterByStreamType, searchMatches, sortLiveStreams, sortUpcomingStreams, streamCategory, streamHost, withStreamState } from "@/components/live/utils";
 import { useAuctions } from "@/hooks/useAuctions";
 
@@ -165,9 +165,8 @@ export function LiveHub() {
   return (
     <PageContainer className="live-v3-page live-page app-page--live app-page--snap">
       <section className="app-screen-section">
-        <PageHeader title="Live" subtitle="Browse active streams and upcoming shows." />
-
         <LiveFilters
+          title="Live"
           query={query}
           onQueryChange={setQuery}
           category={category}

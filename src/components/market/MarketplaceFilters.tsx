@@ -1,6 +1,6 @@
 "use client";
 
-import type { GridDensity, SortMode } from "@/components/market/types";
+import type { SortMode } from "@/components/market/types";
 
 export const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
   { value: "newest", label: "Newest" },
@@ -16,8 +16,6 @@ type MarketplaceFiltersProps = {
   onCategoryChange: (slug: string) => void;
   sort: SortMode;
   onSortChange: (value: SortMode) => void;
-  density: GridDensity;
-  onDensityChange: (value: GridDensity) => void;
 };
 
 export function MarketplaceFilters({
@@ -26,8 +24,6 @@ export function MarketplaceFilters({
   onCategoryChange,
   sort,
   onSortChange,
-  density,
-  onDensityChange,
 }: MarketplaceFiltersProps) {
   return (
     <div className="market-v2-filterbar">
@@ -59,23 +55,6 @@ export function MarketplaceFilters({
             ))}
           </select>
         </label>
-
-        <div className="market-v2-density" role="group" aria-label="Grid density">
-          <button
-            type="button"
-            onClick={() => onDensityChange("comfortable")}
-            className={`market-v2-density-btn ${density === "comfortable" ? "is-active" : ""}`}
-          >
-            Comfy
-          </button>
-          <button
-            type="button"
-            onClick={() => onDensityChange("compact")}
-            className={`market-v2-density-btn ${density === "compact" ? "is-active" : ""}`}
-          >
-            Dense
-          </button>
-        </div>
       </div>
     </div>
   );

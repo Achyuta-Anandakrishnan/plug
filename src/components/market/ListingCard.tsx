@@ -3,19 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import type { GridDensity, MarketListing } from "@/components/market/types";
+import type { MarketListing } from "@/components/market/types";
 import { getGradeLabel, getPrimaryImageUrl, getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 
 type ListingCardProps = {
   listing: MarketListing;
-  density: GridDensity;
   buyLoading: boolean;
   onBuyNow: (auctionId: string) => void;
 };
 
-export function ListingCard({ listing, density, buyLoading, onBuyNow }: ListingCardProps) {
+export function ListingCard({ listing, buyLoading, onBuyNow }: ListingCardProps) {
   const [watching, setWatching] = useState(false);
   const currency = listing.currency?.toUpperCase() || "USD";
   const grade = getGradeLabel(listing.item?.attributes);
@@ -36,14 +35,12 @@ export function ListingCard({ listing, density, buyLoading, onBuyNow }: ListingC
     ? "Buy now"
     : formatSeconds(getTimeLeftSeconds(listing));
 
-  const densityClass = density === "compact" ? "is-compact" : "is-comfy";
-
   useEffect(() => {
     setImageSrc(image);
   }, [image]);
 
   return (
-    <article className={`market-v2-listing-card product-card listing-card ${densityClass}`}>
+    <article className="market-v2-listing-card product-card listing-card">
       <Link href={`/auctions/${listing.id}`} className="market-v2-listing-link">
         <div className="market-v2-listing-media">
           <Image

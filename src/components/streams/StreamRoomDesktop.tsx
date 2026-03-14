@@ -210,7 +210,7 @@ export function StreamRoomDesktop({
   const imageUrl = data.item?.images?.find((img) => img.isPrimary)?.url ?? data.item?.images?.[0]?.url ?? null;
 
   return (
-    <section className="grid h-[calc(100svh-var(--app-header-height)-168px)] max-h-[calc(100svh-var(--app-header-height)-168px)] min-h-[540px] gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+    <section className="grid h-[calc(100svh-var(--app-header-height)-var(--app-footer-height)-132px)] max-h-[calc(100svh-var(--app-header-height)-var(--app-footer-height)-132px)] min-h-[540px] gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
       <div
         ref={streamFrameRef}
         className="relative aspect-video max-h-full overflow-hidden rounded-[28px] border border-white/60 bg-slate-900"

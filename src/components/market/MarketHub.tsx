@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { ListingCard } from "@/components/market/ListingCard";
 import { ListingGrid } from "@/components/market/ListingGrid";
-import type { GridDensity, MarketListing, MarketMode, SortMode } from "@/components/market/types";
+import type { MarketListing, MarketMode, SortMode } from "@/components/market/types";
 import {
   DiscoveryBar,
   EmptyStateCard,
@@ -41,11 +41,6 @@ const MODE_OPTIONS: Array<{ value: MarketMode; label: string }> = [
   { value: "auctions", label: "Auctions" },
 ];
 
-const DENSITY_OPTIONS: Array<{ value: GridDensity; label: string }> = [
-  { value: "comfortable", label: "Comfy" },
-  { value: "compact", label: "Dense" },
-];
-
 const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
   { value: "newest", label: "Newest" },
   { value: "ending", label: "Ending soon" },
@@ -64,7 +59,6 @@ export function MarketHub() {
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
-  const [gridDensity, setGridDensity] = useState<GridDensity>("comfortable");
   const [buyLoadingId, setBuyLoadingId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
 
@@ -237,7 +231,6 @@ export function MarketHub() {
               ))}
             </select>
           </label>
-          <SegmentedControl options={DENSITY_OPTIONS} value={gridDensity} onChange={setGridDensity} />
         </DiscoveryBar>
 
         {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
@@ -259,7 +252,6 @@ export function MarketHub() {
                 <ListingCard
                   key={listing.id}
                   listing={listing}
-                  density="comfortable"
                   buyLoading={buyLoadingId === listing.id}
                   onBuyNow={startBuyNow}
                 />
@@ -284,7 +276,6 @@ export function MarketHub() {
           ) : (
             <ListingGrid
               listings={sortedListings}
-              density={gridDensity}
               buyLoadingId={buyLoadingId}
               onBuyNow={startBuyNow}
             />

@@ -1,16 +1,15 @@
 "use client";
 
-import type { GridDensity, MarketListing } from "@/components/market/types";
+import type { MarketListing } from "@/components/market/types";
 import { ListingGrid } from "@/components/market/ListingGrid";
 
 type ListingSectionProps = {
   listings: MarketListing[];
-  density: GridDensity;
   buyLoadingId: string | null;
   onBuyNow: (auctionId: string) => void;
 };
 
-export function ListingSection({ listings, density, buyLoadingId, onBuyNow }: ListingSectionProps) {
+export function ListingSection({ listings, buyLoadingId, onBuyNow }: ListingSectionProps) {
   return (
     <section className="market-v2-listings-section" aria-label="Marketplace listings">
       <div className="market-v2-listings-head">
@@ -23,7 +22,6 @@ export function ListingSection({ listings, density, buyLoadingId, onBuyNow }: Li
       ) : (
         <ListingGrid
           listings={listings}
-          density={density}
           buyLoadingId={buyLoadingId}
           onBuyNow={onBuyNow}
         />
