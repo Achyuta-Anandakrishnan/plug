@@ -14,7 +14,7 @@ export function StreamerSpotlight({ hosts }: StreamerSpotlightProps) {
       {hosts.length === 0 ? (
         <EmptyStateCard title="No host highlights yet." description="Once host activity picks up, featured collectors will appear here." />
       ) : (
-        <div className="live-v3-spotlight-grid">
+        <div className={`live-v3-spotlight-grid ${hosts.length < 4 ? "is-sparse" : ""}`}>
           {hosts.map((host) => (
             <article key={host.id} className="live-v3-host-card">
               <div className="live-v3-host-avatar" aria-hidden="true">

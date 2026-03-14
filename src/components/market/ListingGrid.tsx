@@ -10,8 +10,10 @@ type ListingGridProps = {
 };
 
 export function ListingGrid({ listings, buyLoadingId, onBuyNow }: ListingGridProps) {
+  const sparse = listings.length > 0 && listings.length < 4;
+
   return (
-    <div className="market-v2-grid">
+    <div className={`market-v2-grid ${sparse ? "is-sparse" : ""}`}>
       {listings.map((listing) => (
         <ListingCard
           key={listing.id}

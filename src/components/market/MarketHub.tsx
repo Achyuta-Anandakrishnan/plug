@@ -247,7 +247,7 @@ export function MarketHub() {
             {listingsLoading ? (
               <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
             ) : (
-              <div className="market-featured-grid">
+              <div className={`market-featured-grid ${trendingAuctions.length < 4 ? "is-sparse" : ""}`}>
                 {trendingAuctions.map((listing) => (
                   <ListingCard
                     key={listing.id}

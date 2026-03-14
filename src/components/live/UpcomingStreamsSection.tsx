@@ -18,7 +18,7 @@ export function UpcomingStreamsSection({ streams, reminders, onToggleReminder }:
       {visibleStreams.length === 0 ? (
         <EmptyStateCard title="No upcoming streams scheduled yet." description="Once hosts publish future sessions, they will appear here." />
       ) : (
-        <div className="live-v3-upcoming-grid">
+        <div className={`live-v3-upcoming-grid ${visibleStreams.length < 4 ? "is-sparse" : ""}`}>
           {visibleStreams.map((stream) => (
             <LiveStreamCard
               key={stream.id}
