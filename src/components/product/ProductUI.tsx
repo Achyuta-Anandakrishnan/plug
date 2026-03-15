@@ -6,6 +6,11 @@ type PageContainerProps = {
   className?: string;
 };
 
+type AppContainerProps = {
+  children: ReactNode;
+  className?: string;
+};
+
 type PageHeaderProps = {
   title: string;
   subtitle?: string;
@@ -94,7 +99,11 @@ function ProductButton({
 }
 
 export function PageContainer({ children, className }: PageContainerProps) {
-  return <div className={classNames("site-shell", "app-page", className)}>{children}</div>;
+  return <AppContainer className={classNames("app-page", className)}>{children}</AppContainer>;
+}
+
+export function AppContainer({ children, className }: AppContainerProps) {
+  return <div className={classNames("app-container", className)}>{children}</div>;
 }
 
 export function PageHeader({

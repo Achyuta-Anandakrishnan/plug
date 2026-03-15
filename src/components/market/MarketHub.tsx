@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { ListingCard } from "@/components/market/ListingCard";
 import { ListingGrid } from "@/components/market/ListingGrid";
-import type { MarketListing, MarketMode, SortMode } from "@/components/market/types";
+import type { GridDensity, MarketListing, MarketMode, SortMode } from "@/components/market/types";
 import {
   DiscoveryBar,
   EmptyStateCard,
@@ -49,6 +49,11 @@ const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
   { value: "popular", label: "Most watched" },
 ];
 
+const DENSITY_OPTIONS: Array<{ value: GridDensity; label: string }> = [
+  { value: "comfortable", label: "Standard" },
+  { value: "compact", label: "Dense" },
+];
+
 export function MarketHub() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -59,6 +64,7 @@ export function MarketHub() {
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
+  const [density, setDensity] = useState<GridDensity>("compact");
   const [buyLoadingId, setBuyLoadingId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
 
@@ -232,6 +238,12 @@ export function MarketHub() {
               ))}
             </select>
           </label>
+          <SegmentedControl
+            options={DENSITY_OPTIONS}
+            value={density}
+            onChange={setDensity}
+            className="market-density-toggle"
+          />
         </DiscoveryBar>
 
         {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
@@ -239,11 +251,11 @@ export function MarketHub() {
 
         {trendingAuctions.length > 0 || listingsLoading ? (
           <section className="app-section market-discovery-section">
-            <SectionHeader
-              title="Trending auctions"
-              subtitle="Most watched inventory live right now."
-              action={<SecondaryButton href="/live">See what is live</SecondaryButton>}
-            />
+          <SectionHeader
+            title="Trending auctions"
+            subtitle="Most watched live inventory."
+            action={<SecondaryButton href="/live">See what is live</SecondaryButton>}
+          />
             {listingsLoading ? (
               <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
             ) : (
@@ -265,7 +277,7 @@ export function MarketHub() {
       <section className="app-section market-inventory-section">
         <SectionHeader
           title="Inventory"
-          subtitle="Browse live listings and compare them fast."
+          subtitle="Browse active listings and compare them fast."
           action={<span className="market-count">{sortedListings.length} items</span>}
         />
 
@@ -278,6 +290,7 @@ export function MarketHub() {
             listings={sortedListings}
             buyLoadingId={buyLoadingId}
             onBuyNow={startBuyNow}
+            density={density}
           />
         )}
       </section>
