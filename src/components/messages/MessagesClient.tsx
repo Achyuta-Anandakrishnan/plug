@@ -246,8 +246,8 @@ export function MessagesClient() {
 
   if (!session?.user?.id) {
     return (
-      <PageContainer className="messages-page app-page--messages app-page--snap">
-        <section className="app-screen-section">
+      <PageContainer className="messages-page app-page--messages">
+        <section className="app-section">
           <DiscoveryBar className="app-control-bar messages-toolbar">
             <div className="app-control-title">Messages</div>
           </DiscoveryBar>
@@ -262,8 +262,8 @@ export function MessagesClient() {
   }
 
   return (
-    <PageContainer className="messages-page app-page--messages app-page--snap">
-      <section className="app-screen-section app-screen-section--messages">
+    <PageContainer className="messages-page app-page--messages">
+      <section className="app-section app-screen-section--messages">
         <DiscoveryBar className="app-control-bar messages-toolbar">
           <div className="app-control-title">Messages</div>
           <div className="app-search">

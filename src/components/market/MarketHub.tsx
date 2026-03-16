@@ -202,48 +202,51 @@ export function MarketHub() {
       <section className="app-section market-overview">
         <DiscoveryBar className="app-control-bar market-toolbar">
           <div className="app-control-title">Marketplace</div>
-          <div className="app-search">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
-            </svg>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search cards, sets, players, cert numbers"
+          <div className="market-toolbar-main">
+            <div className="app-search">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
+              </svg>
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search cards, sets, players, cert numbers"
+              />
+            </div>
+            <SegmentedControl options={MODE_OPTIONS} value={modeFromUrl} onChange={setMode} />
+            <div className="app-chip-row">
+              {categoryFilters.map((category) => (
+                <FilterChip
+                  key={category.id}
+                  label={category.label}
+                  active={selectedCategory === category.slug}
+                  onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="market-toolbar-meta">
+            <label className="app-select-wrap app-select-inline">
+              <span>Sort</span>
+              <select
+                value={sortMode}
+                onChange={(event) => setSortMode(event.target.value as SortMode)}
+                className="app-select"
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <SegmentedControl
+              options={DENSITY_OPTIONS}
+              value={density}
+              onChange={setDensity}
+              className="market-density-toggle"
             />
           </div>
-          <SegmentedControl options={MODE_OPTIONS} value={modeFromUrl} onChange={setMode} />
-          <div className="app-chip-row">
-            {categoryFilters.map((category) => (
-              <FilterChip
-                key={category.id}
-                label={category.label}
-                active={selectedCategory === category.slug}
-                onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
-              />
-            ))}
-          </div>
-          <div className="app-toolbar-spacer" aria-hidden="true" />
-          <label className="app-select-wrap app-select-inline">
-            <span>Sort</span>
-            <select
-              value={sortMode}
-              onChange={(event) => setSortMode(event.target.value as SortMode)}
-              className="app-select"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <SegmentedControl
-            options={DENSITY_OPTIONS}
-            value={density}
-            onChange={setDensity}
-            className="market-density-toggle"
-          />
         </DiscoveryBar>
 
         {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}

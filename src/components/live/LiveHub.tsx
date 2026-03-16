@@ -160,54 +160,48 @@ export function LiveHub() {
   const showUpcomingFirst = timing === "upcoming";
 
   return (
-    <PageContainer className="live-v3-page live-page app-page--live app-page--snap">
-      <section className="app-screen-section">
-        <LiveFilters
-          title="Live"
-          query={query}
-          onQueryChange={setQuery}
-          category={category}
-          onCategoryChange={setCategory}
-          sort={sort}
-          onSortChange={setSort}
-          timing={timing}
-          onTimingChange={setTiming}
+    <PageContainer className="live-v3-page live-page app-page--live">
+      <LiveFilters
+        title="Live"
+        query={query}
+        onQueryChange={setQuery}
+        category={category}
+        onCategoryChange={setCategory}
+        sort={sort}
+        onSortChange={setSort}
+        timing={timing}
+        onTimingChange={setTiming}
+      />
+
+      {loading ? (
+        <CheckersLoader title="Loading live sessions..." compact className="live-v3-empty" />
+      ) : showUpcomingFirst ? (
+        <UpcomingStreamsSection
+          streams={filteredUpcoming}
+          reminders={reminders}
+          onToggleReminder={onToggleReminder}
         />
+      ) : (
+        <LiveNowRail streams={filteredLive.slice(0, 16)} loading={liveLoading} />
+      )}
 
-        {loading ? (
-          <CheckersLoader title="Loading live sessions..." compact className="live-v3-empty" />
-        ) : showUpcomingFirst ? (
-          <UpcomingStreamsSection
-            streams={filteredUpcoming}
-            reminders={reminders}
-            onToggleReminder={onToggleReminder}
-          />
-        ) : (
-          <LiveNowRail streams={filteredLive.slice(0, 16)} loading={liveLoading} />
-        )}
-      </section>
+      {loading ? (
+        <CheckersLoader title="Loading more live inventory..." compact className="live-v3-empty" />
+      ) : showUpcomingFirst ? (
+        <LiveNowRail streams={filteredLive.slice(0, 16)} loading={liveLoading} />
+      ) : (
+        <UpcomingStreamsSection
+          streams={filteredUpcoming}
+          reminders={reminders}
+          onToggleReminder={onToggleReminder}
+        />
+      )}
 
-      <section className="app-screen-section">
-        {loading ? (
-          <CheckersLoader title="Loading more live inventory..." compact className="live-v3-empty" />
-        ) : showUpcomingFirst ? (
-          <LiveNowRail streams={filteredLive.slice(0, 16)} loading={liveLoading} />
-        ) : (
-          <UpcomingStreamsSection
-            streams={filteredUpcoming}
-            reminders={reminders}
-            onToggleReminder={onToggleReminder}
-          />
-        )}
-      </section>
-
-      <section className="app-screen-section">
-        {loading ? (
-          <CheckersLoader title="Loading host activity..." compact className="live-v3-empty" />
-        ) : (
-          <StreamerSpotlight hosts={spotlightHosts} />
-        )}
-      </section>
+      {loading ? (
+        <CheckersLoader title="Loading host activity..." compact className="live-v3-empty" />
+      ) : (
+        <StreamerSpotlight hosts={spotlightHosts} />
+      )}
 
       {hasError ? <EmptyStateCard title="Live data is partially unavailable." description="Some streams or hosts may be missing until the feed reconnects." /> : null}
     </PageContainer>
