@@ -150,22 +150,10 @@ export function ForumClient() {
           <button type="button" onClick={() => void handleSearch()} className="app-button app-button-primary">
             Search
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              setQuery("");
-              void fetchPosts("");
-            }}
-            className="app-button app-button-secondary"
-          >
-            Clear
-          </button>
-          {session?.user?.id ? (
-            <SecondaryButton href="/forum/new">Draft</SecondaryButton>
-          ) : (
+          {!session?.user?.id ? (
             <SecondaryButton onClick={() => signIn()}>Sign in</SecondaryButton>
-          )}
-          <PrimaryButton href="/forum/new">Post thread</PrimaryButton>
+          ) : null}
+          <PrimaryButton href="/forum/new">Write thread</PrimaryButton>
         </DiscoveryBar>
 
         {error ? <EmptyStateCard title="Forum unavailable" description={error} /> : null}

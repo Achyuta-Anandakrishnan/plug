@@ -278,7 +278,17 @@ export function SellerListingQuickForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="surface-panel rounded-3xl p-4 sm:p-5 space-y-4">
+    <form onSubmit={handleSubmit} className="surface-panel rounded-3xl p-4 sm:p-5 space-y-4 sell-quick-form">
+      <div className="sell-quick-head">
+        <div>
+          <p className="app-eyebrow">Fast lane</p>
+          <h2>Create a verified listing from the cert.</h2>
+        </div>
+        <div className="sell-quick-price">
+          <span>Preview ask</span>
+          <strong>{desiredCents !== null ? formatCurrency(desiredCents, "USD") : "Set price"}</strong>
+        </div>
+      </div>
       {isSeller ? null : (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
           {session?.user?.id
@@ -352,13 +362,13 @@ export function SellerListingQuickForm() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white/80 p-3">
+      <div className="rounded-2xl border border-slate-200 bg-white/80 p-3 sell-quick-lookup">
         <p className="text-xs text-slate-600">
           {lookupLoading ? "Checking certificate..." : lookupMessage || "Enter cert number to auto-fill listing details."}
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 space-y-4">
+      <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 space-y-4 sell-quick-preview">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Preview</p>
 
         {certImages.length > 0 ? (
@@ -415,13 +425,18 @@ export function SellerListingQuickForm() {
         </div>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={!canSubmit || status === "loading"}
-        className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
-      >
-        {status === "loading" ? "Creating..." : "Create listing"}
-      </button>
+      <div className="sell-quick-actions">
+        <button
+          type="submit"
+          disabled={!canSubmit || status === "loading"}
+          className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
+        >
+          {status === "loading" ? "Creating..." : "Create listing"}
+        </button>
+        <p className="sell-quick-help">
+          Auction pricing auto-builds from your ask. We publish only once the cert resolves cleanly.
+        </p>
+      </div>
     </form>
   );
 }

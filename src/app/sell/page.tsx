@@ -1,17 +1,17 @@
 import { SellerListingQuickForm } from "@/components/sell/SellerListingQuickForm";
+import { DiscoveryBar, PageContainer, SecondaryButton } from "@/components/product/ProductUI";
 
 export default function SellPage() {
   return (
-    <div className="ios-screen">
-      <section className="ios-hero space-y-3">
-        <p className="ios-kicker">Sell live</p>
-        <h1 className="ios-title">Cert-first listing flow.</h1>
-        <p className="ios-subtitle">
-          Enter a cert number and desired price. Dalow auto-fills the rest.
-        </p>
-      </section>
-
+    <PageContainer className="sell-page app-page--sell">
+      <section className="app-section">
+        <DiscoveryBar className="app-control-bar sell-toolbar">
+          <div className="app-control-title">Create listing</div>
+          <div className="sell-toolbar-note">Cert-first flow. Verify the slab, set price, publish fast.</div>
+          <SecondaryButton href="/listings">Back to market</SecondaryButton>
+        </DiscoveryBar>
       <SellerListingQuickForm />
-    </div>
+      </section>
+    </PageContainer>
   );
 }

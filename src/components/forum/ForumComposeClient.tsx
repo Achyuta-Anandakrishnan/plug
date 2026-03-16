@@ -1,10 +1,9 @@
 "use client";
-
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
+import { DiscoveryBar, EmptyStateCard, PageContainer, PrimaryButton, SecondaryButton } from "@/components/product/ProductUI";
 
 type ForumComposePayload = {
   id: string;
@@ -203,80 +202,61 @@ export function ForumComposeClient() {
     return <CheckersLoader title="Loading draft..." compact className="ios-empty" />;
   }
 
+  if (!session?.user?.id) {
+    return (
+      <PageContainer className="forum-compose-page">
+        <section className="app-section">
+          <DiscoveryBar className="app-control-bar forum-compose-toolbar">
+            <div className="app-control-title">Write thread</div>
+            <SecondaryButton href="/forum">Back to forum</SecondaryButton>
+          </DiscoveryBar>
+          <EmptyStateCard
+            title="Sign in to write a thread."
+            description="Drafts autosave once you are signed in."
+            action={<PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>}
+          />
+        </section>
+      </PageContainer>
+    );
+  }
+
   return (
-    <div className="ios-screen">
-      <section className="ios-hero flex items-center justify-between gap-3">
-        <div>
-          <p className="ios-kicker">Write</p>
-          <h1 className="ios-title">
-            {draftId ? "Edit your thread" : "Start a thread"}
-          </h1>
-        </div>
-        <span className="text-xs uppercase tracking-[0.2em] text-slate-400">
-          {draftId ? "Editing draft" : "New thread"}
-        </span>
+    <PageContainer className="forum-compose-page">
+      <section className="app-section">
+        <DiscoveryBar className="app-control-bar forum-compose-toolbar">
+          <div className="app-control-title">{draftId ? "Edit thread" : "Write thread"}</div>
+          <div className="forum-compose-status" aria-live="polite">
+            {error ? error : statusMessage || (savingDraft ? "Autosaving..." : "Autosaves as draft")}
+          </div>
+          <SecondaryButton href="/forum">Back to forum</SecondaryButton>
+          <PrimaryButton onClick={() => void handlePublish()} disabled={publishing}>
+            {publishing ? "Publishing..." : "Publish thread"}
+          </PrimaryButton>
+        </DiscoveryBar>
+
+        <section className="product-card forum-compose-panel">
+          <div className="forum-compose-copy">
+            <p className="app-eyebrow">{draftId ? "Draft in progress" : "New discussion"}</p>
+            <h1>{draftId ? "Keep refining the thread." : "Start with a clear title and one strong point."}</h1>
+            <p>Keep it concise. The draft saves automatically while you work.</p>
+          </div>
+
+          <div className="forum-compose-fields">
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Thread title"
+              className="forum-compose-input"
+            />
+            <textarea
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              placeholder="Write your thread..."
+              className="forum-compose-textarea"
+            />
+          </div>
+        </section>
       </section>
-
-      <div className="flex items-center justify-between gap-3">
-        <Link
-          href="/forum"
-          className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
-        >
-          Back to forum
-        </Link>
-      </div>
-
-      <div className="ios-panel p-4">
-        <p className="ios-kicker">
-          Compose
-        </p>
-        <h2 className="ios-section-title">Write your post</h2>
-
-        <div className="mt-3 grid gap-2">
-          <input
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="Title"
-            className="ios-input rounded-2xl"
-          />
-          <textarea
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            placeholder="Write your thread..."
-            className="min-h-52 w-full resize-y rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm leading-5 text-slate-700 outline-none focus:border-[var(--royal)]"
-          />
-        </div>
-
-        {error && (
-          <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
-          </div>
-        )}
-        {statusMessage && (
-          <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {statusMessage}
-          </div>
-        )}
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => void saveDraft(false)}
-            disabled={savingDraft}
-            className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-60"
-          >
-            {savingDraft ? "Saving..." : "Save Draft"}
-          </button>
-          <button
-            type="button"
-            onClick={() => void handlePublish()}
-            disabled={publishing}
-            className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {publishing ? "Publishing..." : "Publish"}
-          </button>
-        </div>
-      </div>
-    </div>
+    </PageContainer>
   );
 }

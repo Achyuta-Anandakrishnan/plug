@@ -983,10 +983,6 @@ body {
   padding-bottom: 1px;
 }
 
-.market-density-toggle {
-  flex-shrink: 0;
-}
-
 .market-discovery-section,
 .market-inventory-section {
   gap: 8px;
@@ -1043,16 +1039,6 @@ body {
   align-items: stretch;
   justify-items: stretch;
   width: 100%;
-}
-
-.market-page .market-v2-grid.is-comfortable,
-.market-v2-grid.is-comfortable {
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-
-.market-page .market-v2-grid.is-compact,
-.market-v2-grid.is-compact {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .market-page .market-v2-grid.is-sparse,
@@ -1663,6 +1649,195 @@ body {
   font-weight: 700;
 }
 
+.forum-compose-page,
+.sell-page {
+  gap: 14px;
+}
+
+.forum-compose-toolbar,
+.sell-toolbar {
+  gap: 10px;
+  overflow: visible;
+}
+
+.forum-compose-status,
+.sell-toolbar-note {
+  flex: 1 1 280px;
+  min-width: 200px;
+  color: var(--product-text-soft);
+  font-size: 12px;
+}
+
+.forum-compose-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.forum-compose-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.forum-compose-copy h1 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.05;
+}
+
+.forum-compose-copy p:last-child {
+  margin: 0;
+  color: var(--product-text-soft);
+  font-size: 13px;
+}
+
+.forum-compose-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.forum-compose-input,
+.forum-compose-textarea {
+  width: 100%;
+  border: 1px solid var(--product-border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--product-text);
+  outline: none;
+}
+
+.forum-compose-input {
+  min-height: 48px;
+  padding: 0 16px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.forum-compose-textarea {
+  min-height: 360px;
+  padding: 14px 16px;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.sell-quick-form {
+  gap: 14px;
+}
+
+.sell-quick-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.sell-quick-head h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.05;
+}
+
+.sell-quick-price {
+  display: grid;
+  gap: 4px;
+  min-width: 180px;
+  padding: 12px 14px;
+  border: 1px solid var(--product-border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.84);
+  text-align: right;
+}
+
+.sell-quick-price span,
+.sell-quick-help {
+  color: var(--product-text-soft);
+  font-size: 12px;
+}
+
+.sell-quick-price strong {
+  color: var(--product-text);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.sell-quick-preview {
+  border-color: rgba(15, 23, 42, 0.06);
+}
+
+.sell-quick-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stream-bid-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stream-bid-summary div {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--product-border);
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.88);
+}
+
+.stream-bid-summary p,
+.stream-bid-field span {
+  margin: 0;
+  color: var(--product-text-soft);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.stream-bid-summary strong {
+  color: var(--product-text);
+  font-size: 15px;
+}
+
+.stream-bid-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.stream-bid-field {
+  display: grid;
+  gap: 6px;
+}
+
+.stream-bid-field input {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--product-border);
+  border-radius: 14px;
+  background: var(--product-surface);
+  color: var(--product-text);
+}
+
+.stream-bid-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stream-bid-quick-btn {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--product-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--product-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .stream-room-page {
   min-height: 100%;
   padding-top: 24px;
@@ -1809,6 +1984,14 @@ body {
   .stream-room-shell,
   .app-layout .messages-page .messages-layout {
     grid-template-columns: 1fr;
+  }
+
+  .stream-bid-summary,
+  .sell-quick-actions,
+  .sell-quick-head {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .stream-room-shell {

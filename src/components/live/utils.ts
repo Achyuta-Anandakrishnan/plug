@@ -30,9 +30,33 @@ export function streamPriceLabel(stream: AuctionListItem) {
   return `Bid ${formatCurrency(stream.currentBid, currency)}`;
 }
 
+function hasLiveSession(stream: AuctionListItem) {
+  return stream.streamSessions?.some((session) => session.status === "LIVE") ?? false;
+}
+
+function hasScheduledSession(stream: AuctionListItem) {
+  return stream.streamSessions?.some((session) => session.status === "CREATED" || session.status === "LIVE") ?? false;
+}
+
+export function isVisibleLiveStream(stream: AuctionListItem) {
+  if (stream.status !== "LIVE") return false;
+  if (!hasLiveSession(stream)) return false;
+  const timeLeft = getTimeLeftSeconds(stream);
+  return timeLeft > 0 || !stream.endTime;
+}
+
+export function isVisibleUpcomingStream(stream: AuctionListItem, nowMs = Date.now()) {
+  if (stream.status !== "SCHEDULED") return false;
+  if (!hasScheduledSession(stream)) return false;
+  if (!stream.startTime) return false;
+  const timestamp = new Date(stream.startTime).getTime();
+  return Number.isFinite(timestamp) && timestamp > nowMs;
+}
+
 export function streamTimeLabel(stream: LiveStreamItem) {
   if (stream.streamState === "live") {
-    return `Ends in ${formatSeconds(getTimeLeftSeconds(stream))}`;
+    const timeLeft = getTimeLeftSeconds(stream);
+    return timeLeft > 0 ? `Ends in ${formatSeconds(timeLeft)}` : "Live now";
   }
   if (!stream.startTime) return "Time pending";
   const date = new Date(stream.startTime);

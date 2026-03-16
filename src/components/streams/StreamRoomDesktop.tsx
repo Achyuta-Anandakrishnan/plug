@@ -33,6 +33,7 @@ export function StreamRoomDesktop({
   const [participantCount, setParticipantCount] = useState<number | null>(null);
   const [streamStatus, setStreamStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [bidAmount, setBidAmount] = useState("");
 
   useEffect(() => {
     const onFullscreenChange = () => {
@@ -57,6 +58,18 @@ export function StreamRoomDesktop({
   const isListingSeller =
     Boolean(sessionUserId && data?.seller?.user?.id) && data?.seller?.user?.id === sessionUserId;
   const canUseStripe = Boolean(stripeEnabled);
+  const roomLive = streamStatus === "live" || (data?.status === "LIVE" && timeLeft > 0);
+  const parsedBidAmount = Number(bidAmount);
+  const minimumBid = nextBid;
+  const validBidAmount = Number.isFinite(parsedBidAmount) ? Math.round(parsedBidAmount * 100) : minimumBid;
+  const quickBidOptions = useMemo(
+    () => [minimumBid, minimumBid + (data?.minBidIncrement ?? 0) * 2, minimumBid + (data?.minBidIncrement ?? 0) * 5],
+    [data?.minBidIncrement, minimumBid],
+  );
+
+  useEffect(() => {
+    setBidAmount((minimumBid / 100).toFixed(2));
+  }, [minimumBid]);
 
   const handleMessageSeller = async () => {
     if (!data) return;
@@ -85,7 +98,7 @@ export function StreamRoomDesktop({
     router.push(`/messages?c=${encodeURIComponent(payload.id)}`);
   };
 
-  const handleBid = async () => {
+  const handleBid = async (amountOverride?: number) => {
     if (!data) return;
     if (!canUseStripe) {
       setActionStatus("Connect Stripe to place offers.");
@@ -100,14 +113,20 @@ export function StreamRoomDesktop({
       setActionStatus("Sellers cannot bid on their own listings.");
       return;
     }
-
-    const confirmBid = window.confirm(`Place bid for ${formatCurrency(nextBid, currency)}?`);
-    if (!confirmBid) return;
+    if (!roomLive) {
+      setActionStatus("Bidding opens once the seller is live.");
+      return;
+    }
+    const amount = amountOverride ?? validBidAmount;
+    if (amount < minimumBid) {
+      setActionStatus(`Enter at least ${formatCurrency(minimumBid, currency)}.`);
+      return;
+    }
 
     const response = await fetch(`/api/auctions/${data.id}/bids`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: nextBid }),
+      body: JSON.stringify({ amount }),
     });
     const payload = await response.json();
     if (!response.ok) {
@@ -115,8 +134,9 @@ export function StreamRoomDesktop({
       return;
     }
 
-    setActionStatus("Bid placed.");
-    refresh();
+    setActionStatus(`Bid placed at ${formatCurrency(amount, currency)}.`);
+    setBidAmount(String(amount + data.minBidIncrement));
+    void refresh({ poll: true });
   };
 
   const handleBuyNow = async () => {
@@ -290,19 +310,58 @@ export function StreamRoomDesktop({
 
       <aside className="stream-room-rail">
         <section className="surface-panel rounded-3xl p-4 space-y-3">
-          <div className="flex items-center justify-between text-sm text-slate-600">
-            <span>Next bid</span>
-            <span className="font-display text-xl text-slate-900">{formatCurrency(nextBid, currency)}</span>
+          <div className="stream-bid-summary">
+            <div>
+              <p>Current</p>
+              <strong>{formatCurrency(data.currentBid, currency)}</strong>
+            </div>
+            <div>
+              <p>Minimum</p>
+              <strong>{formatCurrency(minimumBid, currency)}</strong>
+            </div>
+            <div>
+              <p>Closes in</p>
+              <strong>{roomLive ? formatSeconds(timeLeft) : "Pending"}</strong>
+            </div>
           </div>
+
+          {data.listingType !== "BUY_NOW" && (
+            <div className="stream-bid-panel">
+              <label className="stream-bid-field">
+                <span>Your bid</span>
+                <input
+                  value={bidAmount}
+                  onChange={(event) => setBidAmount(event.target.value.replace(/[^\d.]/g, ""))}
+                  inputMode="decimal"
+                  placeholder={(minimumBid / 100).toFixed(2)}
+                />
+              </label>
+              <div className="stream-bid-quick">
+                {quickBidOptions.map((amount) => (
+                  <button
+                    key={amount}
+                    type="button"
+                    onClick={() => {
+                      setBidAmount(String(amount));
+                      void handleBid(amount);
+                    }}
+                    className="stream-bid-quick-btn"
+                  >
+                    {formatCurrency(amount, currency)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-2">
             {data.listingType !== "BUY_NOW" && (
               <button
-                onClick={handleBid}
-                disabled={isListingSeller || !canUseStripe}
+                onClick={() => void handleBid()}
+                disabled={isListingSeller || !canUseStripe || !roomLive}
                 className="rounded-full bg-[var(--royal)] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
               >
-                Place bid
+                Place bid {formatCurrency(validBidAmount, currency)}
               </button>
             )}
             {data.listingType !== "AUCTION" && data.buyNowPrice && (

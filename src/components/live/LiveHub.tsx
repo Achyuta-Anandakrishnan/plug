@@ -8,7 +8,7 @@ import { StreamerSpotlight } from "@/components/live/StreamerSpotlight";
 import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveTimingFilter, SpotlightHost } from "@/components/live/types";
 import { UpcomingStreamsSection } from "@/components/live/UpcomingStreamsSection";
 import { EmptyStateCard, PageContainer } from "@/components/product/ProductUI";
-import { categoryMatches, searchMatches, sortLiveStreams, sortUpcomingStreams, streamCategory, streamHost, withStreamState } from "@/components/live/utils";
+import { categoryMatches, isVisibleLiveStream, isVisibleUpcomingStream, searchMatches, sortLiveStreams, sortUpcomingStreams, streamCategory, streamHost, withStreamState } from "@/components/live/utils";
 import { useAuctions } from "@/hooks/useAuctions";
 
 function formatNextStream(value: string | null) {
@@ -118,19 +118,20 @@ export function LiveHub() {
   const upcomingStreams = useMemo(
     () =>
       withStreamState(
-        scheduledData.filter((entry) => {
-          if (!entry.startTime) return false;
-          const timestamp = new Date(entry.startTime).getTime();
-          return Number.isFinite(timestamp) && timestamp > nowMs;
-        }),
+        scheduledData.filter((entry) => isVisibleUpcomingStream(entry, nowMs)),
         "upcoming",
       ),
     [scheduledData, nowMs],
   );
 
+  const visibleLiveStreams = useMemo(
+    () => liveStreams.filter((entry) => isVisibleLiveStream(entry)),
+    [liveStreams],
+  );
+
   const filteredLive = useMemo(
-    () => sortLiveStreams(applyStreamFilters(liveStreams, query, category), sort),
-    [liveStreams, query, category, sort],
+    () => sortLiveStreams(applyStreamFilters(visibleLiveStreams, query, category), sort),
+    [visibleLiveStreams, query, category, sort],
   );
 
   const filteredUpcoming = useMemo(

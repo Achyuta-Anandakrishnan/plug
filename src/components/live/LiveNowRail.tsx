@@ -8,7 +8,7 @@ type LiveNowRailProps = {
 };
 
 export function LiveNowRail({ streams, loading }: LiveNowRailProps) {
-  const visibleStreams = streams.slice(0, 16);
+  const visibleStreams = streams.slice(0, 24);
   const useCompactGrid = visibleStreams.length > 0 && visibleStreams.length < 3;
 
   return (
