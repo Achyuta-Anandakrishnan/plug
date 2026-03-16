@@ -8,10 +8,14 @@ type MessageBody = {
 };
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
+  const { searchParams } = new URL(request.url);
+  const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 40), 1), 100);
+  const before = searchParams.get("before");
+  const beforeDate = before ? new Date(before) : null;
 
   if (!isDev()) {
     const sessionUser = await getSessionUser();
@@ -32,14 +36,29 @@ export async function GET(
   }
 
   const messages = await prisma.directMessage.findMany({
-    where: { conversationId: id },
-    orderBy: { createdAt: "asc" },
+    where: {
+      conversationId: id,
+      ...(beforeDate && !Number.isNaN(beforeDate.valueOf())
+        ? { createdAt: { lt: beforeDate } }
+        : {}),
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: limit + 1,
     include: {
       sender: { select: { displayName: true, id: true } },
     },
   });
 
-  return jsonOk(messages);
+  const hasMore = messages.length > limit;
+  const visibleMessages = hasMore ? messages.slice(0, limit) : messages;
+  const nextCursor = hasMore
+    ? visibleMessages[visibleMessages.length - 1]?.createdAt.toISOString() ?? null
+    : null;
+
+  return jsonOk({
+    items: [...visibleMessages].reverse(),
+    nextCursor,
+  });
 }
 
 export async function POST(
@@ -89,7 +108,10 @@ export async function POST(
       data: { updatedAt: new Date() },
     });
 
-    return created;
+    return tx.directMessage.findUnique({
+      where: { id: created.id },
+      include: { sender: { select: { displayName: true, id: true } } },
+    });
   });
 
   return jsonOk(message, { status: 201 });

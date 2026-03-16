@@ -68,7 +68,6 @@ export function AuthButtons() {
   const callbackUrl = usernameValid
     ? `/settings?setup=1&username=${encodeURIComponent(normalizedUsername)}`
     : "/settings?setup=1";
-  const buttonDisabled = !usernameValid;
 
   return (
     <div className="grid gap-3">
@@ -79,28 +78,33 @@ export function AuthButtons() {
         <input
           value={username}
           onChange={(event) => setUsername(event.target.value)}
-          placeholder="your_username"
+          placeholder="Optional username"
           className="rounded-full border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400"
         />
         <p className="text-[11px] text-slate-500">
-          Required. 3-24 chars, lowercase letters, numbers, and underscores.
+          Optional. Set it now or finish profile setup after sign-in.
         </p>
+        {username.trim() && !usernameValid ? (
+          <p className="text-[11px] text-amber-600">
+            We&apos;ll ignore this until it matches 3-24 lowercase letters, numbers, or underscores.
+          </p>
+        ) : null}
       </div>
       <button
         type="button"
         onClick={() => signIn("google", { callbackUrl })}
-        disabled={!googleAvailable || buttonDisabled}
+        disabled={!googleAvailable}
         className="rounded-full border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {!googleAvailable ? "Google not configured" : buttonDisabled ? "Enter a valid username" : "Continue with Google"}
+        {!googleAvailable ? "Google not configured" : "Continue with Google"}
       </button>
       <button
         type="button"
         onClick={() => signIn("apple", { callbackUrl })}
-        disabled={!appleAvailable || buttonDisabled}
+        disabled={!appleAvailable}
         className="rounded-full border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {!appleAvailable ? "Apple not configured" : buttonDisabled ? "Enter a valid username" : "Continue with Apple"}
+        {!appleAvailable ? "Apple not configured" : "Continue with Apple"}
       </button>
     </div>
   );

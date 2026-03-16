@@ -12,25 +12,27 @@ import { formatCurrency, formatSeconds } from "@/lib/format";
 import { getGradeLabel, getTimeLeftSeconds } from "@/lib/auctions";
 import { auctions as mockAuctions } from "@/lib/mock";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
+import { prisma } from "@/lib/prisma";
 import { tradeValueLabel } from "@/lib/trade-client";
 
 type AuctionApiItem = {
   id: string;
   title: string;
-  endTime: string | null;
-  extendedTime: string | null;
+  endTime: string | Date | null;
+  extendedTime: string | Date | null;
   currentBid: number;
   watchersCount: number;
   listingType: "AUCTION" | "BUY_NOW" | "BOTH";
   buyNowPrice: number | null;
   currency: string;
   category?: { name: string } | null;
+  createdAt?: string | Date;
   seller?: {
     status?: string;
     user?: { displayName: string | null; id: string } | null;
   } | null;
   item?: {
-    attributes?: Record<string, unknown> | null;
+    attributes?: unknown;
     images: { url: string; isPrimary: boolean }[];
   } | null;
 };
@@ -150,10 +152,6 @@ const FALLBACK_TRADES: HomeTradePreview[] = [
   },
 ];
 
-function appUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-}
-
 function validImage(url: string | null | undefined) {
   if (!url) return "/placeholders/pokemon-generic.svg";
   if (url.startsWith("/")) return url;
@@ -163,16 +161,6 @@ function validImage(url: string | null | undefined) {
 
 function primaryAuctionImage(item: AuctionApiItem) {
   return item.item?.images.find((entry) => entry.isPrimary)?.url ?? item.item?.images[0]?.url ?? null;
-}
-
-async function fetchJson<T>(path: string): Promise<T | null> {
-  try {
-    const response = await fetch(`${appUrl()}${path}`, { cache: "no-store" });
-    if (!response.ok) return null;
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
 }
 
 function mapStreams(items: AuctionApiItem[] | null): HomeLiveStreamPreview[] {
@@ -202,7 +190,9 @@ function mapAuctions(items: AuctionApiItem[] | null): HomeAuctionPreview[] {
     .slice(0, 6)
     .map((auction) => {
       const currency = auction.currency?.toUpperCase() || "USD";
-      const gradeLabel = getGradeLabel(auction.item?.attributes);
+      const gradeLabel = getGradeLabel(
+        (auction.item?.attributes ?? null) as Record<string, unknown> | null,
+      );
       return {
         id: auction.id,
         href: `/auctions/${auction.id}`,
@@ -247,9 +237,61 @@ function mapFallbackAuctions(): HomeAuctionPreview[] {
 
 async function getHomePageData(): Promise<HomePageData> {
   const [liveStreamsData, listingsData, tradesData] = await Promise.all([
-    fetchJson<AuctionApiItem[]>("/api/auctions?status=LIVE&view=streams&limit=6"),
-    fetchJson<AuctionApiItem[]>("/api/auctions?status=LIVE&view=listings&limit=6"),
-    fetchJson<TradeApiItem[]>("/api/trades?limit=6"),
+    prisma.auction.findMany({
+      where: {
+        status: "LIVE",
+        streamSessions: { some: { status: "LIVE" } },
+      },
+      include: {
+        category: true,
+        item: { include: { images: true } },
+        seller: {
+          select: {
+            status: true,
+            user: { select: { displayName: true, id: true } },
+          },
+        },
+      },
+      orderBy: [{ watchersCount: "desc" }, { createdAt: "desc" }],
+      take: 6,
+    }),
+    prisma.auction.findMany({
+      where: {
+        status: "LIVE",
+        streamSessions: { none: { status: "LIVE" } },
+      },
+      include: {
+        category: true,
+        item: { include: { images: true } },
+        seller: {
+          select: {
+            status: true,
+            user: { select: { displayName: true, id: true } },
+          },
+        },
+      },
+      orderBy: [{ watchersCount: "desc" }, { createdAt: "desc" }],
+      take: 6,
+    }),
+    prisma.tradePost.findMany({
+      where: { status: "OPEN" },
+      include: {
+        owner: {
+          select: {
+            displayName: true,
+            username: true,
+          },
+        },
+        images: {
+          orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+        },
+        _count: {
+          select: { offers: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+    }),
   ]);
 
   const streams = mapStreams(liveStreamsData);

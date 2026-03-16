@@ -1,8 +1,8 @@
 import type { AuctionListItem } from "@/hooks/useAuctions";
 
 type AuctionLike = {
-  endTime: string | null;
-  extendedTime: string | null;
+  endTime: string | Date | null;
+  extendedTime: string | Date | null;
 };
 
 export function getPrimaryImageUrl(auction: AuctionListItem) {

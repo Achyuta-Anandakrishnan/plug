@@ -1591,6 +1591,18 @@ body {
   gap: 10px;
 }
 
+.messages-load-more {
+  justify-self: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--product-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--product-text-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .messages-bubble {
   max-width: min(78%, 560px);
   padding: 10px 12px;

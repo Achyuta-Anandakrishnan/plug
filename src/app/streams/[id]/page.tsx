@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AppContainer } from "@/components/product/ProductUI";
 import { StreamRoomResponsive } from "@/components/streams/StreamRoomResponsive";
 import type { AuctionDetail } from "@/hooks/useAuction";
+import { getAuctionDetail } from "@/lib/server/auction-loaders";
 
 export default async function StreamRoom({
   params,
@@ -9,20 +10,8 @@ export default async function StreamRoom({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  let initialData: AuctionDetail | null = null;
   const stripeReady = Boolean(process.env.STRIPE_SECRET_KEY);
-
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/auctions/${id}`,
-      { cache: "no-store" },
-    );
-    if (response.ok) {
-      initialData = (await response.json()) as AuctionDetail;
-    }
-  } catch {
-    initialData = null;
-  }
+  const initialData = await getAuctionDetail(id) as AuctionDetail | null;
 
   return (
     <AppContainer className="stream-room-page">

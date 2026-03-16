@@ -14,6 +14,8 @@ export async function GET(request: Request) {
   await ensureProfileSchema().catch(() => null);
 
   const { searchParams } = new URL(request.url);
+  const query = searchParams.get("q")?.trim() ?? "";
+  const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 40), 1), 100);
   const sessionUser = await getSessionUser();
   const actorId =
     sessionUser?.id ?? (isDev() ? searchParams.get("userId") : null);
@@ -27,6 +29,25 @@ export async function GET(request: Request) {
       participants: {
         some: { userId: actorId },
       },
+      ...(query
+        ? {
+            OR: [
+              { subject: { contains: query, mode: "insensitive" } },
+              {
+                participants: {
+                  some: {
+                    user: {
+                      OR: [
+                        { displayName: { contains: query, mode: "insensitive" } },
+                        { username: { contains: query, mode: "insensitive" } },
+                      ],
+                    },
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
     },
     include: {
       participants: {
@@ -38,9 +59,10 @@ export async function GET(request: Request) {
       },
     },
     orderBy: { updatedAt: "desc" },
+    take: limit,
   });
 
-  return jsonOk(conversations);
+  return jsonOk({ items: conversations });
 }
 
 export async function POST(request: Request) {

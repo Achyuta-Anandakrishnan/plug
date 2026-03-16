@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
@@ -38,6 +38,15 @@ type DirectMessage = {
   sender: { id: string; displayName: string | null };
 };
 
+type ConversationListResponse = {
+  items: Conversation[];
+};
+
+type MessageListResponse = {
+  items: DirectMessage[];
+  nextCursor: string | null;
+};
+
 function formatTime(value: string) {
   const d = new Date(value);
   if (Number.isNaN(d.valueOf())) return "";
@@ -56,7 +65,9 @@ export function MessagesClient() {
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<DirectMessage[]>([]);
+  const [messagesCursor, setMessagesCursor] = useState<string | null>(null);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null);
@@ -84,9 +95,9 @@ export function MessagesClient() {
   }, [preselectConversationId]);
 
   useEffect(() => {
-    if (!messageEndRef.current || messagesLoading) return;
+    if (!messageEndRef.current || messagesLoading || loadingOlder) return;
     messageEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, activeId, messagesLoading]);
+  }, [messages, activeId, loadingOlder, messagesLoading]);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,14 +106,20 @@ export function MessagesClient() {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch("/api/conversations");
-        const payload = (await res.json()) as Conversation[];
-        if (!res.ok) throw new Error((payload as unknown as { error?: string })?.error ?? "Unable to load conversations.");
+        const params = new URLSearchParams();
+        params.set("limit", "40");
+        if (query.trim()) params.set("q", query.trim());
+        const res = await fetch(`/api/conversations?${params.toString()}`);
+        const payload = (await res.json()) as ConversationListResponse & { error?: string };
+        if (!res.ok) throw new Error(payload.error ?? "Unable to load conversations.");
         if (cancelled) return;
-        setConversations(payload);
+        setConversations(payload.items);
         setLoading(false);
-        const initial = preselectConversationId ?? payload[0]?.id ?? null;
-        setActiveId(initial);
+        setActiveId((current) => {
+          if (preselectConversationId) return preselectConversationId;
+          if (current && payload.items.some((entry) => entry.id === current)) return current;
+          return payload.items[0]?.id ?? null;
+        });
       } catch (e) {
         if (cancelled) return;
         setError(e instanceof Error ? e.message : "Unable to load conversations.");
@@ -117,11 +134,14 @@ export function MessagesClient() {
       return;
     }
 
-    void load();
+    const timeout = window.setTimeout(() => {
+      void load();
+    }, query.trim() ? 200 : 0);
     return () => {
       cancelled = true;
+      window.clearTimeout(timeout);
     };
-  }, [preselectConversationId, session?.user?.id]);
+  }, [preselectConversationId, query, session?.user?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -129,21 +149,25 @@ export function MessagesClient() {
     async function loadMessages(conversationId: string) {
       setMessagesLoading(true);
       try {
-        const res = await fetch(`/api/conversations/${conversationId}/messages`);
-        const payload = (await res.json()) as DirectMessage[];
-        if (!res.ok) throw new Error((payload as unknown as { error?: string })?.error ?? "Unable to load messages.");
+        const params = new URLSearchParams({ limit: "40" });
+        const res = await fetch(`/api/conversations/${conversationId}/messages?${params.toString()}`);
+        const payload = (await res.json()) as MessageListResponse & { error?: string };
+        if (!res.ok) throw new Error(payload.error ?? "Unable to load messages.");
         if (cancelled) return;
-        setMessages(payload);
+        setMessages(payload.items);
+        setMessagesCursor(payload.nextCursor);
         setMessagesLoading(false);
       } catch {
         if (cancelled) return;
         setMessages([]);
+        setMessagesCursor(null);
         setMessagesLoading(false);
       }
     }
 
     if (!activeId) {
       setMessages([]);
+      setMessagesCursor(null);
       if (!isDesktop) setMobilePane("threads");
       return;
     }
@@ -159,20 +183,9 @@ export function MessagesClient() {
     if (conversations.some((thread) => thread.id === activeId)) return;
     setActiveId(conversations[0]?.id ?? null);
     setMessages([]);
+    setMessagesCursor(null);
     setDraft("");
   }, [activeId, conversations]);
-
-  const filtered = useMemo(() => {
-    if (!query.trim()) return conversations;
-    const q = query.trim().toLowerCase();
-    return conversations.filter((c) => {
-      const label = c.participants
-        .map((p) => p.user.displayName ?? p.user.username ?? p.userId)
-        .join(" ")
-        .toLowerCase();
-      return label.includes(q) || (c.subject ?? "").toLowerCase().includes(q);
-    });
-  }, [conversations, query]);
 
   const sessionUserId = session?.user?.id ?? "";
   const activeConversation = conversations.find((c) => c.id === activeId) ?? null;
@@ -188,6 +201,28 @@ export function MessagesClient() {
 
   const showThreadsPane = isDesktop || mobilePane === "threads";
   const showChatPane = isDesktop || mobilePane === "chat";
+
+  async function loadOlderMessages() {
+    if (!activeId || !messagesCursor || loadingOlder) return;
+    setLoadingOlder(true);
+    try {
+      const params = new URLSearchParams({
+        limit: "40",
+        before: messagesCursor,
+      });
+      const res = await fetch(`/api/conversations/${activeId}/messages?${params.toString()}`);
+      const payload = (await res.json()) as MessageListResponse & { error?: string };
+      if (!res.ok) {
+        throw new Error(payload.error ?? "Unable to load older messages.");
+      }
+      setMessages((prev) => [...payload.items, ...prev]);
+      setMessagesCursor(payload.nextCursor);
+    } catch {
+      // Keep existing messages visible on pagination errors.
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
 
   async function handleSend() {
     if (!activeId) return;
@@ -206,6 +241,24 @@ export function MessagesClient() {
       }
       setDraft("");
       setMessages((prev) => [...prev, payload]);
+      setConversations((prev) =>
+        prev.map((thread) =>
+          thread.id === activeId
+            ? {
+                ...thread,
+                updatedAt: payload.createdAt,
+                messages: [
+                  {
+                    id: payload.id,
+                    body: payload.body,
+                    createdAt: payload.createdAt,
+                    senderId: payload.senderId,
+                  },
+                ],
+              }
+            : thread,
+        ),
+      );
     } catch {
       // Keep silent; API handles detailed error cases.
     } finally {
@@ -286,11 +339,11 @@ export function MessagesClient() {
           <aside className="messages-sidebar product-card">
             {loading ? (
               <CheckersLoader title="Loading conversations..." compact className="ios-empty" />
-            ) : filtered.length === 0 ? (
+            ) : conversations.length === 0 ? (
               <EmptyStateCard title="No conversations yet." description="Messages tied to trades, streams, and support will appear here." />
             ) : (
               <div className="messages-thread-list">
-                {filtered.map((thread) => {
+                {conversations.map((thread) => {
                   const last = thread.messages[0]?.body ?? "";
                   const otherNames = thread.participants
                     .filter((p) => p.userId !== sessionUserId)
@@ -368,6 +421,16 @@ export function MessagesClient() {
                     <EmptyStateCard title="No messages yet." description="Start the conversation below." />
                   ) : (
                     <div className="messages-bubble-list">
+                      {messagesCursor ? (
+                        <button
+                          type="button"
+                          onClick={() => void loadOlderMessages()}
+                          disabled={loadingOlder}
+                          className="messages-load-more"
+                        >
+                          {loadingOlder ? "Loading earlier..." : "Load earlier messages"}
+                        </button>
+                      ) : null}
                       {messages.map((message) => {
                         const isMe = message.senderId === sessionUserId;
                         return (

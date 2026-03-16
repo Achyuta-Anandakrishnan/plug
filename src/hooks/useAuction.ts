@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type AuctionDetail = {
   id: string;
@@ -49,37 +49,71 @@ export function useAuction(
   const [data, setData] = useState<AuctionDetail | null>(initialData ?? null);
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState("");
+  const abortRef = useRef<AbortController | null>(null);
 
-  const fetchAuction = useCallback(async () => {
+  const fetchAuction = useCallback(async ({
+    poll = false,
+    silent = false,
+  }: { poll?: boolean; silent?: boolean } = {}) => {
     if (!id) return;
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
+    if (!silent) {
+      setLoading(true);
+    }
     try {
-      const response = await fetch(`/api/auctions/${id}`);
+      const response = await fetch(`/api/auctions/${id}${poll ? "?poll=1" : ""}`, {
+        signal: controller.signal,
+      });
       if (!response.ok) {
         setError("Unable to load listing.");
         setLoading(false);
         return;
       }
-      const payload = (await response.json()) as AuctionDetail;
-      setData(payload);
+      const payload = (await response.json()) as Partial<AuctionDetail>;
+      setData((current) => {
+        if (!current || !poll) {
+          return payload as AuctionDetail;
+        }
+        return {
+          ...current,
+          ...payload,
+          seller:
+            payload.seller && "user" in payload.seller && payload.seller.user
+              ? (payload.seller as AuctionDetail["seller"])
+              : current.seller,
+          category: payload.category ?? current.category,
+          item: payload.item ?? current.item,
+        };
+      });
       setLoading(false);
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
       setError("Unable to load listing.");
       setLoading(false);
     }
   }, [id]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchAuction();
-  }, [fetchAuction]);
+    const timeout = window.setTimeout(() => {
+      void fetchAuction({ poll: Boolean(initialData), silent: Boolean(initialData) });
+    }, 0);
+    return () => window.clearTimeout(timeout);
+  }, [fetchAuction, initialData]);
 
   useEffect(() => {
     if (!pollInterval) return;
     const interval = setInterval(() => {
-      fetchAuction();
+      if (document.visibilityState === "hidden") return;
+      void fetchAuction({ poll: true, silent: true });
     }, pollInterval);
     return () => clearInterval(interval);
   }, [fetchAuction, pollInterval]);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   return { data, loading, error, refresh: fetchAuction };
 }

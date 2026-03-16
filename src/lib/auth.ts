@@ -13,6 +13,7 @@ import { verifyNativeAuthToken } from "@/lib/native-auth";
 
 const providers = [];
 const adminEmails = getConfiguredAdminEmails();
+const AUTH_TOKEN_REFRESH_MS = 1000 * 60 * 30;
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   providers.push(
@@ -57,10 +58,20 @@ export const authOptions: NextAuthOptions = {
         token.image =
           (user as { image?: string }).image
           ?? (token.image as string | undefined);
+        token.profileSyncedAt = 0;
       }
 
       const tokenUserId = (token.userId as string | undefined) ?? token.sub;
-      if (tokenUserId) {
+      const needsProfileData =
+        !token.email
+        || !token.displayName
+        || !token.role
+        || !(token.username as string | undefined);
+      const lastSyncedAt = typeof token.profileSyncedAt === "number" ? token.profileSyncedAt : 0;
+      const needsRefresh = Date.now() - lastSyncedAt > AUTH_TOKEN_REFRESH_MS;
+      const shouldHydrateToken = Boolean(tokenUserId && (user || needsProfileData || needsRefresh));
+
+      if (tokenUserId && shouldHydrateToken) {
         await ensureProfileSchema().catch(() => null);
         const dbUser = await prisma.user.findUnique({
           where: { id: tokenUserId },
@@ -75,7 +86,10 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        if (dbUser && !dbUser.username) {
+        let resolvedUsername = dbUser?.username ?? null;
+        const canWriteProfile = Boolean(user || needsProfileData);
+
+        if (dbUser && !resolvedUsername && canWriteProfile) {
           const seed =
             dbUser.displayName
             ?? dbUser.name
@@ -87,33 +101,30 @@ export const authOptions: NextAuthOptions = {
               where: { id: dbUser.id },
               data: { username: nextUsername },
             });
-            dbUser.username = nextUsername;
+            resolvedUsername = nextUsername;
           } catch {
             // Ignore race conflicts and keep auth flow alive.
           }
         }
 
-        if (dbUser?.role) {
-          token.role = dbUser.role;
-        }
-        if (dbUser?.email) {
-          token.email = dbUser.email;
-        }
-        if (dbUser?.username) {
-          token.username = dbUser.username;
-        }
+        const resolvedEmail = dbUser?.email ?? (token.email as string | undefined);
+        const shouldBeAdmin = isConfiguredAdminEmail(resolvedEmail, adminEmails);
+
+        token.role = shouldBeAdmin ? "ADMIN" : dbUser?.role ?? (token.role as string | undefined);
+        token.email = resolvedEmail;
+        token.username = resolvedUsername ?? (token.username as string | undefined);
         token.displayName = dbUser?.displayName ?? dbUser?.name ?? (token.displayName as string | undefined);
         token.image = dbUser?.image ?? (token.image as string | undefined);
+        token.profileSyncedAt = Date.now();
 
-        if (isConfiguredAdminEmail(dbUser?.email ?? (token.email as string), adminEmails)) {
-          token.role = "ADMIN";
-          if (dbUser?.role !== "ADMIN") {
-            await prisma.user.update({
-              where: { id: tokenUserId },
-              data: { role: "ADMIN" },
-            });
-          }
+        if (shouldBeAdmin && canWriteProfile && dbUser?.role !== "ADMIN") {
+          await prisma.user.update({
+            where: { id: tokenUserId },
+            data: { role: "ADMIN" },
+          }).catch(() => null);
         }
+      } else if (isConfiguredAdminEmail(token.email as string | undefined, adminEmails)) {
+        token.role = "ADMIN";
       }
       return token;
     },

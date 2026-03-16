@@ -1,35 +1,16 @@
-import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
+import { getAuctionDetail, getAuctionRoomSnapshot } from "@/lib/server/auction-loaders";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  const auction = await prisma.auction.findUnique({
-    where: { id },
-    include: {
-      category: true,
-      item: { include: { images: true } },
-      seller: {
-        select: {
-          id: true,
-          status: true,
-          userId: true,
-          user: { select: { displayName: true, id: true } },
-        },
-      },
-      bids: { orderBy: { createdAt: "desc" }, take: 25 },
-      chatMessages: {
-        orderBy: { createdAt: "desc" },
-        take: 25,
-        include: { sender: { select: { displayName: true } } },
-      },
-      streamSessions: { orderBy: { createdAt: "desc" }, take: 1 },
-    },
-  });
+  const { searchParams } = new URL(request.url);
+  const pollOnly = searchParams.get("poll") === "1";
+  const auction = pollOnly ? await getAuctionRoomSnapshot(id) : await getAuctionDetail(id);
 
   if (!auction) {
     return jsonError("Auction not found.", 404);
