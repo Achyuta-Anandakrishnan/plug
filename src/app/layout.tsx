@@ -2,8 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { AppProviders } from "@/components/AppProviders";
 import { NativeShell } from "@/components/native/NativeShell";
-import { SiteFooter } from "@/components/SiteFooter";
-import { SiteHeader } from "@/components/SiteHeader";
+import { SiteChrome } from "@/components/SiteChrome";
 import "./globals.css";
 import "./product-redesign.css";
 
@@ -41,12 +40,8 @@ export default function RootLayout({
         <AppProviders>
           <NativeShell />
           <div className="app-shell relative min-h-screen">
-            <div className="relative z-10 flex min-h-screen flex-col">
-              <SiteHeader />
-              <main className="page-container mobile-safe-main flex-1">
-                {children}
-              </main>
-              <SiteFooter />
+            <div className="relative z-10 min-h-screen">
+              <SiteChrome>{children}</SiteChrome>
             </div>
           </div>
           <Analytics />

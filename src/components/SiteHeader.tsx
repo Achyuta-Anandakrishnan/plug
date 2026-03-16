@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { AppContainer } from "@/components/product/ProductUI";
 import { isPrimaryAdminEmail } from "@/lib/admin-email";
 
 function Brand() {
@@ -147,7 +148,7 @@ export function SiteHeader() {
   return (
     <>
       <header className="site-header">
-        <div className="site-shell">
+        <AppContainer>
           <div className="site-header-row">
             <div className="site-header-left">
               <button
@@ -189,7 +190,7 @@ export function SiteHeader() {
               <AccountButton signedIn={Boolean(session?.user?.id)} />
             </div>
           </div>
-        </div>
+        </AppContainer>
       </header>
       {mobileDrawer}
     </>

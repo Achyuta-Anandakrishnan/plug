@@ -125,6 +125,8 @@ export function PageHeader({
   );
 }
 
+export const AppPageHeader = PageHeader;
+
 export function SectionHeader({
   title,
   subtitle,
@@ -147,6 +149,8 @@ export function SectionHeader({
 export function DiscoveryBar({ children, className, ...props }: DiscoveryBarProps) {
   return <section className={classNames("app-discovery-bar", className)} {...props}>{children}</section>;
 }
+
+export const AppToolbar = DiscoveryBar;
 
 export function FilterChip({ label, active = false, onClick, className }: FilterChipProps) {
   return (

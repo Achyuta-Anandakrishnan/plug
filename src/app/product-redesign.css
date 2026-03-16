@@ -1,8 +1,9 @@
 :root {
   --app-header-height: 72px;
   --app-footer-height: 80px;
-  --app-shell-pad: clamp(24px, 3vw, 40px);
-  --app-frame-height: calc(100svh - var(--app-header-height) - var(--app-footer-height));
+  --app-shell-pad: 24px;
+  --marketing-frame-height: calc(100svh - var(--app-header-height) - var(--app-footer-height));
+  --app-frame-height: calc(100svh - var(--app-header-height));
   --product-bg: #f7f8fa;
   --product-surface: #ffffff;
   --product-surface-muted: #f9fafb;
@@ -31,27 +32,46 @@ body {
   font-family: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
 }
 
-main.page-container.mobile-safe-main {
+.site-layout {
+  min-height: 100svh;
+}
+
+.site-main {
   width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  min-height: var(--app-frame-height);
+}
+
+.marketing-layout .site-main {
+  min-height: var(--marketing-frame-height);
+  padding-top: var(--app-header-height);
+}
+
+.app-layout .site-main {
+  height: var(--app-frame-height);
+  margin-top: var(--app-header-height);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.site-main--app > .app-container {
+  min-height: 100%;
 }
 
 .site-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
   border-bottom: 1px solid rgba(229, 231, 235, 0.9);
   background: rgba(247, 248, 250, 0.88);
   backdrop-filter: blur(18px);
 }
 
+.app-container,
 .site-shell {
   box-sizing: border-box;
   width: 100%;
-  max-width: none;
+  max-width: 1280px;
   margin: 0 auto;
   padding-inline: var(--app-shell-pad);
 }
@@ -263,6 +283,10 @@ main.page-container.mobile-safe-main {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.app-layout .site-footer {
+  display: none;
+}
+
 .site-footer-row {
   min-height: var(--app-footer-height);
   color: var(--product-text-soft);
@@ -291,13 +315,11 @@ main.page-container.mobile-safe-main {
 .app-page {
   box-sizing: border-box;
   width: 100%;
-  max-width: none;
-  margin: 0 auto;
-  min-height: var(--app-frame-height);
-  padding: 16px var(--app-shell-pad) 20px;
+  min-height: 100%;
+  padding: 24px 0;
   display: grid;
   align-content: start;
-  gap: 20px;
+  gap: 24px;
 }
 
 .app-page,
@@ -308,7 +330,7 @@ main.page-container.mobile-safe-main {
 
 .app-section {
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .app-page-header,
@@ -449,6 +471,10 @@ main.page-container.mobile-safe-main {
   overflow-x: auto;
   scrollbar-width: none;
   padding-bottom: 2px;
+}
+
+.app-layout .app-control-bar {
+  gap: 8px 10px;
 }
 
 .app-control-bar::-webkit-scrollbar {
@@ -1551,6 +1577,108 @@ main.page-container.mobile-safe-main {
   font-weight: 700;
 }
 
+.stream-room-page {
+  min-height: 100%;
+  padding-top: 24px;
+  padding-bottom: 24px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 20px;
+}
+
+.stream-room-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.stream-room-head-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.stream-room-back {
+  color: var(--product-text-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.stream-room-head h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.stream-room-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.stream-room-pills span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--product-surface-muted);
+  color: var(--product-text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stream-room-shell {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 380px;
+}
+
+.stream-room-video {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-height: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 28px;
+  background: #0f172a;
+}
+
+.stream-room-rail {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: auto auto minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.app-layout .messages-page {
+  min-height: 100%;
+}
+
+.app-layout .messages-page .app-screen-section--messages {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.app-layout .messages-page .messages-layout {
+  min-height: 0;
+  height: 100%;
+}
+
+.app-layout .messages-page .messages-sidebar,
+.app-layout .messages-page .messages-chat,
+.app-layout .messages-page .messages-thread-list,
+.app-layout .messages-page .messages-feed {
+  min-height: 0;
+  max-height: none;
+}
+
 @media (max-width: 1024px) {
   .home-hero,
   .home-section-shell,
@@ -1588,6 +1716,15 @@ main.page-container.mobile-safe-main {
 
   .messages-chat {
     min-height: 0;
+  }
+
+  .stream-room-shell,
+  .app-layout .messages-page .messages-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .stream-room-shell {
+    height: auto;
   }
 }
 
@@ -1660,12 +1797,17 @@ main.page-container.mobile-safe-main {
   .live-v3-live-grid {
     grid-template-columns: 1fr;
   }
+
+  .stream-room-head,
+  .stream-room-pills {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 @media (min-width: 1025px) {
-  .home-app-page,
-  .app-page--snap {
-    height: var(--app-frame-height);
+  .marketing-layout .home-app-page {
+    height: var(--marketing-frame-height);
     overflow-y: auto;
     scroll-snap-type: y mandatory;
     scrollbar-width: none;
@@ -1674,14 +1816,12 @@ main.page-container.mobile-safe-main {
     padding-bottom: 0;
   }
 
-  .home-app-page::-webkit-scrollbar,
-  .app-page--snap::-webkit-scrollbar {
+  .marketing-layout .home-app-page::-webkit-scrollbar {
     display: none;
   }
 
-  .home-scroll-section,
-  .app-page--snap > .app-screen-section {
-    min-height: var(--app-frame-height);
+  .marketing-layout .home-scroll-section {
+    min-height: var(--marketing-frame-height);
     scroll-snap-align: start;
     display: grid;
     align-content: start;
@@ -1690,30 +1830,38 @@ main.page-container.mobile-safe-main {
   }
 
   .home-scroll-section {
-    height: var(--app-frame-height);
+    height: var(--marketing-frame-height);
     min-height: 0;
   }
 
-  .app-page--snap > .app-screen-section > .app-section {
-    gap: 20px;
+}
+
+@media (min-width: 1025px) {
+  .app-layout .app-page--snap {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+    scroll-snap-type: none;
+    gap: 24px;
+    padding-top: 24px;
+    padding-bottom: 24px;
   }
 
-  .app-screen-section--messages {
-    grid-template-rows: auto auto minmax(0, 1fr);
+  .app-layout .app-page--snap::-webkit-scrollbar {
+    display: none;
   }
 
-  .app-screen-section--messages > .messages-layout {
+  .app-layout .app-page--snap > .app-screen-section {
     min-height: 0;
-    height: 100%;
+    height: auto;
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    padding-block: 0;
+    scroll-snap-align: none;
   }
 
-  .app-screen-section--messages .messages-sidebar,
-  .app-screen-section--messages .messages-chat {
-    min-height: 0;
-  }
-
-  .app-screen-section--messages .messages-thread-list,
-  .app-screen-section--messages .messages-feed {
-    max-height: none;
+  .app-layout .app-page--snap > .app-screen-section > .app-section {
+    gap: 16px;
   }
 }

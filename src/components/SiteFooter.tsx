@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { AppContainer } from "@/components/product/ProductUI";
 
 export function SiteFooter() {
   return (
     <footer className="site-footer">
-      <div className="site-shell site-footer-row">
+      <AppContainer className="site-footer-row">
         <div className="site-footer-brand">
           <strong>dalow</strong>
           <span>For collectors, by collectors.</span>
@@ -15,7 +16,7 @@ export function SiteFooter() {
           <Link href="/forum">Forum</Link>
         </div>
         <p className="site-footer-copy">© 2026 dalow Labs</p>
-      </div>
+      </AppContainer>
     </footer>
   );
 }

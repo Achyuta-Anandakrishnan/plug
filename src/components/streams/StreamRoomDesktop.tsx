@@ -210,10 +210,10 @@ export function StreamRoomDesktop({
   const imageUrl = data.item?.images?.find((img) => img.isPrimary)?.url ?? data.item?.images?.[0]?.url ?? null;
 
   return (
-    <section className="grid h-[calc(100svh-var(--app-header-height)-var(--app-footer-height)-132px)] max-h-[calc(100svh-var(--app-header-height)-var(--app-footer-height)-132px)] min-h-[540px] gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+    <section className="stream-room-shell">
       <div
         ref={streamFrameRef}
-        className="relative aspect-video max-h-full overflow-hidden rounded-[28px] border border-white/60 bg-slate-900"
+        className="stream-room-video"
       >
         <LiveKitStream
           auctionId={data.id}
@@ -288,7 +288,7 @@ export function StreamRoomDesktop({
         )}
       </div>
 
-      <aside className="grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)_minmax(0,1fr)] gap-4">
+      <aside className="stream-room-rail">
         <section className="surface-panel rounded-3xl p-4 space-y-3">
           <div className="flex items-center justify-between text-sm text-slate-600">
             <span>Next bid</span>
