@@ -10,6 +10,7 @@ import {
   EmptyStateCard,
   FilterChip,
   PageContainer,
+  SearchIcon,
   SectionHeader,
   SegmentedControl,
   SecondaryButton,
@@ -185,9 +186,7 @@ export function MarketHub() {
           <div className="app-control-title">Marketplace</div>
           <div className="listing-system-toolbar-main market-toolbar-main">
             <div className="app-search">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
-              </svg>
+              <SearchIcon />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}

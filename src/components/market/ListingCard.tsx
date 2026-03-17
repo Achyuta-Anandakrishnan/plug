@@ -189,15 +189,14 @@ export function ListingCard(props: ListingCardProps) {
   const controlledSaved = isLiveCard ? props.saved : undefined;
   const [localSaved, setLocalSaved] = useState(false);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const trade = "trade" in props ? props.trade : undefined;
+  const stream = "stream" in props ? props.stream : undefined;
+  const listing = !("trade" in props) && !("stream" in props) ? props.listing : undefined;
   const surface = useMemo(() => {
-    if ("trade" in props) {
-      return tradeListingToSurfaceData(props.trade);
-    }
-    if ("stream" in props) {
-      return liveListingToSurfaceData(props.stream);
-    }
-    return marketListingToSurfaceData(props.listing);
-  }, [props]);
+    if (trade) return tradeListingToSurfaceData(trade);
+    if (stream) return liveListingToSurfaceData(stream);
+    return marketListingToSurfaceData(listing!);
+  }, [trade, stream, listing]);
   const fallbackImage = "/placeholders/pokemon-generic.svg";
   const imageSrc = failedSrc === surface.imageUrl ? fallbackImage : surface.imageUrl;
   const saved = controlledSaved ?? localSaved;

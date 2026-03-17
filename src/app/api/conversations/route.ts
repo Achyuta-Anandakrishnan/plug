@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { isDev, jsonError, jsonOk, parseJson } from "@/lib/api";
+import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
 import { ensureProfileSchema } from "@/lib/profile-schema";
@@ -17,12 +17,11 @@ export async function GET(request: Request) {
   const query = searchParams.get("q")?.trim() ?? "";
   const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 40), 1), 100);
   const sessionUser = await getSessionUser();
-  const actorId =
-    sessionUser?.id ?? (isDev() ? searchParams.get("userId") : null);
-
-  if (!actorId) {
+  if (!sessionUser) {
     return jsonError("Authentication required.", 401);
   }
+
+  const actorId = sessionUser.id;
 
   const conversations = await prisma.conversation.findMany({
     where: {
@@ -75,25 +74,18 @@ export async function POST(request: Request) {
   }
 
   const sessionUser = await getSessionUser();
-  if (!sessionUser && !isDev()) {
+  if (!sessionUser) {
     return jsonError("Authentication required.", 401);
   }
 
   const uniqueParticipants = Array.from(new Set(body.participantIds));
 
-  if (!isDev()) {
-    if (!sessionUser) {
-      return jsonError("Authentication required.", 401);
-    }
-    if (!uniqueParticipants.includes(sessionUser.id)) {
-      return jsonError("You must be a participant in the conversation.", 403);
-    }
+  if (!uniqueParticipants.includes(sessionUser.id)) {
+    return jsonError("You must be a participant in the conversation.", 403);
   }
 
-  const allowSupportFlag = Boolean(
-    sessionUser && isAdminEmail(sessionUser.email),
-  );
-  const isSupport = isDev() ? Boolean(body.isSupport) : allowSupportFlag && Boolean(body.isSupport);
+  const allowSupportFlag = Boolean(isAdminEmail(sessionUser.email));
+  const isSupport = allowSupportFlag && Boolean(body.isSupport);
 
   const subject = body.subject?.trim() || null;
   if (subject) {

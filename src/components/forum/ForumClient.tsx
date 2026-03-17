@@ -10,6 +10,7 @@ import {
   FilterChip,
   PageContainer,
   PrimaryButton,
+  SearchIcon,
   SecondaryButton,
 } from "@/components/product/ProductUI";
 
@@ -100,9 +101,8 @@ export function ForumClient() {
   }, [session]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void fetchPosts("");
-  }, [fetchPosts]);
+    void fetchPosts(query);
+  }, [fetchPosts, query]);
 
   const resolvedTab = session?.user?.id ? activeTab : "published";
   const activePosts = resolvedTab === "drafts" ? draftPosts : publishedPosts;
@@ -117,9 +117,7 @@ export function ForumClient() {
         <DiscoveryBar className="app-control-bar forum-toolbar">
           <div className="app-control-title">Forum</div>
           <div className="app-search">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
-            </svg>
+            <SearchIcon />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -147,13 +145,13 @@ export function ForumClient() {
             ) : null}
           </div>
           <div className="app-toolbar-spacer" aria-hidden="true" />
-          <button type="button" onClick={() => void handleSearch()} className="app-button app-button-primary">
+          <button type="button" onClick={() => void handleSearch()} className="app-button app-button-primary forum-toolbar-search">
             Search
           </button>
           {!session?.user?.id ? (
-            <SecondaryButton onClick={() => signIn()}>Sign in</SecondaryButton>
+            <SecondaryButton onClick={() => signIn()} className="forum-toolbar-auth">Sign in</SecondaryButton>
           ) : null}
-          <PrimaryButton href="/forum/new">Write thread</PrimaryButton>
+          <PrimaryButton href="/forum/new" className="forum-toolbar-compose">Write thread</PrimaryButton>
         </DiscoveryBar>
 
         {error ? <EmptyStateCard title="Forum unavailable" description={error} /> : null}

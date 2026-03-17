@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { isDev, jsonError, jsonOk } from "@/lib/api";
+import { jsonError, jsonOk } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 
 export async function DELETE(
@@ -9,24 +9,22 @@ export async function DELETE(
   const { id } = await context.params;
 
   const sessionUser = await getSessionUser();
-  if (!sessionUser && !isDev()) {
+  if (!sessionUser) {
     return jsonError("Authentication required.", 401);
   }
 
-  if (!isDev()) {
-    const participant = await prisma.conversationParticipant.findUnique({
-      where: {
-        conversationId_userId: {
-          conversationId: id,
-          userId: sessionUser!.id,
-        },
+  const participant = await prisma.conversationParticipant.findUnique({
+    where: {
+      conversationId_userId: {
+        conversationId: id,
+        userId: sessionUser.id,
       },
-      select: { id: true },
-    });
+    },
+    select: { id: true },
+  });
 
-    if (!participant) {
-      return jsonError("Not authorized.", 403);
-    }
+  if (!participant) {
+    return jsonError("Not authorized.", 403);
   }
 
   const existing = await prisma.conversation.findUnique({

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default function AuctionRoom({ params }: { params: { id: string } }) {
-  redirect(`/streams/${params.id}`);
+export default async function AuctionRoom({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  redirect(`/streams/${id}`);
 }

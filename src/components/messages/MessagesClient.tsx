@@ -10,6 +10,7 @@ import {
   EmptyStateCard,
   PageContainer,
   PrimaryButton,
+  SearchIcon,
   SecondaryButton,
 } from "@/components/product/ProductUI";
 
@@ -328,20 +329,20 @@ export function MessagesClient() {
   return (
     <PageContainer className="messages-page app-page--messages">
       <section className="app-section app-screen-section--messages">
-        <DiscoveryBar className="app-control-bar messages-toolbar">
-          <div className="app-control-title">Messages</div>
-          <div className="app-search">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
-            </svg>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search conversations"
-            />
-          </div>
-          <div className="app-toolbar-spacer" aria-hidden="true" />
-        </DiscoveryBar>
+        {isDesktop || mobilePane === "threads" ? (
+          <DiscoveryBar className="app-control-bar messages-toolbar">
+            <div className="app-control-title">Messages</div>
+            <div className="app-search">
+              <SearchIcon />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search conversations"
+              />
+            </div>
+            <div className="app-toolbar-spacer" aria-hidden="true" />
+          </DiscoveryBar>
+        ) : null}
 
         {error ? <EmptyStateCard title="Messages unavailable" description={error} /> : null}
 
@@ -396,7 +397,7 @@ export function MessagesClient() {
         ) : null}
 
         {showChatPane ? (
-          <section className="messages-chat messages-panel">
+          <section className={`messages-chat messages-panel ${!isDesktop ? "is-mobile-pane" : ""}`}>
             {activeConversation ? (
               <>
                 <div className="messages-chat-head">

@@ -16,7 +16,11 @@ function getPreferredTheme(): ThemeMode {
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<ThemeMode>(() => getPreferredTheme());
+  const [theme, setTheme] = useState<ThemeMode>("light");
+
+  useEffect(() => {
+    setTheme(getPreferredTheme());
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);

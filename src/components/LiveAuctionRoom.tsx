@@ -201,7 +201,12 @@ export function LiveAuctionRoom() {
               >
                 Place offer ${nextBid.toLocaleString()}
               </button>
-              <button className="rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700">
+              <button
+                type="button"
+                disabled
+                title="Auto offer is not yet available"
+                className="rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-400 cursor-not-allowed opacity-60"
+              >
                 Auto offer
               </button>
             </div>
