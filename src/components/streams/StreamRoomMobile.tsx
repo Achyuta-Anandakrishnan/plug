@@ -3,19 +3,28 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
+import { CheckersLoader } from "@/components/CheckersLoader";
+import { SegmentedControl } from "@/components/product/ProductUI";
+import { ListingImageStrip } from "@/components/streams/ListingImageStrip";
+import { LiveKitStream } from "@/components/streams/LiveKitStream";
 import { useAuction } from "@/hooks/useAuction";
 import type { AuctionDetail } from "@/hooks/useAuction";
 import { getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
-import { CheckersLoader } from "@/components/CheckersLoader";
-import { LiveKitStream } from "@/components/streams/LiveKitStream";
-import { ListingImageStrip } from "@/components/streams/ListingImageStrip";
 
 type StreamRoomMobileProps = {
   auctionId: string;
   initialData?: AuctionDetail | null;
   stripeEnabled?: boolean;
 };
+
+type MobileTab = "chat" | "bids" | "details";
+
+const MOBILE_TABS: Array<{ value: MobileTab; label: string }> = [
+  { value: "chat", label: "Chat" },
+  { value: "bids", label: "Bids" },
+  { value: "details", label: "Details" },
+];
 
 export function StreamRoomMobile({
   auctionId,
@@ -31,11 +40,10 @@ export function StreamRoomMobile({
   const [actionStatus, setActionStatus] = useState("");
   const [participantCount, setParticipantCount] = useState<number | null>(null);
   const [streamStatus, setStreamStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
-  const [chatOpen, setChatOpen] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
+  const [activeTab, setActiveTab] = useState<MobileTab>("chat");
 
   const timeLeft = useMemo(() => (data ? getTimeLeftSeconds(data) : 0), [data]);
-
   const nextBid = data ? data.currentBid + data.minBidIncrement : 0;
   const currency = data?.currency?.toUpperCase() ?? "USD";
   const effectiveBuyerId = sessionUserId;
@@ -47,16 +55,13 @@ export function StreamRoomMobile({
   const minimumBid = nextBid;
   const validBidAmount = Number.isFinite(parsedBidAmount) ? Math.round(parsedBidAmount * 100) : minimumBid;
   const quickBidOptions = useMemo(
-    () => [minimumBid, minimumBid + (data?.minBidIncrement ?? 0) * 2, minimumBid + (data?.minBidIncrement ?? 0) * 5],
+    () => [
+      minimumBid,
+      minimumBid + (data?.minBidIncrement ?? 0) * 2,
+      minimumBid + (data?.minBidIncrement ?? 0) * 5,
+    ],
     [data?.minBidIncrement, minimumBid],
   );
-
-  useEffect(() => {
-    document.body.style.overflow = chatOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [chatOpen]);
 
   useEffect(() => {
     setBidAmount((minimumBid / 100).toFixed(2));
@@ -185,7 +190,7 @@ export function StreamRoomMobile({
     }
 
     setMessage("");
-    refresh();
+    void refresh();
   };
 
   if (loading) {
@@ -213,12 +218,14 @@ export function StreamRoomMobile({
             onStatusChange={setStreamStatus}
           />
           <div className="absolute left-4 top-4 z-20 flex items-center gap-2">
-            {!Boolean(sessionUserId && data.seller?.user?.id === sessionUserId) && (
+            {!Boolean(sessionUserId && data.seller?.user?.id === sessionUserId) ? (
               <span className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.2em] ${streamStatus === "live" ? "bg-emerald-400/20 text-emerald-100" : "bg-white/15 text-white"}`}>
                 {streamStatus === "live" ? "Live" : "Offline"}
               </span>
-            )}
-            <span className="rounded-full bg-white/15 px-3 py-1.5 text-xs text-white">{formatSeconds(timeLeft)}</span>
+            ) : null}
+            <span className="rounded-full bg-white/15 px-3 py-1.5 text-xs text-white">
+              {formatSeconds(timeLeft)}
+            </span>
           </div>
           <div className="absolute bottom-4 left-4 right-4 rounded-[24px] bg-slate-950/55 px-4 py-3 text-white backdrop-blur">
             <p className="font-display text-2xl leading-tight">{data.title}</p>
@@ -229,153 +236,172 @@ export function StreamRoomMobile({
         </div>
       </section>
 
-      <ListingImageStrip images={data.item?.images ?? []} compact />
+      <SegmentedControl
+        options={MOBILE_TABS}
+        value={activeTab}
+        onChange={(value) => setActiveTab(value)}
+        className="stream-room-mobile-tabs"
+      />
 
-      <section className="product-card stream-room-mobile-panel">
-        <div className="stream-bid-summary">
-          <div>
-            <p>Current</p>
-            <strong>{formatCurrency(data.currentBid, currency)}</strong>
-          </div>
-          <div>
-            <p>Minimum</p>
-            <strong>{formatCurrency(minimumBid, currency)}</strong>
-          </div>
-          <div>
-            <p>Closes in</p>
-            <strong>{roomLive ? formatSeconds(timeLeft) : "Pending"}</strong>
-          </div>
-        </div>
-        {data.listingType !== "BUY_NOW" && (
-          <div className="stream-bid-panel">
-            <label className="stream-bid-field">
-              <span>Your bid</span>
-              <input
-                value={bidAmount}
-                onChange={(event) => setBidAmount(event.target.value.replace(/[^\d.]/g, ""))}
-                inputMode="decimal"
-                placeholder={(minimumBid / 100).toFixed(2)}
-              />
-            </label>
-            <div className="stream-bid-quick">
-              {quickBidOptions.map((amount) => (
-                <button
-                  key={amount}
-                  type="button"
-                  onClick={() => {
-                    setBidAmount((amount / 100).toFixed(2));
-                    void handleBid(amount);
-                  }}
-                  className="stream-bid-quick-btn"
-                >
-                  {formatCurrency(amount, currency)}
-                </button>
-              ))}
+      <section className="stream-room-mobile-panel">
+        {activeTab === "chat" ? (
+          <div className="stream-room-mobile-tab stream-room-mobile-chat">
+            <div className="stream-room-mobile-section-head">
+              <h3>Chat</h3>
+              <span>{data.chatMessages.length} messages</span>
             </div>
-          </div>
-        )}
-        <div className="grid gap-2">
-          {data.listingType !== "BUY_NOW" && (
-            <button
-              onClick={() => void handleBid()}
-              disabled={isListingSeller || !canUseStripe || !roomLive}
-              className="rounded-full bg-[var(--royal)] px-4 py-3.5 text-base font-semibold text-white disabled:opacity-60"
-            >
-              Bid {formatCurrency(validBidAmount, currency)}
-            </button>
-          )}
-          {data.listingType !== "AUCTION" && data.buyNowPrice && (
-            <button
-              onClick={handleBuyNow}
-              disabled={isListingSeller || !canUseStripe}
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-3.5 text-base font-semibold text-slate-700 disabled:opacity-60"
-            >
-              Buy now {formatCurrency(data.buyNowPrice, currency)}
-            </button>
-          )}
-          <button
-            onClick={handleMessageSeller}
-            disabled={isListingSeller}
-            className="rounded-full border border-slate-200 bg-white/90 px-4 py-3.5 text-base font-semibold text-slate-700 disabled:opacity-60"
-          >
-            Message seller
-          </button>
-          <button
-            onClick={() => setChatOpen(true)}
-            className="rounded-full border border-slate-200 bg-white/90 px-4 py-3.5 text-base font-semibold text-slate-700"
-          >
-            Open chat
-          </button>
-        </div>
-        {actionStatus && <p className="text-xs text-slate-600">{actionStatus}</p>}
-      </section>
-
-      {chatOpen && (
-        <div className="fixed inset-0 z-[1200] md:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/55"
-            onClick={() => setChatOpen(false)}
-            aria-label="Close chat"
-          />
-          <section className="absolute inset-x-0 bottom-0 top-[16vh] flex flex-col rounded-t-[28px] border border-white/60 bg-white/95 p-4 backdrop-blur-xl">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-display text-2xl text-slate-900">Chat</h3>
-              <button
-                type="button"
-                onClick={() => setChatOpen(false)}
-                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
-              >
-                Close
-              </button>
-            </div>
-
-            <div className="flex-1 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
-              {data.chatMessages.length === 0 && (
+            <div className="stream-room-mobile-feed">
+              {data.chatMessages.length === 0 ? (
                 <div className="ios-empty">No chat yet. Be first to comment.</div>
+              ) : (
+                data.chatMessages.map((entry) => (
+                  <div key={entry.id} className="stream-room-mobile-message">
+                    <span>{entry.sender.displayName ?? "Guest"}</span>
+                    <p>{entry.body}</p>
+                  </div>
+                ))
               )}
-              {data.chatMessages.map((entry) => (
-                <div key={entry.id} className="rounded-2xl bg-slate-100 px-3 py-2">
-                  <span className="block text-xs font-semibold text-slate-500">{entry.sender.displayName ?? "Guest"}</span>
-                  {entry.body}
-                </div>
-              ))}
             </div>
-
-            <div className="mt-3 flex items-center gap-2">
+            <div className="stream-room-mobile-compose">
               <input
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
                 placeholder="Message the room"
-                className="ios-input flex-1 text-sm"
+                className="ios-input"
               />
               <button
                 onClick={handleSend}
-                className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+                className="app-button app-button-primary"
               >
                 Send
               </button>
             </div>
-          </section>
-        </div>
-      )}
+          </div>
+        ) : null}
 
-      <section className="ios-panel p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display text-2xl text-slate-900">Recent bids</h3>
-          <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Scroll</span>
-        </div>
-        <div className="max-h-40 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
-          {data.bids.length === 0 && (
-            <div className="ios-empty">No bids yet.</div>
-          )}
-          {data.bids.map((bid) => (
-            <div key={bid.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white/80 px-3 py-2">
-              <span className="text-xs uppercase tracking-[0.2em] text-slate-400">{bid.bidderId.slice(0, 6)}...</span>
-              <span className="font-semibold text-slate-900">{formatCurrency(bid.amount, currency)}</span>
+        {activeTab === "bids" ? (
+          <div className="stream-room-mobile-tab stream-room-mobile-bids">
+            <div className="stream-bid-summary">
+              <div>
+                <p>Current</p>
+                <strong>{formatCurrency(data.currentBid, currency)}</strong>
+              </div>
+              <div>
+                <p>Minimum</p>
+                <strong>{formatCurrency(minimumBid, currency)}</strong>
+              </div>
+              <div>
+                <p>Closes in</p>
+                <strong>{roomLive ? formatSeconds(timeLeft) : "Pending"}</strong>
+              </div>
             </div>
-          ))}
-        </div>
+            {data.listingType !== "BUY_NOW" ? (
+              <div className="stream-bid-panel">
+                <label className="stream-bid-field">
+                  <span>Your bid</span>
+                  <input
+                    value={bidAmount}
+                    onChange={(event) => setBidAmount(event.target.value.replace(/[^\d.]/g, ""))}
+                    inputMode="decimal"
+                    placeholder={(minimumBid / 100).toFixed(2)}
+                  />
+                </label>
+                <div className="stream-bid-quick">
+                  {quickBidOptions.map((amount) => (
+                    <button
+                      key={amount}
+                      type="button"
+                      onClick={() => {
+                        setBidAmount((amount / 100).toFixed(2));
+                        void handleBid(amount);
+                      }}
+                      className="stream-bid-quick-btn"
+                    >
+                      {formatCurrency(amount, currency)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="stream-room-mobile-actions">
+              {data.listingType !== "BUY_NOW" ? (
+                <button
+                  onClick={() => void handleBid()}
+                  disabled={isListingSeller || !canUseStripe || !roomLive}
+                  className="app-button app-button-primary"
+                >
+                  Bid {formatCurrency(validBidAmount, currency)}
+                </button>
+              ) : null}
+              {data.listingType !== "AUCTION" && data.buyNowPrice ? (
+                <button
+                  onClick={handleBuyNow}
+                  disabled={isListingSeller || !canUseStripe}
+                  className="app-button app-button-secondary"
+                >
+                  Buy now {formatCurrency(data.buyNowPrice, currency)}
+                </button>
+              ) : null}
+            </div>
+
+            <div className="stream-room-mobile-section-head">
+              <h3>Recent bids</h3>
+              <span>{data.bids.length} bids</span>
+            </div>
+            <div className="stream-room-mobile-feed">
+              {data.bids.length === 0 ? (
+                <div className="ios-empty">No bids yet.</div>
+              ) : (
+                data.bids.map((bid) => (
+                  <div key={bid.id} className="stream-room-mobile-bid-row">
+                    <span>{bid.bidderId.slice(0, 6)}...</span>
+                    <strong>{formatCurrency(bid.amount, currency)}</strong>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {activeTab === "details" ? (
+          <div className="stream-room-mobile-tab stream-room-mobile-details">
+            <div className="stream-room-mobile-section-head">
+              <h3>Details</h3>
+              <span>{data.listingType.replace("_", " ")}</span>
+            </div>
+            <div className="stream-room-mobile-detail-grid">
+              <div>
+                <p>Seller</p>
+                <strong>{data.seller?.user?.displayName ?? "Verified seller"}</strong>
+              </div>
+              <div>
+                <p>Status</p>
+                <strong>{roomLive ? "Live now" : "Waiting on host"}</strong>
+              </div>
+              <div>
+                <p>Watching</p>
+                <strong>{participantCount ?? data.watchersCount}</strong>
+              </div>
+              <div>
+                <p>Current</p>
+                <strong>{formatCurrency(data.currentBid, currency)}</strong>
+              </div>
+            </div>
+            <ListingImageStrip images={data.item?.images ?? []} compact />
+            <div className="stream-room-mobile-actions">
+              <button
+                onClick={handleMessageSeller}
+                disabled={isListingSeller}
+                className="app-button app-button-secondary"
+              >
+                Message seller
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {actionStatus ? <p className="stream-room-mobile-status">{actionStatus}</p> : null}
       </section>
     </section>
   );

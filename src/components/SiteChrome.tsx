@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteMobileNav } from "@/components/SiteMobileNav";
 
 type SiteChromeProps = {
   children: React.ReactNode;
@@ -27,6 +28,7 @@ export function AppLayout({ children }: SiteChromeProps) {
     <div className="site-layout app-layout">
       <SiteHeader />
       <main className="site-main site-main--app">{children}</main>
+      <SiteMobileNav />
     </div>
   );
 }

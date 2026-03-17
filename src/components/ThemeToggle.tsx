@@ -19,8 +19,16 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState<ThemeMode>("light");
 
   useEffect(() => {
-    setTheme(getPreferredTheme());
-  }, []);
+    const preferred = getPreferredTheme();
+    document.documentElement.setAttribute("data-theme", preferred);
+    if (preferred === theme) return undefined;
+
+    const frame = window.requestAnimationFrame(() => {
+      setTheme(preferred);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [theme]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);

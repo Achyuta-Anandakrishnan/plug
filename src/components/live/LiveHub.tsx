@@ -8,6 +8,7 @@ import { StreamerSpotlight } from "@/components/live/StreamerSpotlight";
 import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveStreamTypeFilter, LiveTimingFilter, SpotlightHost } from "@/components/live/types";
 import { UpcomingStreamsSection } from "@/components/live/UpcomingStreamsSection";
 import { EmptyStateCard, PageContainer } from "@/components/product/ProductUI";
+import { useMobileUi } from "@/hooks/useMobileUi";
 import { categoryMatches, filterByStreamType, isVisibleLiveStream, isVisibleUpcomingStream, searchMatches, sortLiveStreams, sortUpcomingStreams, streamCategory, streamHost, withStreamState } from "@/components/live/utils";
 import { useAuctions } from "@/hooks/useAuctions";
 
@@ -83,6 +84,7 @@ function applyStreamFilters(
 }
 
 export function LiveHub() {
+  const isMobileUi = useMobileUi();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<LiveCategoryFilter>("all");
   const [streamType, setStreamType] = useState<LiveStreamTypeFilter>("all");
@@ -167,8 +169,9 @@ export function LiveHub() {
 
   const hasError = liveError || upcomingError;
   const loading = liveLoading || upcomingLoading;
-  const liveLimit = timing === "live" ? 24 : 12;
-  const upcomingLimit = timing === "upcoming" ? 12 : 6;
+  const liveLimit = isMobileUi ? 8 : timing === "live" ? 24 : 12;
+  const upcomingLimit = isMobileUi ? 4 : timing === "upcoming" ? 12 : 6;
+  const spotlightLimit = isMobileUi ? 4 : 6;
 
   return (
     <PageContainer className="live-v3-page live-page listing-system-page app-page--live">
@@ -211,7 +214,7 @@ export function LiveHub() {
         <CheckersLoader title="Loading host activity..." compact className="live-v3-empty" />
       ) : (
         <div className="listing-system-feed">
-          <StreamerSpotlight hosts={spotlightHosts} />
+          <StreamerSpotlight hosts={spotlightHosts.slice(0, spotlightLimit)} />
         </div>
       )}
 

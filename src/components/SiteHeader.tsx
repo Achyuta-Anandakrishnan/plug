@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
+import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { AppContainer } from "@/components/product/ProductUI";
@@ -24,20 +23,30 @@ function Brand() {
   );
 }
 
-function AccountButton({ signedIn }: { signedIn: boolean }) {
+type AccountButtonProps = {
+  signedIn: boolean;
+  isAdmin?: boolean;
+  mobile?: boolean;
+};
+
+function AccountButton({ signedIn, isAdmin = false, mobile = false }: AccountButtonProps) {
+  const triggerClassName = mobile ? "site-account-trigger site-account-trigger-mobile" : "site-account-trigger";
+
   if (!signedIn) {
     return (
-      <Link href="/signin" className="site-account-trigger">
-        Account
+      <Link href="/signin" className={triggerClassName}>
+        {mobile ? "Profile" : "Account"}
       </Link>
     );
   }
 
   return (
-    <details className="site-account-menu">
-      <summary className="site-account-trigger">Account</summary>
-      <div className="site-account-popover">
+    <details className={`site-account-menu ${mobile ? "site-account-menu-mobile" : ""}`}>
+      <summary className={triggerClassName}>{mobile ? "Profile" : "Account"}</summary>
+      <div className={`site-account-popover ${mobile ? "site-account-popover-mobile" : ""}`}>
         <Link href="/settings">Settings</Link>
+        <Link href="/referral">Referral</Link>
+        {isAdmin ? <Link href="/admin/sellers">Admin</Link> : null}
         <button type="button" onClick={() => signOut()}>
           Sign out
         </button>
@@ -49,9 +58,7 @@ function AccountButton({ signedIn }: { signedIn: boolean }) {
 export function SiteHeader() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const canUseDom = typeof document !== "undefined";
   const isVerifiedSeller = session?.user?.role === "SELLER" || session?.user?.role === "ADMIN";
   const isAdmin = session?.user?.role === "ADMIN" || isPrimaryAdminEmail(session?.user?.email);
 
@@ -74,125 +81,64 @@ export function SiteHeader() {
         || pathname?.startsWith("/explore/")
         || pathname?.startsWith("/auctions/");
     }
+    if (item.key === "live") {
+      return pathname === item.href
+        || pathname?.startsWith(`${item.href}/`)
+        || pathname?.startsWith("/streams/");
+    }
     return pathname === item.href || pathname?.startsWith(`${item.href}/`);
   };
 
-  useEffect(() => {
-    if (!canUseDom) return;
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [canUseDom, mobileOpen]);
-
-  const mobileDrawer =
-    canUseDom && mobileOpen
-      ? createPortal(
-          <div className="site-mobile-overlay md:hidden">
-            <button
-              type="button"
-              className="site-mobile-backdrop"
-              aria-label="Close menu"
-              onClick={() => setMobileOpen(false)}
-            />
-            <aside className="site-mobile-drawer">
-              <div className="site-mobile-head">
-                <Brand />
-                <button type="button" onClick={() => setMobileOpen(false)} className="site-mobile-close">
-                  Close
-                </button>
-              </div>
-              <nav className="site-mobile-nav">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`site-mobile-link ${isNavActive(item) ? "is-active" : ""}`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-                {isAdmin ? (
-                  <Link
-                    href="/admin/sellers"
-                    onClick={() => setMobileOpen(false)}
-                    className="site-mobile-link"
-                  >
-                    Admin
-                  </Link>
-                ) : null}
-              </nav>
-              <div className="site-mobile-actions">
-                <Link
-                  href={isVerifiedSeller ? "/sell" : "/seller/verification"}
-                  onClick={() => setMobileOpen(false)}
-                  className="app-button app-button-primary"
-                >
-                  Create listing
-                </Link>
-                <Link
-                  href={session?.user?.id ? "/settings" : "/signin"}
-                  onClick={() => setMobileOpen(false)}
-                  className="app-button app-button-secondary"
-                >
-                  Account
-                </Link>
-              </div>
-            </aside>
-          </div>,
-          document.body,
-        )
-      : null;
-
   return (
-    <>
-      <header className="site-header">
-        <AppContainer>
-          <div className="site-header-row">
-            <div className="site-header-left">
-              <button
-                type="button"
-                onClick={() => setMobileOpen((open) => !open)}
-                className="site-menu-trigger md:hidden"
-                aria-expanded={mobileOpen}
-                aria-label={mobileOpen ? "Close menu" : "Open menu"}
-              >
-                Menu
-              </button>
-              <Brand />
-            </div>
-
-            <nav className="site-nav hidden md:flex">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`site-nav-link ${isNavActive(item) ? "is-active" : ""}`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              {isAdmin ? (
-                <Link href="/admin/sellers" className="site-admin-link">
-                  Admin
-                </Link>
-              ) : null}
-            </nav>
-
-            <div className="site-header-actions hidden md:flex">
-              <Link
-                href={isVerifiedSeller ? "/sell" : "/seller/verification"}
-                className="app-button app-button-primary"
-              >
-                Create listing
-              </Link>
-              <AccountButton signedIn={Boolean(session?.user?.id)} />
-            </div>
+    <header className="site-header">
+      <AppContainer>
+        <div className="site-header-row">
+          <div className="site-header-left">
+            <Brand />
           </div>
-        </AppContainer>
-      </header>
-      {mobileDrawer}
-    </>
+
+          <nav className="site-nav hidden md:flex">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`site-nav-link ${isNavActive(item) ? "is-active" : ""}`}
+              >
+                {item.label}
+              </Link>
+            ))}
+            {isAdmin ? (
+              <Link href="/admin/sellers" className="site-admin-link">
+                Admin
+              </Link>
+            ) : null}
+          </nav>
+
+          <div className="site-header-actions hidden md:flex">
+            <Link
+              href={isVerifiedSeller ? "/sell" : "/seller/verification"}
+              className="app-button app-button-primary"
+            >
+              Create listing
+            </Link>
+            <AccountButton signedIn={Boolean(session?.user?.id)} isAdmin={isAdmin} />
+          </div>
+
+          <div className="site-header-mobile-actions md:hidden">
+            <Link
+              href={isVerifiedSeller ? "/sell" : "/seller/verification"}
+              className="site-mobile-primary-action"
+            >
+              Create
+            </Link>
+            <AccountButton
+              signedIn={Boolean(session?.user?.id)}
+              isAdmin={isAdmin}
+              mobile
+            />
+          </div>
+        </div>
+      </AppContainer>
+    </header>
   );
 }

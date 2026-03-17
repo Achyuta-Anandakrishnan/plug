@@ -101,7 +101,13 @@ export function ForumClient() {
   }, [session]);
 
   useEffect(() => {
-    void fetchPosts(query);
+    const timeout = window.setTimeout(() => {
+      void fetchPosts(query);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
   }, [fetchPosts, query]);
 
   const resolvedTab = session?.user?.id ? activeTab : "published";
