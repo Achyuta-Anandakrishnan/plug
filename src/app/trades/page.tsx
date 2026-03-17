@@ -10,6 +10,7 @@ import {
   FilterChip,
   PageContainer,
   PrimaryButton,
+  SectionHeader,
 } from "@/components/product/ProductUI";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import {
@@ -76,32 +77,36 @@ export default function TradesPage() {
   }, [query, scope, session?.user?.id]);
 
   return (
-    <PageContainer className="trades-page app-page--trades">
+    <PageContainer className="trades-page listing-system-page app-page--trades">
       <section className="app-section">
-        <DiscoveryBar className="app-control-bar trades-toolbar">
+        <DiscoveryBar className="app-control-bar listing-system-toolbar trades-toolbar">
           <div className="app-control-title">Trades</div>
-          <div className="app-search">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
-            </svg>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search trade posts"
-            />
-          </div>
-          <div className="app-chip-row">
-            {scopes.map((entry) => (
-              <FilterChip
-                key={entry.key}
-                label={entry.label}
-                active={scope === entry.key}
-                onClick={() => setScope(entry.key)}
+          <div className="listing-system-toolbar-main trades-toolbar-main">
+            <div className="app-search">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
+              </svg>
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search trade posts"
               />
-            ))}
+            </div>
+            <div className="app-chip-row">
+              {scopes.map((entry) => (
+                <FilterChip
+                  key={entry.key}
+                  label={entry.label}
+                  active={scope === entry.key}
+                  onClick={() => setScope(entry.key)}
+                />
+              ))}
+            </div>
           </div>
-          <div className="app-toolbar-spacer" aria-hidden="true" />
-          <PrimaryButton href="/trades/new">New trade</PrimaryButton>
+          <div className="listing-system-toolbar-meta trades-toolbar-meta">
+            <div className="app-toolbar-spacer" aria-hidden="true" />
+            <PrimaryButton href="/trades/new">New trade</PrimaryButton>
+          </div>
         </DiscoveryBar>
 
         {!session?.user?.id && scope === "MINE" ? (
@@ -115,7 +120,12 @@ export default function TradesPage() {
         {error ? <EmptyStateCard title="Trade board unavailable" description={error} /> : null}
         {loading ? <CheckersLoader title="Loading trades..." compact className="ios-empty" /> : null}
 
-        <section className="app-section">
+        <section className="app-section listing-system-feed">
+          <SectionHeader
+            title="Trade board"
+            subtitle="Collector-to-collector listings with offers and value ranges."
+            action={<span className="market-count">{posts.length} listings</span>}
+          />
           {!loading && posts.length === 0 ? (
             <EmptyStateCard title="No active trade posts right now." description="Try another status filter or check back when collectors publish new wants." />
           ) : null}

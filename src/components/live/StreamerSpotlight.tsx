@@ -11,7 +11,11 @@ export function StreamerSpotlight({ hosts }: StreamerSpotlightProps) {
 
   return (
     <section className="live-v3-spotlight">
-      <SectionHeader title="Hosts to watch" subtitle="Follow reliable rooms and repeat sellers." />
+      <SectionHeader
+        title="Hosts to watch"
+        subtitle="Follow reliable rooms and repeat sellers."
+        action={<span className="market-count">{visibleHosts.length} hosts</span>}
+      />
 
       {visibleHosts.length === 0 ? (
         <EmptyStateCard title="No host highlights yet." description="Once host activity picks up, featured collectors will appear here." />

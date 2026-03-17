@@ -19,7 +19,11 @@ export function UpcomingStreamsSection({
 
   return (
     <section id="upcoming" className="live-v3-upcoming">
-      <SectionHeader title="Upcoming" subtitle="Scheduled rooms worth tracking next." />
+      <SectionHeader
+        title="Upcoming"
+        subtitle="Scheduled rooms worth tracking next."
+        action={<span className="market-count">{visibleStreams.length} scheduled</span>}
+      />
 
       {visibleStreams.length === 0 ? (
         <EmptyStateCard title="No upcoming streams scheduled yet." description="Once hosts publish future sessions, they will appear here." />

@@ -180,11 +180,11 @@ export function MarketHub() {
   };
 
   return (
-    <PageContainer className="market-page app-page--market">
+    <PageContainer className="market-page listing-system-page app-page--market">
       <section className="app-section market-overview">
-        <DiscoveryBar className="app-control-bar market-toolbar">
+        <DiscoveryBar className="app-control-bar listing-system-toolbar market-toolbar">
           <div className="app-control-title">Marketplace</div>
-          <div className="market-toolbar-main">
+          <div className="listing-system-toolbar-main market-toolbar-main">
             <div className="app-search">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
@@ -207,7 +207,7 @@ export function MarketHub() {
               ))}
             </div>
           </div>
-          <div className="market-toolbar-meta">
+          <div className="listing-system-toolbar-meta market-toolbar-meta">
             <label className="app-select-wrap app-select-inline">
               <span>Sort</span>
               <select
@@ -230,7 +230,7 @@ export function MarketHub() {
         {listingsLoading ? (
           <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
         ) : (
-          <section className="app-section market-discovery-section">
+          <section className="app-section listing-system-feed market-discovery-section">
             {[
               {
                 key: "trending",
@@ -274,7 +274,7 @@ export function MarketHub() {
         )}
       </section>
 
-      <section className="app-section market-inventory-section">
+      <section className="app-section listing-system-feed market-inventory-section">
         <SectionHeader
           title="Inventory"
           subtitle="Browse active listings and compare them fast."

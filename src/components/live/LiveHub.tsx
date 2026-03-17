@@ -162,7 +162,7 @@ export function LiveHub() {
   const upcomingLimit = timing === "upcoming" ? 12 : 6;
 
   return (
-    <PageContainer className="live-v3-page live-page app-page--live">
+    <PageContainer className="live-v3-page live-page listing-system-page app-page--live">
       <LiveFilters
         title="Live"
         query={query}
@@ -178,24 +178,30 @@ export function LiveHub() {
       {loading ? (
         <CheckersLoader title="Loading live sessions..." compact className="live-v3-empty" />
       ) : (
-        <LiveNowRail streams={filteredLive} loading={liveLoading} limit={liveLimit} />
+        <div className="listing-system-feed">
+          <LiveNowRail streams={filteredLive} loading={liveLoading} limit={liveLimit} />
+        </div>
       )}
 
       {loading ? (
         <CheckersLoader title="Loading upcoming sessions..." compact className="live-v3-empty" />
       ) : (
-        <UpcomingStreamsSection
-          streams={filteredUpcoming}
-          reminders={reminders}
-          onToggleReminder={onToggleReminder}
-          limit={upcomingLimit}
-        />
+        <div className="listing-system-feed">
+          <UpcomingStreamsSection
+            streams={filteredUpcoming}
+            reminders={reminders}
+            onToggleReminder={onToggleReminder}
+            limit={upcomingLimit}
+          />
+        </div>
       )}
 
       {loading ? (
         <CheckersLoader title="Loading host activity..." compact className="live-v3-empty" />
       ) : (
-        <StreamerSpotlight hosts={spotlightHosts} />
+        <div className="listing-system-feed">
+          <StreamerSpotlight hosts={spotlightHosts} />
+        </div>
       )}
 
       {hasError ? <EmptyStateCard title="Live data is partially unavailable." description="Some streams or hosts may be missing until the feed reconnects." /> : null}

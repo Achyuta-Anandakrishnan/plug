@@ -185,6 +185,7 @@ function liveListingToSurfaceData(stream: LiveStreamItem): ListingSurfaceData {
 
 export function ListingCard(props: ListingCardProps) {
   const isLiveCard = "stream" in props;
+  const surfaceKind = "trade" in props ? "trade" : isLiveCard ? "live" : "market";
   const controlledSaved = isLiveCard ? props.saved : undefined;
   const [localSaved, setLocalSaved] = useState(false);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
@@ -210,7 +211,7 @@ export function ListingCard(props: ListingCardProps) {
   };
 
   return (
-    <article className="market-v2-listing-card product-card listing-card">
+    <article className={`market-v2-listing-card product-card listing-card is-${surfaceKind}-card`}>
       <Link href={surface.href} className="listing-card-link">
         <div className="listing-card-media">
           <Image

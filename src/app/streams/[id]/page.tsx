@@ -12,6 +12,8 @@ export default async function StreamRoom({
   const { id } = await params;
   const stripeReady = Boolean(process.env.STRIPE_SECRET_KEY);
   const initialData = await getAuctionDetail(id) as AuctionDetail | null;
+  const sellerLabel = initialData?.seller?.user?.displayName ?? "Verified seller";
+  const statusLabel = initialData?.status === "LIVE" ? "Live auction" : "Stream room";
 
   return (
     <AppContainer className="stream-room-page">
@@ -20,11 +22,10 @@ export default async function StreamRoom({
           <Link href="/live" className="stream-room-back">
             Back to live
           </Link>
-          <h1>Live stream</h1>
-        </div>
-        <div className="stream-room-pills">
-          <span>Escrow protected</span>
-          <span>Manual verification</span>
+          <h1>{initialData?.title ?? "Live stream"}</h1>
+          <p className="stream-room-head-meta">
+            {sellerLabel} · {statusLabel}
+          </p>
         </div>
       </section>
 

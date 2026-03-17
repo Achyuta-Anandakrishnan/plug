@@ -6,7 +6,6 @@ import {
   PrimaryButton,
   SecondaryButton,
   SectionHeader,
-  StatPill,
 } from "@/components/product/ProductUI";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { getGradeLabel, getTimeLeftSeconds } from "@/lib/auctions";
@@ -312,6 +311,7 @@ function SurfacePreview({
   imageUrl,
   href,
   accent,
+  className,
 }: {
   title: string;
   subtitle: string;
@@ -319,9 +319,10 @@ function SurfacePreview({
   imageUrl: string;
   href: string;
   accent: string;
+  className?: string;
 }) {
   return (
-    <Link href={href} className="home-surface-card">
+    <Link href={href} className={`home-surface-card${className ? ` ${className}` : ""}`}>
       <div className="home-surface-media">
         <Image src={imageUrl} alt={title} fill sizes="(max-width: 900px) 100vw, 380px" className="object-cover" unoptimized />
       </div>
@@ -332,24 +333,6 @@ function SurfacePreview({
         <strong>{meta}</strong>
       </div>
     </Link>
-  );
-}
-
-function HomeSignalCard({
-  eyebrow,
-  title,
-  copy,
-}: {
-  eyebrow: string;
-  title: string;
-  copy: string;
-}) {
-  return (
-    <article className="home-signal-card">
-      <span className="home-pillar-kicker">{eyebrow}</span>
-      <h3>{title}</h3>
-      <p>{copy}</p>
-    </article>
   );
 }
 
@@ -379,40 +362,8 @@ export default async function Home() {
   const heroStream = data.streams[0];
   const heroAuction = data.auctions[0];
   const heroTrade = data.trades[0];
-  const heroPreviewCards = [
-    {
-      title: heroStream.title,
-      subtitle: `${heroStream.host} · ${heroStream.category}`,
-      meta: `${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`,
-      imageUrl: heroStream.imageUrl,
-      href: heroStream.href,
-      accent: "Live now",
-    },
-    {
-      title: heroAuction.title,
-      subtitle: `${heroAuction.category} · ${heroAuction.seller}`,
-      meta: `${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`,
-      imageUrl: heroAuction.imageUrl,
-      href: heroAuction.href,
-      accent: "Auction",
-    },
-    {
-      title: heroTrade.title,
-      subtitle: heroTrade.owner,
-      meta: `${heroTrade.valueLabel} · ${heroTrade.offersCount} offers`,
-      imageUrl: heroTrade.imageUrl,
-      href: heroTrade.href,
-      accent: "Trade",
-    },
-    {
-      title: (data.streams[1] ?? heroStream).title,
-      subtitle: `${(data.streams[1] ?? heroStream).host} · ${(data.streams[1] ?? heroStream).category}`,
-      meta: `${(data.streams[1] ?? heroStream).watchers.toLocaleString()} watching · ${(data.streams[1] ?? heroStream).priceLabel}`,
-      imageUrl: (data.streams[1] ?? heroStream).imageUrl,
-      href: (data.streams[1] ?? heroStream).href,
-      accent: "Room",
-    },
-  ];
+  const heroAuctionSecondary = data.auctions[1] ?? heroAuction;
+  const heroTradeSecondary = data.trades[1] ?? heroTrade;
   const connectedCards = [
     ...data.auctions.slice(0, 2).map((auction) => ({
       title: auction.title,
@@ -442,7 +393,7 @@ export default async function Home() {
 
   return (
     <PageContainer className="home-app-page">
-      <section className="home-scroll-section home-hero">
+      <section className="home-hero home-marketing-section">
         <div className="home-hero-copy">
           <p className="app-eyebrow">For collectors, by collectors</p>
           <h1>Live. Auctions. Trades.</h1>
@@ -453,138 +404,141 @@ export default async function Home() {
             <PrimaryButton href="/listings">Explore marketplace</PrimaryButton>
             <SecondaryButton href="/live">Watch live</SecondaryButton>
           </div>
-          <div className="home-hero-stats">
-            <StatPill label="Core modes" value="3 connected surfaces" />
-            <StatPill label="Marketplace" value="Live listings and auctions" />
-            <StatPill label="Collectors" value="Built for negotiation and trust" />
+          <div className="home-hero-notes">
+            <span>Browse active inventory</span>
+            <span>Join live rooms</span>
+            <span>Negotiate collector deals</span>
           </div>
         </div>
 
-        <div className="home-hero-preview-grid">
-          {heroPreviewCards.map((card) => (
+        <div className="home-hero-stage">
+          <SurfacePreview
+            title={heroStream.title}
+            subtitle={`${heroStream.host} · ${heroStream.category}`}
+            meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
+            imageUrl={heroStream.imageUrl}
+            href={heroStream.href}
+            accent="Live now"
+            className="is-primary"
+          />
+          <div className="home-hero-side">
             <SurfacePreview
-              key={`${card.accent}-${card.title}`}
-              title={card.title}
-              subtitle={card.subtitle}
-              meta={card.meta}
-              imageUrl={card.imageUrl}
-              href={card.href}
-              accent={card.accent}
+              title={heroAuction.title}
+              subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
+              meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
+              imageUrl={heroAuction.imageUrl}
+              href={heroAuction.href}
+              accent="Auction"
+              className="is-secondary"
             />
-          ))}
-        </div>
-      </section>
-
-      <section className="home-scroll-section home-section-shell home-pillars-section">
-        <div className="home-section-intro">
-          <SectionHeader title="Three core actions" subtitle="Move inventory the way the hobby already works." />
-          <p className="home-section-note">
-            The product should read fast: go live, compare inventory, or negotiate value.
-          </p>
-        </div>
-        <div className="home-section-body">
-          <div className="home-pillars-grid">
-            <article className="home-pillar-card">
-              <span className="home-pillar-kicker">Live</span>
-              <h3>Run high-signal streams with active bidding.</h3>
-              <p>Browse hosts, join rooms, and buy in real time without leaving the product.</p>
-            </article>
-            <article className="home-pillar-card">
-              <span className="home-pillar-kicker">Auctions</span>
-              <h3>Compare cards fast and transact with confidence.</h3>
-              <p>Search inventory, sort by urgency, and see bid movement without clutter.</p>
-            </article>
-            <article className="home-pillar-card">
-              <span className="home-pillar-kicker">Trades</span>
-              <h3>Negotiate collector-to-collector deals in a structured flow.</h3>
-              <p>Value bands, offer counts, and messaging all stay in one place.</p>
-            </article>
-          </div>
-          <div className="home-signal-grid">
-            <HomeSignalCard
-              eyebrow="Live signal"
-              title="Hosts, watchers, and bid state stay visible."
-              copy="You should understand the room before you click into it."
-            />
-            <HomeSignalCard
-              eyebrow="Market signal"
-              title="Listings sort around urgency, not filler."
-              copy="Collectors can compare price, time pressure, and format immediately."
-            />
-            <HomeSignalCard
-              eyebrow="Trade signal"
-              title="Offers feel structured instead of improvised."
-              copy="Value bands, tags, and owner context stay attached to the post."
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="home-scroll-section home-section-shell home-connected-section">
-        <div className="home-section-intro">
-          <SectionHeader title="One connected product" subtitle="Market discovery, live commerce, and negotiation live in the same workflow." />
-          <p className="home-section-note">
-            Inventory, rooms, and trades should feel like one product family instead of separate modules.
-          </p>
-        </div>
-        <div className="home-connected-grid">
-          {connectedCards.map((card) => (
             <SurfacePreview
-              key={`${card.accent}-${card.title}`}
-              title={card.title}
-              subtitle={card.subtitle}
-              meta={card.meta}
-              imageUrl={card.imageUrl}
-              href={card.href}
-              accent={card.accent}
+              title={heroTrade.title}
+              subtitle={heroTrade.owner}
+              meta={`${heroTrade.valueLabel} · ${heroTrade.offersCount} offers`}
+              imageUrl={heroTrade.imageUrl}
+              href={heroTrade.href}
+              accent="Trade"
+              className="is-secondary"
             />
-          ))}
-        </div>
-      </section>
-
-      <section className="home-scroll-section home-section-shell home-trust-section">
-        <div className="home-section-intro">
-          <SectionHeader title="Why collectors trust dalow" subtitle="The product stays calm, direct, and transaction-focused." />
-          <p className="home-section-note">
-            Trust is mostly structural: clear identity, visible signals, and less wasted motion.
-          </p>
-        </div>
-        <div className="home-section-body">
-          <div className="home-trust-grid">
-            <article className="home-trust-card">
-              <h3>Collector-native structure</h3>
-              <p>Live, auction, and trade flows are designed around how hobby inventory actually moves.</p>
-            </article>
-            <article className="home-trust-card">
-              <h3>Clearer signals</h3>
-              <p>Watchers, value bands, time pressure, and host identity stay visible without dashboard noise.</p>
-            </article>
-            <article className="home-trust-card">
-              <h3>Built for confidence</h3>
-              <p>Premium surfaces, tighter information hierarchy, and cleaner actions make deals feel higher trust.</p>
-            </article>
-          </div>
-          <div className="home-signal-grid">
-            <HomeSignalCard
-              eyebrow="Identity"
-              title="Host, seller, and owner context stay attached."
-              copy="The platform keeps people and inventory tied together instead of hiding trust cues."
+            <SurfacePreview
+              title={heroAuctionSecondary.title}
+              subtitle={`${heroAuctionSecondary.category} · ${heroAuctionSecondary.seller}`}
+              meta={`${heroAuctionSecondary.currentBidLabel} · ${heroAuctionSecondary.timeLeftLabel}`}
+              imageUrl={heroAuctionSecondary.imageUrl}
+              href={heroAuctionSecondary.href}
+              accent="Market"
+              className="is-tertiary"
             />
-            <HomeSignalCard
-              eyebrow="Pacing"
-              title="Each surface reveals the next useful action."
-              copy="You should be able to browse, join, bid, or message without feeling lost."
-            />
-            <HomeSignalCard
-              eyebrow="Quality"
-              title="Less chrome, more useful collector information."
-              copy="The interface stays premium by staying disciplined."
+            <SurfacePreview
+              title={heroTradeSecondary.title}
+              subtitle={heroTradeSecondary.owner}
+              meta={`${heroTradeSecondary.valueLabel} · ${heroTradeSecondary.offersCount} offers`}
+              imageUrl={heroTradeSecondary.imageUrl}
+              href={heroTradeSecondary.href}
+              accent="Deal"
+              className="is-tertiary"
             />
           </div>
         </div>
       </section>
 
-      <section className="home-scroll-section home-final-section">
+      <section className="home-marketing-section">
+        <SectionHeader
+          title="Three core actions"
+          subtitle="Move inventory the way the hobby already works."
+        />
+        <div className="home-pillars-grid">
+          <article className="home-pillar-card">
+            <span className="home-pillar-kicker">Live</span>
+            <h3>Run high-signal streams with active bidding.</h3>
+            <p>Browse hosts, join rooms, and buy in real time without leaving the product.</p>
+          </article>
+          <article className="home-pillar-card">
+            <span className="home-pillar-kicker">Auctions</span>
+            <h3>Compare cards fast and transact with confidence.</h3>
+            <p>Search inventory, sort by urgency, and see bid movement without clutter.</p>
+          </article>
+          <article className="home-pillar-card">
+            <span className="home-pillar-kicker">Trades</span>
+            <h3>Negotiate collector-to-collector deals in a structured flow.</h3>
+            <p>Value bands, offer counts, and messaging all stay in one place.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="home-marketing-section">
+        <SectionHeader
+          title="One connected product"
+          subtitle="Market discovery, live commerce, and negotiation live in the same workflow."
+        />
+        <div className="home-connected-showcase">
+          <SurfacePreview
+            title={heroStream.title}
+            subtitle={`${heroStream.host} · ${heroStream.category}`}
+            meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
+            imageUrl={heroStream.imageUrl}
+            href={heroStream.href}
+            accent="Featured room"
+            className="is-featured"
+          />
+          <div className="home-connected-grid">
+            {connectedCards.map((card) => (
+              <SurfacePreview
+                key={`${card.accent}-${card.title}`}
+                title={card.title}
+                subtitle={card.subtitle}
+                meta={card.meta}
+                imageUrl={card.imageUrl}
+                href={card.href}
+                accent={card.accent}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="home-marketing-section">
+        <SectionHeader
+          title="Why collectors trust dalow"
+          subtitle="The product stays calm, direct, and transaction-focused."
+        />
+        <div className="home-trust-grid">
+          <article className="home-trust-card">
+            <h3>Collector-native structure</h3>
+            <p>Live, auction, and trade flows are designed around how hobby inventory actually moves.</p>
+          </article>
+          <article className="home-trust-card">
+            <h3>Clearer signals</h3>
+            <p>Watchers, value bands, time pressure, and host identity stay visible without dashboard noise.</p>
+          </article>
+          <article className="home-trust-card">
+            <h3>Built for confidence</h3>
+            <p>Premium surfaces, tighter information hierarchy, and cleaner actions make deals feel higher trust.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="home-final-section home-marketing-section">
         <div className="home-final-cta-copy">
           <p className="app-eyebrow">Start where the moment begins</p>
           <h2>Browse inventory, join a room, or open a deal.</h2>
