@@ -32,30 +32,30 @@ export function ReferralBar() {
   }
 
   return (
-    <div className="surface-panel rounded-[28px] p-5">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-            Referral link
-          </p>
-          <p className="text-sm text-slate-600">
-            Invite trusted sellers. Earn priority perks.
-          </p>
-        </div>
+    <section className="product-card referral-panel">
+      <div className="referral-panel-copy">
+        <p className="app-eyebrow">Referral link</p>
+        <p className="referral-panel-note">
+          {link ? "Share this private signup link with trusted collectors." : "Sign in to generate your referral link."}
+        </p>
+      </div>
+
+      <div className="referral-panel-row">
+        <input
+          value={link}
+          readOnly
+          placeholder="Referral link"
+          className="app-form-input"
+        />
         <button
           type="button"
           onClick={() => void copy()}
           disabled={!link}
-          className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          className="app-button app-button-primary referral-copy-button"
         >
           {copied ? "Copied" : "Copy link"}
         </button>
       </div>
-
-      <div className="mt-4 rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-sm text-slate-700">
-        {link || "Sign in to generate your referral link."}
-      </div>
-    </div>
+    </section>
   );
 }
-

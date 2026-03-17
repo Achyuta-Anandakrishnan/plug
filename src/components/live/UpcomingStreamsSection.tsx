@@ -6,10 +6,16 @@ type UpcomingStreamsSectionProps = {
   streams: LiveStreamItem[];
   reminders: Set<string>;
   onToggleReminder: (streamId: string) => void;
+  limit?: number;
 };
 
-export function UpcomingStreamsSection({ streams, reminders, onToggleReminder }: UpcomingStreamsSectionProps) {
-  const visibleStreams = streams.slice(0, 8);
+export function UpcomingStreamsSection({
+  streams,
+  reminders,
+  onToggleReminder,
+  limit = 8,
+}: UpcomingStreamsSectionProps) {
+  const visibleStreams = streams.slice(0, limit);
 
   return (
     <section id="upcoming" className="live-v3-upcoming">

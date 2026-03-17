@@ -1,12 +1,18 @@
 import { ReferralBar } from "@/components/settings/ReferralBar";
+import { FormContainer, PageContainer, PageHeader } from "@/components/product/ProductUI";
 
 export default function ReferralPage() {
   return (
-    <div className="ios-screen">
-      <section className="ios-hero space-y-3">
-        <h1 className="ios-title">Referral</h1>
+    <PageContainer className="referral-page app-page--referral">
+      <section className="app-section">
+        <FormContainer>
+          <PageHeader
+            title="Referral"
+            subtitle="Invite trusted collectors and share one clean signup link."
+          />
+          <ReferralBar />
+        </FormContainer>
       </section>
-      <ReferralBar />
-    </div>
+    </PageContainer>
   );
 }

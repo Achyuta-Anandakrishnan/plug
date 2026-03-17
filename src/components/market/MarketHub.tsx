@@ -146,7 +146,29 @@ export function MarketHub() {
       [...liveListings]
         .filter((entry) => entry.listingType !== "BUY_NOW")
         .sort((a, b) => b.watchersCount - a.watchersCount)
-        .slice(0, 4),
+        .slice(0, 6),
+    [liveListings],
+  );
+
+  const endingSoonListings = useMemo(
+    () =>
+      [...liveListings]
+        .sort((a, b) => {
+          const aEnd = new Date(a.extendedTime ?? a.endTime ?? "").getTime();
+          const bEnd = new Date(b.extendedTime ?? b.endTime ?? "").getTime();
+          const safeA = Number.isFinite(aEnd) ? aEnd : Number.MAX_SAFE_INTEGER;
+          const safeB = Number.isFinite(bEnd) ? bEnd : Number.MAX_SAFE_INTEGER;
+          return safeA - safeB;
+        })
+        .slice(0, 6),
+    [liveListings],
+  );
+
+  const recentlyListed = useMemo(
+    () =>
+      [...liveListings]
+        .sort((a, b) => parseCreatedAt(b) - parseCreatedAt(a))
+        .slice(0, 6),
     [liveListings],
   );
 
@@ -240,29 +262,53 @@ export function MarketHub() {
         {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
         {statusMessage ? <div className="app-inline-note">{statusMessage}</div> : null}
 
-        {trendingAuctions.length > 0 || listingsLoading ? (
+        {listingsLoading ? (
+          <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
+        ) : (
           <section className="app-section market-discovery-section">
-          <SectionHeader
-            title="Trending auctions"
-            subtitle="Most watched live inventory."
-            action={<SecondaryButton href="/live">See what is live</SecondaryButton>}
-          />
-            {listingsLoading ? (
-              <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
-            ) : (
-              <div className={`market-featured-grid ${trendingAuctions.length < 4 ? "is-sparse" : ""}`}>
-                {trendingAuctions.map((listing) => (
-                  <ListingCard
-                    key={listing.id}
-                    listing={listing}
-                    buyLoading={buyLoadingId === listing.id}
-                    onBuyNow={startBuyNow}
+            {[
+              {
+                key: "trending",
+                title: "Trending auctions",
+                subtitle: "Most watched live inventory.",
+                items: trendingAuctions,
+                action: <SecondaryButton href="/live">See what is live</SecondaryButton>,
+              },
+              {
+                key: "ending",
+                title: "Ending soon",
+                subtitle: "Listings with the shortest clock.",
+                items: endingSoonListings,
+              },
+              {
+                key: "recent",
+                title: "Recently listed",
+                subtitle: "Fresh inventory hitting the floor.",
+                items: recentlyListed,
+              },
+            ]
+              .filter((section) => section.items.length > 0)
+              .map((section) => (
+                <section key={section.key} className="market-rail-section">
+                  <SectionHeader
+                    title={section.title}
+                    subtitle={section.subtitle}
+                    action={section.action ?? null}
                   />
-                ))}
-              </div>
-            )}
+                  <div className="market-rail-grid" role="list">
+                    {section.items.map((listing) => (
+                      <ListingCard
+                        key={`${section.key}-${listing.id}`}
+                        listing={listing}
+                        buyLoading={buyLoadingId === listing.id}
+                        onBuyNow={startBuyNow}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
           </section>
-        ) : null}
+        )}
       </section>
 
       <section className="app-section market-inventory-section">

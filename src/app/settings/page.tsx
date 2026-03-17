@@ -3,6 +3,7 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import {
   DiscoveryBar,
+  FormContainer,
   PageContainer,
   PrimaryButton,
   SecondaryButton,
@@ -26,9 +27,11 @@ export default function SettingsPage() {
           <SecondaryButton href="/referral">Referral program</SecondaryButton>
         </DiscoveryBar>
 
-        <section className="product-card settings-panel">
-          <ProfileEditor />
-        </section>
+        <FormContainer>
+          <section className="product-card settings-panel">
+            <ProfileEditor />
+          </section>
+        </FormContainer>
       </section>
     </PageContainer>
   );

@@ -158,7 +158,8 @@ export function LiveHub() {
 
   const hasError = liveError || upcomingError;
   const loading = liveLoading || upcomingLoading;
-  const showUpcomingFirst = timing === "upcoming";
+  const liveLimit = timing === "live" ? 24 : 12;
+  const upcomingLimit = timing === "upcoming" ? 12 : 6;
 
   return (
     <PageContainer className="live-v3-page live-page app-page--live">
@@ -176,25 +177,18 @@ export function LiveHub() {
 
       {loading ? (
         <CheckersLoader title="Loading live sessions..." compact className="live-v3-empty" />
-      ) : showUpcomingFirst ? (
-        <UpcomingStreamsSection
-          streams={filteredUpcoming}
-          reminders={reminders}
-          onToggleReminder={onToggleReminder}
-        />
       ) : (
-        <LiveNowRail streams={filteredLive.slice(0, 16)} loading={liveLoading} />
+        <LiveNowRail streams={filteredLive} loading={liveLoading} limit={liveLimit} />
       )}
 
       {loading ? (
-        <CheckersLoader title="Loading more live inventory..." compact className="live-v3-empty" />
-      ) : showUpcomingFirst ? (
-        <LiveNowRail streams={filteredLive.slice(0, 16)} loading={liveLoading} />
+        <CheckersLoader title="Loading upcoming sessions..." compact className="live-v3-empty" />
       ) : (
         <UpcomingStreamsSection
           streams={filteredUpcoming}
           reminders={reminders}
           onToggleReminder={onToggleReminder}
+          limit={upcomingLimit}
         />
       )}
 

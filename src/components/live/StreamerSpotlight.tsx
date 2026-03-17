@@ -7,15 +7,17 @@ type StreamerSpotlightProps = {
 };
 
 export function StreamerSpotlight({ hosts }: StreamerSpotlightProps) {
+  const visibleHosts = hosts.slice(0, 6);
+
   return (
     <section className="live-v3-spotlight">
       <SectionHeader title="Hosts to watch" subtitle="Follow reliable rooms and repeat sellers." />
 
-      {hosts.length === 0 ? (
+      {visibleHosts.length === 0 ? (
         <EmptyStateCard title="No host highlights yet." description="Once host activity picks up, featured collectors will appear here." />
       ) : (
-        <div className={`live-v3-spotlight-grid ${hosts.length < 4 ? "is-sparse" : ""}`}>
-          {hosts.map((host) => (
+        <div className="live-v3-spotlight-grid">
+          {visibleHosts.map((host) => (
             <article key={host.id} className="live-v3-host-card">
               <div className="live-v3-host-avatar" aria-hidden="true">
                 {host.name.slice(0, 2).toUpperCase()}

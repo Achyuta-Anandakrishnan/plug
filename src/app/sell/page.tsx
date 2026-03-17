@@ -1,5 +1,5 @@
 import { SellerListingQuickForm } from "@/components/sell/SellerListingQuickForm";
-import { DiscoveryBar, PageContainer, SecondaryButton } from "@/components/product/ProductUI";
+import { DiscoveryBar, FormContainer, PageContainer, SecondaryButton } from "@/components/product/ProductUI";
 
 export default function SellPage() {
   return (
@@ -10,7 +10,9 @@ export default function SellPage() {
           <div className="sell-toolbar-note">Cert-first flow. Verify the slab, set price, publish fast.</div>
           <SecondaryButton href="/listings">Back to market</SecondaryButton>
         </DiscoveryBar>
-      <SellerListingQuickForm />
+        <FormContainer>
+          <SellerListingQuickForm />
+        </FormContainer>
       </section>
     </PageContainer>
   );

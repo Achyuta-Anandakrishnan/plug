@@ -11,6 +11,11 @@ type AppContainerProps = {
   className?: string;
 };
 
+type FormContainerProps = {
+  children: ReactNode;
+  className?: string;
+};
+
 type PageHeaderProps = {
   title: string;
   subtitle?: string;
@@ -104,6 +109,10 @@ export function PageContainer({ children, className }: PageContainerProps) {
 
 export function AppContainer({ children, className }: AppContainerProps) {
   return <div className={classNames("app-container", className)}>{children}</div>;
+}
+
+export function FormContainer({ children, className }: FormContainerProps) {
+  return <div className={classNames("app-form-container", className)}>{children}</div>;
 }
 
 export function PageHeader({

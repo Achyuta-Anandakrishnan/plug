@@ -5,11 +5,11 @@ import { EmptyStateCard, SectionHeader } from "@/components/product/ProductUI";
 type LiveNowRailProps = {
   streams: LiveStreamItem[];
   loading: boolean;
+  limit?: number;
 };
 
-export function LiveNowRail({ streams, loading }: LiveNowRailProps) {
-  const visibleStreams = streams.slice(0, 24);
-  const useCompactGrid = visibleStreams.length > 0 && visibleStreams.length < 3;
+export function LiveNowRail({ streams, loading, limit = 24 }: LiveNowRailProps) {
+  const visibleStreams = streams.slice(0, limit);
 
   return (
     <section id="live-now" className="live-v3-live-now">
@@ -20,7 +20,7 @@ export function LiveNowRail({ streams, loading }: LiveNowRailProps) {
       ) : (
         <div className="live-v3-live-grid-wrap">
           <SectionHeader title="Live now" subtitle="Join the active rooms on the floor right now." />
-          <div className={`live-v3-live-grid ${useCompactGrid ? "is-compact" : ""}`}>
+          <div className="live-v3-live-grid">
             {visibleStreams.map((stream) => (
               <LiveStreamCard key={stream.id} stream={stream} layout="grid" />
             ))}

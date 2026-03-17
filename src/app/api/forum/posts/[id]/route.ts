@@ -272,3 +272,47 @@ export async function PATCH(
   const voteMeta = await getVoteMeta(post.id, sessionUser.id);
   return jsonOk({ ...post, ...voteMeta });
 }
+
+export async function DELETE(
+  _request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  await ensureForumSchema().catch(() => null);
+
+  const sessionUser = await getSessionUser();
+  if (!sessionUser?.id) return jsonError("Authentication required.", 401);
+
+  const { id } = await context.params;
+
+  let existing;
+  try {
+    existing = await prisma.forumPost.findUnique({
+      where: { id },
+      select: { id: true, authorId: true, status: true },
+    });
+  } catch (error) {
+    if (isForumSchemaMissing(error)) {
+      return jsonError("Forum database is not ready yet.", 503);
+    }
+    throw error;
+  }
+
+  if (!existing) return jsonError("Post not found.", 404);
+  if (existing.authorId !== sessionUser.id && sessionUser.role !== "ADMIN") {
+    return jsonError("Forbidden.", 403);
+  }
+  if (existing.status !== ForumPostStatus.DRAFT) {
+    return jsonError("Only drafts can be deleted.", 400);
+  }
+
+  try {
+    await prisma.forumPost.delete({ where: { id } });
+  } catch (error) {
+    if (isForumSchemaMissing(error)) {
+      return jsonError("Forum database is not ready yet.", 503);
+    }
+    throw error;
+  }
+
+  return jsonOk({ id, deleted: true });
+}

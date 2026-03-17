@@ -24,6 +24,7 @@ export function ForumComposeClient() {
   const [loading, setLoading] = useState(Boolean(draftIdFromQuery));
   const [savingDraft, setSavingDraft] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
@@ -187,6 +188,35 @@ export function ForumComposeClient() {
     }
   };
 
+  const handleDeleteDraft = async () => {
+    if (!draftId) return;
+    const confirmed = window.confirm("Delete this draft thread? This cannot be undone.");
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setError("");
+    setStatusMessage("");
+    try {
+      const response = await fetch(`/api/forum/posts/${draftId}`, {
+        method: "DELETE",
+      });
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        setError(payload.error || "Unable to delete draft.");
+        return;
+      }
+      window.localStorage.removeItem(localStorageKey);
+      setDraftId("");
+      setTitle("");
+      setBody("");
+      router.push("/forum");
+    } catch {
+      setError("Unable to delete draft.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   useEffect(() => {
     if (!ready || loading || !session?.user?.id) return;
     if (!title.trim() && !body.trim()) return;
@@ -228,6 +258,15 @@ export function ForumComposeClient() {
           <div className="forum-compose-status" aria-live="polite">
             {error ? error : statusMessage || (savingDraft ? "Autosaving..." : "Autosaves as draft")}
           </div>
+          {draftId ? (
+            <SecondaryButton
+              onClick={() => void handleDeleteDraft()}
+              disabled={deleting || publishing}
+              className="forum-compose-delete"
+            >
+              {deleting ? "Deleting..." : "Delete draft"}
+            </SecondaryButton>
+          ) : null}
           <SecondaryButton href="/forum">Back to forum</SecondaryButton>
           <PrimaryButton onClick={() => void handlePublish()} disabled={publishing}>
             {publishing ? "Publishing..." : "Publish thread"}

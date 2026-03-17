@@ -66,6 +66,7 @@ body {
   border-bottom: 1px solid rgba(229, 231, 235, 0.9);
   background: rgba(247, 248, 250, 0.88);
   backdrop-filter: blur(18px);
+  box-shadow: 0 1px 0 rgba(229, 231, 235, 0.88), 0 10px 26px rgba(15, 23, 42, 0.04);
 }
 
 .app-container,
@@ -139,6 +140,22 @@ body {
   transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 
+.site-nav-link:focus-visible,
+.site-admin-link:focus-visible,
+.site-account-trigger:focus-visible,
+.app-button:focus-visible,
+.app-chip:focus-visible,
+.app-segment button:focus-visible,
+.app-search input:focus-visible,
+.app-form-input:focus-visible,
+.app-form-textarea:focus-visible,
+.forum-compose-input:focus-visible,
+.forum-compose-textarea:focus-visible,
+.messages-compose-input:focus-visible {
+  outline: 2px solid rgba(19, 34, 56, 0.16);
+  outline-offset: 2px;
+}
+
 .site-nav-link:hover,
 .site-admin-link:hover,
 .site-account-trigger:hover {
@@ -147,9 +164,9 @@ body {
 }
 
 .site-nav-link.is-active {
-  background: var(--product-surface);
+  background: rgba(19, 34, 56, 0.08);
   color: var(--product-text);
-  box-shadow: inset 0 0 0 1px var(--product-border);
+  box-shadow: inset 0 0 0 1px rgba(19, 34, 56, 0.08);
 }
 
 .site-admin-link,
@@ -317,10 +334,10 @@ body {
   box-sizing: border-box;
   width: 100%;
   min-height: 100%;
-  padding: 18px 0 20px;
+  padding: 14px 0 18px;
   display: grid;
   align-content: start;
-  gap: 18px;
+  gap: 16px;
 }
 
 .app-page,
@@ -331,7 +348,7 @@ body {
 
 .app-section {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .app-page-header,
@@ -486,7 +503,7 @@ body {
 .app-control-title {
   display: inline-flex;
   align-items: center;
-  min-height: 42px;
+  min-height: 38px;
   color: var(--product-text);
   font-size: 18px;
   font-weight: 700;
@@ -538,7 +555,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 42px;
+  min-height: 40px;
   padding: 0 13px;
   border: 1px solid var(--product-border);
   border-radius: 14px;
@@ -605,7 +622,7 @@ body {
 }
 
 .app-segment button {
-  min-height: 30px;
+  min-height: 28px;
   padding: 0 11px;
   border-radius: 999px;
   color: var(--product-text-soft);
@@ -939,6 +956,10 @@ body {
   gap: 10px;
 }
 
+.settings-page .app-section {
+  justify-items: start;
+}
+
 .market-overview {
   gap: 8px;
 }
@@ -1002,11 +1023,12 @@ body {
   overflow: visible;
 }
 
+.market-rail-grid,
 .market-featured-grid {
   display: grid;
   gap: 14px;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(232px, 268px);
+  grid-auto-columns: minmax(244px, 280px);
   overflow-x: auto;
   align-items: stretch;
   justify-items: start;
@@ -1015,12 +1037,19 @@ body {
   scrollbar-width: none;
 }
 
+.market-rail-grid::-webkit-scrollbar,
 .market-featured-grid::-webkit-scrollbar {
   display: none;
 }
 
+.market-rail-grid.is-sparse,
 .market-featured-grid.is-sparse {
-  grid-auto-columns: minmax(232px, 268px);
+  grid-auto-columns: minmax(244px, 280px);
+}
+
+.market-rail-section {
+  display: grid;
+  gap: 8px;
 }
 
 .market-count {
@@ -1035,7 +1064,7 @@ body {
 .market-v2-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   align-items: stretch;
   justify-items: stretch;
   width: 100%;
@@ -1043,7 +1072,7 @@ body {
 
 .market-page .market-v2-grid.is-sparse,
 .market-v2-grid.is-sparse {
-  grid-template-columns: repeat(auto-fit, minmax(240px, 280px));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   justify-content: start;
 }
 
@@ -1075,8 +1104,9 @@ body {
   grid-template-rows: minmax(0, 1fr) auto auto;
 }
 
+.market-rail-grid .market-v2-listing-card,
 .market-featured-grid .market-v2-listing-card {
-  max-width: 268px;
+  max-width: 280px;
 }
 
 .market-v2-listing-link,
@@ -1289,7 +1319,7 @@ body {
 .live-v3-upcoming,
 .live-v3-spotlight {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -1313,20 +1343,10 @@ body {
 .live-v3-live-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  gap: 14px;
   align-items: stretch;
   justify-items: stretch;
   width: 100%;
-}
-
-.live-v3-live-grid.is-compact {
-  grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
-  justify-content: start;
-}
-
-.live-page .live-v3-live-grid.is-compact {
-  grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
-  justify-content: start;
 }
 
 .live-v3-upcoming-grid.is-sparse,
@@ -1397,7 +1417,7 @@ body {
 
 .trade-board-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
   align-items: stretch;
   justify-items: stretch;
@@ -1443,13 +1463,13 @@ body {
 
 .forum-thread-list {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .forum-thread-card {
   display: grid;
   gap: 10px;
-  padding: 15px 16px;
+  padding: 12px 14px;
 }
 
 .forum-thread-top {
@@ -1490,7 +1510,8 @@ body {
   display: grid;
   grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
+  min-height: 0;
 }
 
 .settings-page {
@@ -1498,8 +1519,23 @@ body {
 }
 
 .settings-panel {
+  width: min(100%, 720px);
   padding: 16px;
-  max-width: 920px;
+  max-width: none;
+  margin-inline: 0;
+}
+
+.settings-panel .ios-panel-muted {
+  border: 1px solid var(--product-border);
+  border-radius: 16px;
+  background: rgba(249, 250, 251, 0.82);
+  box-shadow: none;
+}
+
+.settings-panel .ios-input,
+.settings-panel textarea {
+  border-color: var(--product-border);
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .messages-sidebar,
@@ -1507,12 +1543,13 @@ body {
   display: grid;
   gap: 12px;
   padding: 14px;
+  min-height: 0;
 }
 
 .messages-thread-list {
   display: grid;
   gap: 8px;
-  max-height: 70vh;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -1546,8 +1583,10 @@ body {
 }
 
 .messages-chat {
-  min-height: 560px;
+  min-height: 0;
+  height: 100%;
   align-content: start;
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .messages-chat-head {
@@ -1563,8 +1602,8 @@ body {
 }
 
 .messages-feed {
-  min-height: 340px;
-  max-height: 56vh;
+  min-height: 0;
+  max-height: none;
   overflow-y: auto;
   padding: 12px;
   border: 1px solid var(--product-border);
@@ -1591,7 +1630,7 @@ body {
 
 .messages-bubble {
   max-width: min(78%, 560px);
-  padding: 10px 12px;
+  padding: 9px 11px;
   border-radius: 16px;
 }
 
@@ -1668,6 +1707,10 @@ body {
   font-size: 12px;
 }
 
+.forum-compose-delete {
+  color: var(--product-live);
+}
+
 .forum-compose-panel {
   display: grid;
   gap: 16px;
@@ -1719,6 +1762,279 @@ body {
   resize: vertical;
   font-size: 14px;
   line-height: 1.55;
+}
+
+.app-form-container {
+  width: min(100%, 720px);
+  margin-inline: auto;
+  display: grid;
+  gap: 14px;
+}
+
+.app-form {
+  display: grid;
+  gap: 16px;
+}
+
+.app-form-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.app-form-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.app-form-field {
+  display: grid;
+  gap: 6px;
+}
+
+.app-form-field > span,
+.app-form-check span {
+  color: var(--product-text-soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.app-form-input,
+.app-form-textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid var(--product-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--product-text);
+  font-size: 14px;
+  outline: none;
+}
+
+.app-form-textarea {
+  min-height: 120px;
+  padding: 12px 13px;
+  resize: vertical;
+}
+
+.app-form-check {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+}
+
+.app-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.app-status-note,
+.auth-status-note,
+.trade-compose-note,
+.trade-compose-signin {
+  padding: 12px 14px;
+  border: 1px solid var(--product-border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--product-text-soft);
+  font-size: 13px;
+}
+
+.app-status-note.is-error,
+.auth-status-note.is-error {
+  border-color: rgba(220, 38, 38, 0.12);
+  background: rgba(254, 242, 242, 0.88);
+  color: #b91c1c;
+}
+
+.app-status-note.is-success,
+.auth-status-note.is-success {
+  border-color: rgba(16, 185, 129, 0.14);
+  background: rgba(236, 253, 245, 0.9);
+  color: #047857;
+}
+
+.auth-page,
+.referral-page,
+.trade-compose-page,
+.sell-page {
+  gap: 12px;
+}
+
+.auth-form-layout {
+  gap: 12px;
+}
+
+.auth-panel,
+.referral-panel,
+.trade-compose-panel,
+.trade-compose-manual {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--product-text-faint);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.auth-divider span {
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(229, 231, 235, 0.92);
+}
+
+.auth-support-note,
+.referral-panel-note {
+  color: var(--product-text-soft);
+  font-size: 13px;
+}
+
+.auth-support-note a {
+  color: var(--product-accent);
+  font-weight: 700;
+}
+
+.referral-panel-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.referral-panel-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.trade-compose-form {
+  gap: 12px;
+}
+
+.trade-compose-signin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.app-stepper {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.app-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--product-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--product-text-soft);
+}
+
+.app-step span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(19, 34, 56, 0.07);
+  color: var(--product-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.app-step strong {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.app-step.is-active {
+  border-color: rgba(19, 34, 56, 0.12);
+  background: rgba(239, 244, 251, 0.9);
+  color: var(--product-text);
+}
+
+.app-step.is-complete span,
+.app-step.is-active span {
+  background: var(--product-accent);
+  color: white;
+}
+
+.trade-compose-verify,
+.trade-compose-value,
+.trade-compose-review {
+  display: grid;
+  gap: 16px;
+}
+
+.trade-compose-verify-grid {
+  grid-template-columns: 180px minmax(0, 1fr) auto;
+}
+
+.trade-compose-verify-action {
+  display: grid;
+  align-content: end;
+  gap: 6px;
+}
+
+.trade-compose-review-card {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 180px minmax(0, 1fr);
+}
+
+.trade-compose-review-media {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 16px;
+  border: 1px solid var(--product-border);
+  object-fit: cover;
+}
+
+.trade-compose-review-copy {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+
+.trade-compose-review-copy h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+.trade-compose-review-copy p,
+.trade-compose-review-copy strong {
+  margin: 0;
+}
+
+.trade-compose-manual-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sell-page .app-form-container {
+  width: min(100%, 760px);
 }
 
 .sell-quick-form {
@@ -1898,12 +2214,14 @@ body {
   min-height: 0;
   gap: 16px;
   grid-template-columns: minmax(0, 1fr) 380px;
+  align-items: stretch;
 }
 
 .stream-room-video {
   position: relative;
   aspect-ratio: 16 / 9;
   max-height: 100%;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 28px;
@@ -1915,6 +2233,7 @@ body {
   min-height: 0;
   grid-template-rows: auto auto minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
+  overflow-y: auto;
 }
 
 .app-layout .messages-page {
@@ -1963,6 +2282,7 @@ body {
   .home-pillars-grid,
   .home-trust-grid,
   .market-featured-grid,
+  .market-rail-grid,
   .trade-board-grid,
   .live-v3-upcoming-grid,
   .live-v3-spotlight-grid,
@@ -1971,7 +2291,8 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .market-featured-grid {
+  .market-featured-grid,
+  .market-rail-grid {
     grid-auto-flow: row;
     grid-auto-columns: auto;
     overflow: visible;
@@ -2067,6 +2388,7 @@ body {
   .home-signal-grid,
   .home-final-grid,
   .market-featured-grid,
+  .market-rail-grid,
   .trade-board-grid,
   .live-v3-upcoming-grid,
   .live-v3-spotlight-grid,
@@ -2082,6 +2404,21 @@ body {
 
   .stream-room-head,
   .stream-room-pills {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-form-grid--2,
+  .trade-compose-review-card,
+  .referral-panel-row,
+  .trade-compose-verify-grid,
+  .app-stepper {
+    grid-template-columns: 1fr;
+  }
+
+  .trade-compose-signin,
+  .trade-compose-manual-head,
+  .app-form-actions {
     flex-direction: column;
     align-items: stretch;
   }

@@ -1,11 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import { formatCurrency } from "@/lib/format";
+import {
+  FormContainer,
+  PageContainer,
+  PageHeader,
+  PrimaryButton,
+  SecondaryButton,
+} from "@/components/product/ProductUI";
 
 type VerifyCardPayload = {
   found?: boolean;
@@ -345,263 +351,282 @@ export default function NewTradePage() {
 
   if (!session?.user?.id) {
     return (
-      <div className="ios-panel p-6">
-        <h1 className="ios-title">Post trade</h1>
-        <p className="mt-2 text-sm text-slate-600">Sign in to post a trade.</p>
-        <button
-          type="button"
-          onClick={() => signIn()}
-          className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
-        >
-          Sign in
-        </button>
-      </div>
+      <PageContainer className="trade-compose-page app-page--trade-compose">
+        <section className="app-section">
+          <FormContainer>
+            <PageHeader
+              title="Post trade"
+              subtitle="Verify a cert, set your target value, and publish a clean trade post."
+            />
+            <div className="trade-compose-signin">
+              <p>Sign in to post a trade.</p>
+              <PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>
+            </div>
+          </FormContainer>
+        </section>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="ios-screen">
-      <section className="ios-hero space-y-3">
-        <h1 className="ios-title">Post trade</h1>
-        <p className="ios-subtitle">Step 1 verify cert. Step 2 set price. Step 3 review and post.</p>
-      </section>
+    <PageContainer className="trade-compose-page app-page--trade-compose">
+      <section className="app-section">
+        <FormContainer className="trade-compose-form">
+          <PageHeader
+            title="Post trade"
+            subtitle="Verify a cert, set the target value, and publish a clean trade post."
+            actions={<SecondaryButton href="/trades">Back to trades</SecondaryButton>}
+          />
 
-      <section className="surface-panel rounded-3xl p-4 sm:p-5 space-y-4">
-        <div className="ios-chip-row">
-          <span className={`ios-chip ${step === 1 ? "ios-chip-active" : ""}`}>1. Cert</span>
-          <span className={`ios-chip ${step === 2 ? "ios-chip-active" : ""}`}>2. Price</span>
-          <span className={`ios-chip ${step === 3 ? "ios-chip-active" : ""}`}>3. Review</span>
-        </div>
-
-        {step === 1 ? (
-          <div className="grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)_auto]">
-            <select
-              value={grader}
-              onChange={(event) => setGrader(event.target.value as CertGrader)}
-              className="ios-input"
-            >
-              {certGraders.map((entry) => (
-                <option key={entry.value} value={entry.value}>
-                  {entry.label}
-                </option>
-              ))}
-            </select>
-            <input
-              value={certNumber}
-              onChange={(event) => setCertNumber(event.target.value)}
-              placeholder="Cert number"
-              className="ios-input"
-            />
-            <button
-              type="button"
-              onClick={() => void verifyCard()}
-              disabled={verifyLoading}
-              className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
-            >
-              {verifyLoading ? "Checking" : "Verify"}
-            </button>
-          </div>
-        ) : null}
-
-        {step === 2 ? (
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Desired value (USD)</p>
-              <input
-                value={desiredPrice}
-                onChange={(event) => setDesiredPrice(event.target.value)}
-                inputMode="decimal"
-                placeholder="250"
-                className="ios-input"
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
+          <ol className="app-stepper trade-compose-stepper" aria-label="Trade post steps">
+            {[
+              { label: "Verify", active: step === 1, complete: step > 1 },
+              { label: "Value", active: step === 2, complete: step > 2 },
+              { label: "Review", active: step === 3, complete: false },
+            ].map((item, index) => (
+              <li
+                key={item.label}
+                className={`app-step ${item.active ? "is-active" : ""} ${item.complete ? "is-complete" : ""}`}
               >
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (desiredCents === null) {
-                    setError("Enter a valid desired price.");
-                    return;
-                  }
-                  setError("");
-                  setStep(3);
-                }}
-                className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        ) : null}
+                <span>{index + 1}</span>
+                <strong>{item.label}</strong>
+              </li>
+            ))}
+          </ol>
 
-        {step === 3 ? (
-          <div className="space-y-3">
-            <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Review</p>
-              {getCardImageUrls(verifiedCard)[0] ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={getCardImageUrls(verifiedCard)[0]}
-                  alt={autoTitle}
-                  className="mt-2 h-32 w-full rounded-2xl border border-slate-200 object-cover"
-                />
-              ) : null}
-              <p className="mt-2 font-display text-xl text-slate-900">{autoTitle}</p>
-              <p className="mt-1 text-sm text-slate-600">
-                {(verifiedCard?.grader ?? grader)} {verifiedCard?.grade ?? "Grade"} • Cert {cert || "—"}
-              </p>
-              <p className="mt-2 text-sm text-slate-700">
-                Desired value: {desiredCents !== null ? formatCurrency(desiredCents, "USD") : "—"}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={() => void submitAutoTrade()}
-                disabled={submitting}
-                className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
-              >
-                {submitting ? "Posting..." : "Post trade"}
-              </button>
-            </div>
-          </div>
-        ) : null}
+          <section className="product-card trade-compose-panel">
+            {step === 1 ? (
+              <div className="trade-compose-verify">
+                <div className="app-form-grid trade-compose-verify-grid">
+                  <label className="app-form-field">
+                    <span>Grader</span>
+                    <select
+                      value={grader}
+                      onChange={(event) => setGrader(event.target.value as CertGrader)}
+                      className="app-form-input"
+                    >
+                      {certGraders.map((entry) => (
+                        <option key={entry.value} value={entry.value}>
+                          {entry.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="app-form-field">
+                    <span>Cert number</span>
+                    <input
+                      value={certNumber}
+                      onChange={(event) => setCertNumber(event.target.value)}
+                      placeholder="Cert number"
+                      className="app-form-input"
+                    />
+                  </label>
+                  <div className="trade-compose-verify-action">
+                    <span className="app-eyebrow">Lookup</span>
+                    <PrimaryButton onClick={() => void verifyCard()} disabled={verifyLoading}>
+                      {verifyLoading ? "Checking..." : "Verify"}
+                    </PrimaryButton>
+                  </div>
+                </div>
+                <div className="trade-compose-note">
+                  {verifyLoading ? "Checking certificate..." : verifyNote || "Verify cert to continue."}
+                </div>
+              </div>
+            ) : null}
 
-        <div className="rounded-2xl border border-slate-200 bg-white/80 p-3">
-          <p className="text-xs text-slate-600">{verifyLoading ? "Checking certificate..." : verifyNote || "Verify cert to continue."}</p>
-        </div>
+            {step === 2 ? (
+              <div className="trade-compose-value">
+                <label className="app-form-field">
+                  <span>Desired value (USD)</span>
+                  <input
+                    value={desiredPrice}
+                    onChange={(event) => setDesiredPrice(event.target.value)}
+                    inputMode="decimal"
+                    placeholder="250"
+                    className="app-form-input"
+                  />
+                </label>
+                <div className="app-form-actions">
+                  <SecondaryButton onClick={() => setStep(1)}>Back</SecondaryButton>
+                  <PrimaryButton
+                    onClick={() => {
+                      if (desiredCents === null) {
+                        setError("Enter a valid desired price.");
+                        return;
+                      }
+                      setError("");
+                      setStep(3);
+                    }}
+                  >
+                    Continue
+                  </PrimaryButton>
+                </div>
+              </div>
+            ) : null}
+
+            {step === 3 ? (
+              <div className="trade-compose-review">
+                <div className="trade-compose-review-card">
+                  {getCardImageUrls(verifiedCard)[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={getCardImageUrls(verifiedCard)[0]}
+                      alt={autoTitle}
+                      className="trade-compose-review-media"
+                    />
+                  ) : null}
+                  <div className="trade-compose-review-copy">
+                    <p className="app-eyebrow">Review</p>
+                    <h2>{autoTitle}</h2>
+                    <p>
+                      {(verifiedCard?.grader ?? grader)} {verifiedCard?.grade ?? "Grade"} • Cert {cert || "—"}
+                    </p>
+                    <strong>
+                      Desired value: {desiredCents !== null ? formatCurrency(desiredCents, "USD") : "—"}
+                    </strong>
+                  </div>
+                </div>
+                <div className="app-form-actions">
+                  <SecondaryButton onClick={() => setStep(2)}>Back</SecondaryButton>
+                  <PrimaryButton onClick={() => void submitAutoTrade()} disabled={submitting}>
+                    {submitting ? "Posting..." : "Post trade"}
+                  </PrimaryButton>
+                </div>
+              </div>
+            ) : null}
+          </section>
+
+          <section className="product-card trade-compose-manual">
+            <div className="trade-compose-manual-head">
+              <div>
+                <p className="app-eyebrow">Manual fallback</p>
+                <p className="trade-compose-note">Use this only when cert lookup cannot verify the card automatically.</p>
+              </div>
+              <SecondaryButton onClick={() => setManualMode((prev) => !prev)}>
+                {manualMode ? "Hide" : "Open"}
+              </SecondaryButton>
+            </div>
+
+            {manualMode ? (
+              <div className="app-form">
+                <div className="app-form-grid app-form-grid--2">
+                  <label className="app-form-field">
+                    <span>Title</span>
+                    <input
+                      value={manualDraft.title}
+                      onChange={(event) => setManualDraft((prev) => ({ ...prev, title: event.target.value }))}
+                      placeholder="Title"
+                      className="app-form-input"
+                    />
+                  </label>
+                  <label className="app-form-field">
+                    <span>Looking for</span>
+                    <input
+                      value={manualDraft.lookingFor}
+                      onChange={(event) => setManualDraft((prev) => ({ ...prev, lookingFor: event.target.value }))}
+                      placeholder="Looking for"
+                      className="app-form-input"
+                    />
+                  </label>
+                  <label className="app-form-field">
+                    <span>Desired value</span>
+                    <input
+                      value={desiredPrice}
+                      onChange={(event) => setDesiredPrice(event.target.value)}
+                      inputMode="decimal"
+                      placeholder="Desired value (USD)"
+                      className="app-form-input"
+                    />
+                  </label>
+                  <label className="app-form-field">
+                    <span>Category</span>
+                    <input
+                      value={manualDraft.category}
+                      onChange={(event) => setManualDraft((prev) => ({ ...prev, category: event.target.value }))}
+                      placeholder="Category"
+                      className="app-form-input"
+                    />
+                  </label>
+                  <label className="app-form-field">
+                    <span>Set</span>
+                    <input
+                      value={manualDraft.cardSet}
+                      onChange={(event) => setManualDraft((prev) => ({ ...prev, cardSet: event.target.value }))}
+                      placeholder="Set"
+                      className="app-form-input"
+                    />
+                  </label>
+                  <label className="app-form-field">
+                    <span>Card number</span>
+                    <input
+                      value={manualDraft.cardNumber}
+                      onChange={(event) => setManualDraft((prev) => ({ ...prev, cardNumber: event.target.value }))}
+                      placeholder="Card number"
+                      className="app-form-input"
+                    />
+                  </label>
+                  <label className="app-form-field">
+                    <span>Condition</span>
+                    <input
+                      value={manualDraft.condition}
+                      onChange={(event) => setManualDraft((prev) => ({ ...prev, condition: event.target.value }))}
+                      placeholder="Condition"
+                      className="app-form-input"
+                    />
+                  </label>
+                  <label className="app-form-field">
+                    <span>Grade company</span>
+                    <input
+                      value={manualDraft.gradeCompany}
+                      onChange={(event) => setManualDraft((prev) => ({ ...prev, gradeCompany: event.target.value }))}
+                      placeholder="Grade company"
+                      className="app-form-input"
+                    />
+                  </label>
+                  <label className="app-form-field">
+                    <span>Grade</span>
+                    <input
+                      value={manualDraft.gradeLabel}
+                      onChange={(event) => setManualDraft((prev) => ({ ...prev, gradeLabel: event.target.value }))}
+                      placeholder="Grade"
+                      className="app-form-input"
+                    />
+                  </label>
+                  <label className="app-form-field">
+                    <span>Tags</span>
+                    <input
+                      value={manualDraft.tags}
+                      onChange={(event) => setManualDraft((prev) => ({ ...prev, tags: event.target.value }))}
+                      placeholder="Tags (comma separated)"
+                      className="app-form-input"
+                    />
+                  </label>
+                </div>
+
+                <label className="app-form-field">
+                  <span>Description</span>
+                  <textarea
+                    value={manualDraft.description}
+                    onChange={(event) => setManualDraft((prev) => ({ ...prev, description: event.target.value }))}
+                    rows={3}
+                    placeholder="Description"
+                    className="app-form-textarea"
+                  />
+                </label>
+
+                <div className="app-form-actions">
+                  <PrimaryButton onClick={() => void submitManualTrade()} disabled={submitting}>
+                    {submitting ? "Posting..." : "Post manual trade"}
+                  </PrimaryButton>
+                </div>
+              </div>
+            ) : null}
+          </section>
+
+          {error ? <div className="app-status-note is-error">{error}</div> : null}
+          {status ? <div className="app-status-note is-success">{status}</div> : null}
+        </FormContainer>
       </section>
-
-      <section className="ios-panel p-4 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Fallback manual form</p>
-          <button
-            type="button"
-            onClick={() => setManualMode((prev) => !prev)}
-            className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
-          >
-            {manualMode ? "Hide" : "Open"}
-          </button>
-        </div>
-
-        {manualMode ? (
-          <div className="space-y-3">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input
-                value={manualDraft.title}
-                onChange={(event) => setManualDraft((prev) => ({ ...prev, title: event.target.value }))}
-                placeholder="Title"
-                className="ios-input"
-              />
-              <input
-                value={manualDraft.lookingFor}
-                onChange={(event) => setManualDraft((prev) => ({ ...prev, lookingFor: event.target.value }))}
-                placeholder="Looking for"
-                className="ios-input"
-              />
-              <input
-                value={desiredPrice}
-                onChange={(event) => setDesiredPrice(event.target.value)}
-                inputMode="decimal"
-                placeholder="Desired value (USD)"
-                className="ios-input"
-              />
-              <input
-                value={manualDraft.category}
-                onChange={(event) => setManualDraft((prev) => ({ ...prev, category: event.target.value }))}
-                placeholder="Category"
-                className="ios-input"
-              />
-              <input
-                value={manualDraft.cardSet}
-                onChange={(event) => setManualDraft((prev) => ({ ...prev, cardSet: event.target.value }))}
-                placeholder="Set"
-                className="ios-input"
-              />
-              <input
-                value={manualDraft.cardNumber}
-                onChange={(event) => setManualDraft((prev) => ({ ...prev, cardNumber: event.target.value }))}
-                placeholder="Card number"
-                className="ios-input"
-              />
-              <input
-                value={manualDraft.condition}
-                onChange={(event) => setManualDraft((prev) => ({ ...prev, condition: event.target.value }))}
-                placeholder="Condition"
-                className="ios-input"
-              />
-              <input
-                value={manualDraft.gradeCompany}
-                onChange={(event) => setManualDraft((prev) => ({ ...prev, gradeCompany: event.target.value }))}
-                placeholder="Grade company"
-                className="ios-input"
-              />
-              <input
-                value={manualDraft.gradeLabel}
-                onChange={(event) => setManualDraft((prev) => ({ ...prev, gradeLabel: event.target.value }))}
-                placeholder="Grade"
-                className="ios-input"
-              />
-              <input
-                value={manualDraft.tags}
-                onChange={(event) => setManualDraft((prev) => ({ ...prev, tags: event.target.value }))}
-                placeholder="Tags (comma separated)"
-                className="ios-input"
-              />
-            </div>
-            <textarea
-              value={manualDraft.description}
-              onChange={(event) => setManualDraft((prev) => ({ ...prev, description: event.target.value }))}
-              rows={3}
-              placeholder="Description"
-              className="ios-input resize-none"
-            />
-            <button
-              type="button"
-              onClick={() => void submitManualTrade()}
-              disabled={submitting}
-              className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
-            >
-              {submitting ? "Posting..." : "Post manual trade"}
-            </button>
-          </div>
-        ) : null}
-      </section>
-
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
-      ) : null}
-
-      {status ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          {status}
-        </div>
-      ) : null}
-
-      <section className="flex flex-wrap items-center justify-between gap-3">
-        <Link
-          href="/trades"
-          className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
-        >
-          Cancel
-        </Link>
-      </section>
-    </div>
+    </PageContainer>
   );
 }
