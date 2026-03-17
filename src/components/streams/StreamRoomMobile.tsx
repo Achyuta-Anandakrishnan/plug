@@ -126,7 +126,7 @@ export function StreamRoomMobile({
     }
 
     setActionStatus(`Bid placed at ${formatCurrency(amount, currency)}.`);
-    setBidAmount(String(amount + data.minBidIncrement));
+    setBidAmount(((amount + data.minBidIncrement) / 100).toFixed(2));
     void refresh({ poll: true });
   };
 
@@ -201,9 +201,9 @@ export function StreamRoomMobile({
   }
 
   return (
-    <div className="ios-screen">
-      <section className="overflow-hidden rounded-[32px] border border-white/60 bg-slate-900 shadow-[0_18px_44px_rgba(15,23,42,0.16)]">
-        <div className="relative h-[18.5rem]">
+    <section className="stream-room-mobile">
+      <section className="stream-room-mobile-video">
+        <div className="stream-room-mobile-stage">
           <LiveKitStream
             auctionId={data.id}
             isHost={Boolean(sessionUserId && data.seller?.user?.id === sessionUserId)}
@@ -231,7 +231,7 @@ export function StreamRoomMobile({
 
       <ListingImageStrip images={data.item?.images ?? []} compact />
 
-      <section className="ios-panel p-4 space-y-4">
+      <section className="product-card stream-room-mobile-panel">
         <div className="stream-bid-summary">
           <div>
             <p>Current</p>
@@ -263,7 +263,7 @@ export function StreamRoomMobile({
                   key={amount}
                   type="button"
                   onClick={() => {
-                    setBidAmount(String(amount));
+                    setBidAmount((amount / 100).toFixed(2));
                     void handleBid(amount);
                   }}
                   className="stream-bid-quick-btn"
@@ -377,6 +377,6 @@ export function StreamRoomMobile({
           ))}
         </div>
       </section>
-    </div>
+    </section>
   );
 }

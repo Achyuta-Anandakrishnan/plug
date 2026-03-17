@@ -5,6 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
+import {
+  DiscoveryBar,
+  EmptyStateCard,
+  PageContainer,
+  PrimaryButton,
+  SecondaryButton,
+  SectionHeader,
+} from "@/components/product/ProductUI";
 
 type ForumAuthor = {
   id: string;
@@ -205,213 +213,146 @@ export function ForumPostClient() {
   };
 
   if (loading) {
-    return <CheckersLoader title="Loading post..." compact className="ios-empty" />;
+    return (
+      <PageContainer className="forum-post-page app-page--forum-post">
+        <CheckersLoader title="Loading thread..." compact className="ios-empty" />
+      </PageContainer>
+    );
   }
 
   if (error || !post) {
     return (
-      <div className="space-y-4">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
-        >
-          Back
-        </button>
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error || "Post not found."}
-        </div>
-      </div>
+      <PageContainer className="forum-post-page app-page--forum-post">
+        <section className="app-section">
+          <DiscoveryBar className="app-control-bar forum-post-toolbar">
+            <div className="app-control-title">Forum</div>
+            <div className="app-toolbar-spacer" aria-hidden="true" />
+            <SecondaryButton onClick={() => router.back()}>Back</SecondaryButton>
+          </DiscoveryBar>
+          <EmptyStateCard title="Thread unavailable" description={error || "Post not found."} />
+        </section>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="ios-screen">
-      <section className="ios-hero space-y-3">
-        <p className="ios-kicker">Thread</p>
-        <h1 className="ios-title">{post.title}</h1>
-        <p className="ios-subtitle">
-          Posted by {post.author.displayName ?? "Member"} · {headerMeta}
-        </p>
-      </section>
+    <PageContainer className="forum-post-page app-page--forum-post">
+      <section className="app-section">
+        <DiscoveryBar className="app-control-bar forum-post-toolbar">
+          <div className="app-control-title">Forum</div>
+          <div className="forum-post-toolbar-meta">{headerMeta}</div>
+          <div className="app-toolbar-spacer" aria-hidden="true" />
+          <SecondaryButton href="/forum">Back to forum</SecondaryButton>
+        </DiscoveryBar>
 
-      <div className="flex items-center justify-between gap-4">
-        <Link
-          href="/forum"
-          className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
-        >
-          Back to forum
-        </Link>
-        <span className="text-[11px] uppercase tracking-[0.25em] text-slate-400">
-          {headerMeta}
-        </span>
-      </div>
-
-      <article className="ios-panel p-4">
-        <h2 className="text-base font-semibold text-slate-900">{post.title}</h2>
-        <p className="mt-2 text-sm text-slate-500">
-          by{" "}
-          <Link
-            href={post.author.username ? `/u/${post.author.username}` : `/profiles/${post.author.id}`}
-            className="font-semibold text-slate-700 hover:underline"
-          >
-            {post.author.displayName ?? "Member"}
-          </Link>
-        </p>
-        <div className="mt-3 whitespace-pre-wrap text-sm leading-5 text-slate-700">
-          {post.body}
-        </div>
-        <div className="mt-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => void handleVote(1)}
-            disabled={voting}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-              post.myVote === 1
-                ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                : "border-slate-200 bg-white/90 text-slate-600"
-            }`}
-          >
-            Upvote
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleVote(-1)}
-            disabled={voting}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-              post.myVote === -1
-                ? "border-rose-300 bg-rose-50 text-rose-700"
-                : "border-slate-200 bg-white/90 text-slate-600"
-            }`}
-          >
-            Downvote
-          </button>
-          <span className="text-xs uppercase tracking-[0.2em] text-slate-500">
-            Score {post.voteScore}
-          </span>
-        </div>
-        {voteError ? (
-          <div className="mt-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-600">
-            {voteError}
-          </div>
-        ) : null}
-      </article>
-
-      <section className="ios-panel p-4">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="font-display text-lg text-slate-900">Replies</h2>
-          {!session?.user?.id ? (
-            <button
-              type="button"
-              onClick={() => signIn()}
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
-            >
-              Sign in
-            </button>
-          ) : (
-            <span className="text-xs uppercase tracking-[0.2em] text-slate-400">
-              Signed in
-            </span>
-          )}
-        </div>
-
-        <div className="mt-4 space-y-3">
-          {post.comments.length === 0 ? (
-            <div className="ios-empty">
-              Be the first to reply.
-            </div>
-          ) : (
-            commentTree.map(({ parent, replies }) => (
-              <div
-                key={parent.id}
-                className="space-y-2 rounded-2xl border border-white/70 bg-white/70 px-4 py-3"
+        <article className="product-card forum-post-card">
+          <div className="forum-post-head">
+            <p className="app-eyebrow">Thread</p>
+            <h1 className="forum-post-title">{post.title}</h1>
+            <div className="forum-post-author-row">
+              <Link
+                href={post.author.username ? `/u/${post.author.username}` : `/profiles/${post.author.id}`}
+                className="forum-post-author-link"
               >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-slate-800">
+                {post.author.displayName ?? "Member"}
+              </Link>
+              <span>{formatLongDate(post.createdAt)}</span>
+              <span>{post._count.comments} repl{post._count.comments === 1 ? "y" : "ies"}</span>
+            </div>
+          </div>
+
+          <div className="forum-post-body">{post.body}</div>
+
+          <div className="forum-post-actions">
+            <SecondaryButton onClick={() => void handleVote(1)} disabled={voting}>
+              {post.myVote === 1 ? "Upvoted" : "Upvote"}
+            </SecondaryButton>
+            <SecondaryButton onClick={() => void handleVote(-1)} disabled={voting}>
+              {post.myVote === -1 ? "Downvoted" : "Downvote"}
+            </SecondaryButton>
+            <span className="forum-post-score">Score {post.voteScore}</span>
+          </div>
+
+          {voteError ? <div className="app-status-note is-error">{voteError}</div> : null}
+        </article>
+
+        <section className="app-section forum-post-replies">
+          <SectionHeader
+            title="Replies"
+            subtitle={!session?.user?.id ? "Sign in to join the conversation." : "Reply inline or continue the thread below."}
+            action={
+              !session?.user?.id ? (
+                <PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>
+              ) : null
+            }
+          />
+
+          {post.comments.length === 0 ? (
+            <EmptyStateCard title="No replies yet." description="Be the first to reply." />
+          ) : (
+            <div className="forum-comment-list">
+              {commentTree.map(({ parent, replies }) => (
+                <article key={parent.id} className="forum-comment-card">
+                  <div className="forum-comment-head">
                     <Link
                       href={parent.author.username ? `/u/${parent.author.username}` : `/profiles/${parent.author.id}`}
-                      className="hover:underline"
+                      className="forum-post-author-link"
                     >
                       {parent.author.displayName ?? "Member"}
                     </Link>
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    {formatLongDate(parent.createdAt)}
-                  </p>
-                </div>
-                <p className="whitespace-pre-wrap text-sm text-slate-700">
-                  {parent.body}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setReplyTo(parent)}
-                  className="rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs font-semibold text-slate-600"
-                >
-                  Reply
-                </button>
-                {replies.length > 0 && (
-                  <div className="space-y-2 border-l border-slate-200 pl-3">
-                    {replies.map((reply) => (
-                      <div key={reply.id} className="rounded-xl bg-white px-3 py-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-semibold text-slate-700">
+                    <span>{formatLongDate(parent.createdAt)}</span>
+                  </div>
+                  <p className="forum-comment-body">{parent.body}</p>
+                  <div className="forum-comment-actions">
+                    <SecondaryButton onClick={() => setReplyTo(parent)}>Reply</SecondaryButton>
+                  </div>
+
+                  {replies.length > 0 ? (
+                    <div className="forum-comment-replies">
+                      {replies.map((reply) => (
+                        <div key={reply.id} className="forum-reply-card">
+                          <div className="forum-comment-head">
                             <Link
                               href={reply.author.username ? `/u/${reply.author.username}` : `/profiles/${reply.author.id}`}
-                              className="hover:underline"
+                              className="forum-post-author-link"
                             >
                               {reply.author.displayName ?? "Member"}
                             </Link>
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            {formatLongDate(reply.createdAt)}
-                          </p>
+                            <span>{formatLongDate(reply.createdAt)}</span>
+                          </div>
+                          <p className="forum-comment-body">{reply.body}</p>
                         </div>
-                        <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">
-                          {reply.body}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))
+                      ))}
+                    </div>
+                  ) : null}
+                </article>
+              ))}
+            </div>
           )}
-        </div>
 
-        <div className="mt-5 grid gap-3">
-          {replyTo && (
-            <div className="flex items-center justify-between rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
-              <span>Replying to {replyTo.author.displayName ?? "Member"}</span>
-              <button
-                type="button"
-                onClick={() => setReplyTo(null)}
-                className="rounded-full border border-blue-200 bg-white/80 px-2 py-1 font-semibold"
-              >
-                Cancel
-              </button>
+          <section className="product-card forum-reply-panel">
+            {replyTo ? (
+              <div className="forum-reply-context">
+                <span>Replying to {replyTo.author.displayName ?? "Member"}</span>
+                <SecondaryButton onClick={() => setReplyTo(null)}>Cancel</SecondaryButton>
+              </div>
+            ) : null}
+
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder={replyTo ? "Write your threaded reply..." : "Write a reply..."}
+              className="forum-reply-textarea"
+            />
+            {sendError ? <div className="app-status-note is-error">{sendError}</div> : null}
+            <div className="forum-reply-actions">
+              <PrimaryButton onClick={handleComment} disabled={sending}>
+                {sending ? "Posting..." : "Reply"}
+              </PrimaryButton>
             </div>
-          )}
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder={replyTo ? "Write your threaded reply..." : "Write a reply..."}
-            className="min-h-24 w-full resize-y rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-          />
-          {sendError ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-              {sendError}
-            </div>
-          ) : null}
-          <button
-            type="button"
-            onClick={handleComment}
-            disabled={sending}
-            className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {sending ? "Posting..." : "Reply"}
-          </button>
-        </div>
+          </section>
+        </section>
       </section>
-    </div>
+    </PageContainer>
   );
 }

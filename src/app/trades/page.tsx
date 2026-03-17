@@ -157,7 +157,7 @@ export default function TradesPage() {
                         src={resolveDisplayMediaUrl(null)}
                         alt="Card placeholder"
                         fill
-                        sizes="(max-width: 900px) 100vw, 260px"
+                        sizes="(max-width: 900px) 100vw, 240px"
                         className="object-cover"
                       />
                     )}

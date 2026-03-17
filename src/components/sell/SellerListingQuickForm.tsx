@@ -372,14 +372,14 @@ export function SellerListingQuickForm() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Preview</p>
 
         {certImages.length > 0 ? (
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="cert-preview-grid sell-cert-preview-grid">
             {certImages.slice(0, 2).map((url, index) => (
-              <div key={`${url}-${index}`} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div key={`${url}-${index}`} className="cert-preview-frame">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={url}
                   alt={index === 0 ? "Cert front" : "Cert back"}
-                  className="h-40 w-full object-cover"
+                  className="cert-preview-image"
                 />
               </div>
             ))}

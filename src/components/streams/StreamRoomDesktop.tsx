@@ -135,7 +135,7 @@ export function StreamRoomDesktop({
     }
 
     setActionStatus(`Bid placed at ${formatCurrency(amount, currency)}.`);
-    setBidAmount(String(amount + data.minBidIncrement));
+    setBidAmount(((amount + data.minBidIncrement) / 100).toFixed(2));
     void refresh({ poll: true });
   };
 
@@ -342,7 +342,7 @@ export function StreamRoomDesktop({
                     key={amount}
                     type="button"
                     onClick={() => {
-                      setBidAmount(String(amount));
+                      setBidAmount((amount / 100).toFixed(2));
                       void handleBid(amount);
                     }}
                     className="stream-bid-quick-btn"

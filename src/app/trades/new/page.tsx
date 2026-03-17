@@ -468,12 +468,14 @@ export default function NewTradePage() {
               <div className="trade-compose-review">
                 <div className="trade-compose-review-card">
                   {getCardImageUrls(verifiedCard)[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={getCardImageUrls(verifiedCard)[0]}
-                      alt={autoTitle}
-                      className="trade-compose-review-media"
-                    />
+                    <div className="cert-preview-frame trade-compose-review-frame">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={getCardImageUrls(verifiedCard)[0]}
+                        alt={autoTitle}
+                        className="cert-preview-image"
+                      />
+                    </div>
                   ) : null}
                   <div className="trade-compose-review-copy">
                     <p className="app-eyebrow">Review</p>
