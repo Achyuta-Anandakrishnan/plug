@@ -53,6 +53,17 @@ function formatTime(value: string) {
   return d.toLocaleString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
+function getInitials(value: string) {
+  const parts = value
+    .split(/\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 2);
+
+  if (parts.length === 0) return "?";
+  return parts.map((part) => part[0]?.toUpperCase() ?? "").join("");
+}
+
 export function MessagesClient() {
   const searchParams = useSearchParams();
   const preselectConversationId = searchParams.get("c");
@@ -336,11 +347,15 @@ export function MessagesClient() {
 
         <section className="messages-layout">
         {showThreadsPane ? (
-          <aside className="messages-sidebar product-card">
+          <aside className="messages-sidebar messages-panel">
             {loading ? (
               <CheckersLoader title="Loading conversations..." compact className="ios-empty" />
             ) : conversations.length === 0 ? (
-              <EmptyStateCard title="No conversations yet." description="Messages tied to trades, streams, and support will appear here." />
+              <EmptyStateCard
+                title="No conversations yet."
+                description="Messages tied to trades, streams, and support will appear here."
+                className="messages-empty-state"
+              />
             ) : (
               <div className="messages-thread-list">
                 {conversations.map((thread) => {
@@ -362,11 +377,16 @@ export function MessagesClient() {
                       }}
                       className={`messages-thread-item ${selected ? "is-active" : ""}`}
                     >
-                      <div className="messages-thread-item-top">
-                        <p>{title || "Conversation"}</p>
-                        <span>{formatTime(thread.updatedAt)}</span>
+                      <div className="messages-thread-item-avatar" aria-hidden="true">
+                        {getInitials(title || "Conversation")}
                       </div>
-                      <p className="messages-thread-item-preview">{last || "No messages yet."}</p>
+                      <div className="messages-thread-item-copy">
+                        <div className="messages-thread-item-top">
+                          <p>{title || "Conversation"}</p>
+                          <span>{formatTime(thread.updatedAt)}</span>
+                        </div>
+                        <p className="messages-thread-item-preview">{last || "No messages yet."}</p>
+                      </div>
                     </button>
                   );
                 })}
@@ -376,11 +396,11 @@ export function MessagesClient() {
         ) : null}
 
         {showChatPane ? (
-          <section className="messages-chat product-card">
+          <section className="messages-chat messages-panel">
             {activeConversation ? (
               <>
                 <div className="messages-chat-head">
-                  <div>
+                  <div className="messages-chat-head-copy">
                     {!isDesktop ? (
                       <button
                         type="button"
@@ -391,35 +411,44 @@ export function MessagesClient() {
                       </button>
                     ) : null}
                     <h2>{activeTitle}</h2>
-                    <p>{activeConversation.isSupport ? "Support thread" : "Direct conversation"}</p>
-                    <div className="messages-participants">
-                      {activeConversation.participants
-                        .filter((p) => p.userId !== sessionUserId)
-                        .map((p) => (
-                          <Link
-                            key={p.userId}
-                            href={p.user.username ? `/u/${p.user.username}` : `/profiles/${p.user.id}`}
-                            className="messages-participant-pill"
-                          >
-                            {p.user.displayName ?? p.user.username ?? "Member"}
-                          </Link>
-                        ))}
-                    </div>
+                    <p className="messages-chat-sublabel">
+                      {activeConversation.isSupport ? "Support thread" : activeParticipantsLabel || "Direct conversation"}
+                    </p>
                   </div>
-                  <SecondaryButton
-                    onClick={() => void handleDeleteConversation(activeConversation.id)}
-                    disabled={deletingConversationId === activeConversation.id}
-                  >
-                    {deletingConversationId === activeConversation.id ? "Deleting..." : "Delete"}
-                  </SecondaryButton>
+                  <div className="messages-chat-head-actions">
+                    {!activeConversation.isSupport && activeConversation.participants
+                      .filter((p) => p.userId !== sessionUserId)
+                      .slice(0, 2)
+                      .map((p) => (
+                        <Link
+                          key={p.userId}
+                          href={p.user.username ? `/u/${p.user.username}` : `/profiles/${p.user.id}`}
+                          className="messages-chat-link"
+                        >
+                          {p.user.displayName ?? p.user.username ?? "Member"}
+                        </Link>
+                      ))}
+                    <SecondaryButton
+                      onClick={() => void handleDeleteConversation(activeConversation.id)}
+                      disabled={deletingConversationId === activeConversation.id}
+                      className="messages-delete-button"
+                    >
+                      {deletingConversationId === activeConversation.id ? "Deleting..." : "Delete"}
+                    </SecondaryButton>
+                  </div>
                 </div>
 
                 <div className="messages-feed">
                   {messagesLoading ? (
                     <CheckersLoader title="Loading messages..." compact className="ios-empty" />
                   ) : messages.length === 0 ? (
-                    <EmptyStateCard title="No messages yet." description="Start the conversation below." />
+                    <EmptyStateCard
+                      title="No messages yet."
+                      description="Start the conversation below."
+                      className="messages-empty-state"
+                    />
                   ) : (
+                    <div className="messages-feed-inner">
                     <div className="messages-bubble-list">
                       {messagesCursor ? (
                         <button
@@ -447,6 +476,7 @@ export function MessagesClient() {
                         );
                       })}
                       <div ref={messageEndRef} />
+                    </div>
                     </div>
                   )}
                 </div>
