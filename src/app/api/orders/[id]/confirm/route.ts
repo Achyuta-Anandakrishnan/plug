@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getDevBuyerId, isDev, jsonError, jsonOk } from "@/lib/api";
+import { jsonError, jsonOk } from "@/lib/api";
 import { getStripeClient } from "@/lib/stripe";
 import { getSessionUser } from "@/lib/auth";
 
@@ -9,7 +9,7 @@ export async function POST(
 ) {
   const { id } = await context.params;
   const sessionUser = await getSessionUser();
-  const buyerId = sessionUser?.id ?? (isDev() ? getDevBuyerId() : null);
+  const buyerId = sessionUser?.id ?? null;
   if (!buyerId) {
     return jsonError("Authentication required.", 401);
   }

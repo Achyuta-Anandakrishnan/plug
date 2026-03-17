@@ -20,4 +20,5 @@ export type SpotlightHost = {
   nextStreamAt: string | null;
   profileHref: string;
   streamHref: string;
+  followable: boolean;
 };

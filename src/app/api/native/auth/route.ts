@@ -2,6 +2,7 @@ import { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { EMAIL_REGEX, jsonError, jsonOk, parseJson } from "@/lib/api";
 import { ensureProfileSchema } from "@/lib/profile-schema";
+import { sendVerificationEmailForUser } from "@/lib/email-verification";
 import { generateUniqueUsername } from "@/lib/username";
 import { signNativeAuthToken } from "@/lib/native-auth";
 
@@ -40,12 +41,25 @@ export async function POST(request: Request) {
     select: {
       id: true,
       email: true,
+      emailVerified: true,
       role: true,
       username: true,
       displayName: true,
       image: true,
     },
   });
+
+  if (!user.emailVerified) {
+    await sendVerificationEmailForUser({
+      userId: user.id,
+      email,
+    }).catch(() => null);
+
+    return jsonOk({
+      requiresVerification: true,
+      email,
+    }, { status: 202 });
+  }
 
   let username = user.username;
   if (!username) {

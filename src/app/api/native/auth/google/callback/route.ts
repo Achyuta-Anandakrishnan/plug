@@ -113,12 +113,14 @@ export async function GET(request: Request) {
         displayName,
         name: displayName,
         image: tokenInfo.picture || undefined,
+        emailVerified: new Date(),
       },
       create: {
         email,
         displayName,
         name: displayName,
         image: tokenInfo.picture || undefined,
+        emailVerified: new Date(),
         role: UserRole.BUYER,
       },
       select: {

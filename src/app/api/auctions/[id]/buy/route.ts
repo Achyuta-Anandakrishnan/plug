@@ -1,12 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { computeFees } from "@/lib/fees";
-import { getDevBuyerId, isDev, jsonError, jsonOk, parseJson } from "@/lib/api";
+import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getStripeClient, stripeEnabled } from "@/lib/stripe";
 import { getSessionUser } from "@/lib/auth";
 
 type BuyNowBody = {
-  buyerId?: string;
   paymentMethodId?: string;
   shippingAddress?: Record<string, unknown>;
 };
@@ -21,9 +20,7 @@ export async function POST(
     return jsonError("Stripe must be connected to buy now.", 503);
   }
   const sessionUser = await getSessionUser();
-  const buyerId =
-    sessionUser?.id ??
-    (isDev() ? body?.buyerId || getDevBuyerId() : null);
+  const buyerId = sessionUser?.id ?? null;
 
   if (!buyerId) {
     return jsonError("Authentication required.", 401);

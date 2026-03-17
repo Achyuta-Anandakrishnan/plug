@@ -1,7 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
+
+type ReferralSummary = {
+  code: string;
+  referrals: Array<{
+    id: string;
+    referredEmail: string;
+    status: string;
+    createdAt: string;
+  }>;
+};
 
 function getOrigin() {
   if (typeof window !== "undefined") return window.location.origin;
@@ -11,14 +21,34 @@ function getOrigin() {
 export function ReferralBar() {
   const { data: session } = useSession();
   const [copied, setCopied] = useState(false);
+  const [summary, setSummary] = useState<ReferralSummary | null>(null);
+  const activeSummary = session?.user?.id ? summary : null;
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    let cancelled = false;
+    void fetch("/api/referrals", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return response.json() as Promise<ReferralSummary>;
+      })
+      .then((payload) => {
+        if (!cancelled && payload) setSummary(payload);
+      })
+      .catch(() => null);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id]);
 
   const link = useMemo(() => {
     const origin = getOrigin();
-    const id = session?.user?.id;
-    if (!origin || !id) return "";
-    // This app doesn't yet implement referral-code redemption; this is a stable identifier for now.
-    return `${origin}/signup?ref=${encodeURIComponent(id)}`;
-  }, [session?.user?.id]);
+    const code = activeSummary?.code ?? session?.user?.username ?? session?.user?.id;
+    if (!origin || !code) return "";
+    return `${origin}/signup?ref=${encodeURIComponent(code)}`;
+  }, [activeSummary?.code, session?.user?.id, session?.user?.username]);
 
   async function copy() {
     if (!link) return;
@@ -38,6 +68,11 @@ export function ReferralBar() {
         <p className="referral-panel-note">
           {link ? "Share this private signup link with trusted collectors." : "Sign in to generate your referral link."}
         </p>
+        {activeSummary?.referrals?.length ? (
+          <p className="referral-panel-note">
+            {activeSummary.referrals.filter((entry) => entry.status === "APPLIED").length} applied · {activeSummary.referrals.filter((entry) => entry.status === "APPROVED").length} approved
+          </p>
+        ) : null}
       </div>
 
       <div className="referral-panel-row">

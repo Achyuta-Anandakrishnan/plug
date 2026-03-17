@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
   const ip = getRequestIp(request);
   const rateLimitKey = `seller-apply:user:${sessionUser.id}:ip:${ip}`;
-  if (!checkRateLimit(rateLimitKey, 3, 60_000)) {
+  if (!(await checkRateLimit(rateLimitKey, 3, 60_000))) {
     return jsonError("Too many seller application attempts. Try again shortly.", 429);
   }
 

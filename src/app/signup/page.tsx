@@ -50,7 +50,7 @@ export default function SignupPage() {
         throw new Error(data.error || "Unable to create account.");
       }
       setStatus("success");
-      setMessage("Account created. Finish profile setup after sign-in.");
+      setMessage("Account created. Check your inbox for a verification link, then finish profile setup after sign-in.");
       setFirstName("");
       setLastName("");
       setEmail("");

@@ -8,6 +8,7 @@ import {
   jsonOk,
   parseJson,
 } from "@/lib/api";
+import { sendVerificationEmailForUser } from "@/lib/email-verification";
 
 type SignupBody = {
   email?: string;
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
   const ip = getRequestIp(request);
   const email = normalizeEmail(body.email);
 
-  if (!checkRateLimit(`signup:${ip}`, 10, 60_000)) {
+  if (!(await checkRateLimit(`signup:${ip}`, 10, 60_000))) {
     return jsonError("Too many signup attempts. Try again shortly.", 429);
   }
 
@@ -89,16 +90,39 @@ export async function POST(request: Request) {
     });
 
     if (referrer && referrer.id !== user.id) {
-      await prisma.referral.create({
-        data: {
+      const existingReferral = await prisma.referral.findFirst({
+        where: {
           referrerId: referrer.id,
           referredEmail: email,
-          referredUserId: user.id,
-          status: "APPLIED",
         },
+        select: { id: true },
       });
+
+      if (existingReferral) {
+        await prisma.referral.update({
+          where: { id: existingReferral.id },
+          data: {
+            referredUserId: user.id,
+            status: "APPLIED",
+          },
+        });
+      } else {
+        await prisma.referral.create({
+          data: {
+            referrerId: referrer.id,
+            referredEmail: email,
+            referredUserId: user.id,
+            status: "APPLIED",
+          },
+        });
+      }
     }
   }
+
+  await sendVerificationEmailForUser({
+    userId: user.id,
+    email,
+  }).catch(() => null);
 
   return jsonOk(user, { status: 201 });
 }

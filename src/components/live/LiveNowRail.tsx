@@ -6,9 +6,17 @@ type LiveNowRailProps = {
   streams: LiveStreamItem[];
   loading: boolean;
   limit?: number;
+  savedStreamIds?: Set<string>;
+  onToggleSave?: (streamId: string) => void;
 };
 
-export function LiveNowRail({ streams, loading, limit = 24 }: LiveNowRailProps) {
+export function LiveNowRail({
+  streams,
+  loading,
+  limit = 24,
+  savedStreamIds,
+  onToggleSave,
+}: LiveNowRailProps) {
   const visibleStreams = streams.slice(0, limit);
 
   return (
@@ -25,7 +33,13 @@ export function LiveNowRail({ streams, loading, limit = 24 }: LiveNowRailProps) 
         <div className="live-v3-live-grid-wrap">
           <div className={`live-v3-live-grid ${visibleStreams.length < 3 ? "is-sparse" : ""}`}>
             {visibleStreams.map((stream) => (
-              <ListingCard key={stream.id} kind="live" stream={stream} />
+              <ListingCard
+                key={stream.id}
+                kind="live"
+                stream={stream}
+                saved={savedStreamIds?.has(stream.id)}
+                onToggleSave={onToggleSave}
+              />
             ))}
           </div>
         </div>

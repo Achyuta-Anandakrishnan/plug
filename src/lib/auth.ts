@@ -43,6 +43,19 @@ export const authOptions: NextAuthOptions = {
     signIn: "/signin",
   },
   callbacks: {
+    async signIn({ user, account }) {
+      const userId = (user as { id?: string }).id;
+      if (!userId || !account) return true;
+
+      if (account.provider === "google" || account.provider === "apple") {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { emailVerified: new Date() },
+        }).catch(() => null);
+      }
+
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.userId =

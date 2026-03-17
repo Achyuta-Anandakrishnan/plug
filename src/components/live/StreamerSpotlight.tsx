@@ -4,9 +4,17 @@ import { EmptyStateCard, SectionHeader } from "@/components/product/ProductUI";
 
 type StreamerSpotlightProps = {
   hosts: SpotlightHost[];
+  followedIds?: Set<string>;
+  followerCounts?: Record<string, number>;
+  onToggleFollow?: (hostId: string) => void | Promise<boolean>;
 };
 
-export function StreamerSpotlight({ hosts }: StreamerSpotlightProps) {
+export function StreamerSpotlight({
+  hosts,
+  followedIds,
+  followerCounts,
+  onToggleFollow,
+}: StreamerSpotlightProps) {
   const visibleHosts = hosts.slice(0, 6);
 
   return (
@@ -29,12 +37,20 @@ export function StreamerSpotlight({ hosts }: StreamerSpotlightProps) {
                 <h3>{host.name}</h3>
                 <p>{host.specialty}</p>
                 <div>
-                  <span>{host.followers.toLocaleString()} followers</span>
+                  <span>{(followerCounts?.[host.id] ?? host.followers).toLocaleString()} followers</span>
                   <span>{host.isLive ? "Live now" : host.nextStreamAt ?? "Schedule pending"}</span>
                 </div>
               </div>
               <div className="live-v3-host-actions">
                 <Link href={host.streamHref}>Watch</Link>
+                {host.followable ? (
+                  <button
+                    type="button"
+                    onClick={() => void onToggleFollow?.(host.id)}
+                  >
+                    {followedIds?.has(host.id) ? "Following" : "Follow"}
+                  </button>
+                ) : null}
                 <Link href={host.profileHref}>Profile</Link>
               </div>
             </article>

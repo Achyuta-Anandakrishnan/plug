@@ -24,6 +24,7 @@ export default function SettingsPage() {
           ) : (
             <PrimaryButton onClick={() => void signIn()}>Sign in</PrimaryButton>
           )}
+          <SecondaryButton href="/orders">Orders</SecondaryButton>
           <SecondaryButton href="/referral">Referral program</SecondaryButton>
         </DiscoveryBar>
 

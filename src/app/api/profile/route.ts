@@ -37,6 +37,7 @@ export async function GET() {
     select: {
       id: true,
       email: true,
+      emailVerified: true,
       role: true,
       username: true,
       displayName: true,
@@ -61,6 +62,7 @@ export async function GET() {
         select: {
           id: true,
           email: true,
+          emailVerified: true,
           role: true,
           username: true,
           displayName: true,
@@ -167,6 +169,7 @@ export async function PUT(request: Request) {
     select: {
       id: true,
       email: true,
+      emailVerified: true,
       role: true,
       username: true,
       displayName: true,

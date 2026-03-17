@@ -1,10 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { getDevBuyerId, isDev, jsonError, jsonOk, parseJson } from "@/lib/api";
+import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
 
 type CreateChatBody = {
-  senderId?: string;
   body?: string;
 };
 
@@ -30,9 +29,7 @@ export async function POST(
   const { id } = await context.params;
   const body = await parseJson<CreateChatBody>(request);
   const sessionUser = await getSessionUser();
-  const senderId =
-    sessionUser?.id ??
-    (isDev() ? body?.senderId || getDevBuyerId() : null);
+  const senderId = sessionUser?.id ?? null;
 
   if (!senderId) {
     return jsonError("Authentication required.", 401);

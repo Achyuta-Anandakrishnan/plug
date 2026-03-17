@@ -13,6 +13,8 @@ import { tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
 
 type MarketListingCardProps = {
   listing: MarketListing;
+  saved?: boolean;
+  onToggleSave?: (listingId: string) => void | Promise<boolean>;
 };
 
 type LiveListingCardProps = {
@@ -27,6 +29,8 @@ type LiveListingCardProps = {
 type TradeListingCardProps = {
   kind: "trade";
   trade: TradePostListItem;
+  saved?: boolean;
+  onToggleSave?: (tradePostId: string) => void | Promise<boolean>;
 };
 
 type ListingCardProps = MarketListingCardProps | TradeListingCardProps | LiveListingCardProps;
@@ -199,11 +203,19 @@ export function ListingCard(props: ListingCardProps) {
   }, [trade, stream, listing]);
   const fallbackImage = "/placeholders/pokemon-generic.svg";
   const imageSrc = failedSrc === surface.imageUrl ? fallbackImage : surface.imageUrl;
-  const saved = controlledSaved ?? localSaved;
+  const saved = props.saved ?? controlledSaved ?? localSaved;
 
   const toggleSave = () => {
     if ("stream" in props && props.onToggleSave) {
-      props.onToggleSave(props.stream.id);
+      void props.onToggleSave(props.stream.id);
+      return;
+    }
+    if ("trade" in props && props.onToggleSave) {
+      void props.onToggleSave(props.trade.id);
+      return;
+    }
+    if ("listing" in props && props.onToggleSave) {
+      void props.onToggleSave(props.listing.id);
       return;
     }
     setLocalSaved((prev) => !prev);

@@ -1,6 +1,6 @@
 import { AuctionStatus, ListingType, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getDevSellerId, isDev, jsonError, jsonOk, parseJson } from "@/lib/api";
+import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
 import { nextThursdayNinePmEst } from "@/lib/auction-time";
@@ -63,36 +63,6 @@ export async function GET(request: Request) {
   );
 
   const now = new Date();
-
-  await prisma.auction.updateMany({
-    where: {
-      status: "LIVE",
-      OR: [
-        { extendedTime: { not: null, lte: now } },
-        { extendedTime: null, endTime: { not: null, lte: now } },
-      ],
-    },
-    data: { status: "ENDED" },
-  });
-
-  await prisma.streamSession.updateMany({
-    where: {
-      status: "LIVE",
-      OR: [
-        { auction: { status: { in: ["ENDED", "CANCELED"] } } },
-        {
-          auction: {
-            status: "LIVE",
-            OR: [
-              { extendedTime: { not: null, lte: now } },
-              { extendedTime: null, endTime: { not: null, lte: now } },
-            ],
-          },
-        },
-      ],
-    },
-    data: { status: "ENDED" },
-  });
 
   const where: Prisma.AuctionWhereInput = {};
   const andConditions: Prisma.AuctionWhereInput[] = [];
@@ -205,26 +175,17 @@ export async function POST(request: Request) {
   const body = await parseJson<CreateAuctionBody>(request);
 
   const sessionUser = await getSessionUser();
-  let sellerId: string | null = null;
-  let sellerProfile = null;
-
-  if (sessionUser) {
-    sellerProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: sessionUser.id },
-    });
-    if (sellerProfile) {
-      sellerId = sellerProfile.id;
-    } else if (isDev()) {
-      sellerId = body?.sellerId || getDevSellerId();
-    } else {
-      return jsonError("Seller profile not found.", 403);
-    }
-  } else if (isDev()) {
-    sellerId = body?.sellerId || getDevSellerId();
+  if (!sessionUser?.id) {
+    return jsonError("Authentication required.", 401);
   }
 
-  if (!sellerId && !isDev()) {
-    return jsonError("Authentication required.", 401);
+  const sellerProfile = await prisma.sellerProfile.findUnique({
+    where: { userId: sessionUser.id },
+  });
+  const sellerId = sellerProfile?.id ?? null;
+
+  if (!sellerId) {
+    return jsonError("Seller profile not found.", 403);
   }
 
   if (!sellerId || !body?.title) {
@@ -241,7 +202,7 @@ export async function POST(request: Request) {
     return jsonError("Seller not found.", 404);
   }
 
-  if (!isDev() && sessionUser && seller.status !== "APPROVED") {
+  if (seller.status !== "APPROVED") {
     return jsonError("Seller verification pending approval.", 403);
   }
 

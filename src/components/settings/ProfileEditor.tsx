@@ -10,6 +10,7 @@ import { CheckersLoader } from "@/components/CheckersLoader";
 type ProfilePayload = {
   id: string;
   email: string | null;
+  emailVerified: string | null;
   role: string;
   username: string | null;
   displayName: string | null;
@@ -28,6 +29,7 @@ export function ProfileEditor() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [sendingVerification, setSendingVerification] = useState(false);
   const [profile, setProfile] = useState<ProfilePayload | null>(null);
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -157,6 +159,29 @@ export function ProfileEditor() {
     }
   };
 
+  const onSendVerification = async () => {
+    setSendingVerification(true);
+    setError("");
+    setSuccess("");
+    try {
+      const response = await fetch("/api/email/verification/send", { method: "POST" });
+      const payload = (await response.json()) as { sent?: boolean; alreadyVerified?: boolean; error?: string };
+      if (!response.ok) {
+        setError(payload.error ?? "Unable to send verification email.");
+        return;
+      }
+      if (payload.alreadyVerified) {
+        setSuccess("Email is already verified.");
+        return;
+      }
+      setSuccess(payload.sent ? "Verification email sent." : "SMTP not configured, so no email was sent.");
+    } catch {
+      setError("Unable to send verification email.");
+    } finally {
+      setSendingVerification(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {loading ? (
@@ -213,6 +238,21 @@ export function ProfileEditor() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               Public profile
             </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <span>{profile?.email ?? "No email"}</span>
+              <span>•</span>
+              <span>{profile?.emailVerified ? "Email verified" : "Email not verified"}</span>
+              {!profile?.emailVerified && profile?.email ? (
+                <button
+                  type="button"
+                  onClick={() => void onSendVerification()}
+                  disabled={sendingVerification}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700"
+                >
+                  {sendingVerification ? "Sending..." : "Verify email"}
+                </button>
+              ) : null}
+            </div>
             <div className="mt-3 grid gap-3">
               <label className="grid gap-1">
                 <span className="text-xs text-slate-500">Username</span>

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getDevBuyerId, isDev, jsonError, jsonOk, parseJson } from "@/lib/api";
+import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { computeExtendedEndTime } from "@/lib/auction";
 import { getSessionUser } from "@/lib/auth";
 import { stripeEnabled } from "@/lib/stripe";
@@ -19,9 +19,7 @@ export async function POST(
     return jsonError("Stripe must be connected to place offers.", 503);
   }
   const sessionUser = await getSessionUser();
-  const bidderId =
-    sessionUser?.id ??
-    (isDev() ? body?.bidderId || getDevBuyerId() : null);
+  const bidderId = sessionUser?.id ?? null;
 
   if (!bidderId || typeof body?.amount !== "number") {
     return jsonError("Authentication and amount are required.", 401);

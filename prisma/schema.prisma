@@ -198,6 +198,11 @@ model User {
   referrals      Referral[]    @relation("ReferralReferrer")
   disputes       Dispute[]     @relation("DisputeReporter")
   ordersAsBuyer  Order[]       @relation("OrderBuyer")
+  savedListings  UserSave[]
+  streamReminders StreamReminder[]
+  following      UserFollow[]  @relation("UserFollowFollower")
+  followers      UserFollow[]  @relation("UserFollowFollowing")
+  emailVerificationTokens EmailVerificationToken[]
   forumPosts     ForumPost[]
   forumComments  ForumComment[]
   forumPostVotes ForumPostVote[]
@@ -318,6 +323,8 @@ model Auction {
   chatMessages       AuctionChatMessage[]
   disputes           Dispute[]
   orders             Order[]
+  saves              UserSave[]
+  reminders          StreamReminder[]
   streamSessions     StreamSession[]
 }
 
@@ -472,6 +479,7 @@ model TradePost {
   owner            User            @relation("TradePostOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   images           TradePostImage[]
   offers           TradeOffer[]
+  saves            UserSave[]
 
   @@index([ownerId])
   @@index([status])
@@ -506,6 +514,8 @@ model TradeOffer {
   gameStartedAt    DateTime?
   gameResolvedAt   DateTime?
   gameWinnerId     String?
+  gameState        Json?
+  gameStateVersion Int               @default(0)
   status           TradeOfferStatus  @default(PENDING)
   expiresAt        DateTime?
   createdAt        DateTime          @default(now())
@@ -699,4 +709,79 @@ model StreamSession {
   auction       Auction        @relation(fields: [auctionId], references: [id])
 
   @@index([auctionId])
+}
+
+model UserSave {
+  id          String     @id @default(cuid())
+  userId      String
+  auctionId   String?
+  tradePostId String?
+  createdAt   DateTime   @default(now())
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auction     Auction?   @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  tradePost   TradePost? @relation(fields: [tradePostId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, auctionId])
+  @@unique([userId, tradePostId])
+  @@index([userId, createdAt])
+  @@index([auctionId])
+  @@index([tradePostId])
+}
+
+model StreamReminder {
+  id        String   @id @default(cuid())
+  userId    String
+  auctionId String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, auctionId])
+  @@index([auctionId])
+  @@index([userId, createdAt])
+}
+
+model UserFollow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User     @relation("UserFollowFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId, createdAt])
+  @@index([followerId, createdAt])
+}
+
+model EmailVerificationToken {
+  id         String   @id @default(cuid())
+  userId      String
+  email       String
+  token       String   @unique
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([email, expiresAt])
+}
+
+model VerifiedCardCache {
+  grader        String
+  certNumber    String
+  normalized    Json
+  sourcePayload Json?
+  verifiedAt    DateTime @default(now())
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@id([grader, certNumber])
+  @@index([expiresAt])
 }

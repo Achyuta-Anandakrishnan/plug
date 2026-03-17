@@ -17,6 +17,7 @@ import {
 } from "@/components/product/ProductUI";
 import { useAuctions } from "@/hooks/useAuctions";
 import { useCategories } from "@/hooks/useCategories";
+import { useSavedListings } from "@/hooks/useSavedListings";
 
 function parseMode(value: string | null): MarketMode {
   if (value === "buy-now" || value === "auctions") return value;
@@ -59,6 +60,7 @@ export function MarketHub() {
   const [sortMode, setSortMode] = useState<SortMode>("newest");
 
   const { data: categories } = useCategories();
+  const { auctionIds: savedAuctionIds, toggleAuctionSave } = useSavedListings();
 
   const categoryFilters = useMemo(() => {
     const base = [
@@ -263,6 +265,8 @@ export function MarketHub() {
                       <ListingCard
                         key={`${section.key}-${listing.id}`}
                         listing={listing}
+                        saved={savedAuctionIds.has(listing.id)}
+                        onToggleSave={toggleAuctionSave}
                       />
                     ))}
                   </div>
@@ -284,7 +288,11 @@ export function MarketHub() {
         ) : sortedListings.length === 0 ? (
           <EmptyStateCard title="No listings match these filters." description="Try broadening the search, switching modes, or clearing a category." />
         ) : (
-            <ListingGrid listings={sortedListings} />
+            <ListingGrid
+              listings={sortedListings}
+              savedAuctionIds={savedAuctionIds}
+              onToggleSave={toggleAuctionSave}
+            />
           )}
       </section>
 

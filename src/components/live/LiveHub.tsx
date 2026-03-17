@@ -9,6 +9,9 @@ import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveStreamTypeFi
 import { UpcomingStreamsSection } from "@/components/live/UpcomingStreamsSection";
 import { EmptyStateCard, PageContainer } from "@/components/product/ProductUI";
 import { useMobileUi } from "@/hooks/useMobileUi";
+import { useSavedListings } from "@/hooks/useSavedListings";
+import { useStreamReminders } from "@/hooks/useStreamReminders";
+import { useUserFollows } from "@/hooks/useUserFollows";
 import { categoryMatches, filterByStreamType, isVisibleLiveStream, isVisibleUpcomingStream, searchMatches, sortLiveStreams, sortUpcomingStreams, streamCategory, streamHost, withStreamState } from "@/components/live/utils";
 import { useAuctions } from "@/hooks/useAuctions";
 
@@ -22,16 +25,6 @@ function formatNextStream(value: string | null) {
     hour: "numeric",
     minute: "2-digit",
   });
-}
-
-function followerEstimate(seed: string) {
-  let hash = 0;
-  for (let index = 0; index < seed.length; index += 1) {
-    hash = ((hash << 5) - hash) + seed.charCodeAt(index);
-    hash |= 0;
-  }
-  const positive = Math.abs(hash);
-  return 1200 + (positive % 28000);
 }
 
 function buildSpotlightHosts(live: LiveStreamItem[], upcoming: LiveStreamItem[]): SpotlightHost[] {
@@ -48,11 +41,12 @@ function buildSpotlightHosts(live: LiveStreamItem[], upcoming: LiveStreamItem[])
         id: sellerId,
         name,
         specialty: streamCategory(stream),
-        followers: followerEstimate(sellerId),
+        followers: 0,
         isLive: stream.streamState === "live",
         nextStreamAt: stream.streamState === "upcoming" ? streamAt : null,
         profileHref,
         streamHref: `/streams/${stream.id}`,
+        followable: Boolean(stream.seller?.user?.id),
       });
       continue;
     }
@@ -91,7 +85,8 @@ export function LiveHub() {
   const [sort, setSort] = useState<LiveSortMode>("viewers");
   const [timing, setTiming] = useState<LiveTimingFilter>("live");
   const [nowMs, setNowMs] = useState(() => Date.now());
-  const [reminders, setReminders] = useState<Set<string>>(new Set());
+  const { auctionIds: savedAuctionIds, toggleAuctionSave } = useSavedListings();
+  const { auctionIds: reminderIds, toggleReminder } = useStreamReminders();
 
   const {
     data: liveData,
@@ -154,18 +149,13 @@ export function LiveHub() {
     () => buildSpotlightHosts(filteredLive, filteredUpcoming),
     [filteredLive, filteredUpcoming],
   );
-
-  const onToggleReminder = (streamId: string) => {
-    setReminders((prev) => {
-      const next = new Set(prev);
-      if (next.has(streamId)) {
-        next.delete(streamId);
-      } else {
-        next.add(streamId);
-      }
-      return next;
-    });
-  };
+  const followableHostIds = useMemo(
+    () => spotlightHosts.filter((host) => host.followable).map((host) => host.id),
+    [spotlightHosts],
+  );
+  const { counts: followerCounts, followedIds, toggleFollow } = useUserFollows(
+    followableHostIds,
+  );
 
   const hasError = liveError || upcomingError;
   const loading = liveLoading || upcomingLoading;
@@ -193,7 +183,13 @@ export function LiveHub() {
         <CheckersLoader title="Loading live sessions..." compact className="live-v3-empty" />
       ) : (
         <div className="listing-system-feed">
-          <LiveNowRail streams={filteredLive} loading={liveLoading} limit={liveLimit} />
+          <LiveNowRail
+            streams={filteredLive}
+            loading={liveLoading}
+            limit={liveLimit}
+            savedStreamIds={savedAuctionIds}
+            onToggleSave={toggleAuctionSave}
+          />
         </div>
       )}
 
@@ -203,8 +199,8 @@ export function LiveHub() {
         <div className="listing-system-feed">
           <UpcomingStreamsSection
             streams={filteredUpcoming}
-            reminders={reminders}
-            onToggleReminder={onToggleReminder}
+            reminders={reminderIds}
+            onToggleReminder={toggleReminder}
             limit={upcomingLimit}
           />
         </div>
@@ -214,7 +210,12 @@ export function LiveHub() {
         <CheckersLoader title="Loading host activity..." compact className="live-v3-empty" />
       ) : (
         <div className="listing-system-feed">
-          <StreamerSpotlight hosts={spotlightHosts.slice(0, spotlightLimit)} />
+          <StreamerSpotlight
+            hosts={spotlightHosts.slice(0, spotlightLimit)}
+            followerCounts={followerCounts}
+            followedIds={followedIds}
+            onToggleFollow={toggleFollow}
+          />
         </div>
       )}
 

@@ -17,6 +17,7 @@ import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import {
   type TradePostListItem,
 } from "@/lib/trade-client";
+import { useSavedListings } from "@/hooks/useSavedListings";
 
 type TradeScope = "OPEN" | "PAUSED" | "MATCHED" | "CLOSED" | "ALL" | "MINE";
 
@@ -36,6 +37,7 @@ export default function TradesPage() {
   const [posts, setPosts] = useState<TradePostListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { tradePostIds: savedTradeIds, toggleTradeSave } = useSavedListings();
 
   useEffect(() => {
     let cancelled = false;
@@ -130,7 +132,13 @@ export default function TradesPage() {
 
           <div className={`trade-board-grid ${posts.length > 0 && posts.length < 3 ? "is-sparse" : ""}`}>
             {posts.map((post) => (
-              <ListingCard key={post.id} kind="trade" trade={post} />
+              <ListingCard
+                key={post.id}
+                kind="trade"
+                trade={post}
+                saved={savedTradeIds.has(post.id)}
+                onToggleSave={toggleTradeSave}
+              />
             ))}
           </div>
         </section>
