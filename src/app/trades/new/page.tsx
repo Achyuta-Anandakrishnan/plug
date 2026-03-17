@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
@@ -355,9 +356,15 @@ export default function NewTradePage() {
         <section className="app-section">
           <FormContainer>
             <PageHeader
-              title="Post trade"
-              subtitle="Verify a cert, set your target value, and publish a clean trade post."
+              title="Create listing"
+              subtitle="Trade mode. Sign in to verify a cert, set value, and publish a clean listing."
             />
+            <nav className="listing-flow-strip" aria-label="Listing modes">
+              <Link href="/sell?mode=AUCTION" className="listing-flow-link">Auction</Link>
+              <Link href="/sell?mode=BUY_NOW" className="listing-flow-link">Buy now</Link>
+              <Link href="/sell?mode=BOTH" className="listing-flow-link">Auction + buy now</Link>
+              <Link href="/trades/new" className="listing-flow-link is-active">Trade</Link>
+            </nav>
             <div className="trade-compose-signin">
               <p>Sign in to post a trade.</p>
               <PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>
@@ -373,10 +380,17 @@ export default function NewTradePage() {
       <section className="app-section">
         <FormContainer className="trade-compose-form">
           <PageHeader
-            title="Post trade"
-            subtitle="Verify a cert, set the target value, and publish a clean trade post."
+            title="Create listing"
+            subtitle="Trade mode. Verify the item, set the target value, and publish a clean listing."
             actions={<SecondaryButton href="/trades">Back to trades</SecondaryButton>}
           />
+
+          <nav className="listing-flow-strip" aria-label="Listing modes">
+            <Link href="/sell?mode=AUCTION" className="listing-flow-link">Auction</Link>
+            <Link href="/sell?mode=BUY_NOW" className="listing-flow-link">Buy now</Link>
+            <Link href="/sell?mode=BOTH" className="listing-flow-link">Auction + buy now</Link>
+            <Link href="/trades/new" className="listing-flow-link is-active">Trade</Link>
+          </nav>
 
           <ol className="app-stepper trade-compose-stepper" aria-label="Trade post steps">
             {[

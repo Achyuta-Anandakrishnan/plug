@@ -3,8 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import type { LiveStreamItem } from "@/components/live/types";
+import { streamPriceLabel, streamTimeLabel } from "@/components/live/utils";
 import type { MarketListing } from "@/components/market/types";
-import { getGradeLabel, getPrimaryImageUrl, getTimeLeftSeconds } from "@/lib/auctions";
+import { getPrimaryImageUrl, getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import { tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
@@ -13,12 +15,21 @@ type MarketListingCardProps = {
   listing: MarketListing;
 };
 
+type LiveListingCardProps = {
+  kind: "live";
+  stream: LiveStreamItem;
+  saved?: boolean;
+  onToggleSave?: (streamId: string) => void;
+  saveActiveLabel?: string;
+  saveInactiveLabel?: string;
+};
+
 type TradeListingCardProps = {
   kind: "trade";
   trade: TradePostListItem;
 };
 
-type ListingCardProps = MarketListingCardProps | TradeListingCardProps;
+type ListingCardProps = MarketListingCardProps | TradeListingCardProps | LiveListingCardProps;
 
 type ListingSurfaceData = {
   href: string;
@@ -30,6 +41,8 @@ type ListingSurfaceData = {
   priceLabel: string;
   supportLabel: string;
   sellerLabel: string;
+  saveInactiveLabel: string;
+  saveActiveLabel: string;
 };
 
 function compactName(value: string) {
@@ -38,9 +51,53 @@ function compactName(value: string) {
   return `${trimmed.slice(0, 19)}...`;
 }
 
+function cleanText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function shortenCert(value: string) {
+  const cert = value.trim();
+  if (!cert) return "";
+  if (cert.length <= 8) return cert;
+  if (cert.length <= 12) return `${cert.slice(0, 4)}…${cert.slice(-4)}`;
+  return cert.slice(-8);
+}
+
+function compactSummary(parts: Array<string | null | undefined>) {
+  return parts
+    .map((entry) => (typeof entry === "string" ? entry.trim() : ""))
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(" • ");
+}
+
+function compactMarketMetadata(listing: MarketListing) {
+  const attributes = listing.item?.attributes;
+  const company = cleanText(attributes?.gradingCompany);
+  const grade = cleanText(attributes?.grade);
+  const label = cleanText(attributes?.gradingLabel);
+  const cert = cleanText(attributes?.certNumber);
+  const setName = cleanText(attributes?.set) || cleanText(attributes?.brand);
+  const player = cleanText(attributes?.player) || cleanText(attributes?.subject);
+  const gradeSummary = compactSummary([[company, label || grade].filter(Boolean).join(" ").trim()]);
+  const certSummary = cert ? `Cert ${shortenCert(cert)}` : "";
+  const cardSummary = compactSummary([[setName, player].filter(Boolean).join(" • ").trim()]);
+
+  return compactSummary([gradeSummary, certSummary, cardSummary])
+    || listing.category?.name
+    || "Verified listing";
+}
+
+function compactTradeMetadata(trade: TradePostListItem) {
+  const gradeSummary = [trade.gradeCompany, trade.gradeLabel].filter(Boolean).join(" ").trim();
+  const cardSummary = [trade.cardSet, trade.cardNumber ? `#${trade.cardNumber}` : null].filter(Boolean).join(" ").trim();
+  return compactSummary([gradeSummary, cardSummary, trade.category])
+    || trade.category
+    || "Trade board";
+}
+
 function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData {
   const currency = listing.currency?.toUpperCase() || "USD";
-  const grade = getGradeLabel(listing.item?.attributes);
   const fallbackImage = "/placeholders/pokemon-generic.svg";
   const imageUrl = resolveDisplayMediaUrl(getPrimaryImageUrl(listing), fallbackImage);
   const price = listing.listingType === "AUCTION"
@@ -49,11 +106,13 @@ function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData 
   const badgeLabel = listing.listingType === "BOTH"
     ? "Auction"
     : listing.listingType.replace("_", " ");
-  const meta = grade || listing.category?.name || "Verified listing";
+  const meta = compactMarketMetadata(listing);
   const timeMeta = listing.listingType === "BUY_NOW"
     ? "Buy now"
     : formatSeconds(getTimeLeftSeconds(listing));
-  const support = [timeMeta, `${listing.watchersCount} watching`].filter(Boolean).join(" · ");
+  const support = listing.listingType === "BUY_NOW"
+    ? `${listing.watchersCount} watching`
+    : `${timeMeta} · ${listing.watchersCount} watching`;
 
   return {
     href: `/auctions/${listing.id}`,
@@ -65,14 +124,15 @@ function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData 
     priceLabel: price,
     supportLabel: support,
     sellerLabel: listing.seller?.user?.displayName ?? "Verified seller",
+    saveInactiveLabel: "Add listing to watchlist",
+    saveActiveLabel: "Remove listing from watchlist",
   };
 }
 
 function tradeListingToSurfaceData(trade: TradePostListItem): ListingSurfaceData {
   const fallbackImage = "/placeholders/pokemon-generic.svg";
   const imageUrl = resolveDisplayMediaUrl(trade.images[0]?.url ?? null, fallbackImage);
-  const grade = [trade.gradeCompany, trade.gradeLabel].filter(Boolean).join(" ").trim();
-  const meta = grade || trade.category || "Trade board";
+  const meta = compactTradeMetadata(trade);
   const statusClass = trade.status === "OPEN"
     ? "trade-status-chip is-open"
     : trade.status === "MATCHED"
@@ -91,20 +151,63 @@ function tradeListingToSurfaceData(trade: TradePostListItem): ListingSurfaceData
     priceLabel: tradeValueLabel(trade.valueMin, trade.valueMax),
     supportLabel: `${trade._count.offers} offer${trade._count.offers === 1 ? "" : "s"}`,
     sellerLabel: trade.owner.displayName ?? trade.owner.username ?? "Collector",
+    saveInactiveLabel: "Save trade",
+    saveActiveLabel: "Remove saved trade",
+  };
+}
+
+function liveListingToSurfaceData(stream: LiveStreamItem): ListingSurfaceData {
+  const fallbackImage = "/placeholders/pokemon-generic.svg";
+  const imageUrl = resolveDisplayMediaUrl(getPrimaryImageUrl(stream), fallbackImage);
+  const badgeLabel = stream.streamState === "live" ? "Live" : "Upcoming";
+  const badgeClassName = stream.streamState === "live"
+    ? "trade-status-chip is-open"
+    : "market-v2-listing-badge";
+  const seller = stream.seller?.user?.displayName ?? "Verified seller";
+  const supportLabel = stream.streamState === "live"
+    ? `${stream.watchersCount} watching`
+    : streamTimeLabel(stream);
+
+  return {
+    href: `/streams/${stream.id}`,
+    imageUrl,
+    title: stream.title,
+    badgeLabel,
+    badgeClassName,
+    metaLabel: compactMarketMetadata(stream),
+    priceLabel: streamPriceLabel(stream),
+    supportLabel,
+    sellerLabel: seller,
+    saveInactiveLabel: stream.streamState === "upcoming" ? "Set reminder" : "Save stream",
+    saveActiveLabel: stream.streamState === "upcoming" ? "Remove reminder" : "Remove saved stream",
   };
 }
 
 export function ListingCard(props: ListingCardProps) {
-  const [watching, setWatching] = useState(false);
+  const isLiveCard = "stream" in props;
+  const controlledSaved = isLiveCard ? props.saved : undefined;
+  const [localSaved, setLocalSaved] = useState(false);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const surface = useMemo(() => {
     if ("trade" in props) {
       return tradeListingToSurfaceData(props.trade);
     }
+    if ("stream" in props) {
+      return liveListingToSurfaceData(props.stream);
+    }
     return marketListingToSurfaceData(props.listing);
   }, [props]);
   const fallbackImage = "/placeholders/pokemon-generic.svg";
   const imageSrc = failedSrc === surface.imageUrl ? fallbackImage : surface.imageUrl;
+  const saved = controlledSaved ?? localSaved;
+
+  const toggleSave = () => {
+    if ("stream" in props && props.onToggleSave) {
+      props.onToggleSave(props.stream.id);
+      return;
+    }
+    setLocalSaved((prev) => !prev);
+  };
 
   return (
     <article className="market-v2-listing-card product-card listing-card">
@@ -127,7 +230,7 @@ export function ListingCard(props: ListingCardProps) {
 
         <div className="listing-card-overlay">
           <div className="listing-card-top">
-            <span className={surface.badgeClassName}>{surface.badgeLabel}</span>
+            <span className={`listing-card-badge ${surface.badgeClassName}`}>{surface.badgeLabel}</span>
           </div>
 
           <div className="listing-card-bottom">
@@ -146,11 +249,15 @@ export function ListingCard(props: ListingCardProps) {
 
       <button
         type="button"
-        onClick={() => setWatching((prev) => !prev)}
-        className={`listing-card-watch ${watching ? "is-active" : ""}`}
-        aria-label={watching ? "Remove from watchlist" : "Add to watchlist"}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          toggleSave();
+        }}
+        className={`listing-card-watch ${saved ? "is-active" : ""}`}
+        aria-label={saved ? surface.saveActiveLabel : surface.saveInactiveLabel}
       >
-        {watching ? "♥" : "♡"}
+        {saved ? "♥" : "♡"}
       </button>
     </article>
   );

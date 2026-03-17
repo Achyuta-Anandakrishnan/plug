@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { Chess, type PieceSymbol, type Square } from "chess.js";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import { CheckersLoader } from "@/components/CheckersLoader";
+import { PageContainer, PageHeader, SecondaryButton } from "@/components/product/ProductUI";
 import type { TradeOfferItem, TradeGameType, TradePostDetail } from "@/lib/trade-client";
 
 type Side = "TOP" | "BOTTOM";
@@ -588,63 +588,58 @@ export default function TradeDisputeGamePage() {
   };
 
   if (gateLoading) {
-    return <CheckersLoader title="Loading game terms..." compact className="ios-empty" />;
+    return (
+      <PageContainer className="trade-dispute-page app-page--trade-dispute">
+        <section className="app-section">
+          <CheckersLoader title="Loading game terms..." compact className="ios-empty" />
+        </section>
+      </PageContainer>
+    );
   }
 
   if (gateError) {
     return (
-      <div className="ios-screen">
-        <section className="ios-hero space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h1 className="ios-title">Trade Game Settlement</h1>
-            <Link
-              href={`/trades/${encodeURIComponent(tradeId)}`}
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
-            >
-              Back to trade
-            </Link>
+      <PageContainer className="trade-dispute-page app-page--trade-dispute">
+        <section className="app-section">
+          <PageHeader
+            title="Trade game settlement"
+            subtitle="Resolve the agreed game terms to settle the trade."
+            actions={<SecondaryButton href={`/trades/${encodeURIComponent(tradeId)}`}>Back to trade</SecondaryButton>}
+          />
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {gateError}
           </div>
         </section>
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {gateError}
-        </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="ios-screen">
-      <section className="ios-hero space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="ios-title">Trade Game Settlement</h1>
-          <Link
-            href={`/trades/${encodeURIComponent(tradeId)}`}
-            className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
-          >
-            Back to trade
-          </Link>
-        </div>
-        <p className="ios-subtitle">
-          Agreed game: {activeOffer?.gameType ?? "-"} · Terms locked by both parties.
-        </p>
+    <PageContainer className="trade-dispute-page app-page--trade-dispute">
+      <section className="app-section trade-dispute-header">
+        <PageHeader
+          title="Trade game settlement"
+          subtitle={`Agreed game: ${activeOffer?.gameType ?? "-"} · Terms locked by both parties.`}
+          actions={<SecondaryButton href={`/trades/${encodeURIComponent(tradeId)}`}>Back to trade</SecondaryButton>}
+        />
         {viewerSide ? (
-          <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
+          <p className="trade-dispute-meta">
             You are on the {viewerSide === "BOTTOM" ? "bottom" : "top"} side.
           </p>
         ) : null}
         {activeOffer?.gameTerms ? (
-          <div className="rounded-2xl border border-slate-200 bg-white/85 px-4 py-3 text-sm text-slate-700">
+          <div className="trade-dispute-note">
             {activeOffer.gameTerms}
           </div>
         ) : null}
         {resolutionNotice ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="app-status-note is-success">
             {resolutionNotice}
           </div>
         ) : null}
       </section>
 
-      <section className="ios-panel p-4 sm:p-5 space-y-4">
+      <section className="product-card trade-dispute-card">
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {GAME_OPTIONS.map((entry) => (
             <button
@@ -671,7 +666,7 @@ export default function TradeDisputeGamePage() {
       </section>
 
       {mode === "checkers" ? (
-        <section className="ios-panel p-4 sm:p-5 space-y-4">
+        <section className="product-card trade-dispute-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
               {checkersWinner
@@ -729,7 +724,7 @@ export default function TradeDisputeGamePage() {
       ) : null}
 
       {mode === "chess" ? (
-        <section className="ios-panel p-4 sm:p-5 space-y-4">
+        <section className="product-card trade-dispute-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm text-slate-600">{chessStatus}</p>
             <button
@@ -776,7 +771,7 @@ export default function TradeDisputeGamePage() {
       ) : null}
 
       {mode === "coin" ? (
-        <section className="ios-panel p-4 sm:p-5 space-y-4">
+        <section className="product-card trade-dispute-card">
           <p className="text-sm text-slate-600">Coin rules: Heads = bottom side, tails = top side.</p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -802,7 +797,7 @@ export default function TradeDisputeGamePage() {
       ) : null}
 
       {mode === "poker" ? (
-        <section className="ios-panel p-4 sm:p-5 space-y-4">
+        <section className="product-card trade-dispute-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm text-slate-600">Deal a 5-card hand for each side.</p>
             <button
@@ -844,6 +839,6 @@ export default function TradeDisputeGamePage() {
           </div>
         </section>
       ) : null}
-    </div>
+    </PageContainer>
   );
 }

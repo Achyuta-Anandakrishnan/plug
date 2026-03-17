@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { EmptyStateCard, PageContainer, PageHeader } from "@/components/product/ProductUI";
 
 type ScheduleEntry = {
   id: string;
@@ -77,15 +78,17 @@ export default async function StreamSchedulePage() {
   });
 
   return (
-    <div className="ios-screen">
-      <section className="ios-hero space-y-3">
-        <h1 className="ios-title">Schedule</h1>
-      </section>
+    <PageContainer className="streams-schedule-page app-page--streams-schedule">
+      <section className="app-section">
+        <PageHeader
+          title="Schedule"
+          subtitle="Upcoming and currently live sessions across the floor."
+        />
 
-      {sortedKeys.length === 0 ? (
-        <div className="ios-empty">No scheduled streams yet.</div>
-      ) : (
-        <div className="ios-panel p-4">
+        {sortedKeys.length === 0 ? (
+          <EmptyStateCard title="No scheduled streams yet." description="Once hosts publish sessions, they will appear here." />
+        ) : (
+          <div className="product-card trade-dispute-card">
           <div className="grid gap-3">
             {sortedKeys.map((key) => {
               const firstTime = key === "TBD" ? null : new Date(`${key}T00:00:00`);
@@ -119,8 +122,9 @@ export default async function StreamSchedulePage() {
               );
             })}
           </div>
-        </div>
-      )}
-    </div>
+          </div>
+        )}
+      </section>
+    </PageContainer>
   );
 }

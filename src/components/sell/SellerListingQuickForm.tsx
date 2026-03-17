@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { formatCurrency } from "@/lib/format";
 
@@ -113,6 +114,7 @@ function infoLine(label: string, value: string | null | undefined) {
 }
 
 export function SellerListingQuickForm() {
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const isSeller = session?.user?.role === "SELLER" || session?.user?.role === "ADMIN";
   const [listingType, setListingType] = useState<ListingType>("AUCTION");
@@ -176,6 +178,13 @@ export function SellerListingQuickForm() {
   const desiredCents = useMemo(() => toCents(desiredPrice), [desiredPrice]);
   const cert = certNumber.replace(/\s+/g, "").trim();
   const canSubmit = Boolean(isSeller && cert.length >= 4 && desiredCents !== null && lookup?.found);
+
+  useEffect(() => {
+    const mode = searchParams.get("mode");
+    if (mode === "AUCTION" || mode === "BUY_NOW" || mode === "BOTH") {
+      setListingType(mode);
+    }
+  }, [searchParams]);
 
   const previewTitle = useMemo(() => {
     if (!lookup || !lookup.found) return "Auto-filled title";

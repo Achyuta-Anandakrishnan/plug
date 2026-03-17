@@ -1064,8 +1064,8 @@ body {
 .market-page .market-v2-grid,
 .market-v2-grid {
   display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   align-items: stretch;
   justify-items: stretch;
   width: 100%;
@@ -1073,7 +1073,7 @@ body {
 
 .market-page .market-v2-grid.is-sparse,
 .market-v2-grid.is-sparse {
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   justify-content: start;
 }
 
@@ -1128,8 +1128,13 @@ body {
   inset: 0;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  padding: 12px;
-  background: linear-gradient(to top, rgba(11, 26, 43, 0.9) 0%, rgba(11, 26, 43, 0.66) 32%, rgba(11, 26, 43, 0.18) 58%, rgba(11, 26, 43, 0) 76%);
+  padding: 14px 16px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.76) 0%,
+    rgba(0, 0, 0, 0.46) 38%,
+    rgba(0, 0, 0, 0) 72%
+  );
   pointer-events: none;
 }
 
@@ -1137,7 +1142,7 @@ body {
   display: flex;
   align-items: start;
   justify-content: flex-start;
-  padding-right: 48px;
+  padding-right: 42px;
 }
 
 .listing-card-bottom {
@@ -1152,6 +1157,48 @@ body {
   min-width: 0;
   display: grid;
   gap: 4px;
+}
+
+.listing-card-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  color: rgba(11, 26, 43, 0.82);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+}
+
+.listing-card-badge.trade-status-chip.is-open {
+  background: rgba(253, 240, 241, 0.86);
+  border-color: rgba(253, 240, 241, 0.72);
+  color: var(--product-live);
+}
+
+.listing-card-badge.trade-status-chip.is-matched {
+  background: rgba(236, 253, 245, 0.86);
+  border-color: rgba(236, 253, 245, 0.74);
+  color: #0f766e;
+}
+
+.listing-card-badge.trade-status-chip.is-paused {
+  background: rgba(255, 251, 235, 0.88);
+  border-color: rgba(255, 251, 235, 0.74);
+  color: #a16207;
+}
+
+.listing-card-badge.trade-status-chip.is-closed {
+  background: rgba(248, 250, 252, 0.88);
+  border-color: rgba(248, 250, 252, 0.76);
+  color: #64748b;
 }
 
 .listing-card-title {
@@ -1301,23 +1348,23 @@ body {
 
 .listing-card-watch {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 14px;
+  right: 16px;
   z-index: 2;
-  width: 34px;
-  min-width: 34px;
+  width: 30px;
+  min-width: 30px;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  background: rgba(11, 26, 43, 0.34);
-  color: white;
-  font-size: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(11, 26, 43, 0.26);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 13px;
   line-height: 1;
   backdrop-filter: blur(14px);
 }
 
 .listing-card-watch.is-active {
-  border-color: rgba(255, 255, 255, 0.48);
-  background: rgba(168, 66, 74, 0.24);
+  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(168, 66, 74, 0.22);
 }
 
 .live-v3-enter-pill,
@@ -1407,7 +1454,7 @@ body {
 .live-v3-spotlight-grid,
 .live-v3-live-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 14px;
   align-items: stretch;
   justify-items: stretch;
@@ -1415,8 +1462,9 @@ body {
 }
 
 .live-v3-upcoming-grid.is-sparse,
-.live-v3-spotlight-grid.is-sparse {
-  grid-template-columns: repeat(auto-fill, minmax(240px, 300px));
+.live-v3-spotlight-grid.is-sparse,
+.live-v3-live-grid.is-sparse {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 320px));
   justify-content: start;
 }
 
@@ -1482,8 +1530,8 @@ body {
 
 .trade-board-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
   align-items: stretch;
   justify-items: stretch;
   width: 100%;
@@ -2279,7 +2327,10 @@ body {
 .auth-page,
 .referral-page,
 .trade-compose-page,
-.sell-page {
+.sell-page,
+.seller-verification-page,
+.trade-dispute-page,
+.streams-schedule-page {
   gap: 12px;
 }
 
@@ -2287,10 +2338,43 @@ body {
   gap: 12px;
 }
 
+.listing-flow-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.listing-flow-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--product-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--product-text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.listing-flow-link:hover,
+.listing-flow-link.is-active {
+  border-color: rgba(19, 34, 56, 0.14);
+  background: rgba(239, 244, 251, 0.9);
+  color: var(--product-text);
+}
+
 .auth-panel,
 .referral-panel,
 .trade-compose-panel,
-.trade-compose-manual {
+.trade-compose-manual,
+.seller-verification-panel,
+.trade-dispute-card {
   display: grid;
   gap: 16px;
   padding: 16px;
@@ -2451,7 +2535,7 @@ body {
 }
 
 .sell-page .app-form-container {
-  width: min(100%, 760px);
+  width: min(100%, 720px);
 }
 
 .sell-quick-form {
@@ -2582,6 +2666,33 @@ body {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 14px;
+}
+
+.seller-verification-form {
+  gap: 12px;
+}
+
+.trade-dispute-header {
+  gap: 10px;
+}
+
+.trade-dispute-meta {
+  margin: 0;
+  color: var(--product-text-faint);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.trade-dispute-note {
+  padding: 12px 14px;
+  border: 1px solid var(--product-border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--product-text-soft);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .stream-room-head {

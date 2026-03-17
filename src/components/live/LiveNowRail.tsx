@@ -1,5 +1,5 @@
 import type { LiveStreamItem } from "@/components/live/types";
-import { LiveStreamCard } from "@/components/live/LiveStreamCard";
+import { ListingCard } from "@/components/market/ListingCard";
 import { EmptyStateCard, SectionHeader } from "@/components/product/ProductUI";
 
 type LiveNowRailProps = {
@@ -20,9 +20,9 @@ export function LiveNowRail({ streams, loading, limit = 24 }: LiveNowRailProps) 
       ) : (
         <div className="live-v3-live-grid-wrap">
           <SectionHeader title="Live now" subtitle="Join the active rooms on the floor right now." />
-          <div className="live-v3-live-grid">
+          <div className={`live-v3-live-grid ${visibleStreams.length < 3 ? "is-sparse" : ""}`}>
             {visibleStreams.map((stream) => (
-              <LiveStreamCard key={stream.id} stream={stream} layout="grid" />
+              <ListingCard key={stream.id} kind="live" stream={stream} />
             ))}
           </div>
         </div>

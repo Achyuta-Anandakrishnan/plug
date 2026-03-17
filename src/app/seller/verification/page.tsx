@@ -2,6 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
+import {
+  FormContainer,
+  PageContainer,
+  PageHeader,
+  PrimaryButton,
+  SecondaryButton,
+} from "@/components/product/ProductUI";
 
 export default function SellerVerificationPage() {
   const { data: session } = useSession();
@@ -77,81 +84,106 @@ export default function SellerVerificationPage() {
   };
 
   return (
-    <div className="ios-screen">
-      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_460px]">
-        <div className="space-y-6">
-          <p className="ios-kicker">Seller verification</p>
-          <h1 className="ios-title">Get verified to go live.</h1>
-          <p className="ios-subtitle">
-            Approval is handled manually. We review identity, inventory quality,
-            payout readiness, and whether the seller belongs on a premium live marketplace.
-          </p>
-        </div>
+    <PageContainer className="seller-verification-page app-page--seller-verification">
+      <section className="app-section">
+        <FormContainer className="seller-verification-form">
+          <PageHeader
+            title="Seller verification"
+            subtitle="Get verified to go live. Approval stays manual and the application stays tight."
+            actions={
+              session?.user?.id ? (
+                <SecondaryButton onClick={handleConnectStripe} disabled={stripeStatus === "loading"}>
+                  {stripeStatus === "loading" ? "Opening Stripe..." : "Connect Stripe payouts"}
+                </SecondaryButton>
+              ) : undefined
+            }
+          />
 
-        <div className="ios-panel p-6 sm:p-8">
-          <h2 className="font-display text-3xl text-slate-900">Verification request</h2>
-          <p className="mt-2 text-sm text-slate-600">Complete all required details for manual review.</p>
-
-          {!session?.user?.id && (
-            <button
-              onClick={() => signIn()}
-              className="mt-4 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold text-slate-600"
-            >
-              Sign in with Google to start
-            </button>
-          )}
-
-          {session?.user?.id && (
-            <>
-              <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-700">
-                Signed in as {session.user.email ?? "account"}.
-              </div>
-              <button
-                type="button"
-                onClick={handleConnectStripe}
-                disabled={stripeStatus === "loading"}
-                className="mt-3 w-full rounded-full border border-indigo-300 bg-indigo-50 px-5 py-3 text-sm font-semibold text-indigo-700 disabled:opacity-60"
-              >
-                {stripeStatus === "loading" ? "Opening Stripe..." : "Connect Stripe payouts"}
-              </button>
-              {stripeMessage && (
-                <div className="mt-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-600">
-                  {stripeMessage}
-                </div>
-              )}
-            </>
-          )}
-
-          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-            <input name="name" type="text" required placeholder="Business or seller name" defaultValue={prefillName} className="ios-input rounded-2xl" />
-            <input name="businessName" type="text" required minLength={2} placeholder="Registered business name" className="ios-input rounded-2xl" />
-            <input name="email" type="email" disabled value={prefillEmail} className="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-700" />
-            <input name="phone" type="tel" required placeholder="Phone number" className="ios-input rounded-2xl" />
-            <textarea name="inventorySummary" rows={4} required minLength={20} placeholder="Inventory summary (brands, categories, quantity range)" className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]" />
-            <textarea name="streamExperience" rows={3} required minLength={10} placeholder="Streaming experience and setup details" className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]" />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input name="socialHandle" type="text" placeholder="Instagram/TikTok handle" className="ios-input rounded-2xl" />
-              <input name="website" type="url" placeholder="Website (optional)" className="ios-input rounded-2xl" />
+          {!session?.user?.id ? (
+            <div className="trade-compose-signin">
+              <p>Sign in with Google to start seller verification.</p>
+              <PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>
             </div>
-            <textarea name="notes" rows={3} placeholder="Anything else reviewers should know" className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]" />
+          ) : (
+            <div className="app-status-note is-success">
+              Signed in as {session.user.email ?? "account"}.
+            </div>
+          )}
 
-            <label className="flex items-start gap-2 rounded-2xl border border-slate-200 bg-white/80 px-3 py-3 text-xs text-slate-600">
-              <input name="agreeToTerms" type="checkbox" required className="mt-0.5" />
-              I confirm all information is accurate and understand seller approval is manual and can be rejected.
-            </label>
+          {stripeMessage ? (
+            <div className="app-status-note is-error">{stripeMessage}</div>
+          ) : null}
 
-            <button type="submit" disabled={status === "loading"} className="w-full rounded-full bg-[var(--royal)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[var(--royal-deep)] disabled:opacity-60">
-              {status === "loading" ? "Submitting..." : "Submit verification"}
-            </button>
-          </form>
+          <section className="product-card seller-verification-panel">
+            <form className="app-form" onSubmit={handleSubmit}>
+              <div className="app-form-grid app-form-grid--2">
+                <label className="app-form-field">
+                  <span>Business or seller name</span>
+                  <input name="name" type="text" required placeholder="Business or seller name" defaultValue={prefillName} className="app-form-input" />
+                </label>
+                <label className="app-form-field">
+                  <span>Registered business name</span>
+                  <input name="businessName" type="text" required minLength={2} placeholder="Registered business name" className="app-form-input" />
+                </label>
+              </div>
 
-          {message && (
-            <div className={`mt-4 rounded-2xl border px-4 py-3 text-xs ${status === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-600"}`}>
+              <div className="app-form-grid app-form-grid--2">
+                <label className="app-form-field">
+                  <span>Email</span>
+                  <input name="email" type="email" disabled value={prefillEmail} className="app-form-input" />
+                </label>
+                <label className="app-form-field">
+                  <span>Phone number</span>
+                  <input name="phone" type="tel" required placeholder="Phone number" className="app-form-input" />
+                </label>
+              </div>
+
+              <label className="app-form-field">
+                <span>Inventory summary</span>
+                <textarea name="inventorySummary" rows={4} required minLength={20} placeholder="Brands, categories, and quantity range" className="app-form-textarea" />
+              </label>
+
+              <label className="app-form-field">
+                <span>Streaming setup and experience</span>
+                <textarea name="streamExperience" rows={3} required minLength={10} placeholder="Streaming experience and setup details" className="app-form-textarea" />
+              </label>
+
+              <div className="app-form-grid app-form-grid--2">
+                <label className="app-form-field">
+                  <span>Instagram / TikTok</span>
+                  <input name="socialHandle" type="text" placeholder="Instagram/TikTok handle" className="app-form-input" />
+                </label>
+                <label className="app-form-field">
+                  <span>Website</span>
+                  <input name="website" type="url" placeholder="Website (optional)" className="app-form-input" />
+                </label>
+              </div>
+
+              <label className="app-form-field">
+                <span>Notes</span>
+                <textarea name="notes" rows={3} placeholder="Anything else reviewers should know" className="app-form-textarea" />
+              </label>
+
+              <label className="app-form-check">
+                <input name="agreeToTerms" type="checkbox" required className="mt-0.5" />
+                <span>I confirm all information is accurate and understand seller approval is manual and can be rejected.</span>
+              </label>
+
+              <div className="app-form-actions">
+                <PrimaryButton type="submit" disabled={status === "loading"}>
+                  {status === "loading" ? "Submitting..." : "Submit verification"}
+                </PrimaryButton>
+              </div>
+            </form>
+          </section>
+
+          {message ? (
+            <div className={`app-status-note ${status === "success" ? "is-success" : "is-error"}`}>
               {message}
             </div>
-          )}
-        </div>
+          ) : null}
+        </FormContainer>
       </section>
-    </div>
+    </PageContainer>
   );
 }

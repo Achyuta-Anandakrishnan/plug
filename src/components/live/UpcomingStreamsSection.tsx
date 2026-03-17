@@ -1,5 +1,5 @@
 import type { LiveStreamItem } from "@/components/live/types";
-import { LiveStreamCard } from "@/components/live/LiveStreamCard";
+import { ListingCard } from "@/components/market/ListingCard";
 import { EmptyStateCard, SectionHeader } from "@/components/product/ProductUI";
 
 type UpcomingStreamsSectionProps = {
@@ -26,13 +26,14 @@ export function UpcomingStreamsSection({
       ) : (
         <div className={`live-v3-upcoming-grid ${visibleStreams.length < 4 ? "is-sparse" : ""}`}>
           {visibleStreams.map((stream) => (
-            <LiveStreamCard
+            <ListingCard
               key={stream.id}
+              kind="live"
               stream={stream}
-              layout="grid"
-              showScheduleAction
-              reminderOn={reminders.has(stream.id)}
-              onToggleReminder={onToggleReminder}
+              saved={reminders.has(stream.id)}
+              onToggleSave={onToggleReminder}
+              saveInactiveLabel="Set reminder"
+              saveActiveLabel="Remove reminder"
             />
           ))}
         </div>
