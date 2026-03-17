@@ -1,6 +1,6 @@
 import type { LiveStreamItem } from "@/components/live/types";
 import { ListingCard } from "@/components/market/ListingCard";
-import { EmptyStateCard } from "@/components/product/ProductUI";
+import { EmptyStateCard, SectionHeader } from "@/components/product/ProductUI";
 
 type LiveNowRailProps = {
   streams: LiveStreamItem[];
@@ -13,6 +13,10 @@ export function LiveNowRail({ streams, loading, limit = 24 }: LiveNowRailProps) 
 
   return (
     <section id="live-now" className="live-v3-live-now">
+      <SectionHeader
+        title="Live now"
+        action={<span className="market-count">{visibleStreams.length} rooms</span>}
+      />
       {loading ? (
         <EmptyStateCard title="Loading live streams" description="Active rooms will appear here in a moment." />
       ) : visibleStreams.length === 0 ? (

@@ -173,7 +173,7 @@ export function ForumClient() {
               <Link
                 key={post.id}
                 href={post.status === "DRAFT" ? `/forum/new?id=${post.id}` : `/forum/${post.id}`}
-                className="forum-thread-card product-card"
+                className="forum-thread-card"
               >
                 <div className="forum-thread-top">
                   <div className="forum-thread-main">
@@ -182,17 +182,14 @@ export function ForumClient() {
                       <span>{formatCompactDate(post.updatedAt)}</span>
                       <span>{post._count.comments} repl{post._count.comments === 1 ? "y" : "ies"}</span>
                       <span>{post.voteScore} votes</span>
+                      <span>{post.author.displayName ?? "Member"}</span>
                     </div>
                     <h3 className="forum-thread-title">{post.title}</h3>
                     <p className="forum-thread-body">{post.body}</p>
                   </div>
-                  <div className="forum-thread-status">
-                    {post.status === "DRAFT" ? "Draft" : "Open"}
-                  </div>
-                </div>
-                <div className="forum-thread-author">
-                  <span>{post.author.displayName ?? "Member"}</span>
-                  <span>Last active {formatCompactDate(post.updatedAt)}</span>
+                  <span className="forum-thread-action">
+                    {post.status === "DRAFT" ? "Edit draft" : "Open"}
+                  </span>
                 </div>
               </Link>
             ))}

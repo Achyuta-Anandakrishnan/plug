@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ListingCard } from "@/components/market/ListingCard";
@@ -235,14 +234,14 @@ export function MarketHub() {
               {
                 key: "trending",
                 title: "Trending auctions",
-                subtitle: "Most watched live inventory.",
+                subtitle: "Most watched right now.",
                 items: trendingAuctions,
-                action: <SecondaryButton href="/live">See what is live</SecondaryButton>,
+                action: <SecondaryButton href="/live">Open live</SecondaryButton>,
               },
               {
                 key: "ending",
                 title: "Ending soon",
-                subtitle: "Listings with the shortest clock.",
+                subtitle: "Listings closing first.",
                 items: endingSoonListings,
               },
               {
@@ -290,13 +289,6 @@ export function MarketHub() {
           )}
       </section>
 
-      <section className="market-link-strip">
-        <div>
-          <strong>Prefer real-time browsing?</strong>
-          <p>See active rooms and upcoming shows without leaving the marketplace.</p>
-        </div>
-        <Link href="/live">Open Live</Link>
-      </section>
     </PageContainer>
   );
 }

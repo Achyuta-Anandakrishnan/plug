@@ -1,4 +1,4 @@
-import type { LiveCategoryFilter, LiveSortMode, LiveTimingFilter } from "@/components/live/types";
+import type { LiveCategoryFilter, LiveSortMode, LiveStreamTypeFilter, LiveTimingFilter } from "@/components/live/types";
 import { DiscoveryBar, FilterChip, SegmentedControl } from "@/components/product/ProductUI";
 
 const CATEGORY_OPTIONS: Array<{ value: LiveCategoryFilter; label: string }> = [
@@ -6,6 +6,13 @@ const CATEGORY_OPTIONS: Array<{ value: LiveCategoryFilter; label: string }> = [
   { value: "sports", label: "Sports" },
   { value: "anime", label: "Anime" },
   { value: "funko", label: "Funko" },
+];
+
+const STREAM_TYPE_OPTIONS: Array<{ value: LiveStreamTypeFilter; label: string }> = [
+  { value: "all", label: "All rooms" },
+  { value: "live-breaks", label: "Live breaks" },
+  { value: "auctions", label: "Auctions" },
+  { value: "seller-shows", label: "Seller shows" },
 ];
 
 const SORT_OPTIONS: Array<{ value: LiveSortMode; label: string }> = [
@@ -26,6 +33,8 @@ type LiveFiltersProps = {
   onQueryChange: (value: string) => void;
   category: LiveCategoryFilter;
   onCategoryChange: (value: LiveCategoryFilter) => void;
+  streamType: LiveStreamTypeFilter;
+  onStreamTypeChange: (value: LiveStreamTypeFilter) => void;
   sort: LiveSortMode;
   onSortChange: (value: LiveSortMode) => void;
   timing: LiveTimingFilter;
@@ -38,6 +47,8 @@ export function LiveFilters({
   onQueryChange,
   category,
   onCategoryChange,
+  streamType,
+  onStreamTypeChange,
   sort,
   onSortChange,
   timing,
@@ -65,6 +76,16 @@ export function LiveFilters({
               label={option.label}
               active={category === option.value}
               onClick={() => onCategoryChange(category === option.value ? "all" : option.value)}
+            />
+          ))}
+        </div>
+        <div className="app-chip-row live-toolbar-types">
+          {STREAM_TYPE_OPTIONS.map((option) => (
+            <FilterChip
+              key={option.value}
+              label={option.label}
+              active={streamType === option.value}
+              onClick={() => onStreamTypeChange(option.value)}
             />
           ))}
         </div>

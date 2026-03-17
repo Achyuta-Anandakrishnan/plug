@@ -39,7 +39,7 @@ type ListingSurfaceData = {
   badgeClassName: string;
   metaLabel: string;
   priceLabel: string;
-  supportLabel: string;
+  activityLabel: string;
   sellerLabel: string;
   saveInactiveLabel: string;
   saveActiveLabel: string;
@@ -110,7 +110,7 @@ function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData 
   const timeMeta = listing.listingType === "BUY_NOW"
     ? "Buy now"
     : formatSeconds(getTimeLeftSeconds(listing));
-  const support = listing.listingType === "BUY_NOW"
+  const activity = listing.listingType === "BUY_NOW"
     ? `${listing.watchersCount} watching`
     : `${timeMeta} · ${listing.watchersCount} watching`;
 
@@ -122,7 +122,7 @@ function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData 
     badgeClassName: "market-v2-listing-badge",
     metaLabel: meta,
     priceLabel: price,
-    supportLabel: support,
+    activityLabel: activity,
     sellerLabel: listing.seller?.user?.displayName ?? "Verified seller",
     saveInactiveLabel: "Add listing to watchlist",
     saveActiveLabel: "Remove listing from watchlist",
@@ -149,7 +149,7 @@ function tradeListingToSurfaceData(trade: TradePostListItem): ListingSurfaceData
     badgeClassName: statusClass,
     metaLabel: meta,
     priceLabel: tradeValueLabel(trade.valueMin, trade.valueMax),
-    supportLabel: `${trade._count.offers} offer${trade._count.offers === 1 ? "" : "s"}`,
+    activityLabel: `${trade._count.offers} offer${trade._count.offers === 1 ? "" : "s"}`,
     sellerLabel: trade.owner.displayName ?? trade.owner.username ?? "Collector",
     saveInactiveLabel: "Save trade",
     saveActiveLabel: "Remove saved trade",
@@ -164,7 +164,7 @@ function liveListingToSurfaceData(stream: LiveStreamItem): ListingSurfaceData {
     ? "trade-status-chip is-open"
     : "market-v2-listing-badge";
   const seller = stream.seller?.user?.displayName ?? "Verified seller";
-  const supportLabel = stream.streamState === "live"
+  const activityLabel = stream.streamState === "live"
     ? `${stream.watchersCount} watching`
     : streamTimeLabel(stream);
 
@@ -176,7 +176,7 @@ function liveListingToSurfaceData(stream: LiveStreamItem): ListingSurfaceData {
     badgeClassName,
     metaLabel: compactMarketMetadata(stream),
     priceLabel: streamPriceLabel(stream),
-    supportLabel,
+    activityLabel,
     sellerLabel: seller,
     saveInactiveLabel: stream.streamState === "upcoming" ? "Set reminder" : "Save stream",
     saveActiveLabel: stream.streamState === "upcoming" ? "Remove reminder" : "Remove saved stream",
@@ -238,12 +238,12 @@ export function ListingCard(props: ListingCardProps) {
             <div className="listing-card-copy">
               <h3 className="listing-card-title">{surface.title}</h3>
               <p className="listing-card-meta">{surface.metaLabel}</p>
-              <div className="listing-card-value">
-                <strong>{surface.priceLabel}</strong>
-                <span>{surface.supportLabel}</span>
+              <strong className="listing-card-price">{surface.priceLabel}</strong>
+              <div className="listing-card-foot">
+                <span className="listing-card-activity">{surface.activityLabel}</span>
+                <span className="listing-card-seller">{compactName(surface.sellerLabel)}</span>
               </div>
             </div>
-            <span className="listing-card-seller">{compactName(surface.sellerLabel)}</span>
           </div>
         </div>
       </Link>

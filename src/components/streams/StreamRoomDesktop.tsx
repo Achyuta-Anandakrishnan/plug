@@ -309,7 +309,7 @@ export function StreamRoomDesktop({
       </div>
 
       <aside className="stream-room-rail">
-        <section className="surface-panel rounded-3xl p-4 space-y-3">
+        <section className="stream-room-rail-panel stream-room-bid-summary-panel">
           <div className="stream-bid-summary">
             <div>
               <p>Current</p>
@@ -390,13 +390,13 @@ export function StreamRoomDesktop({
 
         <ListingImageStrip images={data.item?.images ?? []} />
 
-        <section className="surface-panel rounded-3xl p-4 min-h-0 flex flex-col">
-          <div className="mb-3 flex items-center justify-between">
+        <section className="stream-room-rail-panel stream-room-chat-panel">
+          <div className="stream-room-rail-head">
             <h3 className="font-display text-lg text-slate-900">Chat</h3>
-            <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Scrollable</span>
+            <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Live room</span>
           </div>
 
-          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+          <div className="stream-room-chat-feed">
             {data.chatMessages.length === 0 && (
               <div className="rounded-2xl bg-slate-100 px-3 py-2 text-xs text-slate-500">No chat yet. Be first to comment.</div>
             )}
@@ -411,7 +411,7 @@ export function StreamRoomDesktop({
             ))}
           </div>
 
-          <div className="mt-3 flex items-center gap-2 pt-2">
+          <div className="stream-room-chat-compose">
             <input
               value={message}
               onChange={(event) => setMessage(event.target.value)}
@@ -427,12 +427,12 @@ export function StreamRoomDesktop({
           </div>
         </section>
 
-        <section className="surface-panel rounded-3xl p-4 min-h-0">
-          <div className="mb-3 flex items-center justify-between">
+        <section className="stream-room-rail-panel stream-room-bids-panel">
+          <div className="stream-room-rail-head">
             <h3 className="font-display text-lg text-slate-900">Recent bids</h3>
-            <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Scrollable</span>
+            <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Activity</span>
           </div>
-          <div className="space-y-2 overflow-y-auto pr-1 text-sm text-slate-600 max-h-[210px]">
+          <div className="stream-room-bids-feed">
             {data.bids.length === 0 && (
               <div className="rounded-2xl bg-slate-100 px-3 py-2 text-xs text-slate-500">No bids yet.</div>
             )}

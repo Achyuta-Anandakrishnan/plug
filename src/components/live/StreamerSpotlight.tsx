@@ -13,7 +13,6 @@ export function StreamerSpotlight({ hosts }: StreamerSpotlightProps) {
     <section className="live-v3-spotlight">
       <SectionHeader
         title="Hosts to watch"
-        subtitle="Follow reliable rooms and repeat sellers."
         action={<span className="market-count">{visibleHosts.length} hosts</span>}
       />
 

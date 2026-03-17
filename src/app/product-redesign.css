@@ -1269,9 +1269,9 @@ body {
 .market-rail-grid,
 .market-featured-grid {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(220px, 252px);
+  grid-auto-columns: minmax(236px, 256px);
   overflow-x: auto;
   align-items: stretch;
   justify-items: start;
@@ -1287,7 +1287,7 @@ body {
 
 .market-rail-grid.is-sparse,
 .market-featured-grid.is-sparse {
-  grid-auto-columns: minmax(220px, 252px);
+  grid-auto-columns: minmax(236px, 256px);
 }
 
 .market-rail-section {
@@ -1307,7 +1307,7 @@ body {
 .market-v2-grid {
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   align-items: stretch;
   justify-items: stretch;
   width: 100%;
@@ -1315,7 +1315,7 @@ body {
 
 .market-page .market-v2-grid.is-sparse,
 .market-v2-grid.is-sparse {
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
   justify-content: start;
 }
 
@@ -1365,6 +1365,15 @@ body {
   text-decoration: none;
 }
 
+.market-v2-listing-card {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.market-v2-listing-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
 .listing-card-media,
 .live-v3-stream-media,
 .trade-board-media {
@@ -1399,16 +1408,14 @@ body {
 
 .listing-card-bottom {
   align-self: end;
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  gap: 6px;
 }
 
 .listing-card-copy {
   min-width: 0;
   display: grid;
-  gap: 4px;
+  gap: 5px;
 }
 
 .listing-card-badge {
@@ -1468,26 +1475,34 @@ body {
 
 .listing-card-meta,
 .listing-card-seller,
-.listing-card-value span {
+.listing-card-activity {
   margin: 0;
   color: rgba(255, 255, 255, 0.76);
   font-size: 11px;
 }
 
-.listing-card-value {
-  display: grid;
-  gap: 2px;
-}
-
-.listing-card-value strong {
+.listing-card-price {
+  display: block;
   color: white;
   font-size: 15px;
   font-weight: 700;
 }
 
+.listing-card-foot {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.listing-card-activity {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .listing-card-seller {
-  align-self: end;
-  max-width: 34%;
+  flex: 0 0 auto;
+  max-width: 38%;
   text-align: right;
   font-weight: 600;
 }
@@ -1499,11 +1514,11 @@ body {
 
 .market-v2-listing-card.is-live-card .listing-card-meta,
 .market-v2-listing-card.is-live-card .listing-card-seller,
-.market-v2-listing-card.is-live-card .listing-card-value span {
+.market-v2-listing-card.is-live-card .listing-card-activity {
   font-size: 10px;
 }
 
-.market-v2-listing-card.is-live-card .listing-card-value strong {
+.market-v2-listing-card.is-live-card .listing-card-price {
   font-size: 14px;
 }
 
@@ -1664,11 +1679,15 @@ body {
 }
 
 .live-v3-page {
-  gap: 12px;
+  gap: 10px;
 }
 
 .live-toolbar {
   overflow: visible;
+}
+
+.live-toolbar-main {
+  flex-wrap: wrap;
 }
 
 .live-toolbar .app-search {
@@ -1677,11 +1696,15 @@ body {
 }
 
 .live-toolbar .app-chip-row {
-  flex: 0 1 320px;
+  flex: 0 1 auto;
   min-width: 220px;
   overflow-x: auto;
   flex-wrap: nowrap;
   padding-bottom: 1px;
+}
+
+.live-toolbar-types {
+  max-width: 100%;
 }
 
 .live-page .live-v3-live-now,
@@ -1698,7 +1721,7 @@ body {
 .live-v3-upcoming,
 .live-v3-spotlight {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -1722,7 +1745,7 @@ body {
 .live-v3-live-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 14px;
+  gap: 12px;
   align-items: stretch;
   justify-items: stretch;
   width: 100%;
@@ -1731,7 +1754,7 @@ body {
 .live-v3-upcoming-grid.is-sparse,
 .live-v3-spotlight-grid.is-sparse,
 .live-v3-live-grid.is-sparse {
-  grid-template-columns: repeat(auto-fill, minmax(240px, 280px));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 280px));
   justify-content: start;
 }
 
@@ -1764,8 +1787,8 @@ body {
 
 .live-v3-host-card {
   display: grid;
-  gap: 10px;
-  padding: 14px;
+  gap: 8px;
+  padding: 13px;
 }
 
 .live-v3-host-avatar {
@@ -1797,11 +1820,16 @@ body {
 
 .trade-board-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 20px;
   align-items: stretch;
   justify-items: stretch;
   width: 100%;
+}
+
+.trade-board-grid.is-sparse {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
+  justify-content: start;
 }
 
 .market-featured-grid > *,
@@ -1902,8 +1930,8 @@ body {
 
 .trade-detail-layout {
   display: grid;
-  gap: 16px;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 340px;
   align-items: start;
 }
 
@@ -1913,8 +1941,12 @@ body {
 .trade-detail-offer-panel,
 .trade-detail-offers {
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: none;
 }
 
 .trade-detail-gallery-grid {
@@ -2075,25 +2107,57 @@ body {
 
 .forum-thread-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .forum-thread-card {
   display: grid;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: none;
 }
 
 .forum-thread-top {
   display: flex;
-  align-items: start;
+  align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
 }
 
 .forum-thread-main {
   display: grid;
-  gap: 8px;
+  gap: 5px;
+  min-width: 0;
+}
+
+.forum-thread-body {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--product-text-soft);
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.forum-thread-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--product-border);
+  border-radius: 999px;
+  color: var(--product-text-soft);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .forum-thread-meta span:not(:last-child)::after,
@@ -2142,8 +2206,12 @@ body {
 .forum-reply-panel,
 .forum-comment-card {
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: none;
 }
 
 .forum-post-head,
@@ -2643,8 +2711,12 @@ body {
 .seller-verification-panel,
 .trade-dispute-card {
   display: grid;
-  gap: 16px;
-  padding: 16px;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: none;
 }
 
 .auth-divider {
@@ -2996,8 +3068,8 @@ body {
   display: grid;
   height: 100%;
   min-height: 0;
-  gap: 16px;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   align-items: start;
   overflow: hidden;
 }
@@ -3027,6 +3099,10 @@ body {
   display: grid;
   gap: 14px;
   padding: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: none;
 }
 
 .stream-room-video {
@@ -3046,7 +3122,57 @@ body {
   width: 100%;
   min-height: 0;
   grid-template-rows: auto auto minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
+  gap: 14px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.stream-room-rail-panel {
+  display: grid;
+  gap: 12px;
+  min-height: 0;
+  padding: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: none;
+}
+
+.stream-room-rail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.stream-room-chat-panel {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.stream-room-chat-feed {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.stream-room-chat-compose {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.stream-room-bids-panel {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.stream-room-bids-feed {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+  max-height: 210px;
   overflow-y: auto;
   padding-right: 2px;
 }
@@ -3410,7 +3536,7 @@ body {
 
 .messages-layout {
   display: grid;
-  grid-template-columns: minmax(280px, 300px) minmax(0, 1fr);
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
   gap: 14px;
   min-height: 0;
   height: 100%;

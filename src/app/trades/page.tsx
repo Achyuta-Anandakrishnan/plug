@@ -123,14 +123,13 @@ export default function TradesPage() {
         <section className="app-section listing-system-feed">
           <SectionHeader
             title="Trade board"
-            subtitle="Collector-to-collector listings with offers and value ranges."
             action={<span className="market-count">{posts.length} listings</span>}
           />
           {!loading && posts.length === 0 ? (
             <EmptyStateCard title="No active trade posts right now." description="Try another status filter or check back when collectors publish new wants." />
           ) : null}
 
-          <div className="trade-board-grid">
+          <div className={`trade-board-grid ${posts.length > 0 && posts.length < 3 ? "is-sparse" : ""}`}>
             {posts.map((post) => (
               <ListingCard key={post.id} kind="trade" trade={post} />
             ))}

@@ -21,7 +21,6 @@ export function UpcomingStreamsSection({
     <section id="upcoming" className="live-v3-upcoming">
       <SectionHeader
         title="Upcoming"
-        subtitle="Scheduled rooms worth tracking next."
         action={<span className="market-count">{visibleStreams.length} scheduled</span>}
       />
 

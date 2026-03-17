@@ -8,7 +8,7 @@ type ListingGridProps = {
 };
 
 export function ListingGrid({ listings }: ListingGridProps) {
-  const sparse = listings.length > 0 && listings.length < 4;
+  const sparse = listings.length > 0 && listings.length < 3;
 
   return (
     <div className={`market-v2-grid ${sparse ? "is-sparse" : ""}`}>
