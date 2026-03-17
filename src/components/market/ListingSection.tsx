@@ -5,11 +5,9 @@ import { ListingGrid } from "@/components/market/ListingGrid";
 
 type ListingSectionProps = {
   listings: MarketListing[];
-  buyLoadingId: string | null;
-  onBuyNow: (auctionId: string) => void;
 };
 
-export function ListingSection({ listings, buyLoadingId, onBuyNow }: ListingSectionProps) {
+export function ListingSection({ listings }: ListingSectionProps) {
   return (
     <section className="market-v2-listings-section" aria-label="Marketplace listings">
       <div className="market-v2-listings-head">
@@ -20,11 +18,7 @@ export function ListingSection({ listings, buyLoadingId, onBuyNow }: ListingSect
       {listings.length === 0 ? (
         <div className="market-v2-empty">No listings match these filters.</div>
       ) : (
-        <ListingGrid
-          listings={listings}
-          buyLoadingId={buyLoadingId}
-          onBuyNow={onBuyNow}
-        />
+        <ListingGrid listings={listings} />
       )}
     </section>
   );

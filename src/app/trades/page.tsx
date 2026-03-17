@@ -1,10 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
+import { ListingCard } from "@/components/market/ListingCard";
 import {
   DiscoveryBar,
   EmptyStateCard,
@@ -13,12 +12,7 @@ import {
   PrimaryButton,
 } from "@/components/product/ProductUI";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
-import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import {
-  formatTradeDate,
-  isValidImageUrl,
-  toTagArray,
-  tradeValueLabel,
   type TradePostListItem,
 } from "@/lib/trade-client";
 
@@ -32,14 +26,6 @@ const scopes: Array<{ key: TradeScope; label: string }> = [
   { key: "ALL", label: "All" },
   { key: "MINE", label: "Mine" },
 ];
-
-function statusChip(status: TradePostListItem["status"]) {
-  if (status === "OPEN") return "trade-status-chip is-open";
-  if (status === "MATCHED") return "trade-status-chip is-matched";
-  if (status === "PAUSED") return "trade-status-chip is-paused";
-  if (status === "CLOSED") return "trade-status-chip is-closed";
-  return "trade-status-chip";
-}
 
 export default function TradesPage() {
   const { data: session } = useSession();
@@ -135,57 +121,9 @@ export default function TradesPage() {
           ) : null}
 
           <div className="trade-board-grid">
-            {posts.map((post) => {
-              const image = post.images[0]?.url || "";
-              const canRenderImage = isValidImageUrl(image);
-              const tags = toTagArray(post.tags).slice(0, 3);
-              return (
-                <Link
-                  key={post.id}
-                  href={`/trades/${encodeURIComponent(post.id)}`}
-                  className="trade-board-card product-card"
-                >
-                  <div className="trade-board-media">
-                    {canRenderImage ? (
-                      <img
-                        src={image}
-                        alt={post.title}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <Image
-                        src={resolveDisplayMediaUrl(null)}
-                        alt="Card placeholder"
-                        fill
-                        sizes="(max-width: 900px) 100vw, 240px"
-                        className="object-cover"
-                      />
-                    )}
-                  </div>
-
-                  <div className="trade-board-body">
-                    <div className="trade-board-topline">
-                      <span className={statusChip(post.status)}>{post.status}</span>
-                      <span className="trade-board-date">{formatTradeDate(post.createdAt)}</span>
-                    </div>
-                    <h2>{post.title}</h2>
-                    <p className="trade-board-copy">{post.lookingFor}</p>
-                    <div className="trade-board-meta">
-                      <span>{tradeValueLabel(post.valueMin, post.valueMax)}</span>
-                      <span>{post._count.offers} offers</span>
-                      <span>{post.owner.displayName ?? post.owner.username ?? "Collector"}</span>
-                    </div>
-                    {tags.length > 0 ? (
-                      <div className="trade-board-tags">
-                        {tags.map((tag) => (
-                          <span key={tag}>{tag}</span>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                </Link>
-              );
-            })}
+            {posts.map((post) => (
+              <ListingCard key={post.id} kind="trade" trade={post} />
+            ))}
           </div>
         </section>
       </section>

@@ -1,11 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
+import {
+  PageContainer,
+  PageHeader,
+  PrimaryButton,
+  SecondaryButton,
+  SectionHeader,
+} from "@/components/product/ProductUI";
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import { formatCurrency } from "@/lib/format";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
@@ -381,263 +387,225 @@ export default function TradeDetailPage() {
 
   const tags = toTagArray(post.tags);
   const currentUserId = session?.user?.id ?? "";
+  const ownerLabel = post.owner.displayName ?? post.owner.username ?? "Member";
 
   return (
-    <div className="ios-screen">
-      <section className="ios-hero space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-full border px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${postStatusClass(post.status)}`}>
-                {post.status}
-              </span>
-              <span className="text-xs text-slate-500">{formatTradeDateTime(post.createdAt)}</span>
-            </div>
-            <h1 className="mt-2 ios-title">{post.title}</h1>
-            <p className="mt-2 text-sm text-slate-600">
-              by {post.owner.displayName ?? post.owner.username ?? "Member"}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/trades"
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
-            >
-              Back
-            </Link>
-            {post.viewer.isOwner ? (
-              <button
-                type="button"
-                onClick={() => router.push("/trades/new")}
-                className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white"
-              >
-                New post
-              </button>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="ios-panel p-4">
-          <p className="text-sm text-slate-700">{post.lookingFor}</p>
-          {post.description ? <p className="mt-2 text-sm text-slate-600">{post.description}</p> : null}
-          <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-500">
-            <span>{tradeValueLabel(post.valueMin, post.valueMax)}</span>
-            <span>•</span>
-            <span>{post._count.offers} offers</span>
-            {post.shippingMode ? (
-              <>
-                <span>•</span>
-                <span>{post.shippingMode}</span>
-              </>
-            ) : null}
-            {post.location ? (
-              <>
-                <span>•</span>
-                <span>{post.location}</span>
-              </>
-            ) : null}
-          </div>
-          {tags.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-slate-200 bg-white/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
-        {post.viewer.isOwner ? (
-          <div className="ios-panel p-4">
-            <div className="flex flex-wrap gap-2">
-              {(["OPEN", "PAUSED", "CLOSED"] as const).map((status) => (
-                <button
-                  key={status}
-                  type="button"
-                  onClick={() => void updatePostStatus(status)}
-                  disabled={updatingStatus || post.status === status}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] ${
-                    post.status === status
-                      ? "border-slate-900 bg-slate-900 text-white"
-                      : "border-slate-200 bg-white/90 text-slate-700"
-                  } disabled:opacity-50`}
-                >
-                  {status.toLowerCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </section>
-
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
-      ) : null}
-
-      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="ios-panel p-4">
-          <h2 className="ios-section-title">Card view</h2>
-          {post.images.length > 0 ? (
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              {post.images.map((image) => {
-                const canRender = isValidImageUrl(image.url);
-                return (
-                  <div key={image.id} className="relative h-56 overflow-hidden rounded-2xl border border-white/70 bg-white/70">
-                    {canRender ? (
-                      <img
-                        src={image.url}
-                        alt={post.title}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.2em] text-slate-400">
-                        Image unavailable
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="relative mt-3 h-56 overflow-hidden rounded-2xl border border-white/70 bg-white/70">
-              <Image
-                src={resolveDisplayMediaUrl(null)}
-                alt="Card placeholder"
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover"
-              />
+    <PageContainer className="trade-detail-page app-page--trade-detail">
+      <section className="app-section">
+        <PageHeader
+          title={post.title}
+          subtitle={`by ${ownerLabel} · ${tradeValueLabel(post.valueMin, post.valueMax)} · ${post._count.offers} offers`}
+          actions={(
+            <div className="trade-detail-head-actions">
+              <SecondaryButton href="/trades">Back</SecondaryButton>
+              {post.viewer.isOwner ? (
+                <PrimaryButton onClick={() => router.push("/trades/new")}>New post</PrimaryButton>
+              ) : null}
             </div>
           )}
+        />
+
+        <div className="trade-detail-meta-row">
+          <span className={`rounded-full border px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${postStatusClass(post.status)}`}>
+            {post.status}
+          </span>
+          <span>{formatTradeDateTime(post.createdAt)}</span>
+          {post.shippingMode ? <span>{post.shippingMode}</span> : null}
+          {post.location ? <span>{post.location}</span> : null}
         </div>
 
-        {post.viewer.canOffer ? (
-          <div className="ios-panel p-4">
-            <h2 className="ios-section-title">Send offer</h2>
-            <textarea
-              value={offerMessage}
-              onChange={(event) => setOfferMessage(event.target.value)}
-              className="mt-3 min-h-24 w-full rounded-3xl border border-slate-200 bg-white/95 px-4 py-3 text-sm text-slate-900 outline-none focus:border-slate-400"
-              placeholder="Trade pitch"
-            />
-            <input
-              value={cashAdjustment}
-              onChange={(event) => setCashAdjustment(event.target.value)}
-              className="ios-input mt-3"
-              inputMode="numeric"
-              placeholder="Cash adjustment in cents (+/-)"
-            />
-            <div className="mt-3 space-y-2">
-              {offerCards.map((card, index) => (
-                <div key={`${card.title}-${index}`} className="rounded-2xl border border-slate-200 bg-white/90 p-3">
-                  <input
-                    value={card.title}
-                    onChange={(event) => replaceOfferCard(index, "title", event.target.value)}
-                    className="ios-input"
-                    placeholder="Offered card title"
-                  />
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <input
-                      value={card.cardSet}
-                      onChange={(event) => replaceOfferCard(index, "cardSet", event.target.value)}
-                      className="ios-input"
-                      placeholder="Set"
-                    />
-                    <input
-                      value={card.cardNumber}
-                      onChange={(event) => replaceOfferCard(index, "cardNumber", event.target.value)}
-                      className="ios-input"
-                      placeholder="Number"
-                    />
-                    <input
-                      value={card.condition}
-                      onChange={(event) => replaceOfferCard(index, "condition", event.target.value)}
-                      className="ios-input"
-                      placeholder="Condition"
-                    />
-                    <input
-                      value={card.estimatedValue}
-                      onChange={(event) => replaceOfferCard(index, "estimatedValue", event.target.value)}
-                      className="ios-input"
-                      placeholder="Estimated value (cents)"
-                    />
-                  </div>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <input
-                      value={card.gradeCompany}
-                      onChange={(event) => replaceOfferCard(index, "gradeCompany", event.target.value)}
-                      className="ios-input"
-                      placeholder="Grade co"
-                    />
-                    <input
-                      value={card.gradeLabel}
-                      onChange={(event) => replaceOfferCard(index, "gradeLabel", event.target.value)}
-                      className="ios-input"
-                      placeholder="Grade"
-                    />
-                  </div>
-                  <input
-                    value={card.notes}
-                    onChange={(event) => replaceOfferCard(index, "notes", event.target.value)}
-                    className="ios-input mt-2"
-                    placeholder="Notes"
-                  />
-                  {offerCards.length > 1 ? (
-                    <button
-                      type="button"
-                      onClick={() => removeOfferCard(index)}
-                      className="mt-2 rounded-full border border-red-200 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-red-700"
-                    >
-                      Remove card
-                    </button>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={addOfferCard}
-                className="rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700"
-              >
-                Add card
-              </button>
-              <button
-                type="button"
-                onClick={() => void submitOffer()}
-                disabled={submittingOffer}
-                className="rounded-full bg-slate-900 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-60"
-              >
-                {submittingOffer ? "Sending..." : "Submit offer"}
-              </button>
-            </div>
-          </div>
-        ) : !session?.user?.id ? (
-          <div className="ios-panel p-4">
-            <h2 className="ios-section-title">Send offer</h2>
-            <p className="mt-2 text-sm text-slate-600">Sign in to trade.</p>
-            <button
-              type="button"
-              onClick={() => signIn()}
-              className="mt-3 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
-            >
-              Sign in
-            </button>
+        {tags.length > 0 ? (
+          <div className="trade-detail-tags">
+            {tags.map((tag) => (
+              <span key={tag}>{tag}</span>
+            ))}
           </div>
         ) : null}
-      </section>
 
-      <section className="ios-panel p-4">
-        <div className="flex items-end justify-between gap-3">
-          <h2 className="ios-section-title">Offers</h2>
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{post.offers.length}</p>
-        </div>
+        {error ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        ) : null}
+
+        <section className="trade-detail-layout">
+          <section className="product-card trade-detail-gallery">
+            <SectionHeader
+              title="Card gallery"
+              subtitle={post.images.length > 0 ? `${post.images.length} image${post.images.length === 1 ? "" : "s"}` : "No uploaded photos"}
+            />
+            {post.images.length > 0 ? (
+              <div className="trade-detail-gallery-grid">
+                {post.images.map((image) => {
+                  const canRender = isValidImageUrl(image.url);
+                  return (
+                    <div key={image.id} className="trade-detail-gallery-item">
+                      {canRender ? (
+                        <img
+                          src={image.url}
+                          alt={post.title}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="trade-detail-gallery-fallback">Image unavailable</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="trade-detail-gallery-item">
+                <Image
+                  src={resolveDisplayMediaUrl(null)}
+                  alt="Card placeholder"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
+                />
+              </div>
+            )}
+          </section>
+
+          <aside className="trade-detail-sidebar">
+            <section className="product-card trade-detail-summary">
+              <SectionHeader title="Trade details" subtitle="What the collector wants back." />
+              <p className="trade-detail-looking">{post.lookingFor}</p>
+              {post.description ? <p className="trade-detail-description">{post.description}</p> : null}
+              <div className="trade-detail-summary-grid">
+                <div>
+                  <span>Range</span>
+                  <strong>{tradeValueLabel(post.valueMin, post.valueMax)}</strong>
+                </div>
+                <div>
+                  <span>Offers</span>
+                  <strong>{post._count.offers}</strong>
+                </div>
+              </div>
+            </section>
+
+            {post.viewer.isOwner ? (
+              <section className="product-card trade-detail-status-panel">
+                <SectionHeader title="Post status" subtitle="Keep the trade board current." />
+                <div className="trade-detail-status-actions">
+                  {(["OPEN", "PAUSED", "CLOSED"] as const).map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => void updatePostStatus(status)}
+                      disabled={updatingStatus || post.status === status}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] ${
+                        post.status === status
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-200 bg-white/90 text-slate-700"
+                      } disabled:opacity-50`}
+                    >
+                      {status.toLowerCase()}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {post.viewer.canOffer ? (
+              <section className="product-card trade-detail-offer-panel">
+                <SectionHeader title="Send offer" subtitle="Pitch the deal and add matching cards." />
+                <textarea
+                  value={offerMessage}
+                  onChange={(event) => setOfferMessage(event.target.value)}
+                  className="trade-detail-textarea"
+                  placeholder="Trade pitch"
+                />
+                <input
+                  value={cashAdjustment}
+                  onChange={(event) => setCashAdjustment(event.target.value)}
+                  className="ios-input"
+                  inputMode="numeric"
+                  placeholder="Cash adjustment in cents (+/-)"
+                />
+                <div className="trade-detail-offer-cards">
+                  {offerCards.map((card, index) => (
+                    <div key={`${card.title}-${index}`} className="trade-detail-offer-card">
+                      <input
+                        value={card.title}
+                        onChange={(event) => replaceOfferCard(index, "title", event.target.value)}
+                        className="ios-input"
+                        placeholder="Offered card title"
+                      />
+                      <div className="trade-detail-offer-grid">
+                        <input
+                          value={card.cardSet}
+                          onChange={(event) => replaceOfferCard(index, "cardSet", event.target.value)}
+                          className="ios-input"
+                          placeholder="Set"
+                        />
+                        <input
+                          value={card.cardNumber}
+                          onChange={(event) => replaceOfferCard(index, "cardNumber", event.target.value)}
+                          className="ios-input"
+                          placeholder="Number"
+                        />
+                        <input
+                          value={card.condition}
+                          onChange={(event) => replaceOfferCard(index, "condition", event.target.value)}
+                          className="ios-input"
+                          placeholder="Condition"
+                        />
+                        <input
+                          value={card.estimatedValue}
+                          onChange={(event) => replaceOfferCard(index, "estimatedValue", event.target.value)}
+                          className="ios-input"
+                          placeholder="Estimated value (cents)"
+                        />
+                        <input
+                          value={card.gradeCompany}
+                          onChange={(event) => replaceOfferCard(index, "gradeCompany", event.target.value)}
+                          className="ios-input"
+                          placeholder="Grade co"
+                        />
+                        <input
+                          value={card.gradeLabel}
+                          onChange={(event) => replaceOfferCard(index, "gradeLabel", event.target.value)}
+                          className="ios-input"
+                          placeholder="Grade"
+                        />
+                      </div>
+                      <input
+                        value={card.notes}
+                        onChange={(event) => replaceOfferCard(index, "notes", event.target.value)}
+                        className="ios-input"
+                        placeholder="Notes"
+                      />
+                      {offerCards.length > 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => removeOfferCard(index)}
+                          className="trade-detail-remove"
+                        >
+                          Remove card
+                        </button>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+                <div className="trade-detail-offer-actions">
+                  <SecondaryButton onClick={addOfferCard}>Add card</SecondaryButton>
+                  <PrimaryButton onClick={() => void submitOffer()} disabled={submittingOffer}>
+                    {submittingOffer ? "Sending..." : "Submit offer"}
+                  </PrimaryButton>
+                </div>
+              </section>
+            ) : !session?.user?.id ? (
+              <section className="product-card trade-detail-offer-panel">
+                <SectionHeader title="Send offer" subtitle="Sign in to start negotiating." />
+                <p className="trade-detail-description">You need an account to send cards, counter, and complete settlement.</p>
+                <PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>
+              </section>
+            ) : null}
+          </aside>
+        </section>
+
+        <section className="product-card trade-detail-offers">
+          <SectionHeader title="Offers" action={<span className="market-count">{post.offers.length}</span>} />
 
         {post.offers.length === 0 ? (
           <div className="ios-empty mt-3">No offers yet.</div>
@@ -914,7 +882,8 @@ export default function TradeDetailPage() {
             })}
           </div>
         )}
+        </section>
       </section>
-    </div>
+    </PageContainer>
   );
 }

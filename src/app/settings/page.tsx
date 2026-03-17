@@ -27,7 +27,7 @@ export default function SettingsPage() {
           <SecondaryButton href="/referral">Referral program</SecondaryButton>
         </DiscoveryBar>
 
-        <FormContainer>
+        <FormContainer className="settings-form-column">
           <section className="product-card settings-panel">
             <ProfileEditor />
           </section>

@@ -5,11 +5,9 @@ import { ListingCard } from "@/components/market/ListingCard";
 
 type ListingGridProps = {
   listings: MarketListing[];
-  buyLoadingId: string | null;
-  onBuyNow: (auctionId: string) => void;
 };
 
-export function ListingGrid({ listings, buyLoadingId, onBuyNow }: ListingGridProps) {
+export function ListingGrid({ listings }: ListingGridProps) {
   const sparse = listings.length > 0 && listings.length < 4;
 
   return (
@@ -18,8 +16,6 @@ export function ListingGrid({ listings, buyLoadingId, onBuyNow }: ListingGridPro
         <ListingCard
           key={listing.id}
           listing={listing}
-          buyLoading={buyLoadingId === listing.id}
-          onBuyNow={onBuyNow}
         />
       ))}
     </div>

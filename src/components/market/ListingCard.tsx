@@ -2,101 +2,156 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { MarketListing } from "@/components/market/types";
 import { getGradeLabel, getPrimaryImageUrl, getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
+import { tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
 
-type ListingCardProps = {
+type MarketListingCardProps = {
   listing: MarketListing;
-  buyLoading: boolean;
-  onBuyNow: (auctionId: string) => void;
 };
 
-export function ListingCard({ listing, buyLoading, onBuyNow }: ListingCardProps) {
-  const [watching, setWatching] = useState(false);
+type TradeListingCardProps = {
+  kind: "trade";
+  trade: TradePostListItem;
+};
+
+type ListingCardProps = MarketListingCardProps | TradeListingCardProps;
+
+type ListingSurfaceData = {
+  href: string;
+  imageUrl: string;
+  title: string;
+  badgeLabel: string;
+  badgeClassName: string;
+  metaLabel: string;
+  priceLabel: string;
+  supportLabel: string;
+  sellerLabel: string;
+};
+
+function compactName(value: string) {
+  const trimmed = value.trim();
+  if (trimmed.length <= 22) return trimmed;
+  return `${trimmed.slice(0, 19)}...`;
+}
+
+function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData {
   const currency = listing.currency?.toUpperCase() || "USD";
   const grade = getGradeLabel(listing.item?.attributes);
   const fallbackImage = "/placeholders/pokemon-generic.svg";
-  const image = useMemo(
-    () => resolveDisplayMediaUrl(getPrimaryImageUrl(listing), fallbackImage),
-    [listing, fallbackImage],
-  );
-  const [imageSrc, setImageSrc] = useState(image);
+  const imageUrl = resolveDisplayMediaUrl(getPrimaryImageUrl(listing), fallbackImage);
   const price = listing.listingType === "AUCTION"
     ? formatCurrency(listing.currentBid, currency)
     : formatCurrency(listing.buyNowPrice ?? listing.currentBid, currency);
   const badgeLabel = listing.listingType === "BOTH"
-    ? "Auction / Buy"
+    ? "Auction"
     : listing.listingType.replace("_", " ");
-  const metadata = grade || "Grading details pending";
+  const meta = grade || listing.category?.name || "Verified listing";
   const timeMeta = listing.listingType === "BUY_NOW"
     ? "Buy now"
     : formatSeconds(getTimeLeftSeconds(listing));
+  const support = [timeMeta, `${listing.watchersCount} watching`].filter(Boolean).join(" · ");
 
-  useEffect(() => {
-    setImageSrc(image);
-  }, [image]);
+  return {
+    href: `/auctions/${listing.id}`,
+    imageUrl,
+    title: listing.title,
+    badgeLabel,
+    badgeClassName: "market-v2-listing-badge",
+    metaLabel: meta,
+    priceLabel: price,
+    supportLabel: support,
+    sellerLabel: listing.seller?.user?.displayName ?? "Verified seller",
+  };
+}
+
+function tradeListingToSurfaceData(trade: TradePostListItem): ListingSurfaceData {
+  const fallbackImage = "/placeholders/pokemon-generic.svg";
+  const imageUrl = resolveDisplayMediaUrl(trade.images[0]?.url ?? null, fallbackImage);
+  const grade = [trade.gradeCompany, trade.gradeLabel].filter(Boolean).join(" ").trim();
+  const meta = grade || trade.category || "Trade board";
+  const statusClass = trade.status === "OPEN"
+    ? "trade-status-chip is-open"
+    : trade.status === "MATCHED"
+      ? "trade-status-chip is-matched"
+      : trade.status === "PAUSED"
+        ? "trade-status-chip is-paused"
+        : "trade-status-chip is-closed";
+
+  return {
+    href: `/trades/${encodeURIComponent(trade.id)}`,
+    imageUrl,
+    title: trade.title,
+    badgeLabel: trade.status,
+    badgeClassName: statusClass,
+    metaLabel: meta,
+    priceLabel: tradeValueLabel(trade.valueMin, trade.valueMax),
+    supportLabel: `${trade._count.offers} offer${trade._count.offers === 1 ? "" : "s"}`,
+    sellerLabel: trade.owner.displayName ?? trade.owner.username ?? "Collector",
+  };
+}
+
+export function ListingCard(props: ListingCardProps) {
+  const [watching, setWatching] = useState(false);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const surface = useMemo(() => {
+    if ("trade" in props) {
+      return tradeListingToSurfaceData(props.trade);
+    }
+    return marketListingToSurfaceData(props.listing);
+  }, [props]);
+  const fallbackImage = "/placeholders/pokemon-generic.svg";
+  const imageSrc = failedSrc === surface.imageUrl ? fallbackImage : surface.imageUrl;
 
   return (
     <article className="market-v2-listing-card product-card listing-card">
-      <Link href={`/auctions/${listing.id}`} className="market-v2-listing-link">
-        <div className="market-v2-listing-media">
+      <Link href={surface.href} className="listing-card-link">
+        <div className="listing-card-media">
           <Image
             src={imageSrc}
-            alt="Listing image"
+            alt={surface.title}
             fill
-            sizes="(max-width: 768px) 46vw, (max-width: 1280px) 30vw, 360px"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1440px) 33vw, 280px"
             className="object-cover"
             unoptimized
             onError={() => {
-              if (imageSrc !== fallbackImage) {
-                setImageSrc(fallbackImage);
+              if (failedSrc !== surface.imageUrl) {
+                setFailedSrc(surface.imageUrl);
               }
             }}
           />
         </div>
 
-        <div className="market-v2-listing-body">
-          <div className="market-v2-listing-topline">
-            <span className="market-v2-listing-badge">{badgeLabel}</span>
-            {listing.category?.name ? <span className="market-v2-listing-cat">{listing.category.name}</span> : null}
+        <div className="listing-card-overlay">
+          <div className="listing-card-top">
+            <span className={surface.badgeClassName}>{surface.badgeLabel}</span>
           </div>
 
-          <h3 className="market-v2-listing-title">{listing.title}</h3>
-          <p className="market-v2-listing-meta">{metadata}</p>
-          <div className="market-v2-listing-support">
-            <span>{listing.seller?.user?.displayName ?? "Verified seller"}</span>
-            <span>{listing.watchersCount} watching</span>
+          <div className="listing-card-bottom">
+            <div className="listing-card-copy">
+              <h3 className="listing-card-title">{surface.title}</h3>
+              <p className="listing-card-meta">{surface.metaLabel}</p>
+              <div className="listing-card-value">
+                <strong>{surface.priceLabel}</strong>
+                <span>{surface.supportLabel}</span>
+              </div>
+            </div>
+            <span className="listing-card-seller">{compactName(surface.sellerLabel)}</span>
           </div>
-          <p className="market-v2-listing-price">{price}</p>
         </div>
       </Link>
 
-      <div className="market-v2-listing-footer-row">
-        <span className="market-v2-listing-time">{timeMeta}</span>
-        <span className="market-v2-listing-watchers">{listing.listingType === "AUCTION" ? "Active bids" : "Buy now"}</span>
-        <button
-          type="button"
-          onClick={() => setWatching((prev) => !prev)}
-          className={`market-v2-watch-btn ${watching ? "is-active" : ""}`}
-          aria-label={watching ? "Remove from watchlist" : "Add to watchlist"}
-        >
-          {watching ? "♥" : "♡"}
-        </button>
-      </div>
-
-      {listing.listingType !== "AUCTION" && listing.buyNowPrice ? (
-        <button
-          type="button"
-          onClick={() => onBuyNow(listing.id)}
-          disabled={buyLoading}
-          className="market-v2-buy-btn"
-        >
-          {buyLoading ? "Opening..." : "Buy Now"}
-        </button>
-      ) : null}
+      <button
+        type="button"
+        onClick={() => setWatching((prev) => !prev)}
+        className={`listing-card-watch ${watching ? "is-active" : ""}`}
+        aria-label={watching ? "Remove from watchlist" : "Add to watchlist"}
+      >
+        {watching ? "♥" : "♡"}
+      </button>
     </article>
   );
 }

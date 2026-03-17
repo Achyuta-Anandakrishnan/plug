@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { signIn, useSession } from "next-auth/react";
 import { ListingCard } from "@/components/market/ListingCard";
 import { ListingGrid } from "@/components/market/ListingGrid";
 import type { MarketListing, MarketMode, SortMode } from "@/components/market/types";
@@ -50,7 +49,6 @@ const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
 ];
 
 export function MarketHub() {
-  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -59,8 +57,6 @@ export function MarketHub() {
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
-  const [buyLoadingId, setBuyLoadingId] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState("");
 
   const { data: categories } = useCategories();
 
@@ -183,36 +179,6 @@ export function MarketHub() {
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   };
 
-  const startBuyNow = async (auctionId: string) => {
-    if (!session?.user?.id) {
-      await signIn();
-      return;
-    }
-
-    setBuyLoadingId(auctionId);
-    setStatusMessage("");
-    try {
-      const response = await fetch(`/api/auctions/${auctionId}/buy`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      const payload = (await response.json()) as { error?: string; checkoutUrl?: string | null };
-      if (!response.ok) {
-        throw new Error(payload.error || "Unable to start checkout.");
-      }
-      if (payload.checkoutUrl && /^https?:\/\/[^\s]+$/i.test(payload.checkoutUrl)) {
-        window.location.assign(payload.checkoutUrl);
-        return;
-      }
-      setStatusMessage("Checkout started.");
-    } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : "Unable to start checkout.");
-    } finally {
-      setBuyLoadingId(null);
-    }
-  };
-
   return (
     <PageContainer className="market-page app-page--market">
       <section className="app-section market-overview">
@@ -260,7 +226,6 @@ export function MarketHub() {
         </DiscoveryBar>
 
         {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
-        {statusMessage ? <div className="app-inline-note">{statusMessage}</div> : null}
 
         {listingsLoading ? (
           <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
@@ -300,8 +265,6 @@ export function MarketHub() {
                       <ListingCard
                         key={`${section.key}-${listing.id}`}
                         listing={listing}
-                        buyLoading={buyLoadingId === listing.id}
-                        onBuyNow={startBuyNow}
                       />
                     ))}
                   </div>
@@ -323,11 +286,7 @@ export function MarketHub() {
         ) : sortedListings.length === 0 ? (
           <EmptyStateCard title="No listings match these filters." description="Try broadening the search, switching modes, or clearing a category." />
         ) : (
-            <ListingGrid
-              listings={sortedListings}
-              buyLoadingId={buyLoadingId}
-              onBuyNow={startBuyNow}
-            />
+            <ListingGrid listings={sortedListings} />
           )}
       </section>
 
