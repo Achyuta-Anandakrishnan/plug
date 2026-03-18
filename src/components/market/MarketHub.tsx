@@ -17,6 +17,7 @@ import {
 } from "@/components/product/ProductUI";
 import { useAuctions } from "@/hooks/useAuctions";
 import { useCategories } from "@/hooks/useCategories";
+import { useMobileUi } from "@/hooks/useMobileUi";
 import { useSavedListings } from "@/hooks/useSavedListings";
 
 function parseMode(value: string | null): MarketMode {
@@ -50,6 +51,7 @@ const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
 ];
 
 export function MarketHub() {
+  const isMobileUi = useMobileUi();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -184,19 +186,44 @@ export function MarketHub() {
   return (
     <PageContainer className="market-page listing-system-page app-page--market">
       <section className="app-section market-overview">
-        <DiscoveryBar className="app-control-bar listing-system-toolbar market-toolbar">
-          <div className="app-control-title">Marketplace</div>
-          <div className="listing-system-toolbar-main market-toolbar-main">
-            <div className="app-search">
+        {isMobileUi ? (
+          <section className="mobile-page-toolbar market-mobile-toolbar" aria-label="Marketplace discovery controls">
+            <div className="mobile-page-toolbar-top">
+              <div className="app-control-title">Market</div>
+              <label className="app-select-wrap app-select-inline market-mobile-sort">
+                <span>Sort</span>
+                <select
+                  value={sortMode}
+                  onChange={(event) => setSortMode(event.target.value as SortMode)}
+                  className="app-select"
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="app-search market-mobile-search">
               <SearchIcon />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search cards, sets, players, cert numbers"
+                placeholder="Search listings"
               />
             </div>
-            <SegmentedControl options={MODE_OPTIONS} value={modeFromUrl} onChange={setMode} />
-            <div className="app-chip-row">
+            <div className="app-chip-row mobile-page-toolbar-scroll market-mobile-modes">
+              {MODE_OPTIONS.map((option) => (
+                <FilterChip
+                  key={option.value}
+                  label={option.label}
+                  active={modeFromUrl === option.value}
+                  onClick={() => setMode(option.value)}
+                />
+              ))}
+            </div>
+            <div className="app-chip-row mobile-page-toolbar-scroll">
               {categoryFilters.map((category) => (
                 <FilterChip
                   key={category.id}
@@ -206,24 +233,49 @@ export function MarketHub() {
                 />
               ))}
             </div>
-          </div>
-          <div className="listing-system-toolbar-meta market-toolbar-meta">
-            <label className="app-select-wrap app-select-inline">
-              <span>Sort</span>
-              <select
-                value={sortMode}
-                onChange={(event) => setSortMode(event.target.value as SortMode)}
-                className="app-select"
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
+          </section>
+        ) : (
+          <DiscoveryBar className="app-control-bar listing-system-toolbar market-toolbar">
+            <div className="app-control-title">Marketplace</div>
+            <div className="listing-system-toolbar-main market-toolbar-main">
+              <div className="app-search">
+                <SearchIcon />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search cards, sets, players, cert numbers"
+                />
+              </div>
+              <SegmentedControl options={MODE_OPTIONS} value={modeFromUrl} onChange={setMode} />
+              <div className="app-chip-row">
+                {categoryFilters.map((category) => (
+                  <FilterChip
+                    key={category.id}
+                    label={category.label}
+                    active={selectedCategory === category.slug}
+                    onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
+                  />
                 ))}
-              </select>
-            </label>
-          </div>
-        </DiscoveryBar>
+              </div>
+            </div>
+            <div className="listing-system-toolbar-meta market-toolbar-meta">
+              <label className="app-select-wrap app-select-inline">
+                <span>Sort</span>
+                <select
+                  value={sortMode}
+                  onChange={(event) => setSortMode(event.target.value as SortMode)}
+                  className="app-select"
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </DiscoveryBar>
+        )}
 
         {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
 
@@ -257,8 +309,8 @@ export function MarketHub() {
                 <section key={section.key} className="market-rail-section">
                   <SectionHeader
                     title={section.title}
-                    subtitle={section.subtitle}
-                    action={section.action ?? null}
+                    subtitle={isMobileUi ? undefined : section.subtitle}
+                    action={isMobileUi ? null : section.action ?? null}
                   />
                   <div className="market-rail-grid" role="list">
                     {section.items.map((listing) => (
@@ -279,7 +331,7 @@ export function MarketHub() {
       <section className="app-section listing-system-feed market-inventory-section">
         <SectionHeader
           title="Inventory"
-          subtitle="Browse active listings and compare them fast."
+          subtitle={isMobileUi ? undefined : "Browse active listings and compare them fast."}
           action={<span className="market-count">{sortedListings.length} items</span>}
         />
 

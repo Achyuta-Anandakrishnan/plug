@@ -6,6 +6,7 @@ type LiveNowRailProps = {
   streams: LiveStreamItem[];
   loading: boolean;
   limit?: number;
+  compact?: boolean;
   savedStreamIds?: Set<string>;
   onToggleSave?: (streamId: string) => void;
 };
@@ -14,6 +15,7 @@ export function LiveNowRail({
   streams,
   loading,
   limit = 24,
+  compact = false,
   savedStreamIds,
   onToggleSave,
 }: LiveNowRailProps) {
@@ -23,12 +25,15 @@ export function LiveNowRail({
     <section id="live-now" className="live-v3-live-now">
       <SectionHeader
         title="Live now"
-        action={<span className="market-count">{visibleStreams.length} rooms</span>}
+        action={compact ? null : <span className="market-count">{visibleStreams.length} rooms</span>}
       />
       {loading ? (
         <EmptyStateCard title="Loading live streams" description="Active rooms will appear here in a moment." />
       ) : visibleStreams.length === 0 ? (
-        <EmptyStateCard title="No active streams right now." description="Check back soon or browse upcoming sessions below." />
+        <EmptyStateCard
+          title="No active streams right now."
+          description={compact ? "Upcoming sessions will appear below." : "Check back soon or browse upcoming sessions below."}
+        />
       ) : (
         <div className="live-v3-live-grid-wrap">
           <div className={`live-v3-live-grid ${visibleStreams.length < 3 ? "is-sparse" : ""}`}>

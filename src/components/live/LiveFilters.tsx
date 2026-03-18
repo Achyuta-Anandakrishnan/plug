@@ -1,5 +1,6 @@
 import type { LiveCategoryFilter, LiveSortMode, LiveStreamTypeFilter, LiveTimingFilter } from "@/components/live/types";
-import { DiscoveryBar, FilterChip, SegmentedControl } from "@/components/product/ProductUI";
+import { DiscoveryBar, FilterChip, SearchIcon, SegmentedControl } from "@/components/product/ProductUI";
+import { useMobileUi } from "@/hooks/useMobileUi";
 
 const CATEGORY_OPTIONS: Array<{ value: LiveCategoryFilter; label: string }> = [
   { value: "pokemon", label: "Pokemon" },
@@ -54,14 +55,63 @@ export function LiveFilters({
   timing,
   onTimingChange,
 }: LiveFiltersProps) {
+  const isMobileUi = useMobileUi();
+
+  if (isMobileUi) {
+    return (
+      <section className="mobile-page-toolbar live-mobile-toolbar" aria-label="Live stream discovery filters">
+        <div className="mobile-page-toolbar-top">
+          <div className="app-control-title">{title}</div>
+          <label className="app-select-wrap app-select-inline live-mobile-sort">
+            <span>Sort</span>
+            <select value={sort} onChange={(event) => onSortChange(event.target.value as LiveSortMode)} className="app-select">
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="app-search">
+          <SearchIcon />
+          <input
+            value={query}
+            onChange={(event) => onQueryChange(event.target.value)}
+            placeholder="Search streams and hosts"
+          />
+        </div>
+        <div className="app-chip-row mobile-page-toolbar-scroll">
+          {CATEGORY_OPTIONS.map((option) => (
+            <FilterChip
+              key={option.value}
+              label={option.label}
+              active={category === option.value}
+              onClick={() => onCategoryChange(category === option.value ? "all" : option.value)}
+            />
+          ))}
+        </div>
+        <div className="app-chip-row mobile-page-toolbar-scroll live-mobile-types">
+          {STREAM_TYPE_OPTIONS.map((option) => (
+            <FilterChip
+              key={option.value}
+              label={option.label}
+              active={streamType === option.value}
+              onClick={() => onStreamTypeChange(option.value)}
+            />
+          ))}
+        </div>
+        <SegmentedControl options={TIMING_OPTIONS} value={timing} onChange={onTimingChange} className="live-mobile-timing" />
+      </section>
+    );
+  }
+
   return (
     <DiscoveryBar className="app-control-bar listing-system-toolbar live-toolbar" aria-label="Live stream discovery filters">
       <div className="app-control-title">{title}</div>
       <div className="listing-system-toolbar-main live-toolbar-main">
         <div className="app-search">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14m0-2a9 9 0 1 0 5.65 16l4.68 4.67 1.42-1.41-4.67-4.68A9 9 0 0 0 11 2" fill="currentColor" />
-          </svg>
+          <SearchIcon />
           <input
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}

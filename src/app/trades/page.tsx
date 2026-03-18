@@ -17,6 +17,7 @@ import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import {
   type TradePostListItem,
 } from "@/lib/trade-client";
+import { useMobileUi } from "@/hooks/useMobileUi";
 import { useSavedListings } from "@/hooks/useSavedListings";
 
 type TradeScope = "OPEN" | "PAUSED" | "MATCHED" | "CLOSED" | "ALL" | "MINE";
@@ -31,6 +32,7 @@ const scopes: Array<{ key: TradeScope; label: string }> = [
 ];
 
 export default function TradesPage() {
+  const isMobileUi = useMobileUi();
   const { data: session } = useSession();
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<TradeScope>("OPEN");
@@ -82,9 +84,12 @@ export default function TradesPage() {
   return (
     <PageContainer className="trades-page listing-system-page app-page--trades">
       <section className="app-section">
-        <DiscoveryBar className="app-control-bar listing-system-toolbar trades-toolbar">
-          <div className="app-control-title">Trades</div>
-          <div className="listing-system-toolbar-main trades-toolbar-main">
+        {isMobileUi ? (
+          <section className="mobile-page-toolbar trades-mobile-toolbar" aria-label="Trades discovery controls">
+            <div className="mobile-page-toolbar-top">
+              <div className="app-control-title">Trades</div>
+              <PrimaryButton href="/trades/new" className="trades-mobile-create">New trade</PrimaryButton>
+            </div>
             <div className="app-search">
               <SearchIcon />
               <input
@@ -93,7 +98,7 @@ export default function TradesPage() {
                 placeholder="Search trade posts"
               />
             </div>
-            <div className="app-chip-row">
+            <div className="app-chip-row mobile-page-toolbar-scroll">
               {scopes.map((entry) => (
                 <FilterChip
                   key={entry.key}
@@ -103,12 +108,36 @@ export default function TradesPage() {
                 />
               ))}
             </div>
-          </div>
-          <div className="listing-system-toolbar-meta trades-toolbar-meta">
-            <div className="app-toolbar-spacer" aria-hidden="true" />
-            <PrimaryButton href="/trades/new" className="trades-toolbar-create">New trade</PrimaryButton>
-          </div>
-        </DiscoveryBar>
+          </section>
+        ) : (
+          <DiscoveryBar className="app-control-bar listing-system-toolbar trades-toolbar">
+            <div className="app-control-title">Trades</div>
+            <div className="listing-system-toolbar-main trades-toolbar-main">
+              <div className="app-search">
+                <SearchIcon />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search trade posts"
+                />
+              </div>
+              <div className="app-chip-row">
+                {scopes.map((entry) => (
+                  <FilterChip
+                    key={entry.key}
+                    label={entry.label}
+                    active={scope === entry.key}
+                    onClick={() => setScope(entry.key)}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="listing-system-toolbar-meta trades-toolbar-meta">
+              <div className="app-toolbar-spacer" aria-hidden="true" />
+              <PrimaryButton href="/trades/new" className="trades-toolbar-create">New trade</PrimaryButton>
+            </div>
+          </DiscoveryBar>
+        )}
 
         {!session?.user?.id && scope === "MINE" ? (
           <EmptyStateCard
@@ -124,7 +153,7 @@ export default function TradesPage() {
         <section className="app-section listing-system-feed">
           <SectionHeader
             title="Trade board"
-            action={<span className="market-count">{posts.length} listings</span>}
+            action={isMobileUi ? null : <span className="market-count">{posts.length} listings</span>}
           />
           {!loading && posts.length === 0 ? (
             <EmptyStateCard title="No active trade posts right now." description="Try another status filter or check back when collectors publish new wants." />

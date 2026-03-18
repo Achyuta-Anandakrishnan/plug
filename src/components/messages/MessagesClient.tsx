@@ -313,9 +313,17 @@ export function MessagesClient() {
     return (
       <PageContainer className="messages-page app-page--messages">
         <section className="app-section">
-          <DiscoveryBar className="app-control-bar messages-toolbar">
-            <div className="app-control-title">Messages</div>
-          </DiscoveryBar>
+          {isDesktop ? (
+            <DiscoveryBar className="app-control-bar messages-toolbar">
+              <div className="app-control-title">Messages</div>
+            </DiscoveryBar>
+          ) : (
+            <section className="mobile-page-toolbar messages-mobile-toolbar">
+              <div className="mobile-page-toolbar-top">
+                <div className="app-control-title">Messages</div>
+              </div>
+            </section>
+          )}
           <EmptyStateCard
             title="Sign in to view your inbox."
             description="Your active deals and collector conversations will show up here."
@@ -330,18 +338,34 @@ export function MessagesClient() {
     <PageContainer className="messages-page app-page--messages">
       <section className="app-section app-screen-section--messages">
         {isDesktop || mobilePane === "threads" ? (
-          <DiscoveryBar className="app-control-bar messages-toolbar">
-            <div className="app-control-title">Messages</div>
-            <div className="app-search">
-              <SearchIcon />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search conversations"
-              />
-            </div>
-            <div className="app-toolbar-spacer" aria-hidden="true" />
-          </DiscoveryBar>
+          isDesktop ? (
+            <DiscoveryBar className="app-control-bar messages-toolbar">
+              <div className="app-control-title">Messages</div>
+              <div className="app-search">
+                <SearchIcon />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search conversations"
+                />
+              </div>
+              <div className="app-toolbar-spacer" aria-hidden="true" />
+            </DiscoveryBar>
+          ) : (
+            <section className="mobile-page-toolbar messages-mobile-toolbar">
+              <div className="mobile-page-toolbar-top">
+                <div className="app-control-title">Messages</div>
+              </div>
+              <div className="app-search">
+                <SearchIcon />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search conversations"
+                />
+              </div>
+            </section>
+          )
         ) : null}
 
         {error ? <EmptyStateCard title="Messages unavailable" description={error} /> : null}

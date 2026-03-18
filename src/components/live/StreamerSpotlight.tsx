@@ -7,6 +7,7 @@ type StreamerSpotlightProps = {
   followedIds?: Set<string>;
   followerCounts?: Record<string, number>;
   onToggleFollow?: (hostId: string) => void | Promise<boolean>;
+  compact?: boolean;
 };
 
 export function StreamerSpotlight({
@@ -14,6 +15,7 @@ export function StreamerSpotlight({
   followedIds,
   followerCounts,
   onToggleFollow,
+  compact = false,
 }: StreamerSpotlightProps) {
   const visibleHosts = hosts.slice(0, 6);
 
@@ -21,11 +23,14 @@ export function StreamerSpotlight({
     <section className="live-v3-spotlight">
       <SectionHeader
         title="Hosts to watch"
-        action={<span className="market-count">{visibleHosts.length} hosts</span>}
+        action={compact ? null : <span className="market-count">{visibleHosts.length} hosts</span>}
       />
 
       {visibleHosts.length === 0 ? (
-        <EmptyStateCard title="No host highlights yet." description="Once host activity picks up, featured collectors will appear here." />
+        <EmptyStateCard
+          title="No host highlights yet."
+          description={compact ? "Host activity will appear here as rooms go live." : "Once host activity picks up, featured collectors will appear here."}
+        />
       ) : (
         <div className="live-v3-spotlight-grid">
           {visibleHosts.map((host) => (

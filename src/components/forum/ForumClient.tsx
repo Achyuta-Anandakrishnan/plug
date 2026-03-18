@@ -13,6 +13,7 @@ import {
   SearchIcon,
   SecondaryButton,
 } from "@/components/product/ProductUI";
+import { useMobileUi } from "@/hooks/useMobileUi";
 
 type ForumAuthor = {
   id: string;
@@ -43,6 +44,7 @@ function formatCompactDate(value: string) {
 }
 
 export function ForumClient() {
+  const isMobileUi = useMobileUi();
   const { data: session } = useSession();
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"published" | "drafts">("published");
@@ -120,45 +122,86 @@ export function ForumClient() {
   return (
     <PageContainer className="forum-page app-page--forum">
       <section className="app-section">
-        <DiscoveryBar className="app-control-bar forum-toolbar">
-          <div className="app-control-title">Forum</div>
-          <div className="app-search">
-            <SearchIcon />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search threads"
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  void handleSearch();
-                }
-              }}
-            />
-          </div>
-          <div className="app-chip-row">
-            <FilterChip
-              label="Published"
-              active={resolvedTab === "published"}
-              onClick={() => setActiveTab("published")}
-            />
-            {session?.user?.id ? (
-              <FilterChip
-                label="My drafts"
-                active={resolvedTab === "drafts"}
-                onClick={() => setActiveTab("drafts")}
+        {isMobileUi ? (
+          <section className="mobile-page-toolbar forum-mobile-toolbar" aria-label="Forum browsing controls">
+            <div className="mobile-page-toolbar-top">
+              <div className="app-control-title">Forum</div>
+              {session?.user?.id ? (
+                <PrimaryButton href="/forum/new" className="forum-mobile-compose">Write</PrimaryButton>
+              ) : (
+                <SecondaryButton onClick={() => signIn()} className="forum-mobile-compose">Sign in</SecondaryButton>
+              )}
+            </div>
+            <div className="app-search">
+              <SearchIcon />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search threads"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void handleSearch();
+                  }
+                }}
               />
+            </div>
+            <div className="app-chip-row mobile-page-toolbar-scroll">
+              <FilterChip
+                label="Published"
+                active={resolvedTab === "published"}
+                onClick={() => setActiveTab("published")}
+              />
+              {session?.user?.id ? (
+                <FilterChip
+                  label="My drafts"
+                  active={resolvedTab === "drafts"}
+                  onClick={() => setActiveTab("drafts")}
+                />
+              ) : null}
+            </div>
+          </section>
+        ) : (
+          <DiscoveryBar className="app-control-bar forum-toolbar">
+            <div className="app-control-title">Forum</div>
+            <div className="app-search">
+              <SearchIcon />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search threads"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void handleSearch();
+                  }
+                }}
+              />
+            </div>
+            <div className="app-chip-row">
+              <FilterChip
+                label="Published"
+                active={resolvedTab === "published"}
+                onClick={() => setActiveTab("published")}
+              />
+              {session?.user?.id ? (
+                <FilterChip
+                  label="My drafts"
+                  active={resolvedTab === "drafts"}
+                  onClick={() => setActiveTab("drafts")}
+                />
+              ) : null}
+            </div>
+            <div className="app-toolbar-spacer" aria-hidden="true" />
+            <button type="button" onClick={() => void handleSearch()} className="app-button app-button-primary forum-toolbar-search">
+              Search
+            </button>
+            {!session?.user?.id ? (
+              <SecondaryButton onClick={() => signIn()} className="forum-toolbar-auth">Sign in</SecondaryButton>
             ) : null}
-          </div>
-          <div className="app-toolbar-spacer" aria-hidden="true" />
-          <button type="button" onClick={() => void handleSearch()} className="app-button app-button-primary forum-toolbar-search">
-            Search
-          </button>
-          {!session?.user?.id ? (
-            <SecondaryButton onClick={() => signIn()} className="forum-toolbar-auth">Sign in</SecondaryButton>
-          ) : null}
-          <PrimaryButton href="/forum/new" className="forum-toolbar-compose">Write thread</PrimaryButton>
-        </DiscoveryBar>
+            <PrimaryButton href="/forum/new" className="forum-toolbar-compose">Write thread</PrimaryButton>
+          </DiscoveryBar>
+        )}
 
         {error ? <EmptyStateCard title="Forum unavailable" description={error} /> : null}
         {draftWarning ? <EmptyStateCard title="Drafts unavailable" description={draftWarning} /> : null}

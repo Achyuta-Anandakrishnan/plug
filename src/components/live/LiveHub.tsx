@@ -187,6 +187,7 @@ export function LiveHub() {
             streams={filteredLive}
             loading={liveLoading}
             limit={liveLimit}
+            compact={isMobileUi}
             savedStreamIds={savedAuctionIds}
             onToggleSave={toggleAuctionSave}
           />
@@ -202,6 +203,7 @@ export function LiveHub() {
             reminders={reminderIds}
             onToggleReminder={toggleReminder}
             limit={upcomingLimit}
+            compact={isMobileUi}
           />
         </div>
       )}
@@ -215,6 +217,7 @@ export function LiveHub() {
             followerCounts={followerCounts}
             followedIds={followedIds}
             onToggleFollow={toggleFollow}
+            compact={isMobileUi}
           />
         </div>
       )}
