@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { key: "live", label: "Live", href: "/live" },
   { key: "trades", label: "Trades", href: "/trades" },
   { key: "forum", label: "Forum", href: "/forum" },
-  { key: "messages", label: "Messages", href: "/messages" },
+  { key: "messages", label: "Inbox", href: "/messages" },
 ];
 
 function isActive(pathname: string | null, href: string, key: string) {

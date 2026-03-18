@@ -99,6 +99,21 @@ export default function SellerVerificationPage() {
             }
           />
 
+          <ol className="app-stepper seller-verification-stepper" aria-label="Seller verification steps">
+            <li className="app-step is-active">
+              <span>1</span>
+              <strong>Account</strong>
+            </li>
+            <li className="app-step">
+              <span>2</span>
+              <strong>Payouts</strong>
+            </li>
+            <li className="app-step">
+              <span>3</span>
+              <strong>Review</strong>
+            </li>
+          </ol>
+
           {!session?.user?.id ? (
             <div className="trade-compose-signin">
               <p>Sign in with Google to start seller verification.</p>

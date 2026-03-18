@@ -69,8 +69,10 @@ export default function SignupPage() {
       <section className="app-section">
         <FormContainer className="auth-form-layout">
           <PageHeader
+            eyebrow="dalow"
             title="Create account"
             subtitle="Join the marketplace, live rooms, and collector workflow in one place."
+            className="auth-page-header"
           />
 
           <section className="product-card auth-panel auth-panel-signup">

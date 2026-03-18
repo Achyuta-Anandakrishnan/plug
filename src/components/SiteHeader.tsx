@@ -89,6 +89,31 @@ export function SiteHeader() {
     return pathname === item.href || pathname?.startsWith(`${item.href}/`);
   };
 
+  const mobileTitle = useMemo(() => {
+    if (!pathname || pathname === "/") return null;
+    if (
+      pathname === "/listings"
+      || pathname === "/explore"
+      || pathname.startsWith("/listings/")
+      || pathname.startsWith("/explore/")
+      || pathname.startsWith("/auctions/")
+    ) {
+      return "Market";
+    }
+    if (pathname === "/live" || pathname.startsWith("/live/") || pathname.startsWith("/streams/")) {
+      return "Live";
+    }
+    if (pathname === "/trades" || pathname.startsWith("/trades/")) return "Trades";
+    if (pathname === "/forum" || pathname.startsWith("/forum/")) return "Forum";
+    if (pathname === "/messages" || pathname.startsWith("/messages/")) return "Inbox";
+    if (pathname === "/sell") return "Create listing";
+    if (pathname === "/settings") return "Settings";
+    if (pathname === "/referral") return "Referral";
+    if (pathname === "/signin") return "Sign in";
+    if (pathname === "/signup") return "Create account";
+    return null;
+  }, [pathname]);
+
   return (
     <header className="site-header">
       <AppContainer>
@@ -113,6 +138,12 @@ export function SiteHeader() {
               </Link>
             ) : null}
           </nav>
+
+          {mobileTitle ? (
+            <div className="site-mobile-title md:hidden" aria-hidden="true">
+              {mobileTitle}
+            </div>
+          ) : null}
 
           <div className="site-header-actions hidden md:flex">
             <Link

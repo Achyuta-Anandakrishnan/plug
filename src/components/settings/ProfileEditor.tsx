@@ -187,7 +187,7 @@ export function ProfileEditor() {
       {loading ? (
         <CheckersLoader title="Loading profile..." compact className="ios-empty" />
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-4 settings-profile-stack">
           {setupMode ? (
             <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
               Finish profile setup so buyers and sellers can find you by username.
@@ -204,7 +204,7 @@ export function ProfileEditor() {
             </div>
           ) : null}
 
-          <div className="ios-panel-muted rounded-[24px] p-4">
+          <div className="ios-panel-muted rounded-[24px] p-4 settings-profile-card">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               Profile photo
             </p>
@@ -234,11 +234,11 @@ export function ProfileEditor() {
             </div>
           </div>
 
-          <div className="ios-panel-muted rounded-[24px] p-4">
+          <div className="ios-panel-muted rounded-[24px] p-4 settings-account-card">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               Public profile
             </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500 settings-account-meta">
               <span>{profile?.email ?? "No email"}</span>
               <span>•</span>
               <span>{profile?.emailVerified ? "Email verified" : "Email not verified"}</span>
@@ -283,7 +283,7 @@ export function ProfileEditor() {
                 />
               </label>
             </div>
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="mt-4 flex flex-wrap items-center gap-2 settings-account-actions">
               <button
                 type="button"
                 onClick={() => void onSave()}

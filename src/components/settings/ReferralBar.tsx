@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useSession } from "next-auth/react";
 
 type ReferralSummary = {
@@ -21,8 +21,14 @@ function getOrigin() {
 export function ReferralBar() {
   const { data: session } = useSession();
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
   const [summary, setSummary] = useState<ReferralSummary | null>(null);
   const activeSummary = session?.user?.id ? summary : null;
+  const canShare = useSyncExternalStore(
+    () => () => {},
+    () => typeof navigator !== "undefined" && typeof navigator.share === "function",
+    () => false,
+  );
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -61,6 +67,21 @@ export function ReferralBar() {
     }
   }
 
+  async function share() {
+    if (!link || typeof navigator === "undefined" || typeof navigator.share !== "function") return;
+    try {
+      await navigator.share({
+        title: "dalow referral link",
+        text: "Join me on dalow.",
+        url: link,
+      });
+      setShared(true);
+      window.setTimeout(() => setShared(false), 1400);
+    } catch {
+      // ignore
+    }
+  }
+
   return (
     <section className="product-card referral-panel">
       <div className="referral-panel-copy">
@@ -82,14 +103,26 @@ export function ReferralBar() {
           placeholder="Referral link"
           className="app-form-input"
         />
-        <button
-          type="button"
-          onClick={() => void copy()}
-          disabled={!link}
-          className="app-button app-button-primary referral-copy-button"
-        >
-          {copied ? "Copied" : "Copy link"}
-        </button>
+        <div className="referral-panel-actions">
+          {canShare ? (
+            <button
+              type="button"
+              onClick={() => void share()}
+              disabled={!link}
+              className="app-button app-button-secondary referral-share-button"
+            >
+              {shared ? "Shared" : "Share"}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => void copy()}
+            disabled={!link}
+            className="app-button app-button-primary referral-copy-button"
+          >
+            {copied ? "Copied" : "Copy link"}
+          </button>
+        </div>
       </div>
     </section>
   );

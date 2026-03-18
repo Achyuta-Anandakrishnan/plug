@@ -356,9 +356,21 @@ export default function NewTradePage() {
         <section className="app-section">
           <FormContainer>
             <PageHeader
+              eyebrow="Create listing"
               title="Create listing"
               subtitle="Trade mode. Sign in to verify a cert, set value, and publish a clean listing."
             />
+            <ol className="app-stepper trade-compose-stepper" aria-label="Trade post steps">
+              {["Verify", "Value", "Review"].map((label, index) => (
+                <li
+                  key={label}
+                  className={`app-step ${index === 0 ? "is-active" : ""}`}
+                >
+                  <span>{index + 1}</span>
+                  <strong>{label}</strong>
+                </li>
+              ))}
+            </ol>
             <nav className="listing-flow-strip" aria-label="Listing modes">
               <Link href="/sell?mode=AUCTION" className="listing-flow-link">Auction</Link>
               <Link href="/sell?mode=BUY_NOW" className="listing-flow-link">Buy now</Link>
@@ -380,6 +392,7 @@ export default function NewTradePage() {
       <section className="app-section">
         <FormContainer className="trade-compose-form">
           <PageHeader
+            eyebrow="Create listing"
             title="Create listing"
             subtitle="Trade mode. Verify the item, set the target value, and publish a clean listing."
             actions={<SecondaryButton href="/trades">Back to trades</SecondaryButton>}

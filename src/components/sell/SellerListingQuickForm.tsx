@@ -315,44 +315,67 @@ export function SellerListingQuickForm() {
         </div>
       )}
 
-      <div className="grid gap-3 md:grid-cols-2">
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Grader</p>
-          <select
-            value={grader}
-            onChange={(event) => setGrader(event.target.value as CertGrader)}
-            className="ios-input"
-          >
-            {certGraders.map((entry) => (
-              <option key={entry.value} value={entry.value}>
-                {entry.label}
-              </option>
-            ))}
-          </select>
+      <section className="listing-form-stage">
+        <div className="listing-form-stage-head">
+          <div>
+            <p className="app-eyebrow">Step 1</p>
+            <h3>Verify item</h3>
+          </div>
+          <p>Look up the cert, confirm the grader, and set the target ask.</p>
         </div>
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Cert number</p>
-          <input
-            value={certNumber}
-            onChange={(event) => setCertNumber(event.target.value)}
-            placeholder="Enter cert number"
-            className="ios-input"
-          />
-        </div>
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Desired price (USD)</p>
-          <input
-            value={desiredPrice}
-            onChange={(event) => setDesiredPrice(event.target.value)}
-            inputMode="decimal"
-            placeholder="250"
-            className="ios-input"
-          />
-        </div>
-      </div>
 
-      <div className="space-y-2">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Listing mode</p>
+        <div className="grid gap-3 md:grid-cols-2 listing-form-stage-grid">
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Grader</p>
+            <select
+              value={grader}
+              onChange={(event) => setGrader(event.target.value as CertGrader)}
+              className="ios-input"
+            >
+              {certGraders.map((entry) => (
+                <option key={entry.value} value={entry.value}>
+                  {entry.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Cert number</p>
+            <input
+              value={certNumber}
+              onChange={(event) => setCertNumber(event.target.value)}
+              placeholder="Enter cert number"
+              className="ios-input"
+            />
+          </div>
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Desired price (USD)</p>
+            <input
+              value={desiredPrice}
+              onChange={(event) => setDesiredPrice(event.target.value)}
+              inputMode="decimal"
+              placeholder="250"
+              className="ios-input"
+            />
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white/80 p-3 sell-quick-lookup">
+          <p className="text-xs text-slate-600">
+            {lookupLoading ? "Checking certificate..." : lookupMessage || "Enter cert number to auto-fill listing details."}
+          </p>
+        </div>
+      </section>
+
+      <section className="listing-form-stage">
+        <div className="listing-form-stage-head">
+          <div>
+            <p className="app-eyebrow">Step 2</p>
+            <h3>Choose listing type</h3>
+          </div>
+          <p>Pick the mode that matches how you want the item to move.</p>
+        </div>
+
         <div className="flex flex-wrap gap-2">
           {listingTypes.map((entry) => (
             <button
@@ -369,16 +392,16 @@ export function SellerListingQuickForm() {
             </button>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="rounded-2xl border border-slate-200 bg-white/80 p-3 sell-quick-lookup">
-        <p className="text-xs text-slate-600">
-          {lookupLoading ? "Checking certificate..." : lookupMessage || "Enter cert number to auto-fill listing details."}
-        </p>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 space-y-4 sell-quick-preview">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Preview</p>
+      <section className="listing-form-stage sell-quick-preview">
+        <div className="listing-form-stage-head">
+          <div>
+            <p className="app-eyebrow">Step 3</p>
+            <h3>Review preview</h3>
+          </div>
+          <p>Make sure the title, cert details, and images look clean before publishing.</p>
+        </div>
 
         {certImages.length > 0 ? (
           <div className="cert-preview-grid sell-cert-preview-grid">
@@ -413,7 +436,7 @@ export function SellerListingQuickForm() {
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
       {submitMessage ? (
         <div
@@ -434,7 +457,14 @@ export function SellerListingQuickForm() {
         </div>
       ) : null}
 
-      <div className="sell-quick-actions">
+      <div className="sell-quick-actions listing-form-publish">
+        <div className="listing-form-stage-head">
+          <div>
+            <p className="app-eyebrow">Step 4</p>
+            <h3>Publish listing</h3>
+          </div>
+          <p>We only publish once the cert resolves cleanly and the listing details are ready.</p>
+        </div>
         <button
           type="submit"
           disabled={!canSubmit || status === "loading"}

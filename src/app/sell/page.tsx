@@ -19,10 +19,29 @@ export default async function SellPage({
     <PageContainer className="sell-page app-page--sell">
       <section className="app-section">
         <PageHeader
+          eyebrow="Create listing"
           title="Create listing"
           subtitle="Verify the item once, then branch into the right listing mode."
           actions={<SecondaryButton href="/listings">Back to market</SecondaryButton>}
         />
+        <ol className="app-stepper listing-flow-stepper" aria-label="Create listing steps">
+          <li className="app-step is-active">
+            <span>1</span>
+            <strong>Verify</strong>
+          </li>
+          <li className="app-step is-active">
+            <span>2</span>
+            <strong>Mode</strong>
+          </li>
+          <li className="app-step">
+            <span>3</span>
+            <strong>Configure</strong>
+          </li>
+          <li className="app-step">
+            <span>4</span>
+            <strong>Publish</strong>
+          </li>
+        </ol>
         <nav className="listing-flow-strip" aria-label="Listing modes">
           <Link href="/sell?mode=AUCTION" className={`listing-flow-link ${mode === "AUCTION" ? "is-active" : ""}`}>Auction</Link>
           <Link href="/sell?mode=BUY_NOW" className={`listing-flow-link ${mode === "BUY_NOW" ? "is-active" : ""}`}>Buy now</Link>

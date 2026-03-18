@@ -393,8 +393,10 @@ export default function TradeDetailPage() {
     <PageContainer className="trade-detail-page app-page--trade-detail">
       <section className="app-section">
         <PageHeader
+          eyebrow="Trade listing"
           title={post.title}
           subtitle={`by ${ownerLabel} · ${tradeValueLabel(post.valueMin, post.valueMax)} · ${post._count.offers} offers`}
+          className="trade-detail-header"
           actions={(
             <div className="trade-detail-head-actions">
               <SecondaryButton href="/trades">Back</SecondaryButton>

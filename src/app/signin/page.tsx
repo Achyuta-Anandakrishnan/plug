@@ -10,8 +10,10 @@ export default function SignInPage() {
       <section className="app-section">
         <FormContainer className="auth-form-layout">
           <PageHeader
+            eyebrow="dalow"
             title="Sign in"
             subtitle="Streams, listings, trades, and messages in one account."
+            className="auth-page-header"
           />
 
           <section className="product-card auth-panel">
