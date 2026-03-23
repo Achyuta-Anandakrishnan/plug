@@ -79,6 +79,8 @@ function useSiteHeaderState() {
     if (item.key === "market") {
       return pathname === "/listings"
         || pathname === "/explore"
+        || pathname === "/wants"
+        || pathname?.startsWith("/wants/")
         || pathname?.startsWith("/listings/")
         || pathname?.startsWith("/explore/")
         || pathname?.startsWith("/auctions/");
@@ -93,6 +95,8 @@ function useSiteHeaderState() {
 
   const mobileTitle = useMemo(() => {
     if (!pathname || pathname === "/") return null;
+    if (pathname === "/wants") return "Want Board";
+    if (pathname.startsWith("/wants/")) return pathname === "/wants/new" ? "Post want" : "Want Board";
     if (
       pathname === "/listings"
       || pathname === "/explore"

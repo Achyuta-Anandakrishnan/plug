@@ -171,6 +171,13 @@ enum ForumPostStatus {
   PUBLISHED
 }
 
+enum WantRequestStatus {
+  OPEN
+  FULFILLED
+  EXPIRED
+  PAUSED
+}
+
 model User {
   id             String        @id @default(cuid())
   email          String?       @unique
@@ -207,6 +214,7 @@ model User {
   forumComments  ForumComment[]
   forumPostVotes ForumPostVote[]
   tradePosts     TradePost[]           @relation("TradePostOwner")
+  wantRequests   WantRequest[]         @relation("WantRequestOwner")
   tradeOffers    TradeOffer[]          @relation("TradeOfferProposer")
   tradeSettlementsToPay     TradeSettlement[] @relation("TradeSettlementPayer")
   tradeSettlementsToReceive TradeSettlement[] @relation("TradeSettlementPayee")
@@ -486,6 +494,32 @@ model TradePost {
   @@index([createdAt])
 }
 
+model WantRequest {
+  id           String            @id @default(cuid())
+  userId       String
+  title        String
+  category     String?
+  itemName     String
+  grade        String?
+  condition    String?
+  certNumber   String?
+  priceMin     Int?
+  priceMax     Int?
+  notes        String?
+  imageUrl     String?
+  status       WantRequestStatus @default(OPEN)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  user         User              @relation("WantRequestOwner", fields: [userId], references: [id], onDelete: Cascade)
+  saves        UserSave[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([category])
+}
+
 model TradePostImage {
   id               String    @id @default(cuid())
   postId           String
@@ -716,17 +750,21 @@ model UserSave {
   userId      String
   auctionId   String?
   tradePostId String?
+  wantRequestId String?
   createdAt   DateTime   @default(now())
 
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   auction     Auction?   @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   tradePost   TradePost? @relation(fields: [tradePostId], references: [id], onDelete: Cascade)
+  wantRequest WantRequest? @relation(fields: [wantRequestId], references: [id], onDelete: Cascade)
 
   @@unique([userId, auctionId])
   @@unique([userId, tradePostId])
+  @@unique([userId, wantRequestId])
   @@index([userId, createdAt])
   @@index([auctionId])
   @@index([tradePostId])
+  @@index([wantRequestId])
 }
 
 model StreamReminder {

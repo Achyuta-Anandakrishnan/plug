@@ -5,18 +5,21 @@ import { jsonError, jsonOk, parseJson } from "@/lib/api";
 type SaveBody = {
   auctionId?: string;
   tradePostId?: string;
+  wantRequestId?: string;
 };
 
 function normalizeSaveBody(body: SaveBody | null) {
   const auctionId = typeof body?.auctionId === "string" ? body.auctionId.trim() : "";
   const tradePostId = typeof body?.tradePostId === "string" ? body.tradePostId.trim() : "";
+  const wantRequestId = typeof body?.wantRequestId === "string" ? body.wantRequestId.trim() : "";
+  const count = [auctionId, tradePostId, wantRequestId].filter(Boolean).length;
 
-  if (!auctionId && !tradePostId) return null;
-  if (auctionId && tradePostId) return null;
+  if (count !== 1) return null;
 
   return {
     auctionId: auctionId || null,
     tradePostId: tradePostId || null,
+    wantRequestId: wantRequestId || null,
   };
 }
 
@@ -31,12 +34,14 @@ export async function GET() {
     select: {
       auctionId: true,
       tradePostId: true,
+      wantRequestId: true,
     },
   });
 
   return jsonOk({
     auctionIds: saves.map((entry) => entry.auctionId).filter((entry): entry is string => Boolean(entry)),
     tradePostIds: saves.map((entry) => entry.tradePostId).filter((entry): entry is string => Boolean(entry)),
+    wantRequestIds: saves.map((entry) => entry.wantRequestId).filter((entry): entry is string => Boolean(entry)),
   });
 }
 
@@ -54,17 +59,21 @@ export async function POST(request: Request) {
   const created = await prisma.userSave.upsert({
     where: saveTarget.auctionId
       ? { userId_auctionId: { userId: sessionUser.id, auctionId: saveTarget.auctionId } }
-      : { userId_tradePostId: { userId: sessionUser.id, tradePostId: saveTarget.tradePostId! } },
+      : saveTarget.tradePostId
+        ? { userId_tradePostId: { userId: sessionUser.id, tradePostId: saveTarget.tradePostId } }
+        : { userId_wantRequestId: { userId: sessionUser.id, wantRequestId: saveTarget.wantRequestId! } },
     update: {},
     create: {
       userId: sessionUser.id,
       auctionId: saveTarget.auctionId,
       tradePostId: saveTarget.tradePostId,
+      wantRequestId: saveTarget.wantRequestId,
     },
     select: {
       id: true,
       auctionId: true,
       tradePostId: true,
+      wantRequestId: true,
     },
   });
 

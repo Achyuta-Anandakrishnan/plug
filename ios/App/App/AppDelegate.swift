@@ -8,11 +8,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        let host = UIHostingController(rootView: NativeRootView())
-        host.view.backgroundColor = .clear
-
         let window = UIWindow(frame: UIScreen.main.bounds)
-        window.rootViewController = host
+
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let bridgeController = storyboard.instantiateInitialViewController() {
+            window.rootViewController = bridgeController
+        } else {
+            let fallbackController = CAPBridgeViewController()
+            fallbackController.view.backgroundColor = .systemBackground
+            window.rootViewController = fallbackController
+        }
+
         window.makeKeyAndVisible()
         self.window = window
         return true

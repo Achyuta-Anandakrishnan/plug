@@ -4,8 +4,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 function resolveServerUrl() {
   return (
     process.env.CAPACITOR_SERVER_URL
-    ?? process.env.NEXT_PUBLIC_APP_URL
-    ?? "http://localhost:3000"
+    ?? "https://plug-chi.vercel.app"
   );
 }
 
@@ -20,8 +19,8 @@ function resolveAllowNavigation(serverUrl: string) {
 const serverUrl = resolveServerUrl();
 
 const config: CapacitorConfig = {
-  appId: process.env.CAPACITOR_APP_ID ?? "com.dalow.app",
-  appName: process.env.CAPACITOR_APP_NAME ?? "dalow",
+  appId: "com.dalow.app",
+  appName: "dalow",
   webDir: "mobile-shell",
   backgroundColor: "#f6f9ff",
   appendUserAgent: " DalowIOSApp/1.0",

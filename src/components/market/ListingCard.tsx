@@ -10,6 +10,12 @@ import { getPrimaryImageUrl, getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import { tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
+import {
+  compactWantActivity,
+  compactWantMeta,
+  wantPriceLabel,
+  type WantRequestListItem,
+} from "@/lib/wants";
 
 type MarketListingCardProps = {
   listing: MarketListing;
@@ -33,7 +39,18 @@ type TradeListingCardProps = {
   onToggleSave?: (tradePostId: string) => void | Promise<boolean>;
 };
 
-type ListingCardProps = MarketListingCardProps | TradeListingCardProps | LiveListingCardProps;
+type WantListingCardProps = {
+  kind: "want";
+  want: WantRequestListItem;
+  saved?: boolean;
+  onToggleSave?: (wantRequestId: string) => void | Promise<boolean>;
+};
+
+type ListingCardProps =
+  | MarketListingCardProps
+  | TradeListingCardProps
+  | LiveListingCardProps
+  | WantListingCardProps;
 
 type ListingSurfaceData = {
   href: string;
@@ -47,6 +64,7 @@ type ListingSurfaceData = {
   sellerLabel: string;
   saveInactiveLabel: string;
   saveActiveLabel: string;
+  hasImage: boolean;
 };
 
 function compactName(value: string) {
@@ -130,6 +148,7 @@ function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData 
     sellerLabel: listing.seller?.user?.displayName ?? "Verified seller",
     saveInactiveLabel: "Add listing to watchlist",
     saveActiveLabel: "Remove listing from watchlist",
+    hasImage: true,
   };
 }
 
@@ -157,6 +176,7 @@ function tradeListingToSurfaceData(trade: TradePostListItem): ListingSurfaceData
     sellerLabel: trade.owner.displayName ?? trade.owner.username ?? "Collector",
     saveInactiveLabel: "Save trade",
     saveActiveLabel: "Remove saved trade",
+    hasImage: true,
   };
 }
 
@@ -184,23 +204,58 @@ function liveListingToSurfaceData(stream: LiveStreamItem): ListingSurfaceData {
     sellerLabel: seller,
     saveInactiveLabel: stream.streamState === "upcoming" ? "Set reminder" : "Save stream",
     saveActiveLabel: stream.streamState === "upcoming" ? "Remove reminder" : "Remove saved stream",
+    hasImage: true,
+  };
+}
+
+function wantListingToSurfaceData(want: WantRequestListItem): ListingSurfaceData {
+  const imageUrl = resolveDisplayMediaUrl(want.imageUrl, "");
+  const statusClass = want.status === "OPEN"
+    ? "trade-status-chip is-open"
+    : want.status === "FULFILLED"
+      ? "trade-status-chip is-matched"
+      : want.status === "PAUSED"
+        ? "trade-status-chip is-paused"
+        : "trade-status-chip is-closed";
+
+  return {
+    href: `/wants/${encodeURIComponent(want.id)}`,
+    imageUrl,
+    title: want.title,
+    badgeLabel: want.status === "OPEN" ? "Want" : want.status,
+    badgeClassName: statusClass,
+    metaLabel: compactWantMeta(want),
+    priceLabel: wantPriceLabel(want.priceMin, want.priceMax),
+    activityLabel: compactWantActivity(want.notes),
+    sellerLabel: want.user.displayName ?? want.user.username ?? "Collector",
+    saveInactiveLabel: "Save want",
+    saveActiveLabel: "Remove saved want",
+    hasImage: Boolean(imageUrl),
   };
 }
 
 export function ListingCard(props: ListingCardProps) {
   const isLiveCard = "stream" in props;
-  const surfaceKind = "trade" in props ? "trade" : isLiveCard ? "live" : "market";
+  const surfaceKind = "trade" in props
+    ? "trade"
+    : "want" in props
+      ? "want"
+      : isLiveCard
+        ? "live"
+        : "market";
   const controlledSaved = isLiveCard ? props.saved : undefined;
   const [localSaved, setLocalSaved] = useState(false);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const trade = "trade" in props ? props.trade : undefined;
+  const want = "want" in props ? props.want : undefined;
   const stream = "stream" in props ? props.stream : undefined;
-  const listing = !("trade" in props) && !("stream" in props) ? props.listing : undefined;
+  const listing = !("trade" in props) && !("stream" in props) && !("want" in props) ? props.listing : undefined;
   const surface = useMemo(() => {
     if (trade) return tradeListingToSurfaceData(trade);
+    if (want) return wantListingToSurfaceData(want);
     if (stream) return liveListingToSurfaceData(stream);
     return marketListingToSurfaceData(listing!);
-  }, [trade, stream, listing]);
+  }, [trade, want, stream, listing]);
   const fallbackImage = "/placeholders/pokemon-generic.svg";
   const imageSrc = failedSrc === surface.imageUrl ? fallbackImage : surface.imageUrl;
   const saved = props.saved ?? controlledSaved ?? localSaved;
@@ -214,6 +269,10 @@ export function ListingCard(props: ListingCardProps) {
       void props.onToggleSave(props.trade.id);
       return;
     }
+    if ("want" in props && props.onToggleSave) {
+      void props.onToggleSave(props.want.id);
+      return;
+    }
     if ("listing" in props && props.onToggleSave) {
       void props.onToggleSave(props.listing.id);
       return;
@@ -224,20 +283,22 @@ export function ListingCard(props: ListingCardProps) {
   return (
     <article className={`market-v2-listing-card product-card listing-card is-${surfaceKind}-card`}>
       <Link href={surface.href} className="listing-card-link">
-        <div className="listing-card-media">
-          <Image
-            src={imageSrc}
-            alt={surface.title}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1440px) 33vw, 280px"
-            className="listing-card-image"
-            unoptimized
-            onError={() => {
-              if (failedSrc !== surface.imageUrl) {
-                setFailedSrc(surface.imageUrl);
-              }
-            }}
-          />
+        <div className={`listing-card-media ${surface.hasImage ? "" : "is-fallback"}`}>
+          {surface.hasImage ? (
+            <Image
+              src={imageSrc}
+              alt={surface.title}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1440px) 33vw, 280px"
+              className="listing-card-image"
+              unoptimized
+              onError={() => {
+                if (failedSrc !== surface.imageUrl) {
+                  setFailedSrc(surface.imageUrl);
+                }
+              }}
+            />
+          ) : null}
         </div>
 
         <div className="listing-card-overlay">
