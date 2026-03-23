@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
   { key: "market", label: "Market", href: "/listings" },
+  { key: "bounty", label: "Bounty", href: "/bounties" },
   { key: "live", label: "Live", href: "/live" },
   { key: "trades", label: "Trades", href: "/trades" },
   { key: "forum", label: "Forum", href: "/forum" },
@@ -15,11 +16,12 @@ function isActive(pathname: string | null, href: string, key: string) {
   if (key === "market") {
     return pathname === "/listings"
       || pathname === "/explore"
-      || pathname === "/bounties"
-      || pathname?.startsWith("/bounties/")
       || pathname?.startsWith("/listings/")
       || pathname?.startsWith("/explore/")
       || pathname?.startsWith("/auctions/");
+  }
+  if (key === "bounty") {
+    return pathname === href || pathname?.startsWith(`${href}/`);
   }
   if (key === "live") {
     return pathname === href

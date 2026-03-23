@@ -25,6 +25,7 @@ import {
 type GradeFilter = "all" | "raw" | "psa" | "bgs" | "cgc" | "high-grade";
 type BudgetFilter = "all" | "under-500" | "500-2500" | "2500-10000" | "10000-plus";
 type SortMode = "newest" | "highest-bounty" | "highest-budget" | "most-specific" | "recently-active";
+type StatusFilter = "OPEN" | "MATCHED" | "FULFILLED" | "PAUSED";
 
 const GRADE_OPTIONS: Array<{ value: GradeFilter; label: string }> = [
   { value: "all", label: "Any grade" },
@@ -51,6 +52,13 @@ const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
   { value: "recently-active", label: "Recently active" },
 ];
 
+const STATUS_OPTIONS: Array<{ value: StatusFilter; label: string }> = [
+  { value: "OPEN", label: "Open" },
+  { value: "MATCHED", label: "Matched" },
+  { value: "FULFILLED", label: "Fulfilled" },
+  { value: "PAUSED", label: "Paused" },
+];
+
 type BountyBoardClientProps = {
   initialIsMobile?: boolean;
 };
@@ -58,13 +66,15 @@ type BountyBoardClientProps = {
 export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
   const isMobileUi = useMobileUi(initialIsMobile);
   const { data: categories } = useCategories();
-  const { bountyRequestIds, toggleBountySave } = useSavedListings();
+  const { bountyRequestIds, toggleBountySave, isSignedIn } = useSavedListings();
 
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [grade, setGrade] = useState<GradeFilter>("all");
   const [budget, setBudget] = useState<BudgetFilter>("all");
   const [sort, setSort] = useState<SortMode>("newest");
+  const [status, setStatus] = useState<StatusFilter>("OPEN");
+  const [mineOnly, setMineOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [bounties, setBounties] = useState<BountyRequestListItem[]>([]);
@@ -95,16 +105,25 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
     let cancelled = false;
 
     const load = async () => {
+      if (mineOnly && !isSignedIn) {
+        setBounties([]);
+        setError("");
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError("");
       try {
         const params = new URLSearchParams();
         params.set("limit", "120");
         params.set("sort", sort);
+        params.set("status", status);
         if (query.trim()) params.set("q", query.trim());
         if (selectedCategory) params.set("category", selectedCategory);
         if (grade !== "all") params.set("grade", grade);
         if (budget !== "all") params.set("budget", budget);
+        if (mineOnly) params.set("mine", "1");
         const response = await fetch(`/api/bounties?${params.toString()}`, { cache: "no-store" });
         const payload = (await response.json()) as BountyRequestListItem[] & { error?: string };
         if (!response.ok) {
@@ -129,7 +148,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
       cancelled = true;
       window.clearTimeout(timeout);
     };
-  }, [budget, grade, query, selectedCategory, sort]);
+  }, [budget, grade, isSignedIn, mineOnly, query, selectedCategory, sort, status]);
 
   const featuredBounties = useMemo(
     () =>
@@ -183,6 +202,21 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search cards, players, sets, certs"
+              />
+            </div>
+            <div className="mobile-page-toolbar-scroll bounty-mobile-chiprail">
+              {STATUS_OPTIONS.map((option) => (
+                <FilterChip
+                  key={option.value}
+                  label={option.label}
+                  active={status === option.value}
+                  onClick={() => setStatus(option.value)}
+                />
+              ))}
+              <FilterChip
+                label="Mine"
+                active={mineOnly}
+                onClick={() => setMineOnly((prev) => !prev)}
               />
             </div>
             <div className="mobile-page-toolbar-scroll bounty-mobile-chiprail">
@@ -258,8 +292,10 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
               </div>
               {bounties.length === 0 ? (
                 <EmptyStateCard
-                  title="No bounties match these filters."
-                  description="Try a wider budget, another category, or post the first bounty."
+                  title={mineOnly && !isSignedIn ? "Sign in to view your bounties." : "No bounties match these filters."}
+                  description={mineOnly && !isSignedIn
+                    ? "Authentication is required to load your bounty activity."
+                    : "Try a wider budget, another category, or post the first bounty."}
                   action={<PrimaryButton href="/bounties/new">Post bounty</PrimaryButton>}
                 />
               ) : (
@@ -291,6 +327,17 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search cards, players, sets, cert numbers"
             />
+          </div>
+          <div className="app-chip-row bounty-toolbar-categories">
+            {STATUS_OPTIONS.map((option) => (
+              <FilterChip
+                key={option.value}
+                label={option.label}
+                active={status === option.value}
+                onClick={() => setStatus(option.value)}
+              />
+            ))}
+            <FilterChip label="Mine" active={mineOnly} onClick={() => setMineOnly((prev) => !prev)} />
           </div>
           <div className="app-chip-row bounty-toolbar-categories">
             {categoryFilters.map((category) => (
@@ -380,8 +427,10 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
           />
           {!loading && bounties.length === 0 ? (
             <EmptyStateCard
-              title="No bounties match these filters."
-              description="Try a wider budget, another category, or post the first bounty."
+              title={mineOnly && !isSignedIn ? "Sign in to view your bounties." : "No bounties match these filters."}
+              description={mineOnly && !isSignedIn
+                ? "Authentication is required to load your bounty activity."
+                : "Try a wider budget, another category, or post the first bounty."}
               action={<PrimaryButton href="/bounties/new">Post bounty</PrimaryButton>}
             />
           ) : null}

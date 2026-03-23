@@ -67,6 +67,7 @@ function useSiteHeaderState() {
   const navItems = useMemo(
     () => [
       { key: "market", label: "Market", href: "/listings" },
+      { key: "bounty", label: "Bounty", href: "/bounties" },
       { key: "live", label: "Live", href: "/live" },
       { key: "trades", label: "Trades", href: "/trades" },
       { key: "forum", label: "Forum", href: "/forum" },
@@ -79,11 +80,12 @@ function useSiteHeaderState() {
     if (item.key === "market") {
       return pathname === "/listings"
         || pathname === "/explore"
-        || pathname === "/bounties"
-        || pathname?.startsWith("/bounties/")
         || pathname?.startsWith("/listings/")
         || pathname?.startsWith("/explore/")
         || pathname?.startsWith("/auctions/");
+    }
+    if (item.key === "bounty") {
+      return pathname === item.href || pathname?.startsWith(`${item.href}/`);
     }
     if (item.key === "live") {
       return pathname === item.href

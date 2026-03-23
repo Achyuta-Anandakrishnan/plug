@@ -4965,10 +4965,10 @@ input[type="radio"] {
     left: 0;
     z-index: 45;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     align-items: center;
-    gap: 6px;
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    gap: 4px;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
     border-top: 1px solid rgba(15, 23, 42, 0.08);
     background: rgba(247, 248, 250, 0.96);
     backdrop-filter: blur(16px);
@@ -4982,7 +4982,7 @@ input[type="radio"] {
     min-height: 44px;
     border-radius: 14px;
     color: var(--product-text-faint);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.02em;
     text-align: center;

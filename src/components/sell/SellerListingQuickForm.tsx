@@ -184,6 +184,19 @@ export function SellerListingQuickForm() {
     if (mode === "AUCTION" || mode === "BUY_NOW" || mode === "BOTH") {
       setListingType(mode);
     }
+    const cert = searchParams.get("cert")?.trim() ?? "";
+    const price = searchParams.get("price")?.trim() ?? "";
+    const grader = searchParams.get("grader")?.trim().toUpperCase() ?? "";
+
+    if (cert) {
+      setCertNumber((current) => current || cert);
+    }
+    if (price) {
+      setDesiredPrice((current) => current || price);
+    }
+    if (grader === "PSA" || grader === "CDC" || grader === "BGS" || grader === "BVG") {
+      setGrader(grader);
+    }
   }, [searchParams]);
 
   const previewTitle = useMemo(() => {
