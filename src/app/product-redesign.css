@@ -54,6 +54,11 @@ body {
   overflow-y: auto;
 }
 
+.app-layout-pending .site-main {
+  height: 100svh;
+  margin-top: 0;
+}
+
 .site-main--app > .app-container {
   min-height: 100%;
 }
@@ -184,6 +189,19 @@ body {
 .site-header-actions {
   justify-self: end;
   white-space: nowrap;
+}
+
+.site-header-desktop {
+  display: block;
+}
+
+.site-header-mobile,
+.site-mobile-header-actions {
+  display: none;
+}
+
+.site-mobile-title {
+  display: none;
 }
 
 .site-header-mobile-actions {
@@ -1480,7 +1498,8 @@ body {
 
 .listing-card-link,
 .live-v3-stream-link {
-  display: grid;
+  position: relative;
+  display: block;
   height: 100%;
   color: inherit;
   text-decoration: none;
@@ -1498,11 +1517,16 @@ body {
 .listing-card-media,
 .live-v3-stream-media,
 .trade-board-media {
-  position: relative;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 100%;
+  height: auto;
   overflow: hidden;
   background: #edf2f7;
+}
+
+.listing-card-image {
+  object-fit: cover;
 }
 
 .listing-card-overlay {
@@ -4373,7 +4397,7 @@ body {
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   :root {
     --app-header-height: 64px;
     --app-bottom-nav-height: calc(74px + env(safe-area-inset-bottom));
@@ -4385,14 +4409,42 @@ body {
     margin-top: var(--app-header-height);
   }
 
+  .app-layout-mobile .site-main--app {
+    width: 100%;
+    max-width: none;
+    padding-bottom: 0;
+  }
+
+  .app-layout-mobile .app-container,
+  .app-layout-mobile .site-shell {
+    max-width: none;
+    padding-inline: 16px;
+  }
+
+  .app-layout-mobile .site-main--app > .app-container,
+  .app-layout-mobile .app-form-container,
+  .app-layout-mobile .settings-form-column {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+  }
+
   .site-header {
     background: rgba(247, 248, 250, 0.94);
     box-shadow: 0 1px 0 rgba(229, 231, 235, 0.9);
   }
 
-  .site-header-row {
+  .site-header-row-mobile {
     grid-template-columns: auto minmax(0, 1fr) auto;
     min-height: var(--app-header-height);
+  }
+
+  .site-header-mobile {
+    display: block;
+  }
+
+  .site-header-desktop {
+    display: none;
   }
 
   .site-mobile-title {
@@ -4413,8 +4465,11 @@ body {
     height: 42px;
   }
 
-  .site-header-mobile-actions {
+  .site-mobile-header-actions {
     display: inline-flex;
+    align-items: center;
+    justify-self: end;
+    gap: 8px;
   }
 
   .site-mobile-overlay,

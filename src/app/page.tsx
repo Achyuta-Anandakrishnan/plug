@@ -469,21 +469,21 @@ export default async function Home() {
           <div className="landing-actions-strip">
             <HomeActionColumn
               eyebrow="Live"
-              title="Run high-signal streams with active bidding."
-              copy="Host sessions, surface watchers, and keep the room focused on inventory."
-              detail="Real-time selling with momentum."
+              title="Run live streams with nonstop auctions."
+              copy="Watch real-time deals from trusted sellers."
+              detail="Fast, loud, always moving."
             />
             <HomeActionColumn
               eyebrow="Auctions"
-              title="Create urgency and discover real market value."
-              copy="Timed bidding and live inventory movement make price discovery feel immediate."
-              detail="Auction rails that actually move."
+              title="Jump into weekly auctions that actually move."
+              copy="List your slabs. Get paid."
+              detail="No dead listings."
             />
             <HomeActionColumn
               eyebrow="Trades"
-              title="Negotiate collector-to-collector deals in a structured flow."
-              copy="Value ranges, offers, and messaging stay attached to the item instead of disappearing into DMs."
-              detail="Serious deals with real structure."
+              title="Negotiate directly with other collectors."
+              copy="Trades verified by real collectors."
+              detail="Can't agree? Settle it with checkers or poker."
             />
           </div>
         </section>
@@ -636,21 +636,21 @@ export default async function Home() {
           <div className="landing-mobile-action-rail">
             <HomeActionColumn
               eyebrow="Live"
-              title="Run high-signal streams with active bidding."
-              copy="Go live and keep the room focused on real inventory."
-              detail="Real-time momentum."
+              title="Run live streams with nonstop auctions."
+              copy="Watch real-time deals from trusted sellers."
+              detail="Fast, loud, always moving."
             />
             <HomeActionColumn
               eyebrow="Auctions"
-              title="Create urgency and discover real market value."
-              copy="Timed bidding keeps price discovery immediate."
-              detail="Auction movement."
+              title="Jump into weekly auctions that actually move."
+              copy="List your slabs. Get paid."
+              detail="No dead listings."
             />
             <HomeActionColumn
               eyebrow="Trades"
-              title="Negotiate collector deals in a structured flow."
-              copy="Offers and messages stay tied to the item."
-              detail="Collector-to-collector."
+              title="Negotiate directly with other collectors."
+              copy="Trades verified by real collectors."
+              detail="Can't agree? Settle it with checkers or poker."
             />
           </div>
         </section>

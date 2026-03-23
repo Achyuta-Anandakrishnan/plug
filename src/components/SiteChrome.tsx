@@ -2,8 +2,10 @@
 
 import { usePathname } from "next/navigation";
 import { SiteFooter } from "@/components/SiteFooter";
-import { SiteHeader } from "@/components/SiteHeader";
+import { SiteDesktopHeader, SiteHeader, SiteMobileHeader } from "@/components/SiteHeader";
 import { SiteMobileNav } from "@/components/SiteMobileNav";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { MOBILE_QUERY } from "@/hooks/useMobileUi";
 
 type SiteChromeProps = {
   children: React.ReactNode;
@@ -24,11 +26,30 @@ export function MarketingLayout({ children }: SiteChromeProps) {
 }
 
 export function AppLayout({ children }: SiteChromeProps) {
+  const isMobile = useMediaQuery(MOBILE_QUERY);
+
+  if (isMobile === null) {
+    return (
+      <div className="site-layout app-layout app-layout-pending">
+        <main className="site-main site-main--app">{children}</main>
+      </div>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <div className="site-layout app-layout app-layout-mobile">
+        <SiteMobileHeader />
+        <main className="site-main site-main--app site-main--app-mobile">{children}</main>
+        <SiteMobileNav />
+      </div>
+    );
+  }
+
   return (
-    <div className="site-layout app-layout">
-      <SiteHeader />
-      <main className="site-main site-main--app">{children}</main>
-      <SiteMobileNav />
+    <div className="site-layout app-layout app-layout-desktop">
+      <SiteDesktopHeader />
+      <main className="site-main site-main--app site-main--app-desktop">{children}</main>
     </div>
   );
 }

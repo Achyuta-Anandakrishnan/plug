@@ -230,7 +230,7 @@ export function ListingCard(props: ListingCardProps) {
             alt={surface.title}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1440px) 33vw, 280px"
-            className="object-cover"
+            className="listing-card-image"
             unoptimized
             onError={() => {
               if (failedSrc !== surface.imageUrl) {

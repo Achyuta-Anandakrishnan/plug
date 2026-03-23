@@ -6,6 +6,8 @@ import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { AppContainer } from "@/components/product/ProductUI";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { MOBILE_QUERY } from "@/hooks/useMobileUi";
 import { isPrimaryAdminEmail } from "@/lib/admin-email";
 
 function Brand() {
@@ -55,7 +57,7 @@ function AccountButton({ signedIn, isAdmin = false, mobile = false }: AccountBut
   );
 }
 
-export function SiteHeader() {
+function useSiteHeaderState() {
   const pathname = usePathname();
   const { data: session } = useSession();
 
@@ -114,15 +116,28 @@ export function SiteHeader() {
     return null;
   }, [pathname]);
 
+  return {
+    isAdmin,
+    isVerifiedSeller,
+    mobileTitle,
+    navItems,
+    isNavActive,
+    signedIn: Boolean(session?.user?.id),
+  };
+}
+
+export function SiteDesktopHeader() {
+  const { isAdmin, isVerifiedSeller, navItems, isNavActive, signedIn } = useSiteHeaderState();
+
   return (
-    <header className="site-header">
+    <header className="site-header site-header-desktop">
       <AppContainer>
-        <div className="site-header-row">
+        <div className="site-header-row site-header-row-desktop">
           <div className="site-header-left">
             <Brand />
           </div>
 
-          <nav className="site-nav hidden md:flex">
+          <nav className="site-nav" aria-label="Primary">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -139,37 +154,53 @@ export function SiteHeader() {
             ) : null}
           </nav>
 
-          {mobileTitle ? (
-            <div className="site-mobile-title md:hidden" aria-hidden="true">
-              {mobileTitle}
-            </div>
-          ) : null}
-
-          <div className="site-header-actions hidden md:flex">
+          <div className="site-header-actions">
             <Link
               href={isVerifiedSeller ? "/sell" : "/seller/verification"}
               className="app-button app-button-primary"
             >
               Create listing
             </Link>
-            <AccountButton signedIn={Boolean(session?.user?.id)} isAdmin={isAdmin} />
-          </div>
-
-          <div className="site-header-mobile-actions md:hidden">
-            <Link
-              href={isVerifiedSeller ? "/sell" : "/seller/verification"}
-              className="site-mobile-primary-action"
-            >
-              Create
-            </Link>
-            <AccountButton
-              signedIn={Boolean(session?.user?.id)}
-              isAdmin={isAdmin}
-              mobile
-            />
+            <AccountButton signedIn={signedIn} isAdmin={isAdmin} />
           </div>
         </div>
       </AppContainer>
     </header>
   );
+}
+
+export function SiteMobileHeader() {
+  const { isAdmin, mobileTitle, signedIn } = useSiteHeaderState();
+
+  return (
+    <header className="site-header site-header-mobile">
+      <div className="site-shell">
+        <div className="site-header-row site-header-row-mobile">
+          <div className="site-header-left">
+            <Brand />
+          </div>
+
+          {mobileTitle ? (
+            <div className="site-mobile-title" aria-hidden="true">
+              {mobileTitle}
+            </div>
+          ) : null}
+
+          <div className="site-mobile-header-actions">
+            <AccountButton signedIn={signedIn} isAdmin={isAdmin} mobile />
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export function SiteHeader() {
+  const isMobile = useMediaQuery(MOBILE_QUERY);
+
+  if (isMobile) {
+    return <SiteMobileHeader />;
+  }
+
+  return <SiteDesktopHeader />;
 }
