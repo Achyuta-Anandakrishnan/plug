@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
+import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
 import {
   bountyBudgetValue,
   bountySpecificityScore,
@@ -142,129 +143,149 @@ function sortEntries(entries: BountyRequestListItem[], sort: BountySortMode) {
 }
 
 export async function GET(request: Request) {
-  const searchParams = getSearchParams(request);
-  const q = searchParams.get("q")?.trim() ?? "";
-  const category = searchParams.get("category")?.trim() ?? "";
-  const grade = (searchParams.get("grade")?.trim() ?? "all") as BountyGradeFilter;
-  const budget = (searchParams.get("budget")?.trim() ?? "all") as BountyBudgetFilter;
-  const sort = (searchParams.get("sort")?.trim() ?? "newest") as BountySortMode;
-  const mine = searchParams.get("mine") === "1";
-  const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 80), 1), 120);
-  const requestedStatus = searchParams.get("status");
-  const status = requestedStatus && isBountyRequestStatus(requestedStatus) ? requestedStatus : "OPEN";
+  await ensureBountySchema().catch(() => null);
+  try {
+    const searchParams = getSearchParams(request);
+    const q = searchParams.get("q")?.trim() ?? "";
+    const category = searchParams.get("category")?.trim() ?? "";
+    const grade = (searchParams.get("grade")?.trim() ?? "all") as BountyGradeFilter;
+    const budget = (searchParams.get("budget")?.trim() ?? "all") as BountyBudgetFilter;
+    const sort = (searchParams.get("sort")?.trim() ?? "newest") as BountySortMode;
+    const mine = searchParams.get("mine") === "1";
+    const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 80), 1), 120);
+    const requestedStatus = searchParams.get("status");
+    const status = requestedStatus && isBountyRequestStatus(requestedStatus) ? requestedStatus : "OPEN";
 
-  const sessionUser = mine ? await getSessionUser() : null;
-  if (mine && !sessionUser?.id) {
-    return jsonError("Authentication required.", 401);
-  }
+    const sessionUser = mine ? await getSessionUser() : null;
+    if (mine && !sessionUser?.id) {
+      return jsonError("Authentication required.", 401);
+    }
 
-  const where: Prisma.WantRequestWhereInput = {
-    status,
-  };
+    const where: Prisma.WantRequestWhereInput = {
+      status,
+    };
 
-  if (mine && sessionUser?.id) {
-    where.userId = sessionUser.id;
-  }
+    if (mine && sessionUser?.id) {
+      where.userId = sessionUser.id;
+    }
 
-  if (category) {
-    where.category = { equals: category, mode: "insensitive" };
-  }
+    if (category) {
+      where.category = { equals: category, mode: "insensitive" };
+    }
 
-  if (q) {
-    where.OR = [
-      { title: { contains: q, mode: "insensitive" } },
-      { itemName: { contains: q, mode: "insensitive" } },
-      { player: { contains: q, mode: "insensitive" } },
-      { setName: { contains: q, mode: "insensitive" } },
-      { year: { contains: q, mode: "insensitive" } },
-      { gradeCompany: { contains: q, mode: "insensitive" } },
-      { gradeTarget: { contains: q, mode: "insensitive" } },
-      { grade: { contains: q, mode: "insensitive" } },
-      { notes: { contains: q, mode: "insensitive" } },
-      { certNumber: { contains: q, mode: "insensitive" } },
-      { category: { contains: q, mode: "insensitive" } },
-    ];
-  }
+    if (q) {
+      where.OR = [
+        { title: { contains: q, mode: "insensitive" } },
+        { itemName: { contains: q, mode: "insensitive" } },
+        { player: { contains: q, mode: "insensitive" } },
+        { setName: { contains: q, mode: "insensitive" } },
+        { year: { contains: q, mode: "insensitive" } },
+        { gradeCompany: { contains: q, mode: "insensitive" } },
+        { gradeTarget: { contains: q, mode: "insensitive" } },
+        { grade: { contains: q, mode: "insensitive" } },
+        { notes: { contains: q, mode: "insensitive" } },
+        { certNumber: { contains: q, mode: "insensitive" } },
+        { category: { contains: q, mode: "insensitive" } },
+      ];
+    }
 
-  const bounties = await prisma.wantRequest.findMany({
-    where,
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          image: true,
+    const bounties = await prisma.wantRequest.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            image: true,
+          },
         },
       },
-    },
-    orderBy: { updatedAt: "desc" },
-    take: limit,
-  });
+      orderBy: { updatedAt: "desc" },
+      take: limit,
+    });
 
-  const filtered = bounties
-    .map(asListItem)
-    .filter((entry) => matchesGradeFilter(entry, grade))
-    .filter((entry) => matchesBudgetFilter(entry, budget));
+    const filtered = bounties
+      .map(asListItem)
+      .filter((entry) => matchesGradeFilter(entry, grade))
+      .filter((entry) => matchesBudgetFilter(entry, budget));
 
-  return jsonOk(sortEntries(filtered, sort));
+    return jsonOk(sortEntries(filtered, sort));
+  } catch (error) {
+    if (isBountySchemaMissing(error)) {
+      await ensureBountySchema().catch(() => null);
+      return jsonError("Bounties are initializing. Retry in a few seconds.", 503);
+    }
+    console.error("Bounties GET failed", { error });
+    return jsonError("Unable to load bounties right now.", 500);
+  }
 }
 
 export async function POST(request: Request) {
-  const sessionUser = await getSessionUser();
-  if (!sessionUser?.id) {
-    return jsonError("Authentication required.", 401);
-  }
+  await ensureBountySchema().catch(() => null);
+  try {
+    const sessionUser = await getSessionUser();
+    if (!sessionUser?.id) {
+      return jsonError("Authentication required.", 401);
+    }
 
-  const body = await parseJson<CreateBountyBody>(request);
-  const itemName = normalizeText(body?.itemName);
-  const title = normalizeText(body?.title) || itemName;
-  const priceMin = parseIntOrNull(body?.priceMin);
-  const priceMax = parseIntOrNull(body?.priceMax);
-  const bountyAmount = parseIntOrNull(body?.bountyAmount);
+    const body = await parseJson<CreateBountyBody>(request);
+    const itemName = normalizeText(body?.itemName);
+    const title = normalizeText(body?.title) || itemName;
+    const priceMin = parseIntOrNull(body?.priceMin);
+    const priceMax = parseIntOrNull(body?.priceMax);
+    const bountyAmount = parseIntOrNull(body?.bountyAmount);
 
-  if (!itemName && !title) {
-    return jsonError("Card or item name is required.");
-  }
-  if (priceMin === null && priceMax === null) {
-    return jsonError("Enter a budget or budget range.");
-  }
+    if (!itemName && !title) {
+      return jsonError("Card or item name is required.");
+    }
+    if (priceMin === null && priceMax === null) {
+      return jsonError("Enter a budget or budget range.");
+    }
 
-  const priceBounds = normalizePriceBounds(priceMin, priceMax);
-  const notes = normalizeText(body?.notes).slice(0, 240);
+    const priceBounds = normalizePriceBounds(priceMin, priceMax);
+    const notes = normalizeText(body?.notes).slice(0, 240);
 
-  const created = await prisma.wantRequest.create({
-    data: {
-      userId: sessionUser.id,
-      title: title || itemName,
-      itemName: itemName || title,
-      category: normalizeText(body?.category) || null,
-      player: normalizeText(body?.player) || null,
-      setName: normalizeText(body?.setName) || null,
-      year: normalizeText(body?.year) || null,
-      gradeCompany: normalizeText(body?.gradeCompany) || null,
-      gradeTarget: normalizeText(body?.gradeTarget) || null,
-      grade: normalizeText(body?.grade) || null,
-      condition: normalizeText(body?.condition) || null,
-      certNumber: normalizeText(body?.certNumber) || null,
-      priceMin: priceBounds.priceMin,
-      priceMax: priceBounds.priceMax,
-      bountyAmount,
-      notes: notes || null,
-      imageUrl: toHttpUrlOrNull(body?.imageUrl) ?? null,
-      status: body?.status && isBountyRequestStatus(body.status) ? body.status : "OPEN",
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          image: true,
+    const created = await prisma.wantRequest.create({
+      data: {
+        userId: sessionUser.id,
+        title: title || itemName,
+        itemName: itemName || title,
+        category: normalizeText(body?.category) || null,
+        player: normalizeText(body?.player) || null,
+        setName: normalizeText(body?.setName) || null,
+        year: normalizeText(body?.year) || null,
+        gradeCompany: normalizeText(body?.gradeCompany) || null,
+        gradeTarget: normalizeText(body?.gradeTarget) || null,
+        grade: normalizeText(body?.grade) || null,
+        condition: normalizeText(body?.condition) || null,
+        certNumber: normalizeText(body?.certNumber) || null,
+        priceMin: priceBounds.priceMin,
+        priceMax: priceBounds.priceMax,
+        bountyAmount,
+        notes: notes || null,
+        imageUrl: toHttpUrlOrNull(body?.imageUrl) ?? null,
+        status: body?.status && isBountyRequestStatus(body.status) ? body.status : "OPEN",
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            image: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  return jsonOk(asListItem(created), { status: 201 });
+    return jsonOk(asListItem(created), { status: 201 });
+  } catch (error) {
+    if (isBountySchemaMissing(error)) {
+      await ensureBountySchema().catch(() => null);
+      return jsonError("Bounties are initializing. Retry in a few seconds.", 503);
+    }
+    console.error("Bounties POST failed", { error });
+    return jsonError("Unable to post bounty right now.", 500);
+  }
 }

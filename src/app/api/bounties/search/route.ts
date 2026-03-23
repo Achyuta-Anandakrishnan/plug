@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonOk } from "@/lib/api";
+import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
 import { type BountySearchSuggestion } from "@/lib/bounties";
 
 function getSearchParams(request: Request) {
@@ -58,87 +59,89 @@ function dedupeSuggestions(entries: BountySearchSuggestion[]) {
 }
 
 export async function GET(request: Request) {
-  const searchParams = getSearchParams(request);
-  const q = searchParams.get("q")?.trim() ?? "";
-  const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 8), 1), 12);
+  await ensureBountySchema().catch(() => null);
+  try {
+    const searchParams = getSearchParams(request);
+    const q = searchParams.get("q")?.trim() ?? "";
+    const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 8), 1), 12);
 
-  if (q.length < 2) {
-    return jsonOk([]);
-  }
+    if (q.length < 2) {
+      return jsonOk([]);
+    }
 
-  const [auctions, trades, bounties, cachedCards] = await Promise.all([
-    prisma.auction.findMany({
-      where: {
-        status: { in: ["SCHEDULED", "LIVE", "ENDED"] },
-        OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { item: { is: { title: { contains: q, mode: "insensitive" } } } },
-        ],
-      },
-      include: {
-        category: { select: { name: true } },
-        item: {
-          select: {
-            title: true,
-            attributes: true,
-            images: {
-              where: { isPrimary: true },
-              select: { url: true },
-              take: 1,
+    const [auctions, trades, bounties, cachedCards] = await Promise.all([
+      prisma.auction.findMany({
+        where: {
+          status: { in: ["SCHEDULED", "LIVE", "ENDED"] },
+          OR: [
+            { title: { contains: q, mode: "insensitive" } },
+            { item: { is: { title: { contains: q, mode: "insensitive" } } } },
+          ],
+        },
+        include: {
+          category: { select: { name: true } },
+          item: {
+            select: {
+              title: true,
+              attributes: true,
+              images: {
+                where: { isPrimary: true },
+                select: { url: true },
+                take: 1,
+              },
             },
           },
         },
-      },
-      orderBy: { updatedAt: "desc" },
-      take: limit,
-    }),
-    prisma.tradePost.findMany({
-      where: {
-        status: { in: ["OPEN", "MATCHED", "PAUSED"] },
-        OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { cardSet: { contains: q, mode: "insensitive" } },
-          { cardNumber: { contains: q, mode: "insensitive" } },
-          { gradeCompany: { contains: q, mode: "insensitive" } },
-          { gradeLabel: { contains: q, mode: "insensitive" } },
-          { category: { contains: q, mode: "insensitive" } },
-        ],
-      },
-      include: {
-        images: {
-          where: { isPrimary: true },
-          select: { url: true },
-          take: 1,
+        orderBy: { updatedAt: "desc" },
+        take: limit,
+      }),
+      prisma.tradePost.findMany({
+        where: {
+          status: { in: ["OPEN", "MATCHED", "PAUSED"] },
+          OR: [
+            { title: { contains: q, mode: "insensitive" } },
+            { cardSet: { contains: q, mode: "insensitive" } },
+            { cardNumber: { contains: q, mode: "insensitive" } },
+            { gradeCompany: { contains: q, mode: "insensitive" } },
+            { gradeLabel: { contains: q, mode: "insensitive" } },
+            { category: { contains: q, mode: "insensitive" } },
+          ],
         },
-      },
-      orderBy: { updatedAt: "desc" },
-      take: limit,
-    }),
-    prisma.wantRequest.findMany({
-      where: {
-        status: "OPEN",
-        OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { itemName: { contains: q, mode: "insensitive" } },
-          { player: { contains: q, mode: "insensitive" } },
-          { setName: { contains: q, mode: "insensitive" } },
-          { year: { contains: q, mode: "insensitive" } },
-          { certNumber: { contains: q, mode: "insensitive" } },
-        ],
-      },
-      orderBy: { updatedAt: "desc" },
-      take: limit,
-    }),
-    /^[0-9]{4,}$/.test(q)
-      ? prisma.verifiedCardCache.findMany({
-          where: {
-            certNumber: { contains: q, mode: "insensitive" },
+        include: {
+          images: {
+            where: { isPrimary: true },
+            select: { url: true },
+            take: 1,
           },
-          orderBy: { updatedAt: "desc" },
-          take: limit,
-        })
-      : Promise.resolve([]),
-  ]);
+        },
+        orderBy: { updatedAt: "desc" },
+        take: limit,
+      }),
+      prisma.wantRequest.findMany({
+        where: {
+          status: "OPEN",
+          OR: [
+            { title: { contains: q, mode: "insensitive" } },
+            { itemName: { contains: q, mode: "insensitive" } },
+            { player: { contains: q, mode: "insensitive" } },
+            { setName: { contains: q, mode: "insensitive" } },
+            { year: { contains: q, mode: "insensitive" } },
+            { certNumber: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        orderBy: { updatedAt: "desc" },
+        take: limit,
+      }),
+      /^[0-9]{4,}$/.test(q)
+        ? prisma.verifiedCardCache.findMany({
+            where: {
+              certNumber: { contains: q, mode: "insensitive" },
+            },
+            orderBy: { updatedAt: "desc" },
+            take: limit,
+          })
+        : Promise.resolve([]),
+    ]);
 
   const auctionSuggestions: BountySearchSuggestion[] = auctions.map((auction) => {
     const attributes = asRecord(auction.item?.attributes);
@@ -212,10 +215,18 @@ export async function GET(request: Request) {
     };
   });
 
-  return jsonOk(dedupeSuggestions([
-    ...cachedSuggestions,
-    ...auctionSuggestions,
-    ...tradeSuggestions,
-    ...bountySuggestions,
-  ]).slice(0, limit));
+    return jsonOk(dedupeSuggestions([
+      ...cachedSuggestions,
+      ...auctionSuggestions,
+      ...tradeSuggestions,
+      ...bountySuggestions,
+    ]).slice(0, limit));
+  } catch (error) {
+    if (isBountySchemaMissing(error)) {
+      await ensureBountySchema().catch(() => null);
+      return jsonOk([]);
+    }
+    console.error("Bounty search failed", { error });
+    return jsonOk([]);
+  }
 }

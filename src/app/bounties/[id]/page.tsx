@@ -12,6 +12,7 @@ import {
   SectionHeader,
 } from "@/components/product/ProductUI";
 import { bountyAmountLabel, bountyBudgetLabel } from "@/lib/bounties";
+import { ensureBountySchema } from "@/lib/bounty-schema";
 import type { AuctionListItem } from "@/hooks/useAuctions";
 import { prisma } from "@/lib/prisma";
 import type { TradePostListItem } from "@/lib/trade-client";
@@ -154,6 +155,7 @@ export default async function BountyDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await ensureBountySchema().catch(() => null);
   const { id } = await params;
 
   const bounty = await prisma.wantRequest.findUnique({
