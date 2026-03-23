@@ -92,6 +92,7 @@ export default function TradeDetailPage() {
 
   const [post, setPost] = useState<TradePostDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState("");
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [actingOfferId, setActingOfferId] = useState<string | null>(null);
@@ -109,13 +110,23 @@ export default function TradeDetailPage() {
       setLoading(true);
     }
     setError("");
+    setNotFound(false);
     try {
       const response = await fetchClientApi(`/api/trades/${encodedPostId}`, { cache: "no-store" });
       const payload = (await response.json()) as TradePostDetail & { error?: string };
       if (!response.ok) {
+        if (response.status === 404) {
+          setPost(null);
+          setNotFound(true);
+          if (!options?.silent) {
+            setLoading(false);
+          }
+          return;
+        }
         throw new Error(payload.error || "Unable to load trade.");
       }
       setPost(payload);
+      setNotFound(false);
       if (!options?.silent) {
         setLoading(false);
       }
@@ -123,6 +134,9 @@ export default function TradeDetailPage() {
       setError(normalizeClientError(err, "Unable to load trade."));
       if (!options?.silent) {
         setLoading(false);
+      }
+      if (!options?.silent) {
+        setNotFound(false);
       }
     }
   };
@@ -381,8 +395,45 @@ export default function TradeDetailPage() {
     return <CheckersLoader title="Loading trade..." compact className="ios-empty" />;
   }
 
+  if (error && !post) {
+    return (
+      <PageContainer className="trade-detail-page app-page--trade-detail">
+        <section className="app-section">
+          <div className="ios-empty">
+            <div className="product-card trade-detail-empty-state">
+              <h2>Trade unavailable</h2>
+              <p>{error}</p>
+              <div className="trade-detail-head-actions">
+                <SecondaryButton href="/trades">Back to trades</SecondaryButton>
+                <PrimaryButton onClick={() => void refresh()}>Try again</PrimaryButton>
+              </div>
+            </div>
+          </div>
+        </section>
+      </PageContainer>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <PageContainer className="trade-detail-page app-page--trade-detail">
+        <section className="app-section">
+          <div className="ios-empty">
+            <div className="product-card trade-detail-empty-state">
+              <h2>Trade not found</h2>
+              <p>This trade may have been removed, archived, or never existed.</p>
+              <div className="trade-detail-head-actions">
+                <SecondaryButton href="/trades">Back to trades</SecondaryButton>
+              </div>
+            </div>
+          </div>
+        </section>
+      </PageContainer>
+    );
+  }
+
   if (!post) {
-    return <div className="ios-empty">Trade not found.</div>;
+    return <CheckersLoader title="Loading trade..." compact className="ios-empty" />;
   }
 
   const tags = toTagArray(post.tags);

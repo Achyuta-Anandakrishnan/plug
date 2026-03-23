@@ -2351,6 +2351,28 @@ body {
   gap: 14px;
 }
 
+.trade-detail-empty-state {
+  display: grid;
+  gap: 12px;
+  max-width: 420px;
+  padding: 18px;
+  text-align: left;
+}
+
+.trade-detail-empty-state h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.trade-detail-empty-state p {
+  margin: 0;
+  color: var(--product-text-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .trade-detail-head-actions {
   display: flex;
   align-items: center;
