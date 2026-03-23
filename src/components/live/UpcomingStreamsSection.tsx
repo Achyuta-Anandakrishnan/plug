@@ -20,15 +20,22 @@ export function UpcomingStreamsSection({
   const visibleStreams = streams.slice(0, limit);
 
   return (
-    <section id="upcoming" className="live-v3-upcoming">
-      <SectionHeader
-        title="Upcoming"
-        action={compact ? null : <span className="market-count">{visibleStreams.length} scheduled</span>}
-      />
+    <section id="upcoming" className={`live-v3-upcoming ${compact ? "is-mobile" : ""}`}>
+      {compact ? (
+        <div className="mobile-feed-section-head">
+          <h2>Upcoming</h2>
+          <span>{visibleStreams.length}</span>
+        </div>
+      ) : (
+        <SectionHeader
+          title="Upcoming"
+          action={<span className="market-count">{visibleStreams.length} scheduled</span>}
+        />
+      )}
 
       {visibleStreams.length === 0 ? (
         <EmptyStateCard
-          title="No upcoming streams scheduled yet."
+          title={compact ? "No upcoming sessions." : "No upcoming streams scheduled yet."}
           description={compact ? "Hosts will show here once sessions are scheduled." : "Once hosts publish future sessions, they will appear here."}
         />
       ) : (

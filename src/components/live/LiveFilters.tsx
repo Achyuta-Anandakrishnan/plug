@@ -29,6 +29,7 @@ const TIMING_OPTIONS: Array<{ value: LiveTimingFilter; label: string }> = [
 ];
 
 type LiveFiltersProps = {
+  mobile?: boolean;
   title?: string;
   query: string;
   onQueryChange: (value: string) => void;
@@ -43,6 +44,7 @@ type LiveFiltersProps = {
 };
 
 export function LiveFilters({
+  mobile = false,
   title = "Live",
   query,
   onQueryChange,
@@ -55,7 +57,8 @@ export function LiveFilters({
   timing,
   onTimingChange,
 }: LiveFiltersProps) {
-  const isMobileUi = useMobileUi();
+  const responsiveMobile = useMobileUi();
+  const isMobileUi = mobile || responsiveMobile;
 
   if (isMobileUi) {
     return (

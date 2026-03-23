@@ -227,12 +227,21 @@ export function StreamRoomMobile({
               {formatSeconds(timeLeft)}
             </span>
           </div>
-          <div className="absolute bottom-4 left-4 right-4 rounded-[24px] bg-slate-950/55 px-4 py-3 text-white backdrop-blur">
-            <p className="font-display text-2xl leading-tight">{data.title}</p>
-            <p className="mt-1 text-sm text-white/72">
-              {data.seller?.user?.displayName ?? "Verified seller"} · {(participantCount ?? data.watchersCount)} watching
-            </p>
-          </div>
+        </div>
+      </section>
+
+      <section className="stream-room-mobile-stats">
+        <div>
+          <p>Current bid</p>
+          <strong>{formatCurrency(data.currentBid, currency)}</strong>
+        </div>
+        <div>
+          <p>Watchers</p>
+          <strong>{(participantCount ?? data.watchersCount).toLocaleString()}</strong>
+        </div>
+        <div>
+          <p>Time left</p>
+          <strong>{roomLive ? formatSeconds(timeLeft) : "Pending"}</strong>
         </div>
       </section>
 

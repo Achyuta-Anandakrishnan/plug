@@ -63,6 +63,16 @@ const emptyOfferCard: OfferDraftCard = {
   notes: "",
 };
 
+async function readJsonSafely<T>(response: Response): Promise<T | null> {
+  const body = await response.text();
+  if (!body.trim()) return null;
+  try {
+    return JSON.parse(body) as T;
+  } catch {
+    return null;
+  }
+}
+
 function postStatusClass(status: TradePostDetail["status"]) {
   if (status === "OPEN") return "border-emerald-200 bg-emerald-50 text-emerald-700";
   if (status === "MATCHED") return "border-slate-300 bg-slate-100 text-slate-700";
@@ -113,7 +123,7 @@ export default function TradeDetailPage() {
     setNotFound(false);
     try {
       const response = await fetchClientApi(`/api/trades/${encodedPostId}`, { cache: "no-store" });
-      const payload = (await response.json()) as TradePostDetail & { error?: string };
+      const payload = await readJsonSafely<TradePostDetail & { error?: string }>(response);
       if (!response.ok) {
         if (response.status === 404) {
           setPost(null);
@@ -123,7 +133,10 @@ export default function TradeDetailPage() {
           }
           return;
         }
-        throw new Error(payload.error || "Unable to load trade.");
+        throw new Error(payload?.error || `Unable to load trade (${response.status}).`);
+      }
+      if (!payload) {
+        throw new Error("Trade detail returned an empty response.");
       }
       setPost(payload);
       setNotFound(false);
@@ -166,8 +179,8 @@ export default function TradeDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      const payload = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Unable to update status.");
+      const payload = await readJsonSafely<{ error?: string }>(response);
+      if (!response.ok) throw new Error(payload?.error || "Unable to update status.");
       await refresh();
     } catch (err) {
       setError(normalizeClientError(err, "Unable to update status."));
@@ -196,9 +209,9 @@ export default function TradeDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const responsePayload = (await response.json()) as { error?: string };
+      const responsePayload = await readJsonSafely<{ error?: string }>(response);
       if (!response.ok) {
-        throw new Error(responsePayload.error || "Unable to update offer.");
+        throw new Error(responsePayload?.error || "Unable to update offer.");
       }
       await refresh();
       return true;
@@ -225,15 +238,15 @@ export default function TradeDetailPage() {
       const response = await fetchClientApi(`/api/trades/offers/${offerId}/checkout`, {
         method: "POST",
       });
-      const payload = (await response.json()) as { checkoutUrl?: string | null; error?: string; paid?: boolean };
+      const payload = await readJsonSafely<{ checkoutUrl?: string | null; error?: string; paid?: boolean }>(response);
       if (!response.ok) {
-        throw new Error(payload.error || "Unable to start settlement checkout.");
+        throw new Error(payload?.error || "Unable to start settlement checkout.");
       }
-      if (payload.checkoutUrl && /^https?:\/\/[^\s]+$/i.test(payload.checkoutUrl)) {
+      if (payload?.checkoutUrl && /^https?:\/\/[^\s]+$/i.test(payload.checkoutUrl)) {
         window.location.assign(payload.checkoutUrl);
         return;
       }
-      if (payload.checkoutUrl) {
+      if (payload?.checkoutUrl) {
         throw new Error("Checkout link is invalid.");
       }
       await refresh();
@@ -277,8 +290,8 @@ export default function TradeDetailPage() {
           cards,
         }),
       });
-      const payload = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(payload.error || "Unable to submit offer.");
+      const payload = await readJsonSafely<{ error?: string }>(response);
+      if (!response.ok) throw new Error(payload?.error || "Unable to submit offer.");
       setOfferMessage("");
       setCashAdjustment("");
       setOfferCards([{ ...emptyOfferCard }]);

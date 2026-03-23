@@ -9,9 +9,38 @@ import {
   SecondaryButton,
 } from "@/components/product/ProductUI";
 import { ProfileEditor } from "@/components/settings/ProfileEditor";
+import { useMobileUi } from "@/hooks/useMobileUi";
 
 export default function SettingsPage() {
+  const isMobileUi = useMobileUi();
   const { data: session } = useSession();
+
+  if (isMobileUi) {
+    return (
+      <PageContainer className="settings-page app-page--settings settings-mobile-page">
+        <section className="app-section settings-mobile-screen">
+          <section className="settings-mobile-subheader">
+            <div className="app-control-title">Settings</div>
+            <p className="settings-mobile-note">Profile, orders, referrals, and account controls.</p>
+          </section>
+
+          <section className="settings-mobile-actions-list" aria-label="Settings shortcuts">
+            <SecondaryButton href="/orders">Orders</SecondaryButton>
+            <SecondaryButton href="/referral">Referral program</SecondaryButton>
+            {session?.user?.id ? (
+              <SecondaryButton onClick={() => void signOut()}>Sign out</SecondaryButton>
+            ) : (
+              <PrimaryButton onClick={() => void signIn()}>Sign in</PrimaryButton>
+            )}
+          </section>
+
+          <section className="settings-mobile-panel">
+            <ProfileEditor />
+          </section>
+        </section>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer className="settings-page app-page--settings">

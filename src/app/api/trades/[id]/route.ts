@@ -82,35 +82,104 @@ const postInclude = {
   },
 } satisfies Prisma.TradePostInclude;
 
+const postBaseInclude = {
+  owner: {
+    select: {
+      id: true,
+      username: true,
+      displayName: true,
+      image: true,
+    },
+  },
+  images: {
+    orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+  },
+  _count: {
+    select: { offers: true },
+  },
+} satisfies Prisma.TradePostInclude;
+
+const offerInclude = {
+  proposer: {
+    select: {
+      id: true,
+      username: true,
+      displayName: true,
+      image: true,
+    },
+  },
+  cards: {
+    orderBy: { createdAt: "asc" },
+  },
+  settlement: {
+    include: {
+      payer: {
+        select: {
+          id: true,
+          username: true,
+          displayName: true,
+        },
+      },
+      payee: {
+        select: {
+          id: true,
+          username: true,
+          displayName: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.TradeOfferInclude;
+
 export async function GET(_request: Request, { params }: RouteContext) {
   await ensureTradeSchema().catch(() => null);
-  const { id } = await params;
-  const sessionUser = await getSessionUser();
-  const post = await prisma.tradePost.findUnique({
-    where: { id },
-    include: postInclude,
-  });
+  try {
+    const { id } = await params;
+    const sessionUser = await getSessionUser();
+    const post = await prisma.tradePost.findUnique({
+      where: { id },
+      include: postBaseInclude,
+    });
 
-  if (!post) {
-    return jsonError("Trade post not found.", 404);
+    if (!post) {
+      return jsonError("Trade post not found.", 404);
+    }
+
+    const isOwner = sessionUser?.id === post.ownerId;
+
+    let offers: Array<
+      Prisma.TradeOfferGetPayload<{
+        include: typeof offerInclude;
+      }>
+    > = [];
+
+    if (sessionUser?.id) {
+      try {
+        offers = await prisma.tradeOffer.findMany({
+          where: isOwner
+            ? { postId: id }
+            : { postId: id, proposerId: sessionUser.id },
+          include: offerInclude,
+          orderBy: { createdAt: "desc" },
+        });
+      } catch (offerError) {
+        console.error("Trade offers query failed", { tradeId: id, offerError });
+      }
+    }
+
+    return jsonOk({
+      ...post,
+      offers,
+      viewer: {
+        isOwner,
+        canOffer: Boolean(sessionUser?.id && !isOwner && post.status === "OPEN"),
+        canEdit: isOwner,
+      },
+    });
+  } catch (error) {
+    console.error("Trade detail query failed", error);
+    return jsonError("Unable to load trade post right now.", 500);
   }
-
-  const isOwner = sessionUser?.id === post.ownerId;
-  const offers = isOwner
-    ? post.offers
-    : sessionUser?.id
-      ? post.offers.filter((offer) => offer.proposerId === sessionUser.id)
-      : [];
-
-  return jsonOk({
-    ...post,
-    offers,
-    viewer: {
-      isOwner,
-      canOffer: Boolean(sessionUser?.id && !isOwner && post.status === "OPEN"),
-      canEdit: isOwner,
-    },
-  });
 }
 
 export async function PATCH(request: Request, { params }: RouteContext) {

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { CheckersLoader } from "@/components/CheckersLoader";
 import { ListingCard } from "@/components/market/ListingCard";
 import { ListingGrid } from "@/components/market/ListingGrid";
 import type { MarketListing, MarketMode, SortMode } from "@/components/market/types";
@@ -50,8 +51,12 @@ const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
   { value: "popular", label: "Most watched" },
 ];
 
-export function MarketHub() {
-  const isMobileUi = useMobileUi();
+type MarketHubProps = {
+  initialIsMobile?: boolean;
+};
+
+export function MarketHub({ initialIsMobile }: MarketHubProps) {
+  const isMobileUi = useMobileUi(initialIsMobile);
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -182,6 +187,112 @@ export function MarketHub() {
     const queryString = params.toString();
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   };
+
+  if (isMobileUi) {
+    const mobileSections = [
+      { key: "trending", title: "Trending", items: trendingAuctions },
+      { key: "ending", title: "Ending soon", items: endingSoonListings },
+      { key: "recent", title: "Recently listed", items: recentlyListed },
+    ].filter((section) => section.items.length > 0);
+
+    return (
+      <PageContainer className="market-page listing-system-page app-page--market market-mobile-page">
+        <section className="app-section market-mobile-screen">
+          <section className="market-mobile-subheader">
+            <div className="market-mobile-search-row">
+              <div className="app-search market-mobile-search">
+                <SearchIcon />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search cards, sets, players"
+                />
+              </div>
+              <label className="app-select-wrap app-select-inline market-mobile-sort">
+                <span>Sort</span>
+                <select
+                  value={sortMode}
+                  onChange={(event) => setSortMode(event.target.value as SortMode)}
+                  className="app-select"
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="mobile-page-toolbar-scroll market-mobile-chiprail">
+              {MODE_OPTIONS.map((option) => (
+                <FilterChip
+                  key={option.value}
+                  label={option.label}
+                  active={modeFromUrl === option.value}
+                  onClick={() => setMode(option.value)}
+                />
+              ))}
+            </div>
+            <div className="mobile-page-toolbar-scroll market-mobile-chiprail">
+              {categoryFilters.map((category) => (
+                <FilterChip
+                  key={category.id}
+                  label={category.label}
+                  active={selectedCategory === category.slug}
+                  onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
+                />
+              ))}
+            </div>
+          </section>
+
+          {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
+          {listingsLoading ? <CheckersLoader title="Loading inventory..." compact className="ios-empty" /> : null}
+
+          {!listingsLoading ? (
+            <>
+              {mobileSections.map((section) => (
+                <section key={section.key} className="mobile-feed-section market-mobile-rail-section">
+                  <div className="mobile-feed-section-head">
+                    <h2>{section.title}</h2>
+                    <span>{section.items.length}</span>
+                  </div>
+                  <div className="market-rail-grid market-mobile-rail-grid" role="list">
+                    {section.items.map((listing) => (
+                      <ListingCard
+                        key={`${section.key}-${listing.id}`}
+                        listing={listing}
+                        saved={savedAuctionIds.has(listing.id)}
+                        onToggleSave={toggleAuctionSave}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+
+              <section className="mobile-feed-section market-mobile-feed-section">
+                <div className="mobile-feed-section-head">
+                  <h2>Inventory</h2>
+                  <span>{sortedListings.length}</span>
+                </div>
+                {sortedListings.length === 0 ? (
+                  <EmptyStateCard
+                    title="No listings match right now."
+                    description="Try another search, mode, or category."
+                  />
+                ) : (
+                  <ListingGrid
+                    listings={sortedListings}
+                    savedAuctionIds={savedAuctionIds}
+                    onToggleSave={toggleAuctionSave}
+                  />
+                )}
+              </section>
+            </>
+          ) : null}
+        </section>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer className="market-page listing-system-page app-page--market">

@@ -77,8 +77,12 @@ function applyStreamFilters(
   return queryFiltered.filter((stream) => categoryMatches(stream, category));
 }
 
-export function LiveHub() {
-  const isMobileUi = useMobileUi();
+type LiveHubProps = {
+  initialIsMobile?: boolean;
+};
+
+export function LiveHub({ initialIsMobile }: LiveHubProps) {
+  const isMobileUi = useMobileUi(initialIsMobile);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<LiveCategoryFilter>("all");
   const [streamType, setStreamType] = useState<LiveStreamTypeFilter>("all");
@@ -162,6 +166,60 @@ export function LiveHub() {
   const liveLimit = isMobileUi ? 8 : timing === "live" ? 24 : 12;
   const upcomingLimit = isMobileUi ? 4 : timing === "upcoming" ? 12 : 6;
   const spotlightLimit = isMobileUi ? 4 : 6;
+
+  if (isMobileUi) {
+    return (
+      <PageContainer className="live-v3-page live-page listing-system-page app-page--live live-mobile-page">
+        <LiveFilters
+          mobile
+          title="Live"
+          query={query}
+          onQueryChange={setQuery}
+          category={category}
+          onCategoryChange={setCategory}
+          streamType={streamType}
+          onStreamTypeChange={setStreamType}
+          sort={sort}
+          onSortChange={setSort}
+          timing={timing}
+          onTimingChange={setTiming}
+        />
+
+        {loading ? (
+          <CheckersLoader title="Loading live sessions..." compact className="live-v3-empty" />
+        ) : (
+          <div className="live-mobile-feed">
+            <LiveNowRail
+              streams={filteredLive}
+              loading={liveLoading}
+              limit={liveLimit}
+              compact
+              savedStreamIds={savedAuctionIds}
+              onToggleSave={toggleAuctionSave}
+            />
+
+            <UpcomingStreamsSection
+              streams={filteredUpcoming}
+              reminders={reminderIds}
+              onToggleReminder={toggleReminder}
+              limit={upcomingLimit}
+              compact
+            />
+
+            <StreamerSpotlight
+              hosts={spotlightHosts.slice(0, spotlightLimit)}
+              followerCounts={followerCounts}
+              followedIds={followedIds}
+              onToggleFollow={toggleFollow}
+              compact
+            />
+          </div>
+        )}
+
+        {hasError ? <EmptyStateCard title="Live data is partially unavailable." description="Some streams or hosts may be missing until the feed reconnects." /> : null}
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer className="live-v3-page live-page listing-system-page app-page--live">

@@ -20,15 +20,22 @@ export function StreamerSpotlight({
   const visibleHosts = hosts.slice(0, 6);
 
   return (
-    <section className="live-v3-spotlight">
-      <SectionHeader
-        title="Hosts to watch"
-        action={compact ? null : <span className="market-count">{visibleHosts.length} hosts</span>}
-      />
+    <section className={`live-v3-spotlight ${compact ? "is-mobile" : ""}`}>
+      {compact ? (
+        <div className="mobile-feed-section-head">
+          <h2>Hosts to watch</h2>
+          <span>{visibleHosts.length}</span>
+        </div>
+      ) : (
+        <SectionHeader
+          title="Hosts to watch"
+          action={<span className="market-count">{visibleHosts.length} hosts</span>}
+        />
+      )}
 
       {visibleHosts.length === 0 ? (
         <EmptyStateCard
-          title="No host highlights yet."
+          title={compact ? "No host activity yet." : "No host highlights yet."}
           description={compact ? "Host activity will appear here as rooms go live." : "Once host activity picks up, featured collectors will appear here."}
         />
       ) : (

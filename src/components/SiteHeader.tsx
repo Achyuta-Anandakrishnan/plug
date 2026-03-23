@@ -96,33 +96,76 @@ function useSiteHeaderState() {
   const mobileTitle = useMemo(() => {
     if (!pathname || pathname === "/") return null;
     if (pathname === "/wants") return "Want Board";
-    if (pathname.startsWith("/wants/")) return pathname === "/wants/new" ? "Post want" : "Want Board";
+    if (pathname.startsWith("/wants/")) return pathname === "/wants/new" ? "Post want" : "Want";
     if (
       pathname === "/listings"
       || pathname === "/explore"
       || pathname.startsWith("/listings/")
       || pathname.startsWith("/explore/")
-      || pathname.startsWith("/auctions/")
     ) {
       return "Market";
     }
-    if (pathname === "/live" || pathname.startsWith("/live/") || pathname.startsWith("/streams/")) {
+    if (pathname.startsWith("/auctions/")) return "Listing";
+    if (pathname === "/live" || pathname.startsWith("/live/")) {
       return "Live";
     }
-    if (pathname === "/trades" || pathname.startsWith("/trades/")) return "Trades";
-    if (pathname === "/forum" || pathname.startsWith("/forum/")) return "Forum";
+    if (pathname.startsWith("/streams/")) return "Live room";
+    if (pathname === "/trades") return "Trades";
+    if (pathname === "/trades/new") return "New trade";
+    if (pathname.startsWith("/trades/")) return "Trade";
+    if (pathname === "/forum") return "Forum";
+    if (pathname === "/forum/new") return "Write thread";
+    if (pathname.startsWith("/forum/")) return "Thread";
     if (pathname === "/messages" || pathname.startsWith("/messages/")) return "Inbox";
     if (pathname === "/sell") return "Create listing";
     if (pathname === "/settings") return "Settings";
+    if (pathname === "/orders") return "Orders";
     if (pathname === "/referral") return "Referral";
+    if (pathname === "/seller/verification") return "Seller verification";
     if (pathname === "/signin") return "Sign in";
     if (pathname === "/signup") return "Create account";
     return null;
   }, [pathname]);
 
+  const mobileBackHref = useMemo(() => {
+    if (!pathname || pathname === "/") return null;
+    if (pathname === "/forum/new") return "/forum";
+    if (pathname.startsWith("/forum/")) return "/forum";
+    if (pathname === "/wants/new") return "/wants";
+    if (pathname.startsWith("/wants/")) return "/wants";
+    if (pathname === "/trades/new") return "/trades";
+    if (pathname.startsWith("/trades/")) return "/trades";
+    if (pathname.startsWith("/streams/")) return "/live";
+    if (pathname.startsWith("/auctions/")) return "/listings";
+    if (pathname === "/referral" || pathname === "/orders") return "/settings";
+    if (pathname.startsWith("/profiles/") || pathname.startsWith("/u/")) return "/listings";
+    return null;
+  }, [pathname]);
+
+  const isMobileTopLevel = useMemo(() => {
+    if (!pathname) return true;
+    return [
+      "/",
+      "/listings",
+      "/explore",
+      "/wants",
+      "/live",
+      "/trades",
+      "/forum",
+      "/messages",
+      "/settings",
+      "/sell",
+      "/signin",
+      "/signup",
+      "/referral",
+    ].includes(pathname);
+  }, [pathname]);
+
   return {
     isAdmin,
     isVerifiedSeller,
+    isMobileTopLevel,
+    mobileBackHref,
     mobileTitle,
     navItems,
     isNavActive,
@@ -174,14 +217,20 @@ export function SiteDesktopHeader() {
 }
 
 export function SiteMobileHeader() {
-  const { isAdmin, mobileTitle, signedIn } = useSiteHeaderState();
+  const { isAdmin, isMobileTopLevel, mobileBackHref, mobileTitle, signedIn } = useSiteHeaderState();
 
   return (
     <header className="site-header site-header-mobile">
       <div className="site-shell">
         <div className="site-header-row site-header-row-mobile">
           <div className="site-header-left">
-            <Brand />
+            {isMobileTopLevel || !mobileBackHref ? (
+              <Brand />
+            ) : (
+              <Link href={mobileBackHref} className="site-mobile-back">
+                Back
+              </Link>
+            )}
           </div>
 
           {mobileTitle ? (

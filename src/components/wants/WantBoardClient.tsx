@@ -46,8 +46,12 @@ const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
   { value: "recently-active", label: "Recently active" },
 ];
 
-export function WantBoardClient() {
-  const isMobileUi = useMobileUi();
+type WantBoardClientProps = {
+  initialIsMobile?: boolean;
+};
+
+export function WantBoardClient({ initialIsMobile }: WantBoardClientProps) {
+  const isMobileUi = useMobileUi(initialIsMobile);
   const { data: categories } = useCategories();
   const { wantRequestIds, toggleWantSave } = useSavedListings();
 
@@ -125,6 +129,119 @@ export function WantBoardClient() {
     () => [...wants].sort((a, b) => wantBudgetValue(b) - wantBudgetValue(a)).slice(0, 6),
     [wants],
   );
+
+  if (isMobileUi) {
+    return (
+      <PageContainer className="want-page listing-system-page app-page--wants want-mobile-page">
+        <section className="app-section want-mobile-screen">
+          <section className="want-mobile-subheader">
+            <div className="mobile-page-toolbar-top">
+              <div>
+                <div className="app-control-title">Want Board</div>
+                <p className="want-toolbar-note">Collectors posting what they want to buy right now.</p>
+              </div>
+              <PrimaryButton href="/wants/new" className="want-mobile-create">Post Want</PrimaryButton>
+            </div>
+            <div className="app-search">
+              <SearchIcon />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search items, grades, certs"
+              />
+            </div>
+            <div className="mobile-page-toolbar-scroll want-mobile-chiprail">
+              {categoryFilters.map((category) => (
+                <FilterChip
+                  key={category.id}
+                  label={category.label}
+                  active={selectedCategory === category.slug}
+                  onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
+                />
+              ))}
+            </div>
+            <div className="want-mobile-selects">
+              <label className="app-select-wrap app-select-inline">
+                <span>Grade</span>
+                <select value={grade} onChange={(event) => setGrade(event.target.value as GradeFilter)} className="app-select">
+                  {GRADE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="app-select-wrap app-select-inline">
+                <span>Budget</span>
+                <select value={budget} onChange={(event) => setBudget(event.target.value as BudgetFilter)} className="app-select">
+                  {BUDGET_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="app-select-wrap app-select-inline">
+                <span>Sort</span>
+                <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)} className="app-select">
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </section>
+
+          {error ? <EmptyStateCard title="Want Board unavailable" description={error} /> : null}
+          {loading ? <CheckersLoader title="Loading wants..." compact className="ios-empty" /> : null}
+
+          {!loading && featuredWants.length > 0 ? (
+            <section className="mobile-feed-section want-mobile-featured-section">
+              <div className="mobile-feed-section-head">
+                <h2>High budget</h2>
+                <span>{featuredWants.length}</span>
+              </div>
+              <div className="market-rail-grid want-rail-grid">
+                {featuredWants.map((want) => (
+                  <ListingCard
+                    key={want.id}
+                    kind="want"
+                    want={want}
+                    saved={wantRequestIds.has(want.id)}
+                    onToggleSave={toggleWantSave}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {!loading ? (
+            <section className="mobile-feed-section want-mobile-feed-section">
+              <div className="mobile-feed-section-head">
+                <h2>Active wants</h2>
+                <span>{wants.length}</span>
+              </div>
+              {wants.length === 0 ? (
+                <EmptyStateCard
+                  title="No wants match these filters."
+                  description="Try another category, widen the budget, or post the first request."
+                  action={<PrimaryButton href="/wants/new">Post Want</PrimaryButton>}
+                />
+              ) : (
+                <div className={`market-v2-grid want-board-grid ${wants.length > 0 && wants.length < 3 ? "is-sparse" : ""}`}>
+                  {wants.map((want) => (
+                    <ListingCard
+                      key={want.id}
+                      kind="want"
+                      want={want}
+                      saved={wantRequestIds.has(want.id)}
+                      onToggleSave={toggleWantSave}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          ) : null}
+        </section>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer className="want-page listing-system-page app-page--wants">

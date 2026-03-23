@@ -9,14 +9,16 @@ type StreamRoomResponsiveProps = {
   auctionId: string;
   initialData?: AuctionDetail | null;
   stripeEnabled?: boolean;
+  initialIsMobile?: boolean;
 };
 
 export function StreamRoomResponsive({
   auctionId,
   initialData,
   stripeEnabled,
+  initialIsMobile,
 }: StreamRoomResponsiveProps) {
-  const isMobileUi = useMobileUi();
+  const isMobileUi = useMobileUi(initialIsMobile);
 
   if (isMobileUi) {
     return (

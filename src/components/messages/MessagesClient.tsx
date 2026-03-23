@@ -13,6 +13,7 @@ import {
   SearchIcon,
   SecondaryButton,
 } from "@/components/product/ProductUI";
+import { useMobileUi } from "@/hooks/useMobileUi";
 
 type Conversation = {
   id: string;
@@ -65,10 +66,15 @@ function getInitials(value: string) {
   return parts.map((part) => part[0]?.toUpperCase() ?? "").join("");
 }
 
-export function MessagesClient() {
+type MessagesClientProps = {
+  initialIsMobile?: boolean;
+};
+
+export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
   const searchParams = useSearchParams();
   const preselectConversationId = searchParams.get("c");
   const { data: session } = useSession();
+  const isMobileUi = useMobileUi(initialIsMobile);
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,22 +89,11 @@ export function MessagesClient() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null);
-
-  const [isDesktop, setIsDesktop] = useState(false);
   const [mobilePane, setMobilePane] = useState<"threads" | "chat">(
     preselectConversationId ? "chat" : "threads",
   );
 
   const messageEndRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const media = window.matchMedia("(min-width: 1024px)");
-    const onChange = () => setIsDesktop(media.matches);
-    onChange();
-    media.addEventListener("change", onChange);
-    return () => media.removeEventListener("change", onChange);
-  }, []);
 
   useEffect(() => {
     if (preselectConversationId) {
@@ -180,7 +175,7 @@ export function MessagesClient() {
     if (!activeId) {
       setMessages([]);
       setMessagesCursor(null);
-      if (!isDesktop) setMobilePane("threads");
+      if (isMobileUi) setMobilePane("threads");
       return;
     }
 
@@ -188,7 +183,7 @@ export function MessagesClient() {
     return () => {
       cancelled = true;
     };
-  }, [activeId, isDesktop]);
+  }, [activeId, isMobileUi]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -211,6 +206,7 @@ export function MessagesClient() {
     activeParticipantsLabel ||
     "Conversation";
 
+  const isDesktop = !isMobileUi;
   const showThreadsPane = isDesktop || mobilePane === "threads";
   const showChatPane = isDesktop || mobilePane === "chat";
 
@@ -300,7 +296,7 @@ export function MessagesClient() {
         setActiveId(null);
         setMessages([]);
         setDraft("");
-        if (!isDesktop) setMobilePane("threads");
+        if (isMobileUi) setMobilePane("threads");
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to delete chat.");

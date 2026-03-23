@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
+import { LandingLayoutSwitch } from "@/components/home/LandingLayoutSwitch";
 import {
   EmptyStateCard,
   PageContainer,
@@ -10,6 +12,7 @@ import { formatCurrency, formatSeconds } from "@/lib/format";
 import { getGradeLabel, getTimeLeftSeconds } from "@/lib/auctions";
 import { auctions as mockAuctions } from "@/lib/mock";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
+import { isProbablyMobileUserAgent } from "@/lib/mobile";
 import { prisma } from "@/lib/prisma";
 import { tradeValueLabel } from "@/lib/trade-client";
 
@@ -396,6 +399,7 @@ function HomeTrustPoint({
 }
 
 export default async function Home() {
+  const initialIsMobile = isProbablyMobileUserAgent((await headers()).get("user-agent"));
   const data = await getHomePageData();
   const heroStream = data.streams[0];
   const heroAuction = data.auctions[0];
@@ -405,7 +409,10 @@ export default async function Home() {
 
   return (
     <PageContainer className="landing-page">
-      <div className="landing-desktop-layout">
+      <LandingLayoutSwitch
+        initialIsMobile={initialIsMobile}
+        desktop={(
+          <div className="landing-desktop-layout">
         <section className="landing-section landing-hero">
           <div className="landing-hero-copy">
             <p className="landing-eyebrow">For collectors, by collectors</p>
@@ -581,8 +588,9 @@ export default async function Home() {
           </div>
         </section>
       </div>
-
-      <div className="landing-mobile-layout">
+        )}
+        mobile={(
+          <div className="landing-mobile-layout">
         <section className="landing-mobile-section landing-mobile-hero">
           <p className="landing-eyebrow">For collectors, by collectors</p>
           <h1>Live. Auctions. Trades.</h1>
@@ -695,6 +703,8 @@ export default async function Home() {
           </div>
         </section>
       </div>
+        )}
+      />
 
       {data.streams.length === 0 && data.auctions.length === 0 && data.trades.length === 0 ? (
         <EmptyStateCard

@@ -43,8 +43,12 @@ function formatCompactDate(value: string) {
     : date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-export function ForumClient() {
-  const isMobileUi = useMobileUi();
+type ForumClientProps = {
+  initialIsMobile?: boolean;
+};
+
+export function ForumClient({ initialIsMobile }: ForumClientProps) {
+  const isMobileUi = useMobileUi(initialIsMobile);
   const { data: session } = useSession();
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"published" | "drafts">("published");
@@ -118,6 +122,93 @@ export function ForumClient() {
   const handleSearch = async () => {
     await fetchPosts(query);
   };
+
+  if (isMobileUi) {
+    return (
+      <PageContainer className="forum-page app-page--forum forum-mobile-page">
+        <section className="app-section forum-mobile-screen">
+          <section className="forum-mobile-subheader">
+            <div className="mobile-page-toolbar-top">
+              <div className="app-control-title">Forum</div>
+              {session?.user?.id ? (
+                <PrimaryButton href="/forum/new" className="forum-mobile-compose">Write</PrimaryButton>
+              ) : (
+                <SecondaryButton onClick={() => signIn()} className="forum-mobile-compose">Sign in</SecondaryButton>
+              )}
+            </div>
+            <div className="app-search">
+              <SearchIcon />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search threads"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void handleSearch();
+                  }
+                }}
+              />
+            </div>
+            <div className="mobile-page-toolbar-scroll forum-mobile-chiprail">
+              <FilterChip
+                label="Published"
+                active={resolvedTab === "published"}
+                onClick={() => setActiveTab("published")}
+              />
+              {session?.user?.id ? (
+                <FilterChip
+                  label="Drafts"
+                  active={resolvedTab === "drafts"}
+                  onClick={() => setActiveTab("drafts")}
+                />
+              ) : null}
+            </div>
+          </section>
+
+          {error ? <EmptyStateCard title="Forum unavailable" description={error} /> : null}
+          {draftWarning ? <EmptyStateCard title="Drafts unavailable" description={draftWarning} /> : null}
+          {loading ? <CheckersLoader title="Loading posts..." compact className="ios-empty" /> : null}
+
+          {!loading ? (
+            <section className="mobile-feed-section forum-mobile-feed-section">
+              {activePosts.length === 0 ? (
+                <EmptyStateCard
+                  title={resolvedTab === "drafts" ? "No drafts yet." : "No threads yet."}
+                  description={resolvedTab === "drafts" ? "Saved forum drafts will show up here." : "Be the first collector to start a discussion."}
+                />
+              ) : (
+                <section className="forum-thread-list forum-thread-list-mobile">
+                  {activePosts.map((post) => (
+                    <Link
+                      key={post.id}
+                      href={post.status === "DRAFT" ? `/forum/new?id=${post.id}` : `/forum/${post.id}`}
+                      className="forum-thread-card forum-thread-card-mobile"
+                    >
+                      <div className="forum-thread-top">
+                        <div className="forum-thread-main">
+                          <div className="forum-thread-meta">
+                            <span>{post.status === "DRAFT" ? "Draft" : "Thread"}</span>
+                            <span>{formatCompactDate(post.updatedAt)}</span>
+                            <span>{post._count.comments} repl{post._count.comments === 1 ? "y" : "ies"}</span>
+                          </div>
+                          <h3 className="forum-thread-title">{post.title}</h3>
+                          <p className="forum-thread-body">{post.body}</p>
+                        </div>
+                        <span className="forum-thread-action">
+                          {post.status === "DRAFT" ? "Edit" : "Open"}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </section>
+              )}
+            </section>
+          ) : null}
+        </section>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer className="forum-page app-page--forum">

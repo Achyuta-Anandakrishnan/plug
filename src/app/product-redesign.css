@@ -4725,6 +4725,21 @@ body {
     text-overflow: ellipsis;
   }
 
+  .site-mobile-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.88);
+    color: var(--product-text);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
   .site-brand-mark {
     height: 42px;
   }
@@ -4847,6 +4862,34 @@ body {
     display: none;
   }
 
+  .mobile-feed-section {
+    display: grid;
+    gap: 10px;
+  }
+
+  .mobile-feed-section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .mobile-feed-section-head h2 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .mobile-feed-section-head span {
+    color: var(--product-text-soft);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
   .app-control-bar .app-search,
   .app-control-bar .app-select-wrap,
   .app-control-bar .app-segment {
@@ -4933,6 +4976,56 @@ body {
     gap: 8px;
   }
 
+  .market-mobile-screen,
+  .trades-mobile-screen,
+  .forum-mobile-screen,
+  .want-mobile-screen,
+  .settings-mobile-screen,
+  .auth-mobile-screen {
+    gap: 14px;
+  }
+
+  .market-mobile-subheader,
+  .trades-mobile-subheader,
+  .forum-mobile-subheader,
+  .want-mobile-subheader,
+  .settings-mobile-subheader {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: grid;
+    gap: 8px;
+    padding: 4px 0 10px;
+    background: linear-gradient(to bottom, rgba(247, 248, 250, 0.98), rgba(247, 248, 250, 0.9));
+    backdrop-filter: blur(14px);
+  }
+
+  .market-mobile-search-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: start;
+  }
+
+  .market-mobile-chiprail,
+  .trades-mobile-chiprail,
+  .forum-mobile-chiprail,
+  .want-mobile-chiprail {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .market-mobile-chiprail::-webkit-scrollbar,
+  .trades-mobile-chiprail::-webkit-scrollbar,
+  .forum-mobile-chiprail::-webkit-scrollbar,
+  .want-mobile-chiprail::-webkit-scrollbar {
+    display: none;
+  }
+
   .want-mobile-toolbar {
     gap: 8px;
   }
@@ -4956,6 +5049,22 @@ body {
   .market-mobile-sort {
     width: auto;
     min-width: 132px;
+  }
+
+  .market-mobile-rail-section,
+  .want-mobile-featured-section {
+    gap: 8px;
+  }
+
+  .market-mobile-rail-grid,
+  .want-mobile-featured-section .want-rail-grid {
+    grid-auto-columns: minmax(184px, 76vw);
+  }
+
+  .market-mobile-feed-section .market-v2-grid,
+  .trades-mobile-feed-section .trade-board-grid,
+  .want-mobile-feed-section .want-board-grid {
+    gap: 12px;
   }
 
   .market-rail-section {
@@ -5029,6 +5138,15 @@ body {
   }
 
   .live-v3-page {
+    gap: 14px;
+  }
+
+  .live-mobile-page {
+    gap: 14px;
+  }
+
+  .live-mobile-feed {
+    display: grid;
     gap: 14px;
   }
 
@@ -5178,6 +5296,18 @@ body {
     border-radius: 14px;
   }
 
+  .forum-thread-card-mobile {
+    border: 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .forum-thread-card-mobile .forum-thread-top {
+    padding: 12px 0;
+  }
+
   .forum-thread-top {
     gap: 8px;
     padding: 12px;
@@ -5291,7 +5421,7 @@ body {
   }
 
   .stream-room-head {
-    padding-bottom: 0;
+    display: none;
   }
 
   .stream-room-mobile {
@@ -5316,6 +5446,35 @@ body {
 
   .stream-room-mobile-tabs button {
     flex: 1 1 0;
+  }
+
+  .stream-room-mobile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .stream-room-mobile-stats div {
+    display: grid;
+    gap: 3px;
+    padding: 10px 12px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.86);
+  }
+
+  .stream-room-mobile-stats p {
+    margin: 0;
+    color: var(--product-text-faint);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .stream-room-mobile-stats strong {
+    font-size: 14px;
+    line-height: 1.15;
   }
 
   .stream-room-mobile-panel {
@@ -5428,6 +5587,54 @@ body {
     border-radius: 16px;
   }
 
+  .auth-mobile-screen {
+    gap: 14px;
+    padding-top: 8px;
+  }
+
+  .auth-mobile-hero {
+    display: grid;
+    gap: 6px;
+  }
+
+  .auth-mobile-title {
+    margin: 0;
+    font-size: 28px;
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+  }
+
+  .auth-mobile-copy,
+  .settings-mobile-note {
+    margin: 0;
+    color: var(--product-text-soft);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .auth-panel-mobile {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .auth-support-note-mobile {
+    text-align: center;
+  }
+
+  .settings-mobile-actions-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .settings-mobile-panel {
+    display: grid;
+    gap: 10px;
+  }
+
+  .settings-mobile-panel .ios-panel-muted {
+    border-radius: 18px;
+  }
+
   .listing-flow-strip,
   .app-stepper {
     display: flex;
@@ -5485,6 +5692,10 @@ body {
 
   .market-rail-grid {
     grid-auto-columns: minmax(184px, 84vw);
+  }
+
+  .stream-room-mobile-stats {
+    grid-template-columns: 1fr;
   }
 
   .live-v3-upcoming-grid,
