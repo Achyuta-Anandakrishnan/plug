@@ -3,6 +3,13 @@
   --app-footer-height: 80px;
   --app-bottom-nav-height: 0px;
   --app-shell-pad: 24px;
+  --app-control-height: 48px;
+  --app-control-height-compact: 44px;
+  --app-control-pad-inline: 16px;
+  --app-control-pad-inline-compact: 14px;
+  --app-control-font-size: 16px;
+  --app-control-font-size-compact: 15px;
+  --app-control-radius: 16px;
   --marketing-frame-height: calc(100svh - var(--app-header-height) - var(--app-footer-height));
   --app-frame-height: calc(100svh - var(--app-header-height) - var(--app-bottom-nav-height));
   --product-bg: #f7f8fa;
@@ -32,6 +39,28 @@ body {
 
 body {
   font-family: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  box-sizing: border-box;
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea,
+button {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  appearance: auto;
+  -webkit-appearance: auto;
 }
 
 .site-layout {
@@ -576,8 +605,9 @@ body {
 }
 
 .app-control-bar .app-search {
-  flex: 1 1 260px;
-  min-width: 240px;
+  flex: 0 1 420px;
+  min-width: 280px;
+  max-width: 460px;
 }
 
 .app-control-bar .app-chip-row {
@@ -619,15 +649,34 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 40px;
-  padding: 0 13px;
+  height: var(--app-control-height);
+  min-height: 0;
+  padding: 0 var(--app-control-pad-inline);
   border: 1px solid var(--product-border);
-  border-radius: 14px;
+  border-radius: var(--app-control-radius);
   background: var(--product-surface);
   color: var(--product-text-soft);
+  box-sizing: border-box;
 }
 
-.app-search input,
+.app-search svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.app-search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--product-text);
+  font-size: var(--app-control-font-size);
+  line-height: 1.2;
+  outline: none;
+  padding: 0;
+}
+
 .messages-compose-input {
   width: 100%;
   border: 0;
@@ -1301,8 +1350,9 @@ body {
 }
 
 .listing-system-toolbar .app-search {
-  flex: 1 1 400px;
-  min-width: 320px;
+  flex: 0 1 440px;
+  min-width: 300px;
+  max-width: 480px;
 }
 
 .listing-system-toolbar .app-control-title {
@@ -1357,8 +1407,9 @@ body {
 }
 
 .market-toolbar .app-search {
-  flex: 1 1 420px;
-  min-width: 360px;
+  flex: 0 1 480px;
+  min-width: 320px;
+  max-width: 520px;
 }
 
 .market-toolbar .app-chip-row {
@@ -1381,6 +1432,7 @@ body {
 .trades-toolbar .app-search {
   flex: 0 1 360px;
   min-width: 280px;
+  max-width: 420px;
 }
 
 .trades-toolbar .app-chip-row {
@@ -1851,8 +1903,9 @@ body {
 }
 
 .live-toolbar .app-search {
-  flex: 1 1 360px;
+  flex: 0 1 420px;
   min-width: 300px;
+  max-width: 460px;
 }
 
 .live-toolbar .app-chip-row {
@@ -2008,7 +2061,8 @@ body {
 }
 
 .want-toolbar-search {
-  min-width: 320px;
+  min-width: 300px;
+  max-width: 460px;
 }
 
 .want-toolbar-categories {
@@ -2581,6 +2635,12 @@ body {
   overflow: visible;
 }
 
+.forum-toolbar .app-search {
+  flex: 0 1 360px;
+  min-width: 280px;
+  max-width: 420px;
+}
+
 .forum-results-meta {
   font-size: 13px;
 }
@@ -2824,6 +2884,12 @@ body {
   gap: 12px;
   padding: 14px;
   min-height: 0;
+}
+
+.messages-toolbar .app-search {
+  flex: 0 1 360px;
+  min-width: 280px;
+  max-width: 420px;
 }
 
 .messages-sidebar {
@@ -4846,6 +4912,15 @@ body {
   .mobile-page-toolbar .app-segment {
     min-width: 0;
     width: 100%;
+  }
+
+  .mobile-page-toolbar .app-search {
+    height: var(--app-control-height-compact);
+    padding-inline: var(--app-control-pad-inline-compact);
+  }
+
+  .mobile-page-toolbar .app-search input {
+    font-size: var(--app-control-font-size-compact);
   }
 
   .mobile-page-toolbar-scroll {
