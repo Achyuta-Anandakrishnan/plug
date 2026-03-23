@@ -15,8 +15,8 @@ function isActive(pathname: string | null, href: string, key: string) {
   if (key === "market") {
     return pathname === "/listings"
       || pathname === "/explore"
-      || pathname === "/wants"
-      || pathname?.startsWith("/wants/")
+      || pathname === "/bounties"
+      || pathname?.startsWith("/bounties/")
       || pathname?.startsWith("/listings/")
       || pathname?.startsWith("/explore/")
       || pathname?.startsWith("/auctions/");

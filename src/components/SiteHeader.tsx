@@ -79,8 +79,8 @@ function useSiteHeaderState() {
     if (item.key === "market") {
       return pathname === "/listings"
         || pathname === "/explore"
-        || pathname === "/wants"
-        || pathname?.startsWith("/wants/")
+        || pathname === "/bounties"
+        || pathname?.startsWith("/bounties/")
         || pathname?.startsWith("/listings/")
         || pathname?.startsWith("/explore/")
         || pathname?.startsWith("/auctions/");
@@ -95,8 +95,8 @@ function useSiteHeaderState() {
 
   const mobileTitle = useMemo(() => {
     if (!pathname || pathname === "/") return null;
-    if (pathname === "/wants") return "Want Board";
-    if (pathname.startsWith("/wants/")) return pathname === "/wants/new" ? "Post want" : "Want";
+    if (pathname === "/bounties") return "Bounty";
+    if (pathname.startsWith("/bounties/")) return pathname === "/bounties/new" ? "Post bounty" : "Bounty";
     if (
       pathname === "/listings"
       || pathname === "/explore"
@@ -131,8 +131,8 @@ function useSiteHeaderState() {
     if (!pathname || pathname === "/") return null;
     if (pathname === "/forum/new") return "/forum";
     if (pathname.startsWith("/forum/")) return "/forum";
-    if (pathname === "/wants/new") return "/wants";
-    if (pathname.startsWith("/wants/")) return "/wants";
+    if (pathname === "/bounties/new") return "/bounties";
+    if (pathname.startsWith("/bounties/")) return "/bounties";
     if (pathname === "/trades/new") return "/trades";
     if (pathname.startsWith("/trades/")) return "/trades";
     if (pathname.startsWith("/streams/")) return "/live";
@@ -148,7 +148,7 @@ function useSiteHeaderState() {
       "/",
       "/listings",
       "/explore",
-      "/wants",
+      "/bounties",
       "/live",
       "/trades",
       "/forum",

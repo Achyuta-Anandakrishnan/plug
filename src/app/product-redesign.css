@@ -1287,6 +1287,7 @@ input[type="radio"] {
 .live-page,
 .trades-page,
 .want-page,
+.bounty-page,
 .forum-page,
 .messages-page {
   gap: 14px;
@@ -1311,6 +1312,7 @@ input[type="radio"] {
 
 .trades-page .app-section,
 .want-page .app-section,
+.bounty-page .app-section,
 .forum-page .app-section,
 .messages-page .app-section,
 .settings-page .app-section {
@@ -1542,6 +1544,7 @@ input[type="radio"] {
 
 .market-v2-listing-card.is-market-card,
 .market-v2-listing-card.is-trade-card,
+.market-v2-listing-card.is-bounty-card,
 .market-v2-listing-card.is-want-card,
 .trade-board-card {
   aspect-ratio: 4 / 5;
@@ -1588,6 +1591,22 @@ input[type="radio"] {
   background:
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 36%),
     linear-gradient(145deg, #16263d, #0f1728 64%, #0b1220);
+}
+
+.listing-card-fallback-copy {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 18px;
+}
+
+.listing-card-fallback-copy span {
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .listing-card-overlay {
@@ -1654,6 +1673,12 @@ input[type="radio"] {
   color: var(--product-text);
 }
 
+.market-v2-listing-card.is-bounty-card .listing-card-badge.trade-status-chip.is-open {
+  background: rgba(255, 255, 255, 0.84);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: var(--product-text);
+}
+
 .listing-card-badge.trade-status-chip.is-matched {
   background: rgba(236, 253, 245, 0.86);
   border-color: rgba(236, 253, 245, 0.74);
@@ -1697,6 +1722,13 @@ input[type="radio"] {
   display: block;
   color: white;
   font-size: 15px;
+  font-weight: 700;
+}
+
+.listing-card-secondary {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -2055,29 +2087,34 @@ input[type="radio"] {
   justify-content: start;
 }
 
-.want-toolbar {
+.want-toolbar,
+.bounty-toolbar {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
 }
 
-.want-toolbar-search {
+.want-toolbar-search,
+.bounty-toolbar-search {
   min-width: 300px;
   max-width: 460px;
 }
 
-.want-toolbar-categories {
+.want-toolbar-categories,
+.bounty-toolbar-categories {
   flex: 0 1 320px;
   min-width: 220px;
 }
 
-.want-toolbar-meta {
+.want-toolbar-meta,
+.bounty-toolbar-meta {
   display: flex;
   flex-wrap: nowrap;
   justify-content: flex-end;
   gap: 8px;
 }
 
-.want-toolbar-note {
+.want-toolbar-note,
+.bounty-toolbar-note {
   margin: 2px 0 0;
   color: var(--product-text-soft);
   font-size: 12px;
@@ -2085,17 +2122,21 @@ input[type="radio"] {
 }
 
 .want-featured-section,
-.want-feed-section {
+.want-feed-section,
+.bounty-featured-section,
+.bounty-feed-section {
   gap: 8px;
 }
 
-.want-board-cta {
+.want-board-cta,
+.bounty-board-cta {
   display: flex;
   justify-content: center;
   padding-top: 6px;
 }
 
-.want-rail-grid {
+.want-rail-grid,
+.bounty-rail-grid {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(220px, 280px);
@@ -2105,7 +2146,8 @@ input[type="radio"] {
   scrollbar-width: none;
 }
 
-.want-rail-grid::-webkit-scrollbar {
+.want-rail-grid::-webkit-scrollbar,
+.bounty-rail-grid::-webkit-scrollbar {
   display: none;
 }
 
@@ -2120,7 +2162,8 @@ input[type="radio"] {
   color: #b42318;
 }
 
-.want-cert-row {
+.want-cert-row,
+.bounty-cert-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
@@ -2129,18 +2172,24 @@ input[type="radio"] {
 .want-compose-card,
 .want-review-card,
 .want-detail-summary,
-.want-detail-media-card {
+.want-detail-media-card,
+.bounty-compose-card,
+.bounty-review-card,
+.bounty-detail-summary,
+.bounty-detail-media-card {
   padding: 16px;
   border-radius: 18px;
 }
 
-.want-compose-image-choices {
+.want-compose-image-choices,
+.bounty-compose-image-choices {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
   gap: 10px;
 }
 
-.want-compose-image-choice {
+.want-compose-image-choice,
+.bounty-compose-image-choice {
   position: relative;
   overflow: hidden;
   aspect-ratio: 4 / 5;
@@ -2150,37 +2199,46 @@ input[type="radio"] {
   background: rgba(255, 255, 255, 0.84);
 }
 
-.want-compose-image-choice img {
+.want-compose-image-choice img,
+.bounty-compose-image-choice img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.want-compose-image-choice.is-active {
+.want-compose-image-choice.is-active,
+.bounty-compose-image-choice.is-active {
   border-color: rgba(19, 34, 56, 0.2);
   box-shadow: inset 0 0 0 1px rgba(19, 34, 56, 0.16);
 }
 
 .want-compose-actions,
-.want-detail-header-actions {
+.want-detail-header-actions,
+.bounty-compose-actions,
+.bounty-detail-header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.want-compose-actions {
+.want-compose-actions,
+.bounty-compose-actions {
   justify-content: flex-end;
 }
 
 .want-review-grid,
-.want-detail-layout {
+.want-detail-layout,
+.bounty-review-grid,
+.bounty-detail-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
   gap: 18px;
 }
 
 .want-review-media,
-.want-detail-media {
+.want-detail-media,
+.bounty-review-media,
+.bounty-detail-media {
   position: relative;
   overflow: hidden;
   aspect-ratio: 4 / 5;
@@ -2191,14 +2249,18 @@ input[type="radio"] {
 }
 
 .want-review-media img,
-.want-detail-media img {
+.want-detail-media img,
+.bounty-review-media img,
+.bounty-detail-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
 .want-review-media span,
-.want-detail-media-fallback {
+.want-detail-media-fallback,
+.bounty-review-media span,
+.bounty-detail-media-fallback {
   display: grid;
   place-items: center;
   width: 100%;
@@ -2208,7 +2270,8 @@ input[type="radio"] {
   font-weight: 600;
 }
 
-.want-detail-media-fallback {
+.want-detail-media-fallback,
+.bounty-detail-media-fallback {
   align-content: center;
   justify-items: center;
   gap: 10px;
@@ -2217,14 +2280,18 @@ input[type="radio"] {
 }
 
 .want-review-copy,
-.want-detail-summary {
+.want-detail-summary,
+.bounty-review-copy,
+.bounty-detail-summary {
   display: grid;
   align-content: start;
   gap: 12px;
 }
 
 .want-review-copy h2,
-.want-detail-summary h2 {
+.want-detail-summary h2,
+.bounty-review-copy h2,
+.bounty-detail-summary h2 {
   margin: 0;
   font-size: 28px;
   line-height: 1;
@@ -2232,53 +2299,119 @@ input[type="radio"] {
 }
 
 .want-review-copy p,
-.want-detail-summary p {
+.want-detail-summary p,
+.bounty-review-copy p,
+.bounty-detail-summary p {
   margin: 0;
   color: var(--product-text-soft);
   font-size: 13px;
   line-height: 1.45;
 }
 
-.want-detail-summary-head {
+.want-detail-summary-head,
+.bounty-detail-summary-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
-.want-detail-price {
+.want-detail-price,
+.bounty-detail-price {
   color: var(--product-text);
   font-size: 18px;
   font-weight: 700;
 }
 
-.want-detail-meta-grid {
+.want-detail-meta-grid,
+.bounty-detail-meta-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
-.want-detail-meta-grid div {
+.want-detail-meta-grid div,
+.bounty-detail-meta-grid div,
+.bounty-detail-price-stack div {
   display: grid;
   gap: 4px;
 }
 
-.want-detail-meta-grid span {
+.want-detail-meta-grid span,
+.bounty-detail-meta-grid span,
+.bounty-detail-price-stack span {
   color: var(--product-text-faint);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
 
-.want-detail-meta-grid strong {
+.want-detail-meta-grid strong,
+.bounty-detail-meta-grid strong,
+.bounty-detail-price-stack strong,
+.bounty-review-bonus {
   color: var(--product-text);
   font-size: 14px;
   line-height: 1.35;
 }
 
-.want-detail-notes {
+.want-detail-notes,
+.bounty-detail-notes {
   display: grid;
   gap: 8px;
+}
+
+.bounty-detail-price-stack {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.bounty-search-shell {
+  display: grid;
+  gap: 10px;
+}
+
+.bounty-search-results {
+  display: grid;
+  gap: 8px;
+}
+
+.bounty-search-result {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--product-border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.88);
+  text-align: left;
+}
+
+.bounty-search-result strong {
+  display: block;
+  color: var(--product-text);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.bounty-search-result span {
+  display: block;
+  margin-top: 2px;
+  color: var(--product-text-soft);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.bounty-search-result em {
+  color: var(--product-text-faint);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .market-featured-grid > *,
@@ -4025,12 +4158,14 @@ input[type="radio"] {
   .app-page--sell,
   .app-page--trade-compose,
   .app-page--want-compose,
+  .app-page--bounty-compose,
   .app-page--auth,
   .app-page--settings,
   .app-page--referral,
   .app-page--seller-verification,
   .app-page--trade-detail,
   .app-page--want-detail,
+  .app-page--bounty-detail,
   .app-page--trade-dispute,
   .app-page--streams-schedule {
     gap: 18px;
@@ -5000,6 +5135,7 @@ input[type="radio"] {
   .app-page--live .live-toolbar,
   .app-page--trades .trades-toolbar,
   .app-page--wants .want-toolbar,
+  .app-page--bounties .bounty-toolbar,
   .app-page--forum .forum-toolbar,
   .messages-toolbar {
     position: sticky;
@@ -5055,6 +5191,7 @@ input[type="radio"] {
   .trades-mobile-screen,
   .forum-mobile-screen,
   .want-mobile-screen,
+  .bounty-mobile-screen,
   .settings-mobile-screen,
   .auth-mobile-screen {
     gap: 14px;
@@ -5064,6 +5201,7 @@ input[type="radio"] {
   .trades-mobile-subheader,
   .forum-mobile-subheader,
   .want-mobile-subheader,
+  .bounty-mobile-subheader,
   .settings-mobile-subheader {
     position: sticky;
     top: 0;
@@ -5085,7 +5223,8 @@ input[type="radio"] {
   .market-mobile-chiprail,
   .trades-mobile-chiprail,
   .forum-mobile-chiprail,
-  .want-mobile-chiprail {
+  .want-mobile-chiprail,
+  .bounty-mobile-chiprail {
     display: flex;
     flex-wrap: nowrap;
     gap: 8px;
@@ -5097,26 +5236,31 @@ input[type="radio"] {
   .market-mobile-chiprail::-webkit-scrollbar,
   .trades-mobile-chiprail::-webkit-scrollbar,
   .forum-mobile-chiprail::-webkit-scrollbar,
-  .want-mobile-chiprail::-webkit-scrollbar {
+  .want-mobile-chiprail::-webkit-scrollbar,
+  .bounty-mobile-chiprail::-webkit-scrollbar {
     display: none;
   }
 
-  .want-mobile-toolbar {
+  .want-mobile-toolbar,
+  .bounty-mobile-toolbar {
     gap: 8px;
   }
 
-  .want-mobile-create {
+  .want-mobile-create,
+  .bounty-mobile-create {
     min-height: 34px;
     padding-inline: 12px;
   }
 
-  .want-mobile-selects {
+  .want-mobile-selects,
+  .bounty-mobile-selects {
     display: grid;
     grid-template-columns: 1fr;
     gap: 8px;
   }
 
-  .want-rail-grid {
+  .want-rail-grid,
+  .bounty-rail-grid {
     grid-auto-columns: minmax(184px, 72vw);
     gap: 12px;
   }
@@ -5127,18 +5271,21 @@ input[type="radio"] {
   }
 
   .market-mobile-rail-section,
-  .want-mobile-featured-section {
+  .want-mobile-featured-section,
+  .bounty-mobile-featured-section {
     gap: 8px;
   }
 
   .market-mobile-rail-grid,
-  .want-mobile-featured-section .want-rail-grid {
+  .want-mobile-featured-section .want-rail-grid,
+  .bounty-mobile-featured-section .bounty-rail-grid {
     grid-auto-columns: minmax(184px, 76vw);
   }
 
   .market-mobile-feed-section .market-v2-grid,
   .trades-mobile-feed-section .trade-board-grid,
-  .want-mobile-feed-section .want-board-grid {
+  .want-mobile-feed-section .want-board-grid,
+  .bounty-mobile-feed-section .bounty-board-grid {
     gap: 12px;
   }
 
@@ -5301,15 +5448,19 @@ input[type="radio"] {
   }
 
   .want-review-grid,
-  .want-detail-layout {
+  .want-detail-layout,
+  .bounty-review-grid,
+  .bounty-detail-layout {
     grid-template-columns: 1fr;
   }
 
-  .want-cert-row {
+  .want-cert-row,
+  .bounty-cert-row {
     grid-template-columns: 1fr;
   }
 
-  .want-detail-header-actions {
+  .want-detail-header-actions,
+  .bounty-detail-header-actions {
     flex-direction: column;
     align-items: stretch;
   }

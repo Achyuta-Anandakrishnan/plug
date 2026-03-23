@@ -1,0 +1,16 @@
+DO $$
+BEGIN
+  ALTER TYPE "WantRequestStatus" ADD VALUE IF NOT EXISTS 'MATCHED';
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+ALTER TABLE "WantRequest"
+ADD COLUMN IF NOT EXISTS "player" TEXT,
+ADD COLUMN IF NOT EXISTS "setName" TEXT,
+ADD COLUMN IF NOT EXISTS "year" TEXT,
+ADD COLUMN IF NOT EXISTS "gradeCompany" TEXT,
+ADD COLUMN IF NOT EXISTS "gradeTarget" TEXT,
+ADD COLUMN IF NOT EXISTS "bountyAmount" INTEGER;
+
+CREATE INDEX IF NOT EXISTS "WantRequest_bountyAmount_idx" ON "WantRequest"("bountyAmount");

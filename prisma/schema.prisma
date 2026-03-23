@@ -173,6 +173,7 @@ enum ForumPostStatus {
 
 enum WantRequestStatus {
   OPEN
+  MATCHED
   FULFILLED
   EXPIRED
   PAUSED
@@ -500,11 +501,17 @@ model WantRequest {
   title        String
   category     String?
   itemName     String
+  player       String?
+  setName      String?
+  year         String?
+  gradeCompany String?
+  gradeTarget  String?
   grade        String?
   condition    String?
   certNumber   String?
   priceMin     Int?
   priceMax     Int?
+  bountyAmount Int?
   notes        String?
   imageUrl     String?
   status       WantRequestStatus @default(OPEN)
@@ -518,6 +525,7 @@ model WantRequest {
   @@index([status])
   @@index([createdAt])
   @@index([category])
+  @@index([bountyAmount])
 }
 
 model TradePostImage {

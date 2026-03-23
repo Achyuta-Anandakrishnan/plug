@@ -1,5 +1,5 @@
-import { WantComposeClient } from "@/components/wants/WantComposeClient";
+import { redirect } from "next/navigation";
 
 export default function NewWantPage() {
-  return <WantComposeClient />;
+  redirect("/bounties/new");
 }

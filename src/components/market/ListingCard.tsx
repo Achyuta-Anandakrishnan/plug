@@ -11,11 +11,12 @@ import { formatCurrency, formatSeconds } from "@/lib/format";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import { tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
 import {
-  compactWantActivity,
-  compactWantMeta,
-  wantPriceLabel,
-  type WantRequestListItem,
-} from "@/lib/wants";
+  bountyAmountLabel,
+  bountyBudgetLabel,
+  compactBountyActivity,
+  compactBountyMeta,
+  type BountyRequestListItem,
+} from "@/lib/bounties";
 
 type MarketListingCardProps = {
   listing: MarketListing;
@@ -39,18 +40,18 @@ type TradeListingCardProps = {
   onToggleSave?: (tradePostId: string) => void | Promise<boolean>;
 };
 
-type WantListingCardProps = {
-  kind: "want";
-  want: WantRequestListItem;
+type BountyListingCardProps = {
+  kind: "bounty";
+  bounty: BountyRequestListItem;
   saved?: boolean;
-  onToggleSave?: (wantRequestId: string) => void | Promise<boolean>;
+  onToggleSave?: (bountyRequestId: string) => void | Promise<boolean>;
 };
 
 type ListingCardProps =
   | MarketListingCardProps
   | TradeListingCardProps
   | LiveListingCardProps
-  | WantListingCardProps;
+  | BountyListingCardProps;
 
 type ListingSurfaceData = {
   href: string;
@@ -60,6 +61,7 @@ type ListingSurfaceData = {
   badgeClassName: string;
   metaLabel: string;
   priceLabel: string;
+  secondaryLabel?: string | null;
   activityLabel: string;
   sellerLabel: string;
   saveInactiveLabel: string;
@@ -208,28 +210,29 @@ function liveListingToSurfaceData(stream: LiveStreamItem): ListingSurfaceData {
   };
 }
 
-function wantListingToSurfaceData(want: WantRequestListItem): ListingSurfaceData {
-  const imageUrl = resolveDisplayMediaUrl(want.imageUrl, "");
-  const statusClass = want.status === "OPEN"
+function bountyListingToSurfaceData(bounty: BountyRequestListItem): ListingSurfaceData {
+  const imageUrl = resolveDisplayMediaUrl(bounty.imageUrl, "");
+  const statusClass = bounty.status === "OPEN"
     ? "trade-status-chip is-open"
-    : want.status === "FULFILLED"
+    : bounty.status === "MATCHED" || bounty.status === "FULFILLED"
       ? "trade-status-chip is-matched"
-      : want.status === "PAUSED"
+      : bounty.status === "PAUSED"
         ? "trade-status-chip is-paused"
         : "trade-status-chip is-closed";
 
   return {
-    href: `/wants/${encodeURIComponent(want.id)}`,
+    href: `/bounties/${encodeURIComponent(bounty.id)}`,
     imageUrl,
-    title: want.title,
-    badgeLabel: want.status === "OPEN" ? "Want" : want.status,
+    title: bounty.title,
+    badgeLabel: bounty.status === "OPEN" ? "Bounty" : bounty.status,
     badgeClassName: statusClass,
-    metaLabel: compactWantMeta(want),
-    priceLabel: wantPriceLabel(want.priceMin, want.priceMax),
-    activityLabel: compactWantActivity(want.notes),
-    sellerLabel: want.user.displayName ?? want.user.username ?? "Collector",
-    saveInactiveLabel: "Save want",
-    saveActiveLabel: "Remove saved want",
+    metaLabel: compactBountyMeta(bounty),
+    priceLabel: bountyBudgetLabel(bounty.priceMin, bounty.priceMax),
+    secondaryLabel: bountyAmountLabel(bounty.bountyAmount),
+    activityLabel: compactBountyActivity(bounty.notes),
+    sellerLabel: bounty.user.displayName ?? bounty.user.username ?? "Collector",
+    saveInactiveLabel: "Save bounty",
+    saveActiveLabel: "Remove saved bounty",
     hasImage: Boolean(imageUrl),
   };
 }
@@ -238,8 +241,8 @@ export function ListingCard(props: ListingCardProps) {
   const isLiveCard = "stream" in props;
   const surfaceKind = "trade" in props
     ? "trade"
-    : "want" in props
-      ? "want"
+    : "bounty" in props
+      ? "bounty"
       : isLiveCard
         ? "live"
         : "market";
@@ -247,15 +250,15 @@ export function ListingCard(props: ListingCardProps) {
   const [localSaved, setLocalSaved] = useState(false);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const trade = "trade" in props ? props.trade : undefined;
-  const want = "want" in props ? props.want : undefined;
+  const bounty = "bounty" in props ? props.bounty : undefined;
   const stream = "stream" in props ? props.stream : undefined;
-  const listing = !("trade" in props) && !("stream" in props) && !("want" in props) ? props.listing : undefined;
+  const listing = !("trade" in props) && !("stream" in props) && !("bounty" in props) ? props.listing : undefined;
   const surface = useMemo(() => {
     if (trade) return tradeListingToSurfaceData(trade);
-    if (want) return wantListingToSurfaceData(want);
+    if (bounty) return bountyListingToSurfaceData(bounty);
     if (stream) return liveListingToSurfaceData(stream);
     return marketListingToSurfaceData(listing!);
-  }, [trade, want, stream, listing]);
+  }, [trade, bounty, stream, listing]);
   const fallbackImage = "/placeholders/pokemon-generic.svg";
   const imageSrc = failedSrc === surface.imageUrl ? fallbackImage : surface.imageUrl;
   const saved = props.saved ?? controlledSaved ?? localSaved;
@@ -269,8 +272,8 @@ export function ListingCard(props: ListingCardProps) {
       void props.onToggleSave(props.trade.id);
       return;
     }
-    if ("want" in props && props.onToggleSave) {
-      void props.onToggleSave(props.want.id);
+    if ("bounty" in props && props.onToggleSave) {
+      void props.onToggleSave(props.bounty.id);
       return;
     }
     if ("listing" in props && props.onToggleSave) {
@@ -298,7 +301,11 @@ export function ListingCard(props: ListingCardProps) {
                 }
               }}
             />
-          ) : null}
+          ) : (
+            <div className="listing-card-fallback-copy">
+              <span>{surface.badgeLabel}</span>
+            </div>
+          )}
         </div>
 
         <div className="listing-card-overlay">
@@ -311,6 +318,7 @@ export function ListingCard(props: ListingCardProps) {
               <h3 className="listing-card-title">{surface.title}</h3>
               <p className="listing-card-meta">{surface.metaLabel}</p>
               <strong className="listing-card-price">{surface.priceLabel}</strong>
+              {surface.secondaryLabel ? <p className="listing-card-secondary">{surface.secondaryLabel}</p> : null}
               <div className="listing-card-foot">
                 <span className="listing-card-activity">{surface.activityLabel}</span>
                 <span className="listing-card-seller">{compactName(surface.sellerLabel)}</span>
