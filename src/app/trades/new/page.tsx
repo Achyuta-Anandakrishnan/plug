@@ -358,7 +358,7 @@ export default function NewTradePage() {
             <PageHeader
               eyebrow="Create listing"
               title="Create listing"
-              subtitle="Trade mode. Sign in to verify a cert, set value, and publish a clean listing."
+              subtitle="Trade mode. Sign in to verify the item, set value, and publish."
             />
             <ol className="app-stepper trade-compose-stepper" aria-label="Trade post steps">
               {["Verify", "Value", "Review"].map((label, index) => (
@@ -394,7 +394,7 @@ export default function NewTradePage() {
           <PageHeader
             eyebrow="Create listing"
             title="Create listing"
-            subtitle="Trade mode. Verify the item, set the target value, and publish a clean listing."
+            subtitle="Trade mode. Verify the item, set the target value, and publish."
             actions={<SecondaryButton href="/trades">Back to trades</SecondaryButton>}
           />
 
@@ -456,7 +456,7 @@ export default function NewTradePage() {
                   </div>
                 </div>
                 <div className="trade-compose-note">
-                  {verifyLoading ? "Checking certificate..." : verifyNote || "Verify cert to continue."}
+                  {verifyLoading ? "Checking certificate..." : verifyNote || "Verify the cert to keep the trade clean."}
                 </div>
               </div>
             ) : null}

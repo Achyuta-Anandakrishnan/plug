@@ -1,4 +1,50 @@
 export type TradeGameType = "checkers" | "chess" | "coin" | "poker";
+export type TradeDuelMode = TradeGameType;
+export type TradeDuelStatus = "PENDING" | "READY" | "SCHEDULED" | "ACTIVE" | "COMPLETED" | "CANCELED" | "EXPIRED";
+
+export type TradeDuelItem = {
+  id: string;
+  offerId: string;
+  postId: string;
+  challengerId: string;
+  defenderId: string;
+  winnerId: string | null;
+  mode: TradeDuelMode;
+  terms: string;
+  status: TradeDuelStatus;
+  scheduledFor: string | null;
+  durationSeconds: number | null;
+  challengerAgreedAt: string | null;
+  defenderAgreedAt: string | null;
+  startedAt: string | null;
+  deadlineAt: string | null;
+  completedAt: string | null;
+  resultReason: string | null;
+  baselineSnapshot: {
+    message: string | null;
+    cashAdjustment: number;
+  } | null;
+  state: unknown;
+  stateVersion: number;
+  challenger: {
+    id: string;
+    username: string | null;
+    displayName: string | null;
+    image?: string | null;
+  };
+  defender: {
+    id: string;
+    username: string | null;
+    displayName: string | null;
+    image?: string | null;
+  };
+  winner: {
+    id: string;
+    username: string | null;
+    displayName: string | null;
+    image?: string | null;
+  } | null;
+};
 
 export type TradePostListItem = {
   id: string;
@@ -57,6 +103,19 @@ export type TradeOfferItem = {
   createdAt: string;
   updatedAt: string;
   expiresAt: string | null;
+  post: {
+    id: string;
+    title: string;
+    status: "OPEN" | "PAUSED" | "MATCHED" | "CLOSED" | "ARCHIVED";
+    ownerId: string;
+    owner: {
+      id: string;
+      username: string | null;
+      displayName: string | null;
+      image?: string | null;
+    };
+  };
+  duel: TradeDuelItem | null;
   proposer: {
     id: string;
     username: string | null;

@@ -3,6 +3,7 @@ import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
 import { ensureTradeSchema, isTradeSchemaMissing } from "@/lib/trade-schema";
+import { tradeOfferWithDuelInclude } from "@/lib/trade-duel-service";
 
 type RouteContext = {
   params: Promise<{
@@ -29,38 +30,6 @@ type CreateOfferBody = {
   cards?: CreateOfferCardBody[];
 };
 
-const offerInclude = {
-  proposer: {
-    select: {
-      id: true,
-      username: true,
-      displayName: true,
-      image: true,
-    },
-  },
-  cards: {
-    orderBy: { createdAt: "asc" },
-  },
-  settlement: {
-    include: {
-      payer: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-        },
-      },
-      payee: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-        },
-      },
-    },
-  },
-} as const;
-
 export async function GET(_request: Request, { params }: RouteContext) {
   await ensureTradeSchema().catch(() => null);
   try {
@@ -83,7 +52,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
       where: post.ownerId === sessionUser.id
         ? { postId: id }
         : { postId: id, proposerId: sessionUser.id },
-      include: offerInclude,
+      include: tradeOfferWithDuelInclude,
       orderBy: { createdAt: "desc" },
     });
 
@@ -196,7 +165,7 @@ export async function POST(request: Request, { params }: RouteContext) {
             }
           : undefined,
       },
-      include: offerInclude,
+      include: tradeOfferWithDuelInclude,
     });
 
     return jsonOk(created, { status: 201 });

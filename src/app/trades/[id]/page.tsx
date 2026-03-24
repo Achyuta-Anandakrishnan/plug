@@ -20,7 +20,8 @@ import {
   isValidImageUrl,
   toTagArray,
   tradeValueLabel,
-  type TradeGameType,
+  type TradeDuelItem,
+  type TradeDuelMode,
   type TradeOfferItem,
   type TradePostDetail,
 } from "@/lib/trade-client";
@@ -40,12 +41,14 @@ type CounterDraft = {
   open: boolean;
   message: string;
   cashAdjustment: string;
-  resolution: "STANDARD" | "GAME";
-  gameType: TradeGameType;
-  gameTerms: string;
+  resolution: "STANDARD" | "DUEL";
+  duelMode: TradeDuelMode;
+  duelTerms: string;
+  duelScheduledFor: string;
+  duelDurationMinutes: string;
 };
 
-const GAME_OPTIONS: Array<{ value: TradeGameType; label: string }> = [
+const DUEL_OPTIONS: Array<{ value: TradeDuelMode; label: string }> = [
   { value: "checkers", label: "Checkers" },
   { value: "chess", label: "Chess" },
   { value: "coin", label: "Flip coin" },
@@ -92,6 +95,26 @@ function settlementStatusClass(status: NonNullable<TradeOfferItem["settlement"]>
   if (status === "FAILED" || status === "CANCELED") return "border-red-200 bg-red-50 text-red-700";
   if (status === "PROCESSING") return "border-slate-300 bg-slate-100 text-slate-700";
   return "border-amber-200 bg-amber-50 text-amber-700";
+}
+
+function formatDatetimeInput(value: string | null | undefined) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function duelStatusClass(status: NonNullable<TradeDuelItem["status"]>) {
+  if (status === "ACTIVE") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (status === "COMPLETED") return "border-slate-300 bg-slate-100 text-slate-700";
+  if (status === "READY") return "border-sky-200 bg-sky-50 text-sky-700";
+  if (status === "SCHEDULED") return "border-amber-200 bg-amber-50 text-amber-700";
+  return "border-slate-200 bg-white text-slate-600";
 }
 
 export default function TradeDetailPage() {
@@ -195,9 +218,11 @@ export default function TradeDetailPage() {
       status?: TradeOfferItem["status"];
       message?: string;
       cashAdjustment?: number;
-      counterMode?: "STANDARD" | "GAME";
-      gameType?: TradeGameType;
-      gameTerms?: string;
+      counterMode?: "STANDARD" | "DUEL";
+      duelMode?: TradeDuelMode;
+      duelTerms?: string;
+      duelScheduledFor?: string | null;
+      duelDurationMinutes?: number | string | null;
       gameAction?: "AGREE_TERMS" | "START_GAME";
     },
   ) => {
@@ -223,12 +248,8 @@ export default function TradeDetailPage() {
     }
   };
 
-  const agreeToGameTerms = async (offerId: string) => {
+  const agreeToDuelTerms = async (offerId: string) => {
     await updateOfferStatus(offerId, { gameAction: "AGREE_TERMS" });
-  };
-
-  const startGameSession = async (offerId: string) => {
-    return updateOfferStatus(offerId, { gameAction: "START_GAME" });
   };
 
   const startCheckout = async (offerId: string) => {
@@ -324,16 +345,18 @@ export default function TradeDetailPage() {
         open: true,
         message: offer.message ?? "",
         cashAdjustment: String(offer.cashAdjustment ?? 0),
-        resolution: offer.gameType ? "GAME" : "STANDARD",
-        gameType: offer.gameType ?? "checkers",
-        gameTerms: offer.gameTerms ?? "Winner takes the trade rights for this offer.",
+        resolution: offer.duel || offer.gameType ? "DUEL" : "STANDARD",
+        duelMode: offer.duel?.mode ?? offer.gameType ?? "checkers",
+        duelTerms: offer.duel?.terms ?? offer.gameTerms ?? "If I win the duel, my counter terms become the accepted trade.",
+        duelScheduledFor: formatDatetimeInput(offer.duel?.scheduledFor),
+        duelDurationMinutes: offer.duel?.durationSeconds ? String(Math.round(offer.duel.durationSeconds / 60)) : "15",
       },
     }));
   };
 
   const setCounterField = (
     offerId: string,
-    field: "message" | "cashAdjustment" | "resolution" | "gameType" | "gameTerms",
+    field: "message" | "cashAdjustment" | "resolution" | "duelMode" | "duelTerms" | "duelScheduledFor" | "duelDurationMinutes",
     value: string,
   ) => {
     setCounterDrafts((prev) => ({
@@ -344,22 +367,26 @@ export default function TradeDetailPage() {
           message: prev[offerId]?.message ?? "",
           cashAdjustment: prev[offerId]?.cashAdjustment ?? "0",
           resolution: prev[offerId]?.resolution ?? "STANDARD",
-          gameType: prev[offerId]?.gameType ?? "checkers",
-          gameTerms: prev[offerId]?.gameTerms ?? "Winner takes the trade rights for this offer.",
+          duelMode: prev[offerId]?.duelMode ?? "checkers",
+          duelTerms: prev[offerId]?.duelTerms ?? "If I win the duel, my counter terms become the accepted trade.",
+          duelScheduledFor: prev[offerId]?.duelScheduledFor ?? "",
+          duelDurationMinutes: prev[offerId]?.duelDurationMinutes ?? "15",
         };
 
         if (field === "message") return { ...base, message: value };
         if (field === "cashAdjustment") return { ...base, cashAdjustment: value };
         if (field === "resolution") {
-          return { ...base, resolution: value === "GAME" ? "GAME" : "STANDARD" };
+          return { ...base, resolution: value === "DUEL" ? "DUEL" : "STANDARD" };
         }
-        if (field === "gameType") {
-          const nextGameType = GAME_OPTIONS.some((entry) => entry.value === value)
-            ? (value as TradeGameType)
-            : base.gameType;
-          return { ...base, gameType: nextGameType };
+        if (field === "duelMode") {
+          const nextMode = DUEL_OPTIONS.some((entry) => entry.value === value)
+            ? (value as TradeDuelMode)
+            : base.duelMode;
+          return { ...base, duelMode: nextMode };
         }
-        return { ...base, gameTerms: value };
+        if (field === "duelScheduledFor") return { ...base, duelScheduledFor: value };
+        if (field === "duelDurationMinutes") return { ...base, duelDurationMinutes: value };
+        return { ...base, duelTerms: value };
       })(),
     }));
   };
@@ -372,8 +399,10 @@ export default function TradeDetailPage() {
         message: prev[offerId]?.message ?? "",
         cashAdjustment: prev[offerId]?.cashAdjustment ?? "0",
         resolution: prev[offerId]?.resolution ?? "STANDARD",
-        gameType: prev[offerId]?.gameType ?? "checkers",
-        gameTerms: prev[offerId]?.gameTerms ?? "Winner takes the trade rights for this offer.",
+        duelMode: prev[offerId]?.duelMode ?? "checkers",
+        duelTerms: prev[offerId]?.duelTerms ?? "If I win the duel, my counter terms become the accepted trade.",
+        duelScheduledFor: prev[offerId]?.duelScheduledFor ?? "",
+        duelDurationMinutes: prev[offerId]?.duelDurationMinutes ?? "15",
       },
     }));
   };
@@ -385,9 +414,9 @@ export default function TradeDetailPage() {
       setError("Counter cash adjustment must be a number in cents.");
       return;
     }
-    if (draft?.resolution === "GAME") {
-      if (!draft.gameTerms.trim() || draft.gameTerms.trim().length < 12) {
-        setError("Game terms must be at least 12 characters.");
+    if (draft?.resolution === "DUEL") {
+      if (!draft.duelTerms.trim() || draft.duelTerms.trim().length < 12) {
+        setError("Duel terms must be at least 12 characters.");
         return;
       }
     }
@@ -397,8 +426,10 @@ export default function TradeDetailPage() {
       message: draft?.message?.trim() || "",
       cashAdjustment: Math.trunc(cash),
       counterMode: draft?.resolution ?? "STANDARD",
-      gameType: draft?.gameType,
-      gameTerms: draft?.gameTerms?.trim(),
+      duelMode: draft?.duelMode,
+      duelTerms: draft?.duelTerms?.trim(),
+      duelScheduledFor: draft?.duelScheduledFor?.trim() || null,
+      duelDurationMinutes: draft?.duelDurationMinutes?.trim() || null,
     });
 
     closeCounterDraft(offerId);
@@ -681,31 +712,47 @@ export default function TradeDetailPage() {
               const viewerIsProposer = offer.proposerId === currentUserId;
               const activeOffer = ["PENDING", "COUNTERED"].includes(offer.status);
               const canDecline = activeOffer && post.viewer.isOwner;
+              const duel = offer.duel;
               const canCounter = activeOffer
                 && (post.viewer.isOwner || viewerIsProposer)
-                && (offer.status === "PENDING" ? post.viewer.isOwner : offer.gameProposedById !== currentUserId);
+                && (offer.status === "PENDING" ? post.viewer.isOwner : (duel?.challengerId ?? offer.gameProposedById) !== currentUserId);
               const canWithdraw = viewerIsProposer && activeOffer;
               const counterDraft = counterDrafts[offer.id];
               const settlement = offer.settlement;
               const isSettlementPayer = settlement?.payerId === currentUserId;
               const canPaySettlement = offer.status === "ACCEPTED" && settlement && settlement.status !== "SUCCEEDED" && isSettlementPayer;
-              const hasGameCounter = offer.status === "COUNTERED" && Boolean(offer.gameType && offer.gameTerms);
+              const hasDuelCounter = offer.status === "COUNTERED" && Boolean(duel || (offer.gameType && offer.gameTerms));
+              const duelStatus = duel?.status === "SCHEDULED" && duel.scheduledFor && new Date(duel.scheduledFor).getTime() <= Date.now()
+                ? "READY"
+                : duel?.status ?? "PENDING";
               const canAccept = activeOffer
-                && !hasGameCounter
+                && !hasDuelCounter
                 && (post.viewer.isOwner || (viewerIsProposer && offer.status === "COUNTERED"));
-              const ownerAgreed = Boolean(offer.gameOwnerAgreedAt);
-              const proposerAgreed = Boolean(offer.gameProposerAgreedAt);
+              const ownerAgreed = Boolean(duel
+                ? (duel.challengerId === post.ownerId ? duel.challengerAgreedAt : duel.defenderAgreedAt)
+                : offer.gameOwnerAgreedAt);
+              const proposerAgreed = Boolean(duel
+                ? (duel.challengerId === offer.proposerId ? duel.challengerAgreedAt : duel.defenderAgreedAt)
+                : offer.gameProposerAgreedAt);
               const bothAgreed = ownerAgreed && proposerAgreed;
-              const viewerCanAgreeTerms = hasGameCounter && (
+              const viewerCanAgreeTerms = hasDuelCounter && (
                 (post.viewer.isOwner && !ownerAgreed)
                 || (viewerIsProposer && !proposerAgreed)
               );
-              const viewerCanStartGame = hasGameCounter && bothAgreed;
+              const duelActionLabel = duelStatus === "COMPLETED"
+                ? "View result"
+                : duelStatus === "ACTIVE"
+                  ? "Rejoin duel"
+                  : duelStatus === "SCHEDULED"
+                    ? "View schedule"
+                    : bothAgreed
+                      ? "Open duel"
+                      : "Open duel setup";
 
               return (
                 <div
                   key={offer.id}
-                  className="rounded-[28px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_10px_28px_rgba(15,23,42,0.08)]"
+                  className="trade-detail-offer-row"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
@@ -725,56 +772,59 @@ export default function TradeDetailPage() {
                     {offer.cashAdjustment !== 0 ? ` (${formatCurrency(Math.abs(offer.cashAdjustment), "USD")})` : ""}
                   </p>
 
-                  {hasGameCounter ? (
-                    <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Game terms</p>
-                      <p className="mt-1 text-sm font-semibold text-slate-900">
-                        {GAME_OPTIONS.find((entry) => entry.value === offer.gameType)?.label ?? offer.gameType}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-700">{offer.gameTerms}</p>
-                      <div className="mt-2 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.14em]">
-                        <span className={`rounded-full border px-2 py-1 ${ownerAgreed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-600"}`}>
-                          Owner {ownerAgreed ? "agreed" : "pending"}
-                        </span>
-                        <span className={`rounded-full border px-2 py-1 ${proposerAgreed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-600"}`}>
-                          Proposer {proposerAgreed ? "agreed" : "pending"}
+                  {hasDuelCounter ? (
+                    <div className="trade-offer-duel-panel">
+                      <div className="trade-offer-duel-head">
+                        <div>
+                          <p className="trade-offer-duel-eyebrow">Duel terms</p>
+                          <p className="trade-offer-duel-title">
+                            {DUEL_OPTIONS.find((entry) => entry.value === (duel?.mode ?? offer.gameType))?.label ?? duel?.mode ?? offer.gameType}
+                          </p>
+                        </div>
+                        <span className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${duelStatusClass(duelStatus)}`}>
+                          {duelStatus}
                         </span>
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <p className="trade-offer-duel-copy">{duel?.terms ?? offer.gameTerms}</p>
+                      {duel?.scheduledFor ? (
+                        <p className="trade-offer-duel-meta">Scheduled for {formatTradeDateTime(duel.scheduledFor)}</p>
+                      ) : null}
+                      {duel?.durationSeconds ? (
+                        <p className="trade-offer-duel-meta">Clock: {Math.round(duel.durationSeconds / 60)} minutes</p>
+                      ) : null}
+                      <div className="trade-offer-duel-statuses">
+                        <span className={`rounded-full border px-2 py-1 ${ownerAgreed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-600"}`}>
+                          Owner {ownerAgreed ? "ready" : "pending"}
+                        </span>
+                        <span className={`rounded-full border px-2 py-1 ${proposerAgreed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-600"}`}>
+                          Proposer {proposerAgreed ? "ready" : "pending"}
+                        </span>
+                      </div>
+                      <div className="trade-offer-duel-actions">
                         {viewerCanAgreeTerms ? (
                           <button
                             type="button"
-                            onClick={() => void agreeToGameTerms(offer.id)}
+                            onClick={() => void agreeToDuelTerms(offer.id)}
                             disabled={actingOfferId === offer.id}
                             className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 disabled:opacity-60"
                           >
-                            Agree to terms
+                            Approve duel
                           </button>
                         ) : null}
-                        {viewerCanStartGame ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              void (async () => {
-                                const started = await startGameSession(offer.id);
-                                if (!started) return;
-                                router.push(`/trades/${encodeURIComponent(post.id)}/dispute?offer=${encodeURIComponent(offer.id)}`);
-                              })();
-                            }}
-                            disabled={actingOfferId === offer.id}
-                            className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
-                          >
-                            Play game
-                          </button>
-                        ) : (
-                          <span className="self-center text-xs text-slate-500">
-                            Game unlocks after both approvals.
-                          </span>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/trades/${encodeURIComponent(post.id)}/duel?offer=${encodeURIComponent(offer.id)}`)}
+                          className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white"
+                        >
+                          {duelActionLabel}
+                        </button>
+                        {!bothAgreed ? (
+                          <span className="trade-offer-duel-hint">Dalow unlocks the duel after both approvals.</span>
+                        ) : null}
                       </div>
-                      {offer.gameResolvedAt && offer.gameWinnerId ? (
-                        <p className="mt-2 text-xs text-emerald-700">
-                          Game settled. Winner: {offer.gameWinnerId === offer.proposerId ? "Proposer" : "Owner"}.
+                      {duel?.completedAt && duel?.winnerId ? (
+                        <p className="trade-offer-duel-result">
+                          Duel settled. Winner: {duel.winnerId === offer.proposerId ? "Proposer" : "Owner"}.
                         </p>
                       ) : null}
                     </div>
@@ -902,27 +952,44 @@ export default function TradeDetailPage() {
                           className="ios-input"
                         >
                           <option value="STANDARD">Standard counter</option>
-                          <option value="GAME">Counter + play game</option>
+                          <option value="DUEL">Counter + duel</option>
                         </select>
-                        {counterDraft.resolution === "GAME" ? (
+                        {counterDraft.resolution === "DUEL" ? (
                           <select
-                            value={counterDraft.gameType}
-                            onChange={(event) => setCounterField(offer.id, "gameType", event.target.value)}
+                            value={counterDraft.duelMode}
+                            onChange={(event) => setCounterField(offer.id, "duelMode", event.target.value)}
                             className="ios-input"
                           >
-                            {GAME_OPTIONS.map((entry) => (
+                            {DUEL_OPTIONS.map((entry) => (
                               <option key={entry.value} value={entry.value}>{entry.label}</option>
                             ))}
                           </select>
                         ) : null}
                       </div>
-                      {counterDraft.resolution === "GAME" ? (
-                        <textarea
-                          value={counterDraft.gameTerms}
-                          onChange={(event) => setCounterField(offer.id, "gameTerms", event.target.value)}
-                          className="mt-2 min-h-20 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
-                          placeholder="Game terms (who plays, winner outcome, rematch rules)"
-                        />
+                      {counterDraft.resolution === "DUEL" ? (
+                        <>
+                          <textarea
+                            value={counterDraft.duelTerms}
+                            onChange={(event) => setCounterField(offer.id, "duelTerms", event.target.value)}
+                            className="mt-2 min-h-20 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+                            placeholder="Duel terms (what happens if the challenger wins)"
+                          />
+                          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                            <input
+                              type="datetime-local"
+                              value={counterDraft.duelScheduledFor}
+                              onChange={(event) => setCounterField(offer.id, "duelScheduledFor", event.target.value)}
+                              className="ios-input"
+                            />
+                            <input
+                              value={counterDraft.duelDurationMinutes}
+                              onChange={(event) => setCounterField(offer.id, "duelDurationMinutes", event.target.value)}
+                              className="ios-input"
+                              inputMode="numeric"
+                              placeholder="Clock (minutes)"
+                            />
+                          </div>
+                        </>
                       ) : null}
                       <div className="mt-2 flex flex-wrap gap-2">
                         <button

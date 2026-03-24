@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { isTradePostStatus, normalizeTags, parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
 import { ensureTradeSchema } from "@/lib/trade-schema";
+import { tradeOfferWithDuelInclude } from "@/lib/trade-duel-service";
 
 type RouteContext = {
   params: Promise<{
@@ -45,37 +46,7 @@ const postInclude = {
   },
   offers: {
     orderBy: { createdAt: "desc" },
-    include: {
-      proposer: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          image: true,
-        },
-      },
-      cards: {
-        orderBy: { createdAt: "asc" },
-      },
-      settlement: {
-        include: {
-          payer: {
-            select: {
-              id: true,
-              username: true,
-              displayName: true,
-            },
-          },
-          payee: {
-            select: {
-              id: true,
-              username: true,
-              displayName: true,
-            },
-          },
-        },
-      },
-    },
+    include: tradeOfferWithDuelInclude,
   },
   _count: {
     select: { offers: true },
@@ -99,38 +70,6 @@ const postBaseInclude = {
   },
 } satisfies Prisma.TradePostInclude;
 
-const offerInclude = {
-  proposer: {
-    select: {
-      id: true,
-      username: true,
-      displayName: true,
-      image: true,
-    },
-  },
-  cards: {
-    orderBy: { createdAt: "asc" },
-  },
-  settlement: {
-    include: {
-      payer: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-        },
-      },
-      payee: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-        },
-      },
-    },
-  },
-} satisfies Prisma.TradeOfferInclude;
-
 export async function GET(_request: Request, { params }: RouteContext) {
   await ensureTradeSchema().catch(() => null);
   try {
@@ -149,7 +88,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
     let offers: Array<
       Prisma.TradeOfferGetPayload<{
-        include: typeof offerInclude;
+        include: typeof tradeOfferWithDuelInclude;
       }>
     > = [];
 
@@ -159,7 +98,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
           where: isOwner
             ? { postId: id }
             : { postId: id, proposerId: sessionUser.id },
-          include: offerInclude,
+          include: tradeOfferWithDuelInclude,
           orderBy: { createdAt: "desc" },
         });
       } catch (offerError) {

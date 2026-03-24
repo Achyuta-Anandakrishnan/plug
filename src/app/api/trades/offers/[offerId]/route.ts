@@ -1,8 +1,25 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
-import { isTradeGameType, isTradeOfferStatus, parseIntOrNull } from "@/lib/trades";
+import {
+  createInitialDuelState,
+  isTradeDuelMode,
+  normalizeTradeDuelTerms,
+} from "@/lib/duels";
 import { ensureTradeSchema } from "@/lib/trade-schema";
+import { isTradeOfferStatus, parseIntOrNull } from "@/lib/trades";
+import {
+  createTradeDuelDraftData,
+  hydrateLegacyTradeDuel,
+  recordTradeDuelAgreement,
+  settleTradeOfferByDuel,
+  startTradeDuel,
+  tradeOfferWithDuelInclude,
+  viewerCanAccessTradeOffer,
+  type TradeOfferWithRequiredDuel,
+  type TradeOfferWithDuel,
+} from "@/lib/trade-duel-service";
 
 type RouteContext = {
   params: Promise<{
@@ -14,56 +31,77 @@ type UpdateOfferBody = {
   status?: string;
   message?: string;
   cashAdjustment?: number | string | null;
-  counterMode?: "STANDARD" | "GAME";
+  counterMode?: "STANDARD" | "GAME" | "DUEL";
+  duelMode?: string | null;
+  duelTerms?: string | null;
+  duelScheduledFor?: string | null;
+  duelDurationMinutes?: number | string | null;
   gameType?: string | null;
   gameTerms?: string | null;
   gameAction?: "AGREE_TERMS" | "START_GAME" | "RESOLVE_GAME";
   gameWinnerId?: string | null;
 };
 
-const offerInclude = {
-  proposer: {
-    select: {
-      id: true,
-      username: true,
-      displayName: true,
-      image: true,
-    },
-  },
-  cards: {
-    orderBy: { createdAt: "asc" },
-  },
-  settlement: {
-    include: {
-      payer: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-        },
-      },
-      payee: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-        },
-      },
-    },
-  },
-} as const;
-
-function normalizeGameType(value: unknown) {
-  if (typeof value !== "string") return null;
-  const normalized = value.trim().toLowerCase();
-  if (!isTradeGameType(normalized)) return null;
-  return normalized;
+function normalizeCounterMode(value: unknown) {
+  return value === "GAME" || value === "DUEL" ? "DUEL" : "STANDARD";
 }
 
-function normalizeGameTerms(value: unknown) {
-  if (typeof value !== "string") return null;
-  const normalized = value.trim().replace(/\s+/g, " ");
-  return normalized.length > 0 ? normalized : null;
+function normalizeDuelMode(body: UpdateOfferBody) {
+  const candidate = typeof body.duelMode === "string" ? body.duelMode.trim().toLowerCase() : typeof body.gameType === "string" ? body.gameType.trim().toLowerCase() : "";
+  return isTradeDuelMode(candidate) ? candidate : null;
+}
+
+function normalizeDuelTerms(body: UpdateOfferBody) {
+  return normalizeTradeDuelTerms(body.duelTerms ?? body.gameTerms);
+}
+
+function cancelDuelWrite(offer: TradeOfferWithDuel) {
+  if (!offer.duel || offer.duel.completedAt || offer.duel.status === "COMPLETED") return undefined;
+  return {
+    update: {
+      status: "CANCELED",
+      completedAt: new Date(),
+      resultReason: "Offer closed before duel completion.",
+    },
+  };
+}
+
+function standardSettlementWrite(offer: TradeOfferWithDuel) {
+  const cashAmount = offer.cashAdjustment ?? 0;
+  const amount = Math.abs(cashAmount);
+  if (amount <= 0) {
+    return offer.settlement
+      ? {
+          delete: true,
+        }
+      : undefined;
+  }
+
+  const payerId = cashAmount >= 0 ? offer.proposerId : offer.post.ownerId;
+  const payeeId = cashAmount >= 0 ? offer.post.ownerId : offer.proposerId;
+  const createStatus = "REQUIRES_PAYMENT" as const;
+  const status: "SUCCEEDED" | "REQUIRES_PAYMENT" = offer.settlement?.status === "SUCCEEDED"
+    ? "SUCCEEDED"
+    : "REQUIRES_PAYMENT";
+
+  return {
+    upsert: {
+      create: {
+        payerId,
+        payeeId,
+        amount,
+        currency: "usd",
+        status: createStatus,
+      },
+      update: {
+        payerId,
+        payeeId,
+        amount,
+        currency: "usd",
+        status,
+      },
+    },
+  };
 }
 
 export async function PATCH(request: Request, { params }: RouteContext) {
@@ -79,171 +117,65 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     return jsonError("Invalid offer update payload.");
   }
 
-  if (body?.status && !isTradeOfferStatus(body.status)) {
+  if (body.status && !isTradeOfferStatus(body.status)) {
     return jsonError("Invalid offer status.");
   }
 
-  const offer = await prisma.tradeOffer.findUnique({
+  let offer = await prisma.tradeOffer.findUnique({
     where: { id: offerId },
-    include: {
-      post: {
-        select: {
-          id: true,
-          ownerId: true,
-          status: true,
-        },
-      },
-      settlement: true,
-    },
+    include: tradeOfferWithDuelInclude,
   });
 
   if (!offer) {
     return jsonError("Offer not found.", 404);
   }
 
-  const isOwner = offer.post.ownerId === sessionUser.id;
-  const isProposer = offer.proposerId === sessionUser.id;
-  if (!isOwner && !isProposer) {
+  if (!viewerCanAccessTradeOffer(offer, sessionUser.id)) {
     return jsonError("Not authorized to update this offer.", 403);
   }
 
+  const isOwner = offer.post.ownerId === sessionUser.id;
+  const isProposer = offer.proposerId === sessionUser.id;
+
+  if (body.gameAction || offer.gameType) {
+    const currentOffer = offer;
+    offer = await prisma.$transaction(async (tx) => hydrateLegacyTradeDuel(tx, currentOffer));
+  }
+
   if (body.gameAction === "AGREE_TERMS") {
-    if (offer.status !== "COUNTERED") {
-      return jsonError("Game terms can only be agreed on countered offers.", 409);
+    if (!offer.duel) {
+      return jsonError("No duel is attached to this counter offer.", 409);
     }
-    if (!offer.gameType || !offer.gameTerms) {
-      return jsonError("No game terms are attached to this counter offer.", 409);
-    }
-
-    const now = new Date();
-    const nextOwnerAgreedAt = isOwner
-      ? (offer.gameOwnerAgreedAt ?? now)
-      : offer.gameOwnerAgreedAt;
-    const nextProposerAgreedAt = isProposer
-      ? (offer.gameProposerAgreedAt ?? now)
-      : offer.gameProposerAgreedAt;
-
-    const updated = await prisma.tradeOffer.update({
-      where: { id: offer.id },
-      data: {
-        gameOwnerAgreedAt: nextOwnerAgreedAt,
-        gameProposerAgreedAt: nextProposerAgreedAt,
-        gameLockedAt: nextOwnerAgreedAt && nextProposerAgreedAt
-          ? (offer.gameLockedAt ?? now)
-          : null,
-      },
-      include: offerInclude,
-    });
+    const updated = await prisma.$transaction(async (tx) => recordTradeDuelAgreement(tx, offer as TradeOfferWithRequiredDuel, sessionUser.id));
     return jsonOk(updated);
   }
 
   if (body.gameAction === "START_GAME") {
-    if (offer.status !== "COUNTERED") {
-      return jsonError("Game sessions can only start on countered offers.", 409);
+    if (!offer.duel) {
+      return jsonError("This offer does not have duel terms.", 409);
     }
-    if (!offer.gameType || !offer.gameTerms) {
-      return jsonError("This offer does not have game terms.", 409);
-    }
-    if (!offer.gameOwnerAgreedAt || !offer.gameProposerAgreedAt || !offer.gameLockedAt) {
-      return jsonError("Both parties must agree to game terms before starting.", 409);
-    }
-
-    const updated = await prisma.tradeOffer.update({
-      where: { id: offer.id },
-      data: {
-        gameStartedAt: offer.gameStartedAt ?? new Date(),
-      },
-      include: offerInclude,
-    });
-
+    const updated = await prisma.$transaction(async (tx) => startTradeDuel(tx, offer as TradeOfferWithRequiredDuel, sessionUser.id));
     return jsonOk(updated);
   }
 
   if (body.gameAction === "RESOLVE_GAME") {
-    if (offer.status !== "COUNTERED") {
-      return jsonError("Game settlements can only resolve countered offers.", 409);
+    if (!offer.duel) {
+      return jsonError("This offer does not have duel terms.", 409);
     }
-    if (!offer.gameType || !offer.gameTerms) {
-      return jsonError("This offer does not have game terms.", 409);
-    }
-    if (!offer.gameOwnerAgreedAt || !offer.gameProposerAgreedAt || !offer.gameLockedAt) {
-      return jsonError("Both parties must agree to game terms before settlement.", 409);
-    }
-    if (!offer.gameStartedAt) {
-      return jsonError("Start the game session before resolving the result.", 409);
-    }
-    if (offer.gameResolvedAt || offer.gameWinnerId) {
-      return jsonError("This game has already been resolved.", 409);
-    }
-
     const winnerId = typeof body.gameWinnerId === "string" ? body.gameWinnerId.trim() : "";
-    if (!winnerId) {
-      return jsonError("Winner is required to resolve game settlement.");
+    if (!winnerId || (winnerId !== offer.duel.challengerId && winnerId !== offer.duel.defenderId)) {
+      return jsonError("Winner must be one of the duel participants.", 409);
     }
-    if (winnerId !== offer.post.ownerId && winnerId !== offer.proposerId) {
-      return jsonError("Winner must be one of the two trade participants.", 409);
-    }
-
-    const resolvedAt = new Date();
-    const accepted = await prisma.$transaction(async (tx) => {
-      const cashAmount = offer.cashAdjustment ?? 0;
-      const amount = Math.abs(cashAmount);
-      const payerId = cashAmount >= 0 ? offer.proposerId : offer.post.ownerId;
-      const payeeId = cashAmount >= 0 ? offer.post.ownerId : offer.proposerId;
-
-      await tx.tradeOffer.updateMany({
-        where: {
-          postId: offer.postId,
-          id: { not: offer.id },
-          status: { in: ["PENDING", "COUNTERED"] },
-        },
-        data: { status: "DECLINED" },
-      });
-
-      await tx.tradePost.update({
-        where: { id: offer.postId },
-        data: { status: "MATCHED" },
-      });
-
-      return tx.tradeOffer.update({
-        where: { id: offer.id },
-        data: {
-          status: "ACCEPTED",
-          gameWinnerId: winnerId,
-          gameResolvedAt: resolvedAt,
-          gameStartedAt: offer.gameStartedAt ?? resolvedAt,
-          settlement: amount > 0
-            ? {
-                upsert: {
-                  create: {
-                    payerId,
-                    payeeId,
-                    amount,
-                    currency: "usd",
-                    status: "REQUIRES_PAYMENT",
-                  },
-                  update: {
-                    payerId,
-                    payeeId,
-                    amount,
-                    currency: "usd",
-                    status: offer.settlement?.status === "SUCCEEDED"
-                      ? "SUCCEEDED"
-                      : "REQUIRES_PAYMENT",
-                  },
-                },
-              }
-            : offer.settlement
-              ? {
-                  delete: true,
-                }
-              : undefined,
-        },
-        include: offerInclude,
-      });
-    });
-
-    return jsonOk(accepted);
+    const winnerParty = winnerId === offer.duel.challengerId ? "CHALLENGER" : "DEFENDER";
+    const updated = await prisma.$transaction(async (tx) =>
+      settleTradeOfferByDuel(
+        tx,
+        offer as TradeOfferWithRequiredDuel,
+        winnerParty,
+        `Legacy resolution awarded the duel to the ${winnerParty === "CHALLENGER" ? "challenger" : "defender"}.`,
+      ),
+    );
+    return jsonOk(updated);
   }
 
   const nextStatus = body.status as NonNullable<UpdateOfferBody["status"]>;
@@ -260,20 +192,21 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       where: { id: offer.id },
       data: {
         status: "WITHDRAWN",
+        duel: cancelDuelWrite(offer),
         settlement: offer.settlement
           ? {
               update: { status: "CANCELED" },
             }
           : undefined,
       },
-      include: offerInclude,
+      include: tradeOfferWithDuelInclude,
     });
     return jsonOk(updated);
   }
 
   if (nextStatus === "ACCEPTED") {
-    if (offer.gameType && offer.gameTerms) {
-      return jsonError("This counter uses game settlement. Resolve the game result first.", 409);
+    if (offer.duel || (offer.gameType && offer.gameTerms)) {
+      return jsonError("This counter uses duel settlement. Resolve the duel first.", 409);
     }
     const proposerCanAcceptCounter = offer.status === "COUNTERED" && isProposer;
     if (!isOwner && !proposerCanAcceptCounter) {
@@ -284,11 +217,6 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     const accepted = await prisma.$transaction(async (tx) => {
-      const cashAmount = offer.cashAdjustment ?? 0;
-      const amount = Math.abs(cashAmount);
-      const payerId = cashAmount >= 0 ? offer.proposerId : offer.post.ownerId;
-      const payeeId = cashAmount >= 0 ? offer.post.ownerId : offer.proposerId;
-
       await tx.tradeOffer.updateMany({
         where: {
           postId: offer.postId,
@@ -307,34 +235,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         where: { id: offer.id },
         data: {
           status: "ACCEPTED",
-          settlement: amount > 0
-            ? {
-                upsert: {
-                  create: {
-                    payerId,
-                    payeeId,
-                    amount,
-                    currency: "usd",
-                    status: "REQUIRES_PAYMENT",
-                  },
-                  update: {
-                    payerId,
-                    payeeId,
-                    amount,
-                    currency: "usd",
-                    status: offer.settlement?.status === "SUCCEEDED"
-                      ? "SUCCEEDED"
-                      : "REQUIRES_PAYMENT",
-                  },
-                },
-              }
-            : offer.settlement
-              ? {
-                  delete: true,
-                }
-              : undefined,
+          settlement: standardSettlementWrite(offer),
         },
-        include: offerInclude,
+        include: tradeOfferWithDuelInclude,
       });
     });
 
@@ -348,7 +251,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     if (offer.status === "PENDING" && !isOwner) {
       return jsonError("Only the trade owner can send the first counter.", 403);
     }
-    if (offer.status === "COUNTERED" && offer.gameProposedById === sessionUser.id) {
+    if (offer.status === "COUNTERED" && (offer.duel?.challengerId === sessionUser.id || offer.gameProposedById === sessionUser.id)) {
       return jsonError("Wait for the other party response before countering again.", 409);
     }
 
@@ -363,16 +266,16 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       ? (body.message?.trim() || null)
       : offer.message;
 
-    const counterMode = body.counterMode === "GAME" ? "GAME" : "STANDARD";
-    const normalizedGameType = normalizeGameType(body.gameType);
-    const normalizedGameTerms = normalizeGameTerms(body.gameTerms);
+    const counterMode = normalizeCounterMode(body.counterMode);
+    const duelMode = normalizeDuelMode(body);
+    const duelTerms = normalizeDuelTerms(body);
 
-    if (counterMode === "GAME") {
-      if (!normalizedGameType) {
-        return jsonError("Choose a valid game for this counter.");
+    if (counterMode === "DUEL") {
+      if (!duelMode) {
+        return jsonError("Choose a valid duel mode for this counter.");
       }
-      if (!normalizedGameTerms || normalizedGameTerms.length < 12) {
-        return jsonError("Game terms must be at least 12 characters.");
+      if (!duelTerms) {
+        return jsonError("Duel terms must be at least 12 characters.");
       }
     }
 
@@ -383,16 +286,38 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         status: "COUNTERED",
         message: nextMessage,
         cashAdjustment: nextCashAdjustment,
-        gameType: counterMode === "GAME" ? normalizedGameType : null,
-        gameTerms: counterMode === "GAME" ? normalizedGameTerms : null,
-        gameTermsVersion: counterMode === "GAME" ? ((offer.gameTermsVersion ?? 0) + 1) : null,
+        gameType: counterMode === "DUEL" ? duelMode : null,
+        gameTerms: counterMode === "DUEL" ? duelTerms : null,
+        gameTermsVersion: counterMode === "DUEL" ? ((offer.gameTermsVersion ?? 0) + 1) : null,
         gameProposedById: sessionUser.id,
-        gameOwnerAgreedAt: counterMode === "GAME" ? (isOwner ? now : null) : null,
-        gameProposerAgreedAt: counterMode === "GAME" ? (isProposer ? now : null) : null,
+        gameOwnerAgreedAt: counterMode === "DUEL" ? (isOwner ? now : null) : null,
+        gameProposerAgreedAt: counterMode === "DUEL" ? (isProposer ? now : null) : null,
         gameLockedAt: null,
         gameStartedAt: null,
         gameResolvedAt: null,
         gameWinnerId: null,
+        gameState: counterMode === "DUEL" && duelMode ? createInitialDuelState(duelMode) : Prisma.JsonNull,
+        gameStateVersion: 0,
+        duel: counterMode === "DUEL" && duelMode && duelTerms
+          ? {
+              upsert: {
+                create: createTradeDuelDraftData(offer, sessionUser.id, {
+                  mode: duelMode,
+                  terms: duelTerms,
+                  scheduledForInput: body.duelScheduledFor,
+                  durationMinutesInput: body.duelDurationMinutes,
+                }, now),
+                update: createTradeDuelDraftData(offer, sessionUser.id, {
+                  mode: duelMode,
+                  terms: duelTerms,
+                  scheduledForInput: body.duelScheduledFor,
+                  durationMinutesInput: body.duelDurationMinutes,
+                }, now),
+              },
+            }
+          : offer.duel
+            ? { delete: true }
+            : undefined,
         settlement: offer.settlement
           ? {
               update: {
@@ -401,7 +326,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
             }
           : undefined,
       },
-      include: offerInclude,
+      include: tradeOfferWithDuelInclude,
     });
     return jsonOk(updated);
   }
@@ -418,13 +343,14 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       where: { id: offer.id },
       data: {
         status: "DECLINED",
+        duel: cancelDuelWrite(offer),
         settlement: offer.settlement
           ? {
               update: { status: "CANCELED" },
             }
           : undefined,
       },
-      include: offerInclude,
+      include: tradeOfferWithDuelInclude,
     });
     return jsonOk(updated);
   }

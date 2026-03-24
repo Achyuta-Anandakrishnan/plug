@@ -217,6 +217,9 @@ model User {
   tradePosts     TradePost[]           @relation("TradePostOwner")
   wantRequests   WantRequest[]         @relation("WantRequestOwner")
   tradeOffers    TradeOffer[]          @relation("TradeOfferProposer")
+  tradeDuelsChallenging TradeDuel[]    @relation("TradeDuelChallenger")
+  tradeDuelsDefending   TradeDuel[]    @relation("TradeDuelDefender")
+  tradeDuelsWon         TradeDuel[]    @relation("TradeDuelWinner")
   tradeSettlementsToPay     TradeSettlement[] @relation("TradeSettlementPayer")
   tradeSettlementsToReceive TradeSettlement[] @relation("TradeSettlementPayee")
 }
@@ -488,6 +491,7 @@ model TradePost {
   owner            User            @relation("TradePostOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   images           TradePostImage[]
   offers           TradeOffer[]
+  duels            TradeDuel[]
   saves            UserSave[]
 
   @@index([ownerId])
@@ -566,11 +570,50 @@ model TradeOffer {
   post             TradePost         @relation(fields: [postId], references: [id], onDelete: Cascade)
   proposer         User              @relation("TradeOfferProposer", fields: [proposerId], references: [id], onDelete: Cascade)
   cards            TradeOfferCard[]
+  duel             TradeDuel?
   settlement       TradeSettlement?
 
   @@index([postId])
   @@index([proposerId])
   @@index([status])
+}
+
+model TradeDuel {
+  id               String     @id @default(cuid())
+  offerId          String     @unique
+  postId           String
+  challengerId     String
+  defenderId       String
+  winnerId         String?
+  mode             String
+  terms            String
+  status           String     @default("PENDING")
+  scheduledFor     DateTime?
+  durationSeconds  Int?
+  challengerAgreedAt DateTime?
+  defenderAgreedAt DateTime?
+  startedAt        DateTime?
+  deadlineAt       DateTime?
+  completedAt      DateTime?
+  resultReason     String?
+  baselineSnapshot Json?
+  state            Json?
+  stateVersion     Int        @default(0)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  offer            TradeOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  post             TradePost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  challenger       User       @relation("TradeDuelChallenger", fields: [challengerId], references: [id], onDelete: Cascade)
+  defender         User       @relation("TradeDuelDefender", fields: [defenderId], references: [id], onDelete: Cascade)
+  winner           User?      @relation("TradeDuelWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+  @@index([challengerId])
+  @@index([defenderId])
+  @@index([winnerId])
+  @@index([status])
+  @@index([scheduledFor])
 }
 
 model TradeOfferCard {

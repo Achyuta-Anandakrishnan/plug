@@ -164,14 +164,24 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
     [bounties],
   );
 
+  const featuredIds = useMemo(() => new Set(featuredBounties.map((entry) => entry.id)), [featuredBounties]);
+
   const highBounties = useMemo(
-    () => [...bounties].filter((entry) => (entry.bountyAmount ?? 0) > 0).sort((a, b) => (b.bountyAmount ?? 0) - (a.bountyAmount ?? 0)).slice(0, 6),
-    [bounties],
+    () => [...bounties]
+      .filter((entry) => (entry.bountyAmount ?? 0) > 0 && !featuredIds.has(entry.id))
+      .sort((a, b) => (b.bountyAmount ?? 0) - (a.bountyAmount ?? 0))
+      .slice(0, 6),
+    [bounties, featuredIds],
   );
 
+  const highBountyIds = useMemo(() => new Set(highBounties.map((entry) => entry.id)), [highBounties]);
+
   const recentBounties = useMemo(
-    () => [...bounties].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 6),
-    [bounties],
+    () => [...bounties]
+      .filter((entry) => !featuredIds.has(entry.id) && !highBountyIds.has(entry.id))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 6),
+    [bounties, featuredIds, highBountyIds],
   );
 
   const renderCards = (items: BountyRequestListItem[]) => items.map((bounty) => (
@@ -384,7 +394,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
           <section className="listing-system-feed bounty-featured-section">
             <SectionHeader
               title="Featured bounties"
-              subtitle="The most specific collector requests on the board."
+              subtitle="High-signal requests collectors are actively chasing."
               action={<span className="market-count">{featuredBounties.length} posted</span>}
             />
             <div className="market-rail-grid bounty-rail-grid">
@@ -397,7 +407,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
           <section className="listing-system-feed bounty-featured-section">
             <SectionHeader
               title="High bounty"
-              subtitle="Extra incentive from buyers who want help finding the right card."
+              subtitle="Requests with the strongest finder incentive."
               action={<span className="market-count">{highBounties.length} active</span>}
             />
             <div className="market-rail-grid bounty-rail-grid">
@@ -410,7 +420,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
           <section className="listing-system-feed bounty-featured-section">
             <SectionHeader
               title="Recently posted"
-              subtitle="Fresh demand from collectors shopping right now."
+              subtitle="New buyer demand hitting the board."
               action={<span className="market-count">{recentBounties.length} recent</span>}
             />
             <div className="market-rail-grid bounty-rail-grid">
@@ -422,7 +432,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
         <section className="listing-system-feed bounty-feed-section">
           <SectionHeader
             title="Main bounty feed"
-            subtitle="Open requests ready for sellers, finders, and matching listings."
+            subtitle="Open demand ready for sellers, finders, and matching inventory."
             action={<span className="market-count">{bounties.length} open</span>}
           />
           {!loading && bounties.length === 0 ? (

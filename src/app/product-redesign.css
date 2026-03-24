@@ -2128,6 +2128,38 @@ input[type="radio"] {
   gap: 8px;
 }
 
+.bounty-page .app-page-header {
+  gap: 8px;
+}
+
+.bounty-page .app-page-subtitle {
+  max-width: 520px;
+}
+
+.bounty-toolbar {
+  padding: 10px 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.bounty-board-grid {
+  gap: 18px;
+}
+
+.bounty-featured-section .app-section-title,
+.bounty-feed-section .app-section-title {
+  font-size: 17px;
+}
+
+.bounty-board-cta {
+  justify-content: flex-end;
+}
+
+.bounty-board-cta .app-button {
+  min-width: 152px;
+}
+
 .want-board-cta,
 .bounty-board-cta {
   display: flex;
@@ -2693,6 +2725,121 @@ input[type="radio"] {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.trade-detail-offer-row {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.trade-offer-duel-panel {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.92), rgba(241, 245, 249, 0.84)),
+    rgba(255, 255, 255, 0.9);
+}
+
+.trade-offer-duel-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.trade-offer-duel-eyebrow,
+.trade-duel-eyebrow {
+  margin: 0;
+  color: var(--product-text-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.trade-offer-duel-title {
+  margin: 4px 0 0;
+  color: var(--product-text);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.trade-offer-duel-copy,
+.trade-duel-copy {
+  margin: 0;
+  color: var(--product-text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.trade-offer-duel-meta,
+.trade-duel-footnote {
+  margin: 0;
+  color: var(--product-text-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.trade-offer-duel-statuses,
+.trade-duel-approval-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trade-offer-duel-statuses span,
+.trade-duel-approval-list span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--product-border);
+  border-radius: 999px;
+  color: var(--product-text-soft);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.trade-duel-approval-list .is-ready {
+  border-color: rgba(16, 185, 129, 0.18);
+  background: rgba(236, 253, 245, 0.92);
+  color: #047857;
+}
+
+.trade-offer-duel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.trade-offer-duel-hint,
+.trade-offer-duel-result,
+.trade-duel-result {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.trade-offer-duel-hint {
+  color: var(--product-text-soft);
+}
+
+.trade-offer-duel-result,
+.trade-duel-result {
+  color: #047857;
+  font-weight: 600;
 }
 
 .trade-detail-textarea {
@@ -3478,6 +3625,17 @@ input[type="radio"] {
   gap: 12px;
 }
 
+.trade-compose-form .app-page-header {
+  gap: 8px;
+}
+
+.trade-compose-panel,
+.trade-compose-manual {
+  gap: 12px;
+  padding: 12px;
+  border-radius: 18px;
+}
+
 .seller-verification-stepper {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -3545,11 +3703,11 @@ input[type="radio"] {
 .trade-compose-value,
 .trade-compose-review {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .trade-compose-verify-grid {
-  grid-template-columns: 180px minmax(0, 1fr) auto;
+  grid-template-columns: 156px minmax(0, 1fr) auto;
 }
 
 .trade-compose-verify-action {
@@ -3560,8 +3718,12 @@ input[type="radio"] {
 
 .trade-compose-review-card {
   display: grid;
-  gap: 14px;
-  grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+  gap: 12px;
+  grid-template-columns: minmax(0, 164px) minmax(0, 1fr);
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(249, 250, 251, 0.72);
 }
 
 .trade-compose-review-frame {
@@ -3590,6 +3752,190 @@ input[type="radio"] {
   align-items: start;
   justify-content: space-between;
   gap: 12px;
+}
+
+.trade-compose-manual .app-form-grid {
+  gap: 12px;
+}
+
+.trade-compose-manual .app-form-field span,
+.trade-compose-panel .app-form-field span {
+  margin-bottom: 6px;
+}
+
+.trade-compose-note {
+  margin: 0;
+  color: var(--product-text-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.trade-duel-page {
+  gap: 14px;
+}
+
+.trade-duel-screen,
+.trade-duel-main,
+.trade-duel-sidebar {
+  display: grid;
+  gap: 12px;
+}
+
+.trade-duel-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 14px;
+  align-items: start;
+}
+
+.trade-duel-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: none;
+}
+
+.trade-duel-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.trade-duel-stats .app-stat-pill {
+  min-height: auto;
+  padding: 12px;
+}
+
+.trade-duel-board {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  overflow: hidden;
+  aspect-ratio: 1;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  background: rgba(248, 250, 252, 0.94);
+}
+
+.trade-duel-square {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.trade-duel-square.is-light {
+  background: rgba(241, 245, 249, 0.96);
+}
+
+.trade-duel-square.is-dark {
+  background: rgba(203, 213, 225, 0.68);
+}
+
+.trade-duel-square.is-selected {
+  box-shadow: inset 0 0 0 2px rgba(19, 34, 56, 0.22);
+}
+
+.trade-duel-piece {
+  width: 68%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+.trade-duel-piece.is-challenger {
+  background: linear-gradient(180deg, #1e293b, #0f172a);
+}
+
+.trade-duel-piece.is-defender {
+  background: linear-gradient(180deg, #f8fafc, #cbd5e1);
+}
+
+.trade-duel-piece.is-king {
+  position: relative;
+}
+
+.trade-duel-piece.is-king::after {
+  content: "K";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trade-duel-piece.is-defender.is-king::after {
+  color: rgba(15, 23, 42, 0.86);
+}
+
+.trade-duel-chess-piece {
+  font-size: clamp(15px, 1.8vw, 22px);
+  font-weight: 700;
+}
+
+.trade-duel-chess-piece.is-challenger {
+  color: #0f172a;
+}
+
+.trade-duel-chess-piece.is-defender {
+  color: #475569;
+}
+
+.trade-duel-instant {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+
+.trade-duel-result-mark {
+  display: inline-grid;
+  place-items: center;
+  min-width: 92px;
+  min-height: 92px;
+  padding: 12px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #1e293b, #0f172a);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.trade-duel-poker-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.trade-duel-poker-grid article,
+.trade-duel-participant {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.72);
+}
+
+.trade-duel-poker-hand {
+  margin: 0;
+  color: var(--product-text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.trade-duel-clear {
+  justify-self: start;
+  color: var(--product-text-soft);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .sell-page .app-form-container {
@@ -4025,6 +4371,10 @@ input[type="radio"] {
     grid-template-columns: 1fr;
   }
 
+  .trade-duel-layout {
+    grid-template-columns: 1fr;
+  }
+
   .market-featured-grid,
   .market-rail-grid {
     grid-auto-flow: row;
@@ -4164,6 +4514,7 @@ input[type="radio"] {
   .app-page--referral,
   .app-page--seller-verification,
   .app-page--trade-detail,
+  .app-page--trade-duel,
   .app-page--want-detail,
   .app-page--bounty-detail,
   .app-page--trade-dispute,
@@ -4280,6 +4631,12 @@ input[type="radio"] {
     border-radius: 16px;
   }
 
+  .trade-detail-offer-row,
+  .trade-duel-panel {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
   .trade-detail-gallery-grid {
     grid-auto-flow: column;
     grid-auto-columns: minmax(0, 78vw);
@@ -4298,6 +4655,15 @@ input[type="radio"] {
 
   .trade-detail-sidebar {
     gap: 12px;
+  }
+
+  .trade-duel-stats,
+  .trade-duel-poker-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .trade-duel-board {
+    border-radius: 16px;
   }
 
   .live-v3-live-grid {

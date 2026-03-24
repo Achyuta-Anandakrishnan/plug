@@ -12,8 +12,9 @@ import {
   SectionHeader,
 } from "@/components/product/ProductUI";
 import { bountyAmountLabel, bountyBudgetLabel } from "@/lib/bounties";
-import { ensureBountySchema } from "@/lib/bounty-schema";
+import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
 import type { AuctionListItem } from "@/hooks/useAuctions";
+import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import { prisma } from "@/lib/prisma";
 import type { TradePostListItem } from "@/lib/trade-client";
 
@@ -47,6 +48,24 @@ type MatchingAuctionCandidate = Prisma.AuctionGetPayload<{
             isPrimary: true;
           };
         };
+      };
+    };
+  };
+}>;
+
+type BountyDetailRecord = Prisma.WantRequestGetPayload<{
+  include: {
+    user: {
+      select: {
+        id: true;
+        username: true;
+        displayName: true;
+        image: true;
+      };
+    };
+    _count: {
+      select: {
+        saves: true;
       };
     };
   };
@@ -158,24 +177,61 @@ export default async function BountyDetailPage({
   await ensureBountySchema().catch(() => null);
   const { id } = await params;
 
-  const bounty = await prisma.wantRequest.findUnique({
-    where: { id },
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          image: true,
+  let bounty: BountyDetailRecord | null = null;
+  let bountyLoadError: string | null = null;
+
+  try {
+    bounty = await prisma.wantRequest.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            image: true,
+          },
+        },
+        _count: {
+          select: { saves: true },
         },
       },
-      _count: {
-        select: { saves: true },
-      },
-    },
-  });
+    });
+  } catch (error) {
+    if (isBountySchemaMissing(error)) {
+      await ensureBountySchema().catch(() => null);
+      bountyLoadError = "Bounties are still initializing. Retry in a few seconds.";
+    } else {
+      console.error("Bounty detail load failed", { id, error });
+      bountyLoadError = "Unable to load this bounty right now.";
+    }
+  }
 
   if (!bounty) {
+    if (bountyLoadError) {
+      return (
+        <PageContainer className="bounty-detail-page app-page--bounty-detail">
+          <section className="app-section">
+            <PageHeader
+              eyebrow="Bounty"
+              title="Bounty unavailable"
+              subtitle={bountyLoadError}
+              actions={
+                <div className="bounty-detail-header-actions">
+                  <PrimaryButton href={`/bounties/${encodeURIComponent(id)}`}>Try again</PrimaryButton>
+                  <SecondaryButton href="/bounties">Back to board</SecondaryButton>
+                </div>
+              }
+            />
+            <EmptyStateCard
+              title="This bounty could not be loaded."
+              description={bountyLoadError}
+              action={<PrimaryButton href="/bounties">Browse bounties</PrimaryButton>}
+            />
+          </section>
+        </PageContainer>
+      );
+    }
     notFound();
   }
 
@@ -188,8 +244,9 @@ export default async function BountyDetailPage({
     ...((bounty.priceMax ?? bounty.priceMin) ? { price: String(((bounty.priceMax ?? bounty.priceMin) ?? 0) / 100) } : {}),
   });
   const terms = searchTermsForBounty(bounty);
+  const normalizedImageUrl = resolveDisplayMediaUrl(bounty.imageUrl, "");
 
-  const [candidateListings, candidateTrades] = await Promise.all([
+  const [candidateListingsResult, candidateTradesResult] = await Promise.allSettled([
     prisma.auction.findMany({
       where: {
         status: { in: ["SCHEDULED", "LIVE"] },
@@ -259,6 +316,19 @@ export default async function BountyDetailPage({
     }),
   ]);
 
+  if (candidateListingsResult.status === "rejected") {
+    console.error("Bounty listing match query failed", { id, error: candidateListingsResult.reason });
+  }
+
+  if (candidateTradesResult.status === "rejected") {
+    console.error("Bounty trade match query failed", { id, error: candidateTradesResult.reason });
+  }
+
+  const candidateListings = candidateListingsResult.status === "fulfilled" ? candidateListingsResult.value : [];
+  const candidateTrades = candidateTradesResult.status === "fulfilled" ? candidateTradesResult.value : [];
+  const listingMatchesUnavailable = candidateListingsResult.status === "rejected";
+  const tradeMatchesUnavailable = candidateTradesResult.status === "rejected";
+
   const matchingListings: AuctionListItem[] = candidateListings
     .filter((listing) => {
       const haystack = asAuctionSearchBlob(serializeAuctionListItem(listing));
@@ -302,9 +372,9 @@ export default async function BountyDetailPage({
         <section className="bounty-detail-layout">
           <article className="product-card bounty-detail-media-card">
             <div className="bounty-detail-media">
-              {bounty.imageUrl ? (
+              {normalizedImageUrl ? (
                 <Image
-                  src={bounty.imageUrl}
+                  src={normalizedImageUrl}
                   alt={bounty.title}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -390,6 +460,12 @@ export default async function BountyDetailPage({
                 <ListingCard key={listing.id} listing={listing} />
               ))}
             </div>
+          ) : listingMatchesUnavailable ? (
+            <EmptyStateCard
+              title="Matching listings are temporarily unavailable."
+              description="The bounty loaded, but the related listing search failed. Retry in a moment."
+              action={<SecondaryButton href={`/bounties/${encodeURIComponent(id)}`}>Refresh matches</SecondaryButton>}
+            />
           ) : (
             <EmptyStateCard
               title="No direct listing matches yet."
@@ -411,6 +487,12 @@ export default async function BountyDetailPage({
                 <ListingCard key={trade.id} kind="trade" trade={trade} />
               ))}
             </div>
+          ) : tradeMatchesUnavailable ? (
+            <EmptyStateCard
+              title="Matching trades are temporarily unavailable."
+              description="The bounty loaded, but the trade match search failed. Retry in a moment."
+              action={<SecondaryButton href={`/bounties/${encodeURIComponent(id)}`}>Refresh matches</SecondaryButton>}
+            />
           ) : (
             <EmptyStateCard
               title="No trade inventory matches yet."
