@@ -153,7 +153,7 @@ export default async function UsernameProfilePage({
             </Link>
           ))}
           {(profile.sellerProfile?.auctions?.length ?? 0) === 0 && (
-            <div className="ios-empty">
+            <div className="app-status-note">
               No active listings.
             </div>
           )}

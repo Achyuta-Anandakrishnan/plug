@@ -286,13 +286,13 @@ export function ListingCard(props: ListingCardProps) {
   return (
     <article className={`market-v2-listing-card product-card listing-card is-${surfaceKind}-card`}>
       <Link href={surface.href} className="listing-card-link">
-        <div className={`listing-card-media ${surface.hasImage ? "" : "is-fallback"}`}>
+        <div className={`listing-card-media${surface.hasImage ? "" : " is-fallback"}`}>
           {surface.hasImage ? (
             <Image
               src={imageSrc}
               alt={surface.title}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1440px) 33vw, 280px"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1440px) 25vw, 260px"
               className="listing-card-image"
               unoptimized
               onError={() => {
@@ -306,24 +306,17 @@ export function ListingCard(props: ListingCardProps) {
               <span>{surface.badgeLabel}</span>
             </div>
           )}
+          <span className={`listing-card-badge ${surface.badgeClassName}`}>{surface.badgeLabel}</span>
         </div>
 
-        <div className="listing-card-overlay">
-          <div className="listing-card-top">
-            <span className={`listing-card-badge ${surface.badgeClassName}`}>{surface.badgeLabel}</span>
-          </div>
-
-          <div className="listing-card-bottom">
-            <div className="listing-card-copy">
-              <h3 className="listing-card-title">{surface.title}</h3>
-              <p className="listing-card-meta">{surface.metaLabel}</p>
-              <strong className="listing-card-price">{surface.priceLabel}</strong>
-              {surface.secondaryLabel ? <p className="listing-card-secondary">{surface.secondaryLabel}</p> : null}
-              <div className="listing-card-foot">
-                <span className="listing-card-activity">{surface.activityLabel}</span>
-                <span className="listing-card-seller">{compactName(surface.sellerLabel)}</span>
-              </div>
-            </div>
+        <div className="listing-card-info">
+          <h3 className="listing-card-title">{surface.title}</h3>
+          <p className="listing-card-meta">{surface.metaLabel}</p>
+          <strong className="listing-card-price">{surface.priceLabel}</strong>
+          {surface.secondaryLabel ? <p className="listing-card-secondary">{surface.secondaryLabel}</p> : null}
+          <div className="listing-card-foot">
+            <span className="listing-card-activity">{surface.activityLabel}</span>
+            <span className="listing-card-seller">{compactName(surface.sellerLabel)}</span>
           </div>
         </div>
       </Link>
@@ -335,7 +328,7 @@ export function ListingCard(props: ListingCardProps) {
           event.stopPropagation();
           toggleSave();
         }}
-        className={`listing-card-watch ${saved ? "is-active" : ""}`}
+        className={`listing-card-watch${saved ? " is-active" : ""}`}
         aria-label={saved ? surface.saveActiveLabel : surface.saveInactiveLabel}
       >
         {saved ? "♥" : "♡"}

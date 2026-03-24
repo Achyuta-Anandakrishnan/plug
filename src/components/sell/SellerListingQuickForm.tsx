@@ -343,7 +343,7 @@ export function SellerListingQuickForm() {
             <select
               value={grader}
               onChange={(event) => setGrader(event.target.value as CertGrader)}
-              className="ios-input"
+              className="app-form-input"
             >
               {certGraders.map((entry) => (
                 <option key={entry.value} value={entry.value}>
@@ -358,7 +358,7 @@ export function SellerListingQuickForm() {
               value={certNumber}
               onChange={(event) => setCertNumber(event.target.value)}
               placeholder="Enter cert number"
-              className="ios-input"
+              className="app-form-input"
             />
           </div>
           <div className="space-y-2">
@@ -368,7 +368,7 @@ export function SellerListingQuickForm() {
               onChange={(event) => setDesiredPrice(event.target.value)}
               inputMode="decimal"
               placeholder="250"
-              className="ios-input"
+              className="app-form-input"
             />
           </div>
         </div>

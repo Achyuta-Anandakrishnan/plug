@@ -229,7 +229,7 @@ export function ForumComposeClient() {
   }, [body, loading, ready, saveDraft, session?.user?.id, title]);
 
   if (loading) {
-    return <CheckersLoader title="Loading draft..." compact className="ios-empty" />;
+    return <CheckersLoader title="Loading draft..." compact />;
   }
 
   if (!session?.user?.id) {

@@ -91,11 +91,6 @@ export function SellerListingDesktop() {
   );
   const needsAuctionPricing = listingType !== "BUY_NOW";
   const needsBuyNowPricing = listingType !== "AUCTION";
-  const inputClass =
-    "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
-  const labelClass = "text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400";
-
-
 
   const handleImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -253,230 +248,220 @@ export function SellerListingDesktop() {
   }, [certNumber, gradingCompany, gradingLabel, grade, isGraded]);
 
   return (
-    <div className="space-y-10">
-      <section className="space-y-6 md:hidden">
-        <div className="space-y-6">
-          <h1 className="font-display text-3xl text-slate-900 sm:text-4xl">
-            Create listing
-          </h1>
-          <p className="text-sm leading-relaxed text-slate-600">
-            Auction, buy now, or both.
+    <div className="sell-desktop-screen">
+      <section className="sell-desktop-header">
+        <h1 className="app-page-title">Create listing</h1>
+        <p className="sell-step-hint">Auction, buy now, or both.</p>
+
+        {sessionSellerId ? (
+          <p className="app-status-note is-success">
+            Signed in as {session?.user?.email ?? "seller"}.
           </p>
-          <div className="flex flex-wrap gap-3">
-          </div>
-          {sessionSellerId ? (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-700">
-              Signed in as {session?.user?.email ?? "seller"}.
-            </div>
-          ) : (
-            <div className="grid gap-2">
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
-                {session?.user?.id
-                  ? "Your account is not a seller yet. Submit seller verification for manual review."
-                  : "Sign in to publish listings."}
-              </div>
-              {!session?.user?.id && (
-                <button
-                  onClick={() => signIn()}
-                  className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
-                >
-                  Sign in
-                </button>
-              )}
-            </div>
-          )}
-          {listingId && (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              Listing created.{" "}
-              <Link
-                href={`/streams/${listingId}`}
-                className="font-semibold underline"
+        ) : (
+          <div className="grid gap-2">
+            <p className="app-status-note is-warning">
+              {session?.user?.id
+                ? "Your account is not a seller yet. Submit seller verification for manual review."
+                : "Sign in to publish listings."}
+            </p>
+            {!session?.user?.id ? (
+              <button
+                onClick={() => void signIn()}
+                className="app-button app-button-primary"
               >
-                Open listing
-              </Link>
-            </div>
-          )}
-        </div>
+                Sign in
+              </button>
+            ) : null}
+          </div>
+        )}
+
+        {listingId ? (
+          <p className="app-status-note is-success">
+            Listing created.{" "}
+            <Link href={`/streams/${listingId}`} className="app-link">
+              Open listing
+            </Link>
+          </p>
+        ) : null}
       </section>
 
-      <section className="surface-panel rounded-[32px] p-5 sm:p-8">
-        <form className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]" onSubmit={handleSubmit}>
-          <div className="space-y-5">
-            <div className="rounded-3xl border border-white/70 bg-white/60 p-5">
-              <p className="font-display text-lg text-slate-900">Listing details</p>
-              <div className="mt-4 space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <p className={labelClass}>Category</p>
+      <section className="sell-form-panel">
+        <form className="sell-desktop-form" onSubmit={handleSubmit}>
+          <div className="sell-desktop-main">
+            <div className="sell-form-section">
+              <h3 className="sell-section-title">Listing details</h3>
+
+              <div className="sell-form-cols">
+                <div className="app-form-field">
+                  <label className="app-form-label">Category</label>
+                  <select
+                    value={categoryId}
+                    onChange={(event) => setCategoryId(event.target.value)}
+                    className="app-form-input"
+                  >
+                    <option value="">Primary category</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="app-form-field">
+                <label className="app-form-label">Title</label>
+                <input
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="Listing title"
+                  className="app-form-input"
+                  required
+                />
+              </div>
+
+              <div className="app-form-field">
+                <label className="app-form-label">Description</label>
+                <textarea
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  placeholder="Description"
+                  rows={4}
+                  className="app-form-textarea"
+                />
+              </div>
+
+              <div className="app-form-field">
+                <label className="app-form-label">Condition notes</label>
+                <input
+                  value={condition}
+                  onChange={(event) => setCondition(event.target.value)}
+                  placeholder="Condition notes"
+                  className="app-form-input"
+                />
+              </div>
+
+              <div className="sell-grading-block">
+                <p className="app-form-label">Grading</p>
+                <div className="sell-form-cols">
+                  <div className="app-form-field">
+                    <label className="app-form-label">Is graded?</label>
                     <select
-                      value={categoryId}
-                      onChange={(event) => setCategoryId(event.target.value)}
-                      className={inputClass}
+                      value={isGraded}
+                      onChange={(event) => setIsGraded(event.target.value as "YES" | "NO")}
+                      className="app-form-input"
                     >
-                      <option value="">Primary category</option>
-                      {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
+                      <option value="NO">No</option>
+                      <option value="YES">Yes</option>
                     </select>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <p className={labelClass}>Title</p>
-                  <input
-                    value={title}
-                    onChange={(event) => setTitle(event.target.value)}
-                    placeholder="Listing title"
-                    className={inputClass}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <p className={labelClass}>Description</p>
-                  <textarea
-                    value={description}
-                    onChange={(event) => setDescription(event.target.value)}
-                    placeholder="Description"
-                    rows={4}
-                    className={inputClass}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <p className={labelClass}>Condition notes</p>
-                  <input
-                    value={condition}
-                    onChange={(event) => setCondition(event.target.value)}
-                    placeholder="Condition notes"
-                    className={inputClass}
-                  />
-                </div>
-                <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white/80 p-3">
-                  <p className={labelClass}>Grading</p>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <p className={labelClass}>Is graded?</p>
+                  {isGraded === "YES" ? (
+                    <div className="app-form-field">
+                      <label className="app-form-label">Grading company</label>
                       <select
-                        value={isGraded}
-                        onChange={(event) => setIsGraded(event.target.value as "YES" | "NO")}
-                        className={inputClass}
+                        value={gradingCompany}
+                        onChange={(event) => {
+                          setGradingCompany(event.target.value);
+                          setGrade("");
+                          setGradingLabel("");
+                        }}
+                        className="app-form-input"
                       >
-                        <option value="NO">No</option>
-                        <option value="YES">Yes</option>
+                        {GRADING_COMPANIES.map((company) => (
+                          <option key={company} value={company}>
+                            {company}
+                          </option>
+                        ))}
                       </select>
                     </div>
-                    {isGraded === "YES" && (
-                      <div className="space-y-2">
-                        <p className={labelClass}>Grading company</p>
+                  ) : null}
+                </div>
+
+                {isGraded === "YES" ? (
+                  <div className="grid gap-12px">
+                    <p className="sell-hint">{gradingProfile.note}</p>
+                    <div className="sell-form-cols">
+                      <div className="app-form-field">
+                        <label className="app-form-label">Grade</label>
                         <select
-                          value={gradingCompany}
-                          onChange={(event) => {
-                            setGradingCompany(event.target.value);
-                            setGrade("");
-                            setGradingLabel("");
-                          }}
-                          className={inputClass}
+                          value={grade}
+                          onChange={(event) => setGrade(event.target.value)}
+                          className="app-form-input"
                         >
-                          {GRADING_COMPANIES.map((company) => (
-                            <option key={company} value={company}>
-                              {company}
+                          <option value="">Select grade</option>
+                          {gradeOptions.map((entry) => (
+                            <option key={entry} value={entry}>
+                              {entry}
                             </option>
                           ))}
                         </select>
                       </div>
-                    )}
-                  </div>
-                  {isGraded === "YES" && (
-                    <div className="space-y-3">
-                      <p className="text-xs text-slate-500">{gradingProfile.note}</p>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="space-y-2">
-                          <p className={labelClass}>Grade</p>
+
+                      {gradingProfile.labelOptions.length > 0 ? (
+                        <div className="app-form-field">
+                          <label className="app-form-label">Label tier</label>
                           <select
-                            value={grade}
-                            onChange={(event) => setGrade(event.target.value)}
-                            className={inputClass}
+                            value={gradingLabel}
+                            onChange={(event) => setGradingLabel(event.target.value)}
+                            className="app-form-input"
                           >
-                            <option value="">Select grade</option>
-                            {gradeOptions.map((entry) => (
-                              <option key={entry} value={entry}>
-                                {entry}
+                            <option value="">Standard label</option>
+                            {gradingProfile.labelOptions.map((label) => (
+                              <option key={label} value={label}>
+                                {label}
                               </option>
                             ))}
                           </select>
                         </div>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {gradingProfile.labelOptions.length > 0 && (
-                          <div className="space-y-2">
-                            <p className={labelClass}>Label tier</p>
-                            <select
-                              value={gradingLabel}
-                              onChange={(event) => setGradingLabel(event.target.value)}
-                              className={inputClass}
-                            >
-                              <option value="">Standard label</option>
-                              {gradingProfile.labelOptions.map((label) => (
-                                <option key={label} value={label}>
-                                  {label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
-                        <div className="space-y-2">
-                          <p className={labelClass}>Cert number</p>
-                          <input
-                            value={certNumber}
-                            onChange={(event) => setCertNumber(event.target.value)}
-                            placeholder="Certification #"
-                            className={inputClass}
-                          />
-                          {lookupMessage && (
-                            <p className="text-xs text-slate-500">
-                              {lookupLoading ? "Checking cert..." : lookupMessage}
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                      ) : null}
                     </div>
-                  )}
-                </div>
+
+                    <div className="app-form-field">
+                      <label className="app-form-label">Cert number</label>
+                      <input
+                        value={certNumber}
+                        onChange={(event) => setCertNumber(event.target.value)}
+                        placeholder="Certification #"
+                        className="app-form-input"
+                      />
+                      {lookupMessage ? (
+                        <p className="sell-hint">
+                          {lookupLoading ? "Checking cert..." : lookupMessage}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/70 bg-white/60 p-5">
-              <p className="font-display text-lg text-slate-900">Media uploads</p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="sell-form-section">
+              <h3 className="sell-section-title">Media uploads</h3>
+              <div className="sell-upload-grid sell-upload-grid-desktop">
                 <input
                   type="file"
                   multiple
                   accept="image/*"
                   capture="environment"
                   onChange={handleImageChange}
-                  className="w-full rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-3 text-sm text-slate-600"
+                  className="sell-file-input"
                 />
                 <input
                   type="file"
                   multiple
                   accept="image/*"
                   onChange={handleImageChange}
-                  className="w-full rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-3 text-sm text-slate-600"
+                  className="sell-file-input"
                 />
               </div>
-              {uploadMessage && (
-                <div className="mt-3 rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-xs text-slate-600">
-                  {uploadMessage}
-                </div>
-              )}
-              {images.length > 0 && (
-                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {uploadMessage ? (
+                <p className="app-status-note">{uploadMessage}</p>
+              ) : null}
+              {images.length > 0 ? (
+                <div className="sell-image-preview-grid sell-image-preview-grid-desktop">
                   {images.map((image) => (
-                    <div
-                      key={image.url}
-                      className="overflow-hidden rounded-2xl border border-white/70 bg-white/70"
-                    >
-                      <div className="relative h-24 w-full">
+                    <div key={image.url} className="sell-image-preview-item">
+                      <div className="sell-image-preview-inner sell-image-preview-inner-lg">
                         <Image
                           src={image.previewUrl ?? image.url}
                           alt="Upload preview"
@@ -489,152 +474,142 @@ export function SellerListingDesktop() {
                     </div>
                   ))}
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 
-          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-3xl border border-white/70 bg-white/60 p-4">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                Live preview
-              </p>
-              <p className="mt-1 font-display text-2xl text-slate-900">
-                {listingPreview}
-              </p>
-              <p className="text-xs text-slate-500">
-                Starting price preview in USD.
-              </p>
+          <div className="sell-desktop-sidebar">
+            <div className="sell-price-preview">
+              <p className="app-eyebrow">Live preview</p>
+              <p className="sell-price-preview-value">{listingPreview}</p>
+              <p className="sell-hint">Starting price preview in USD.</p>
             </div>
-            <div className="grid gap-3">
+
+            <div className="sell-type-grid">
               {listingTypes.map((type) => (
                 <button
                   type="button"
                   key={type.value}
                   onClick={() => setListingType(type.value)}
-                  className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold ${
-                    listingType === type.value
-                      ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                      : "border-slate-200 text-slate-600"
-                  }`}
+                  className={`sell-type-btn${listingType === type.value ? " is-active" : ""}`}
                 >
                   {type.label}
                 </button>
               ))}
             </div>
 
-            {needsAuctionPricing && (
-              <div className="space-y-2">
-                <p className={labelClass}>Starting bid (USD)</p>
+            {needsAuctionPricing ? (
+              <div className="app-form-field">
+                <label className="app-form-label">Starting bid (USD)</label>
                 <input
                   value={startingBid}
                   onChange={(event) => setStartingBid(event.target.value)}
-                  placeholder="Starting bid (USD)"
-                  className={inputClass}
+                  placeholder="Starting bid"
+                  className="app-form-input"
                 />
               </div>
-            )}
-            {needsBuyNowPricing && (
-              <div className="space-y-2">
-                <p className={labelClass}>Buy now price (USD)</p>
+            ) : null}
+
+            {needsBuyNowPricing ? (
+              <div className="app-form-field">
+                <label className="app-form-label">Buy now price (USD)</label>
                 <input
                   value={buyNowPrice}
                   onChange={(event) => setBuyNowPrice(event.target.value)}
-                  placeholder="Buy now price (USD)"
-                  className={inputClass}
+                  placeholder="Buy now price"
+                  className="app-form-input"
                 />
               </div>
-            )}
-            {needsAuctionPricing && (
-              <div className="space-y-2">
-                <p className={labelClass}>Min bid increment (USD)</p>
+            ) : null}
+
+            {needsAuctionPricing ? (
+              <div className="app-form-field">
+                <label className="app-form-label">Min bid increment (USD)</label>
                 <input
                   value={minBidIncrement}
                   onChange={(event) => setMinBidIncrement(event.target.value)}
-                  placeholder="Min bid increment (USD)"
-                  className={inputClass}
+                  placeholder="Min bid increment"
+                  className="app-form-input"
                 />
               </div>
-            )}
-            <div className="space-y-2">
-              <p className={labelClass}>End time</p>
+            ) : null}
+
+            <div className="app-form-field">
+              <label className="app-form-label">End time</label>
               <input
                 type="datetime-local"
                 value={endTime}
                 onChange={(event) => setEndTime(event.target.value)}
-                className={inputClass}
+                className="app-form-input"
               />
-              <p className="text-[11px] text-slate-500">
-                Default auction end: Thursday 9:00 PM EST.
-              </p>
+              <p className="sell-hint">Default: Thursday 9:00 PM EST.</p>
             </div>
-            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-xs text-slate-600">
+
+            <label className="sell-checkbox-row">
               <input
                 type="checkbox"
                 checked={publishNow}
                 onChange={(event) => setPublishNow(event.target.checked)}
               />
-              Publish immediately (otherwise stays draft)
+              <span>Publish immediately</span>
             </label>
+
             <button
               type="button"
               onClick={() => setShowPreview((prev) => !prev)}
-              className="w-full rounded-full border border-slate-200 bg-white/90 px-6 py-3 text-sm font-semibold text-slate-700"
+              className="app-button app-button-secondary sell-preview-toggle"
             >
               {showPreview ? "Hide preview" : "Preview listing"}
             </button>
+
             <button
               type="submit"
               disabled={status === "loading"}
-              className="w-full rounded-full bg-[var(--royal)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[var(--royal-deep)] disabled:opacity-60"
+              className="app-button app-button-primary sell-submit-btn"
             >
               {status === "loading" ? "Creating..." : "Post listing"}
             </button>
-            {message && (
-              <div
-                className={`rounded-2xl border px-4 py-3 text-xs ${
-                  status === "success"
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-red-200 bg-red-50 text-red-600"
-                }`}
-              >
+
+            {message ? (
+              <p className={`app-status-note${status === "success" ? " is-success" : " is-error"}`}>
                 {message}
-              </div>
-            )}
+              </p>
+            ) : null}
           </div>
         </form>
       </section>
 
-      {showPreview && (
-        <section className="surface-panel rounded-[32px] p-8">
-          <h3 className="font-display text-xl text-slate-900">Listing preview</h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Title</p>
-              <p className="mt-1 text-sm font-semibold text-slate-900">{title || "Untitled listing"}</p>
+      {showPreview ? (
+        <section className="sell-form-panel">
+          <h3 className="sell-section-title">Listing preview</h3>
+          <div className="sell-form-cols">
+            <div className="sell-review-row">
+              <p className="app-eyebrow">Title</p>
+              <p className="sell-review-value">{title || "Untitled listing"}</p>
             </div>
-            <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Type</p>
-              <p className="mt-1 text-sm font-semibold text-slate-900">
+            <div className="sell-review-row">
+              <p className="app-eyebrow">Type</p>
+              <p className="sell-review-value">
                 {listingTypes.find((entry) => entry.value === listingType)?.label ?? listingType}
               </p>
             </div>
-            <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Pricing</p>
-              <p className="mt-1 text-sm text-slate-700">
+            <div className="sell-review-row">
+              <p className="app-eyebrow">Pricing</p>
+              <p className="sell-review-value">
                 {needsAuctionPricing ? `Start ${formatCurrency(toCents(startingBid) ?? 0, "USD")}` : "No bidding"}
-                {needsBuyNowPricing ? ` • Buy now ${formatCurrency(toCents(buyNowPrice) ?? 0, "USD")}` : ""}
+                {needsBuyNowPricing ? ` · Buy now ${formatCurrency(toCents(buyNowPrice) ?? 0, "USD")}` : ""}
               </p>
             </div>
-            <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Media</p>
-              <p className="mt-1 text-sm text-slate-700">{images.length} image(s)</p>
+            <div className="sell-review-row">
+              <p className="app-eyebrow">Media</p>
+              <p className="sell-review-value">{images.length} image(s)</p>
             </div>
           </div>
-          <p className="mt-3 text-sm text-slate-600">
-            {description || "No description added yet."}
-          </p>
+          {description ? (
+            <p className="sell-review-description">{description}</p>
+          ) : null}
         </section>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -33,13 +33,13 @@ export function ListingImageStrip({ images, compact = false }: ListingImageStrip
   const activeImage = ordered[Math.min(active, ordered.length - 1)];
 
   return (
-    <section className={`ios-panel ${compact ? "p-3" : "p-4"}`}>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <h3 className="font-display text-2xl text-slate-900">Listing photos</h3>
-        <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Front / Back + extras</span>
+    <section className={`image-strip${compact ? " is-compact" : ""}`}>
+      <div className="image-strip-head">
+        <h3 className="image-strip-title">Listing photos</h3>
+        <span className="app-eyebrow">Front / Back + extras</span>
       </div>
 
-      <div className={`relative overflow-hidden rounded-2xl border border-white/70 bg-slate-900 ${compact ? "h-44" : "h-52"}`}>
+      <div className="image-strip-main">
         <Image
           src={activeImage.url}
           alt={imageLabel(active)}
@@ -50,8 +50,8 @@ export function ListingImageStrip({ images, compact = false }: ListingImageStrip
         />
       </div>
 
-      <div className="mt-3 overflow-x-auto pb-1">
-        <div className="flex min-w-max gap-2">
+      <div className="image-strip-rail">
+        <div className="image-strip-thumbs">
           {ordered.map((image, index) => {
             const selected = index === active;
             return (
@@ -59,9 +59,7 @@ export function ListingImageStrip({ images, compact = false }: ListingImageStrip
                 key={`${image.url}-${index}`}
                 type="button"
                 onClick={() => setActive(index)}
-                className={`group relative h-16 w-24 overflow-hidden rounded-xl border text-left ${
-                  selected ? "border-[var(--royal)]" : "border-slate-200"
-                }`}
+                className={`image-strip-thumb${selected ? " is-active" : ""}`}
               >
                 <Image
                   src={image.url}
@@ -71,9 +69,7 @@ export function ListingImageStrip({ images, compact = false }: ListingImageStrip
                   className="object-cover"
                   unoptimized
                 />
-                <span className="absolute bottom-0 left-0 right-0 bg-slate-950/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
-                  {imageLabel(index)}
-                </span>
+                <span className="image-strip-thumb-label">{imageLabel(index)}</span>
               </button>
             );
           })}

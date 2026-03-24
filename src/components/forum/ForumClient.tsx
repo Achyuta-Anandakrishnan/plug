@@ -168,7 +168,7 @@ export function ForumClient({ initialIsMobile }: ForumClientProps) {
 
           {error ? <EmptyStateCard title="Forum unavailable" description={error} /> : null}
           {draftWarning ? <EmptyStateCard title="Drafts unavailable" description={draftWarning} /> : null}
-          {loading ? <CheckersLoader title="Loading posts..." compact className="ios-empty" /> : null}
+          {loading ? <CheckersLoader title="Loading posts..." compact /> : null}
 
           {!loading ? (
             <section className="mobile-feed-section forum-mobile-feed-section">
@@ -296,7 +296,7 @@ export function ForumClient({ initialIsMobile }: ForumClientProps) {
 
         {error ? <EmptyStateCard title="Forum unavailable" description={error} /> : null}
         {draftWarning ? <EmptyStateCard title="Drafts unavailable" description={draftWarning} /> : null}
-        {loading ? <CheckersLoader title="Loading posts..." compact className="ios-empty" /> : null}
+        {loading ? <CheckersLoader title="Loading posts..." compact /> : null}
 
         <section className="app-section">
           {!loading && activePosts.length === 0 ? (

@@ -141,14 +141,14 @@ export default function TradeDuelPage() {
   };
 
   if (loading) {
-    return <CheckersLoader title="Loading duel..." compact className="ios-empty" />;
+    return <CheckersLoader title="Loading duel..." compact />;
   }
 
   if (!payload) {
     return (
       <PageContainer className="trade-duel-page app-page--trade-duel">
         <section className="app-section">
-          <div className="ios-empty">
+          <div>
             <div className="product-card trade-detail-empty-state">
               <h2>Duel unavailable</h2>
               <p>{error || "This duel could not be loaded right now."}</p>

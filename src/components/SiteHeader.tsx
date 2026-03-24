@@ -2,9 +2,25 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import {
+  ArrowLeftRight,
+  Bell,
+  ChevronDown,
+  Gift,
+  LogOut,
+  Mail,
+  MessageSquare,
+  Package,
+  Radio,
+  Settings,
+  Shield,
+  ShoppingBag,
+  Target,
+  User,
+} from "lucide-react";
 import { AppContainer } from "@/components/product/ProductUI";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { MOBILE_QUERY } from "@/hooks/useMobileUi";
@@ -29,33 +45,111 @@ type AccountButtonProps = {
   signedIn: boolean;
   isAdmin?: boolean;
   mobile?: boolean;
+  inboxHref?: string;
 };
 
-function AccountButton({ signedIn, isAdmin = false, mobile = false }: AccountButtonProps) {
+function AccountButton({ signedIn, isAdmin = false, mobile = false, inboxHref }: AccountButtonProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
   const triggerClassName = mobile ? "site-account-trigger site-account-trigger-mobile" : "site-account-trigger";
+
+  useEffect(() => {
+    if (!open) return;
+    function handlePointerDown(e: PointerEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [open]);
 
   if (!signedIn) {
     return (
       <Link href="/signin" className={triggerClassName}>
-        {mobile ? "Profile" : "Account"}
+        <User size={13} strokeWidth={2.2} aria-hidden="true" />
+        {mobile ? "Sign in" : "Sign in"}
       </Link>
     );
   }
 
   return (
-    <details className={`site-account-menu ${mobile ? "site-account-menu-mobile" : ""}`}>
-      <summary className={triggerClassName}>{mobile ? "Profile" : "Account"}</summary>
-      <div className={`site-account-popover ${mobile ? "site-account-popover-mobile" : ""}`}>
-        <Link href="/settings">Settings</Link>
-        <Link href="/referral">Referral</Link>
-        {isAdmin ? <Link href="/admin/sellers">Admin</Link> : null}
-        <button type="button" onClick={() => signOut()}>
-          Sign out
-        </button>
-      </div>
-    </details>
+    <div ref={ref} className={`site-account-menu${mobile ? " site-account-menu-mobile" : ""}`}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={triggerClassName}
+        aria-expanded={open}
+        aria-haspopup="menu"
+      >
+        <User size={13} strokeWidth={2.2} aria-hidden="true" />
+        {mobile ? "You" : "Account"}
+        <ChevronDown
+          size={11}
+          strokeWidth={2.5}
+          aria-hidden="true"
+          style={{ opacity: 0.6, transition: "transform 160ms ease", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
+      </button>
+      {open ? (
+        <div
+          className={`site-account-popover${mobile ? " site-account-popover-mobile" : ""}`}
+          role="menu"
+        >
+          {inboxHref ? (
+            <>
+              <Link href={inboxHref} role="menuitem" onClick={() => setOpen(false)}>
+                <Mail size={14} strokeWidth={1.8} aria-hidden="true" />
+                Inbox
+              </Link>
+              <div className="popover-divider" />
+            </>
+          ) : null}
+          <Link href="/settings" role="menuitem" onClick={() => setOpen(false)}>
+            <Settings size={14} strokeWidth={1.8} aria-hidden="true" />
+            Settings
+          </Link>
+          <Link href="/orders" role="menuitem" onClick={() => setOpen(false)}>
+            <Package size={14} strokeWidth={1.8} aria-hidden="true" />
+            Orders
+          </Link>
+          <Link href="/referral" role="menuitem" onClick={() => setOpen(false)}>
+            <Gift size={14} strokeWidth={1.8} aria-hidden="true" />
+            Referral
+          </Link>
+          {isAdmin ? (
+            <>
+              <div className="popover-divider" />
+              <Link href="/admin/sellers" role="menuitem" onClick={() => setOpen(false)}>
+                <Shield size={14} strokeWidth={1.8} aria-hidden="true" />
+                Admin
+              </Link>
+            </>
+          ) : null}
+          <div className="popover-divider" />
+          <button
+            type="button"
+            role="menuitem"
+            className="is-destructive"
+            onClick={() => { setOpen(false); void signOut(); }}
+          >
+            <LogOut size={14} strokeWidth={1.8} aria-hidden="true" />
+            Sign out
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }
+
+const DESKTOP_NAV_ITEMS = [
+  { key: "market", label: "Market", href: "/listings", Icon: ShoppingBag },
+  { key: "bounty", label: "Bounty", href: "/bounties", Icon: Target },
+  { key: "live", label: "Live", href: "/live", Icon: Radio },
+  { key: "trades", label: "Trades", href: "/trades", Icon: ArrowLeftRight },
+  { key: "forum", label: "Forum", href: "/forum", Icon: MessageSquare },
+  { key: "messages", label: "Messages", href: "/messages", Icon: Mail },
+];
 
 function useSiteHeaderState() {
   const pathname = usePathname();
@@ -64,17 +158,7 @@ function useSiteHeaderState() {
   const isVerifiedSeller = session?.user?.role === "SELLER" || session?.user?.role === "ADMIN";
   const isAdmin = session?.user?.role === "ADMIN" || isPrimaryAdminEmail(session?.user?.email);
 
-  const navItems = useMemo(
-    () => [
-      { key: "market", label: "Market", href: "/listings" },
-      { key: "bounty", label: "Bounty", href: "/bounties" },
-      { key: "live", label: "Live", href: "/live" },
-      { key: "trades", label: "Trades", href: "/trades" },
-      { key: "forum", label: "Forum", href: "/forum" },
-      { key: "messages", label: "Messages", href: "/messages" },
-    ],
-    [],
-  );
+  const navItems = DESKTOP_NAV_ITEMS;
 
   const isNavActive = (item: (typeof navItems)[number]) => {
     if (item.key === "market") {
@@ -108,9 +192,7 @@ function useSiteHeaderState() {
       return "Market";
     }
     if (pathname.startsWith("/auctions/")) return "Listing";
-    if (pathname === "/live" || pathname.startsWith("/live/")) {
-      return "Live";
-    }
+    if (pathname === "/live" || pathname.startsWith("/live/")) return "Live";
     if (pathname.startsWith("/streams/")) return "Live room";
     if (pathname === "/trades") return "Trades";
     if (pathname === "/trades/new") return "New trade";
@@ -187,17 +269,19 @@ export function SiteDesktopHeader() {
           </div>
 
           <nav className="site-nav" aria-label="Primary">
-            {navItems.map((item) => (
+            {navItems.map(({ key, href, label, Icon }) => (
               <Link
-                key={item.href}
-                href={item.href}
-                className={`site-nav-link ${isNavActive(item) ? "is-active" : ""}`}
+                key={href}
+                href={href}
+                className={`site-nav-link${isNavActive({ key, href, label, Icon }) ? " is-active" : ""}`}
               >
-                {item.label}
+                <Icon size={13} strokeWidth={1.9} aria-hidden="true" />
+                {label}
               </Link>
             ))}
             {isAdmin ? (
               <Link href="/admin/sellers" className="site-admin-link">
+                <Shield size={13} strokeWidth={1.9} aria-hidden="true" />
                 Admin
               </Link>
             ) : null}
@@ -208,7 +292,7 @@ export function SiteDesktopHeader() {
               href={isVerifiedSeller ? "/sell" : "/seller/verification"}
               className="app-button app-button-primary"
             >
-              Create listing
+              + List item
             </Link>
             <AccountButton signedIn={signedIn} isAdmin={isAdmin} />
           </div>
@@ -230,7 +314,7 @@ export function SiteMobileHeader() {
               <Brand />
             ) : (
               <Link href={mobileBackHref} className="site-mobile-back">
-                Back
+                ← Back
               </Link>
             )}
           </div>
@@ -242,7 +326,14 @@ export function SiteMobileHeader() {
           ) : null}
 
           <div className="site-mobile-header-actions">
-            <AccountButton signedIn={signedIn} isAdmin={isAdmin} mobile />
+            <Link
+              href="/messages"
+              className="site-header-bell"
+              aria-label="Inbox"
+            >
+              <Bell size={15} strokeWidth={2} aria-hidden="true" />
+            </Link>
+            <AccountButton signedIn={signedIn} isAdmin={isAdmin} mobile inboxHref="/messages" />
           </div>
         </div>
       </div>

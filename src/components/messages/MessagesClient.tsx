@@ -370,7 +370,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
         {showThreadsPane ? (
           <aside className="messages-sidebar messages-panel">
             {loading ? (
-              <CheckersLoader title="Loading conversations..." compact className="ios-empty" />
+              <CheckersLoader title="Loading conversations..." compact />
             ) : conversations.length === 0 ? (
               <EmptyStateCard
                 title="No conversations yet."
@@ -461,7 +461,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
 
                 <div className="messages-feed">
                   {messagesLoading ? (
-                    <CheckersLoader title="Loading messages..." compact className="ios-empty" />
+                    <CheckersLoader title="Loading messages..." compact />
                   ) : messages.length === 0 ? (
                     <EmptyStateCard
                       title="No messages yet."

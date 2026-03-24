@@ -121,7 +121,7 @@ export function TradesPageClient({ initialIsMobile }: TradesPageClientProps) {
           ) : null}
 
           {error ? <EmptyStateCard title="Trade board unavailable" description={error} /> : null}
-          {loading ? <CheckersLoader title="Loading trades..." compact className="ios-empty" /> : null}
+          {loading ? <CheckersLoader title="Loading trades..." compact /> : null}
 
           {!loading ? (
             <section className="mobile-feed-section trades-mobile-feed-section">
@@ -191,7 +191,7 @@ export function TradesPageClient({ initialIsMobile }: TradesPageClientProps) {
         ) : null}
 
         {error ? <EmptyStateCard title="Trade board unavailable" description={error} /> : null}
-        {loading ? <CheckersLoader title="Loading trades..." compact className="ios-empty" /> : null}
+        {loading ? <CheckersLoader title="Loading trades..." compact /> : null}
 
         <section className="app-section listing-system-feed">
           <SectionHeader

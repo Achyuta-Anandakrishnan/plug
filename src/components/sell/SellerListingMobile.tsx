@@ -87,11 +87,6 @@ export function SellerListingMobile() {
   );
   const needsAuctionPricing = listingType !== "BUY_NOW";
   const needsBuyNowPricing = listingType !== "AUCTION";
-  const inputClass =
-    "w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 outline-none focus:border-[var(--royal)]";
-  const labelClass = "text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400";
-
-
 
   const handleImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -248,61 +243,60 @@ export function SellerListingMobile() {
   }, [certNumber, gradingCompany, gradingLabel, grade, isGraded]);
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-3 md:hidden">
-        <h2 className="font-display text-3xl text-slate-900">
-          Create a listing
-        </h2>
-        <p className="text-sm text-slate-600">
+    <div className="sell-mobile-screen">
+      <section className="sell-mobile-header">
+        <h2 className="sell-mobile-title">Create a listing</h2>
+        <p className="sell-step-hint">
           Step {stepIndex + 1} of {steps.length}: {steps[stepIndex]}
         </p>
       </section>
 
-      <div className="surface-panel rounded-3xl p-4">
-        <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-400">
+      <div className="sell-progress-card">
+        <div className="sell-step-track">
           {steps.map((step, index) => (
-            <span key={step} className={index === stepIndex ? "text-slate-600" : ""}>
+            <span key={step} className={index === stepIndex ? "is-active" : ""}>
               {step}
             </span>
           ))}
         </div>
-        <div className="mt-3 h-1.5 rounded-full bg-slate-200/70">
+        <div className="sell-progress-bar">
           <div
-            className="h-full rounded-full bg-[var(--royal)] transition-all"
+            className="sell-progress-fill"
             style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }}
           />
         </div>
       </div>
 
-      {stepIndex === 0 && (
-        <section className="surface-panel rounded-3xl p-4 space-y-4">
+      {stepIndex === 0 ? (
+        <section className="sell-form-panel">
           {sessionSellerId ? (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-700">
+            <p className="app-status-note is-success">
               Signed in as {session?.user?.email ?? "seller"}.
-            </div>
+            </p>
           ) : (
             <div className="grid gap-2">
-              {session?.user?.id && (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
+              {session?.user?.id ? (
+                <p className="app-status-note is-warning">
                   Your account is not a seller yet. Submit seller verification for manual review.
-                </div>
-              )}
-              {!session?.user?.id && (
+                </p>
+              ) : null}
+              {!session?.user?.id ? (
                 <button
-                  onClick={() => signIn()}
-                  className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                  onClick={() => void signIn()}
+                  className="app-button app-button-primary"
                 >
                   Sign in
                 </button>
-              )}
+              ) : null}
             </div>
           )}
-          <div className="space-y-2">
-            <p className={labelClass}>Category</p>
+
+          <div className="app-form-field">
+            <label className="app-form-label">Category</label>
             <select
               value={categoryId}
               onChange={(event) => setCategoryId(event.target.value)}
-              className={inputClass}
+              className="app-form-input"
             >
               <option value="">Primary category</option>
               {categories.map((category) => (
@@ -312,52 +306,58 @@ export function SellerListingMobile() {
               ))}
             </select>
           </div>
-          <div className="space-y-2">
-            <p className={labelClass}>Title</p>
+
+          <div className="app-form-field">
+            <label className="app-form-label">Title</label>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Listing title"
-              className={inputClass}
+              className="app-form-input"
               required
             />
           </div>
-          <div className="space-y-2">
-            <p className={labelClass}>Description</p>
+
+          <div className="app-form-field">
+            <label className="app-form-label">Description</label>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Description"
               rows={4}
-              className={inputClass}
+              className="app-form-textarea"
             />
           </div>
-          <div className="space-y-2">
-            <p className={labelClass}>Condition notes</p>
+
+          <div className="app-form-field">
+            <label className="app-form-label">Condition notes</label>
             <input
               value={condition}
               onChange={(event) => setCondition(event.target.value)}
               placeholder="Condition notes"
-              className={inputClass}
+              className="app-form-input"
             />
           </div>
-          <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white/80 p-3">
-            <p className={labelClass}>Grading</p>
-            <div className="space-y-2">
-              <p className={labelClass}>Is graded?</p>
+
+          <div className="sell-grading-block">
+            <p className="app-form-label">Grading</p>
+
+            <div className="app-form-field">
+              <label className="app-form-label">Is graded?</label>
               <select
                 value={isGraded}
                 onChange={(event) => setIsGraded(event.target.value as "YES" | "NO")}
-                className={inputClass}
+                className="app-form-input"
               >
                 <option value="NO">No</option>
                 <option value="YES">Yes</option>
               </select>
             </div>
-            {isGraded === "YES" && (
+
+            {isGraded === "YES" ? (
               <>
-                <div className="space-y-2">
-                  <p className={labelClass}>Grading company</p>
+                <div className="app-form-field">
+                  <label className="app-form-label">Grading company</label>
                   <select
                     value={gradingCompany}
                     onChange={(event) => {
@@ -365,7 +365,7 @@ export function SellerListingMobile() {
                       setGrade("");
                       setGradingLabel("");
                     }}
-                    className={inputClass}
+                    className="app-form-input"
                   >
                     {GRADING_COMPANIES.map((company) => (
                       <option key={company} value={company}>
@@ -374,12 +374,13 @@ export function SellerListingMobile() {
                     ))}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <p className={labelClass}>Grade</p>
+
+                <div className="app-form-field">
+                  <label className="app-form-label">Grade</label>
                   <select
                     value={grade}
                     onChange={(event) => setGrade(event.target.value)}
-                    className={inputClass}
+                    className="app-form-input"
                   >
                     <option value="">Select grade</option>
                     {gradeOptions.map((entry) => (
@@ -389,13 +390,14 @@ export function SellerListingMobile() {
                     ))}
                   </select>
                 </div>
-                {gradingProfile.labelOptions.length > 0 && (
-                  <div className="space-y-2">
-                    <p className={labelClass}>Label tier</p>
+
+                {gradingProfile.labelOptions.length > 0 ? (
+                  <div className="app-form-field">
+                    <label className="app-form-label">Label tier</label>
                     <select
                       value={gradingLabel}
                       onChange={(event) => setGradingLabel(event.target.value)}
-                      className={inputClass}
+                      className="app-form-input"
                     >
                       <option value="">Standard label</option>
                       {gradingProfile.labelOptions.map((label) => (
@@ -405,132 +407,139 @@ export function SellerListingMobile() {
                       ))}
                     </select>
                   </div>
-                )}
-                <p className="text-xs text-slate-500">{gradingProfile.note}</p>
-                <div className="space-y-2">
-                  <p className={labelClass}>Cert number</p>
+                ) : null}
+
+                <p className="sell-hint">{gradingProfile.note}</p>
+
+                <div className="app-form-field">
+                  <label className="app-form-label">Cert number</label>
                   <input
                     value={certNumber}
                     onChange={(event) => setCertNumber(event.target.value)}
                     placeholder="Certification #"
-                    className={inputClass}
+                    className="app-form-input"
                   />
-                  {lookupMessage && (
-                    <p className="text-xs text-slate-500">
+                  {lookupMessage ? (
+                    <p className="sell-hint">
                       {lookupLoading ? "Checking cert..." : lookupMessage}
                     </p>
-                  )}
+                  ) : null}
                 </div>
               </>
-            )}
+            ) : null}
           </div>
         </section>
-      )}
+      ) : null}
 
-      {stepIndex === 1 && (
-        <section className="surface-panel rounded-3xl p-4 space-y-4">
-          <div className="grid gap-2">
-            {["AUCTION", "BUY_NOW", "BOTH"].map((type) => (
+      {stepIndex === 1 ? (
+        <section className="sell-form-panel">
+          <div className="sell-type-grid">
+            {(["AUCTION", "BUY_NOW", "BOTH"] as const).map((type) => (
               <button
                 key={type}
                 type="button"
-                onClick={() => setListingType(type as "AUCTION" | "BUY_NOW" | "BOTH")}
-                className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold ${
-                  listingType === type
-                    ? "border-[var(--royal)] bg-blue-50 text-[var(--royal)]"
-                    : "border-slate-200 text-slate-600"
-                }`}
+                onClick={() => setListingType(type)}
+                className={`sell-type-btn${listingType === type ? " is-active" : ""}`}
               >
-                {type === "BOTH" ? "BUY NOW + AUCTION" : type.replace("_", " ")}
+                {type === "BOTH" ? "Buy Now + Auction" : type.replace("_", " ")}
               </button>
             ))}
           </div>
-          {needsAuctionPricing && (
+
+          {needsAuctionPricing ? (
+            <div className="app-form-field">
+              <label className="app-form-label">Starting bid (USD)</label>
+              <input
+                value={startingBid}
+                onChange={(event) => setStartingBid(event.target.value)}
+                placeholder="Starting bid"
+                className="app-form-input"
+              />
+            </div>
+          ) : null}
+
+          {needsBuyNowPricing ? (
+            <div className="app-form-field">
+              <label className="app-form-label">Buy now price (USD)</label>
+              <input
+                value={buyNowPrice}
+                onChange={(event) => setBuyNowPrice(event.target.value)}
+                placeholder="Buy now price"
+                className="app-form-input"
+              />
+            </div>
+          ) : null}
+
+          {needsAuctionPricing ? (
+            <div className="app-form-field">
+              <label className="app-form-label">Min bid increment (USD)</label>
+              <input
+                value={minBidIncrement}
+                onChange={(event) => setMinBidIncrement(event.target.value)}
+                placeholder="Min bid increment"
+                className="app-form-input"
+              />
+            </div>
+          ) : null}
+
+          <div className="app-form-field">
+            <label className="app-form-label">End time</label>
             <input
-              value={startingBid}
-              onChange={(event) => setStartingBid(event.target.value)}
-              placeholder="Starting bid (USD)"
-              className={inputClass}
+              type="datetime-local"
+              value={endTime}
+              onChange={(event) => setEndTime(event.target.value)}
+              className="app-form-input"
             />
-          )}
-          {needsBuyNowPricing && (
-            <input
-              value={buyNowPrice}
-              onChange={(event) => setBuyNowPrice(event.target.value)}
-              placeholder="Buy now price (USD)"
-              className={inputClass}
-            />
-          )}
-          {needsAuctionPricing && (
-            <input
-              value={minBidIncrement}
-              onChange={(event) => setMinBidIncrement(event.target.value)}
-              placeholder="Min bid increment (USD)"
-              className={inputClass}
-            />
-          )}
-          <input
-            type="datetime-local"
-            value={endTime}
-            onChange={(event) => setEndTime(event.target.value)}
-            className={inputClass}
-          />
-          <p className="text-[11px] text-slate-500">
-            Default auction end: Thursday 9:00 PM EST.
-          </p>
-          <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-xs text-slate-600">
+            <p className="sell-hint">Default: Thursday 9:00 PM EST.</p>
+          </div>
+
+          <label className="sell-checkbox-row">
             <input
               type="checkbox"
               checked={publishNow}
               onChange={(event) => setPublishNow(event.target.checked)}
             />
-            Publish immediately
+            <span>Publish immediately</span>
           </label>
-          <div className="rounded-2xl bg-white/80 px-4 py-3 text-xs text-slate-500">
+
+          <div className="sell-preview-note">
             Preview starting bid: {listingPreview}
           </div>
         </section>
-      )}
+      ) : null}
 
-      {stepIndex === 2 && (
-        <section className="surface-panel rounded-3xl p-4 space-y-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-              Photos
-            </p>
-            <div className="mt-2 grid gap-3">
+      {stepIndex === 2 ? (
+        <section className="sell-form-panel">
+          <div className="app-form-field">
+            <label className="app-form-label">Photos</label>
+            <div className="sell-upload-grid">
               <input
                 type="file"
                 multiple
                 accept="image/*"
                 capture="environment"
                 onChange={handleImageChange}
-                className="w-full rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-3 text-sm text-slate-600"
+                className="sell-file-input"
               />
               <input
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={handleImageChange}
-                className="w-full rounded-2xl border border-dashed border-slate-200 bg-white/70 px-4 py-3 text-sm text-slate-600"
+                className="sell-file-input"
               />
             </div>
-            <p className="mt-2 text-[11px] text-slate-500">
-              Top: take photo. Bottom: upload from device.
-            </p>
-            {uploadMessage && (
-              <div className="mt-3 rounded-2xl border border-slate-200 bg-white/70 px-3 py-2 text-xs text-slate-600">
-                {uploadMessage}
-              </div>
-            )}
-            {images.length > 0 && (
-              <div className="mt-3 grid gap-2 grid-cols-2">
+            <p className="sell-hint">Top: take photo. Bottom: upload from device.</p>
+
+            {uploadMessage ? (
+              <p className="app-status-note">{uploadMessage}</p>
+            ) : null}
+
+            {images.length > 0 ? (
+              <div className="sell-image-preview-grid">
                 {images.map((image) => (
-                  <div
-                    key={image.url}
-                    className="overflow-hidden rounded-2xl border border-white/70 bg-white/70"
-                  >
-                    <div className="relative h-20 w-full">
+                  <div key={image.url} className="sell-image-preview-item">
+                    <div className="sell-image-preview-inner">
                       <Image
                         src={image.previewUrl ?? image.url}
                         alt="Upload preview"
@@ -543,79 +552,76 @@ export function SellerListingMobile() {
                   </div>
                 ))}
               </div>
-            )}
+            ) : null}
           </div>
         </section>
-      )}
+      ) : null}
 
-      {stepIndex === 3 && (
-        <section className="surface-panel rounded-3xl p-4 space-y-4">
-          <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Title</p>
-            <p className="mt-1 text-sm font-semibold text-slate-900">{title || "Untitled listing"}</p>
+      {stepIndex === 3 ? (
+        <section className="sell-form-panel">
+          <div className="sell-review-rows">
+            <div className="sell-review-row">
+              <p className="app-eyebrow">Title</p>
+              <p className="sell-review-value">{title || "Untitled listing"}</p>
+            </div>
+            <div className="sell-review-row">
+              <p className="app-eyebrow">Type</p>
+              <p className="sell-review-value">
+                {listingType === "BOTH" ? "Buy Now + Auction" : listingType.replace("_", " ")}
+              </p>
+            </div>
+            <div className="sell-review-row">
+              <p className="app-eyebrow">Pricing</p>
+              <p className="sell-review-value">
+                {needsAuctionPricing ? `Start ${formatCurrency(toCents(startingBid) ?? 0, "USD")}` : "No bidding"}
+                {needsBuyNowPricing ? ` · Buy now ${formatCurrency(toCents(buyNowPrice) ?? 0, "USD")}` : ""}
+              </p>
+            </div>
           </div>
-          <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Type</p>
-            <p className="mt-1 text-sm font-semibold text-slate-900">
-              {listingType === "BOTH" ? "Buy Now + Auction" : listingType.replace("_", " ")}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Pricing</p>
-            <p className="mt-1 text-sm text-slate-700">
-              {needsAuctionPricing ? `Start ${formatCurrency(toCents(startingBid) ?? 0, "USD")}` : "No bidding"}
-              {needsBuyNowPricing ? ` • Buy now ${formatCurrency(toCents(buyNowPrice) ?? 0, "USD")}` : ""}
-            </p>
-          </div>
-          <p className="text-sm text-slate-600">{description || "No description added yet."}</p>
+
+          {description ? (
+            <p className="sell-review-description">{description}</p>
+          ) : null}
+
           <button
             type="button"
             onClick={handleSubmit}
             disabled={status === "loading"}
-            className="w-full rounded-full bg-[var(--royal)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[var(--royal-deep)] disabled:opacity-60"
+            className="app-button app-button-primary sell-submit-btn"
           >
             {status === "loading" ? "Creating..." : "Post listing"}
           </button>
-          {message && (
-            <div
-              className={`rounded-2xl border px-4 py-3 text-xs ${
-                status === "success"
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border-red-200 bg-red-50 text-red-600"
-              }`}
-            >
+
+          {message ? (
+            <p className={`app-status-note${status === "success" ? " is-success" : " is-error"}`}>
               {message}
-            </div>
-          )}
-          {listingId && (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            </p>
+          ) : null}
+
+          {listingId ? (
+            <p className="app-status-note is-success">
               Listing created.{" "}
-              <Link
-                href={`/streams/${listingId}`}
-                className="font-semibold underline"
-              >
+              <Link href={`/streams/${listingId}`} className="app-link">
                 Open listing
               </Link>
-            </div>
-          )}
+            </p>
+          ) : null}
         </section>
-      )}
+      ) : null}
 
-      <div className="flex items-center justify-between">
+      <div className="sell-nav-row">
         <button
           type="button"
           onClick={() => setStepIndex((prev) => Math.max(0, prev - 1))}
-          className="rounded-full border border-slate-200 px-5 py-2 text-xs font-semibold text-slate-600"
+          className="app-button app-button-secondary"
           disabled={stepIndex === 0}
         >
           Back
         </button>
         <button
           type="button"
-          onClick={() =>
-            setStepIndex((prev) => Math.min(steps.length - 1, prev + 1))
-          }
-          className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold text-white"
+          onClick={() => setStepIndex((prev) => Math.min(steps.length - 1, prev + 1))}
+          className="app-button app-button-primary"
           disabled={stepIndex === steps.length - 1}
         >
           Next

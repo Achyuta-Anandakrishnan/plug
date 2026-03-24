@@ -194,14 +194,12 @@ export function StreamRoomMobile({
   };
 
   if (loading) {
-    return <CheckersLoader title="Loading stream room..." compact className="ios-empty" />;
+    return <CheckersLoader title="Loading stream room..." compact />;
   }
 
   if (error || !data) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-        {error || "Unable to load listing."}
-      </div>
+      <p className="app-status-note is-error">{error || "Unable to load listing."}</p>
     );
   }
 
@@ -217,13 +215,13 @@ export function StreamRoomMobile({
             onParticipantCount={setParticipantCount}
             onStatusChange={setStreamStatus}
           />
-          <div className="absolute left-4 top-4 z-20 flex items-center gap-2">
+          <div className="stream-room-video-badges">
             {!Boolean(sessionUserId && data.seller?.user?.id === sessionUserId) ? (
-              <span className={`rounded-full px-3 py-1.5 text-xs uppercase tracking-[0.2em] ${streamStatus === "live" ? "bg-emerald-400/20 text-emerald-100" : "bg-white/15 text-white"}`}>
+              <span className={`stream-room-badge${streamStatus === "live" ? " is-live" : ""}`}>
                 {streamStatus === "live" ? "Live" : "Offline"}
               </span>
             ) : null}
-            <span className="rounded-full bg-white/15 px-3 py-1.5 text-xs text-white">
+            <span className="stream-room-badge">
               {formatSeconds(timeLeft)}
             </span>
           </div>
@@ -261,7 +259,7 @@ export function StreamRoomMobile({
             </div>
             <div className="stream-room-mobile-feed">
               {data.chatMessages.length === 0 ? (
-                <div className="ios-empty">No chat yet. Be first to comment.</div>
+                <div className="stream-room-empty">No chat yet. Be first to comment.</div>
               ) : (
                 data.chatMessages.map((entry) => (
                   <div key={entry.id} className="stream-room-mobile-message">
@@ -276,7 +274,7 @@ export function StreamRoomMobile({
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
                 placeholder="Message the room"
-                className="ios-input"
+                className="app-form-input"
               />
               <button
                 onClick={handleSend}
@@ -360,7 +358,7 @@ export function StreamRoomMobile({
             </div>
             <div className="stream-room-mobile-feed">
               {data.bids.length === 0 ? (
-                <div className="ios-empty">No bids yet.</div>
+                <div className="stream-room-empty">No bids yet.</div>
               ) : (
                 data.bids.map((bid) => (
                   <div key={bid.id} className="stream-room-mobile-bid-row">

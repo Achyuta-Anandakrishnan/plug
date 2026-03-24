@@ -124,7 +124,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
             </Link>
           ))}
           {(profile.sellerProfile?.auctions?.length ?? 0) === 0 && (
-            <div className="ios-empty">
+            <div className="app-status-note">
               No active listings.
             </div>
           )}

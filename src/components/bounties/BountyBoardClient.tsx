@@ -268,7 +268,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
           </section>
 
           {error ? <EmptyStateCard title="Bounty unavailable" description={error} /> : null}
-          {loading ? <CheckersLoader title="Loading bounties..." compact className="ios-empty" /> : null}
+          {loading ? <CheckersLoader title="Loading bounties..." compact /> : null}
 
           {!loading && featuredBounties.length > 0 ? (
             <section className="mobile-feed-section bounty-mobile-featured-section">
@@ -388,7 +388,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
         </DiscoveryBar>
 
         {error ? <EmptyStateCard title="Bounty unavailable" description={error} /> : null}
-        {loading ? <CheckersLoader title="Loading bounties..." compact className="ios-empty" /> : null}
+        {loading ? <CheckersLoader title="Loading bounties..." compact /> : null}
 
         {!loading && featuredBounties.length > 0 ? (
           <section className="listing-system-feed bounty-featured-section">

@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ArrowLeftRight, MessageSquare, Radio, ShoppingBag, Target } from "lucide-react";
 
 const NAV_ITEMS = [
-  { key: "market", label: "Market", href: "/listings" },
-  { key: "bounty", label: "Bounty", href: "/bounties" },
-  { key: "live", label: "Live", href: "/live" },
-  { key: "trades", label: "Trades", href: "/trades" },
-  { key: "forum", label: "Forum", href: "/forum" },
-  { key: "messages", label: "Inbox", href: "/messages" },
+  { key: "market", label: "Market", href: "/listings", Icon: ShoppingBag },
+  { key: "bounty", label: "Bounty", href: "/bounties", Icon: Target },
+  { key: "live", label: "Live", href: "/live", Icon: Radio },
+  { key: "trades", label: "Trades", href: "/trades", Icon: ArrowLeftRight },
+  { key: "forum", label: "Forum", href: "/forum", Icon: MessageSquare },
 ];
 
 function isActive(pathname: string | null, href: string, key: string) {
@@ -35,14 +35,16 @@ export function SiteMobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="site-mobile-tabbar md:hidden" aria-label="Primary">
-      {NAV_ITEMS.map((item) => (
+    <nav className="site-mobile-tabbar" aria-label="Primary navigation">
+      {NAV_ITEMS.map(({ key, label, href, Icon }) => (
         <Link
-          key={item.key}
-          href={item.href}
-          className={`site-mobile-tab ${isActive(pathname, item.href, item.key) ? "is-active" : ""}`}
+          key={key}
+          href={href}
+          className={`site-mobile-tab${isActive(pathname, href, key) ? " is-active" : ""}`}
+          aria-label={label}
         >
-          <span>{item.label}</span>
+          <Icon aria-hidden="true" />
+          <span>{label}</span>
         </Link>
       ))}
     </nav>

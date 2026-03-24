@@ -62,107 +62,99 @@ export function StreamsDesktop() {
   }, [auctions, endingSoon, verifiedOnly]);
 
   return (
-    <div className="ios-screen">
-      <section className="ios-hero space-y-6">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-          <div className="space-y-3">
-            <h1 className="ios-title">Streams</h1>
-          </div>
-          <div className="ios-stat-grid">
-            <div className="ios-stat-card">
-              <p className="ios-stat-label">Visible streams</p>
-              <p className="ios-stat-value">{filteredStreams.length}</p>
+    <div className="streams-desktop-screen">
+      <section className="streams-desktop-hero">
+        <div className="streams-desktop-hero-top">
+          <h1 className="app-page-title">Streams</h1>
+          <div className="streams-desktop-stats">
+            <div className="streams-stat-card">
+              <p className="app-eyebrow">Visible streams</p>
+              <strong className="streams-stat-value">{filteredStreams.length}</strong>
             </div>
-            <div className="ios-stat-card">
-              <p className="ios-stat-label">Verified sellers</p>
-              <p className="ios-stat-value">
-                {filteredStreams.filter((stream) => stream.seller?.status === "APPROVED").length}
-              </p>
+            <div className="streams-stat-card">
+              <p className="app-eyebrow">Verified sellers</p>
+              <strong className="streams-stat-value">
+                {filteredStreams.filter((s) => s.seller?.status === "APPROVED").length}
+              </strong>
             </div>
           </div>
         </div>
 
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_240px]">
-          <div className="ios-panel p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setEndingSoon((prev) => !prev)}
-                  className={`ios-chip ${endingSoon ? "ios-chip-active" : ""}`}
-                >
-                  Ending soon
-                </button>
-                <button
-                  onClick={() => setVerifiedOnly((prev) => !prev)}
-                  className={`ios-chip ${verifiedOnly ? "ios-chip-active" : ""}`}
-                >
-                  Verified
-                </button>
-              </div>
-            </div>
+        <div className="streams-desktop-filters">
+          <p className="streams-filters-label">Filter</p>
+          <div className="app-chip-row">
+            <button
+              type="button"
+              onClick={() => setEndingSoon((prev) => !prev)}
+              className={`app-chip${endingSoon ? " is-active" : ""}`}
+            >
+              Ending soon
+            </button>
+            <button
+              type="button"
+              onClick={() => setVerifiedOnly((prev) => !prev)}
+              className={`app-chip${verifiedOnly ? " is-active" : ""}`}
+            >
+              Verified only
+            </button>
           </div>
         </div>
       </section>
 
-      {scheduledFuture.length > 0 && (
-        <section className="ios-panel p-4">
-          <h2 className="ios-section-title">Scheduled</h2>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      {scheduledFuture.length > 0 ? (
+        <section className="streams-desktop-scheduled">
+          <h2 className="app-section-title">Scheduled</h2>
+          <div className="streams-desktop-scheduled-grid">
             {scheduledFuture.slice(0, 8).map((entry) => (
-              <div key={entry.id} className="ios-panel-muted rounded-[18px] px-3 py-2">
-                <p className="text-sm font-semibold text-slate-900">{entry.title}</p>
-                <p className="text-xs text-slate-500">{formatStart(entry.startTime)}</p>
+              <div key={entry.id} className="streams-scheduled-item">
+                <p className="streams-scheduled-title">{entry.title}</p>
+                <p className="streams-scheduled-time">{formatStart(entry.startTime)}</p>
               </div>
             ))}
           </div>
         </section>
-      )}
+      ) : null}
 
-      {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
-      )}
+      {error ? (
+        <p className="app-status-note is-error">{error}</p>
+      ) : null}
 
-      {loading && (
-        <CheckersLoader title="Loading live listings..." compact className="ios-empty" />
-      )}
+      {loading ? (
+        <CheckersLoader title="Loading live rooms…" compact />
+      ) : null}
 
-      {!loading && filteredStreams.length === 0 && (
-        <div className="ios-empty">
-          No live streams yet.
-        </div>
-      )}
+      {!loading && filteredStreams.length === 0 ? (
+        <p className="app-status-note">No live rooms right now. Check back soon.</p>
+      ) : null}
 
-      <section className="space-y-4">
-        <div className="flex items-end justify-between gap-3">
-          <h2 className="ios-section-title">Live rooms</h2>
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">
-            {filteredStreams.length} results
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 min-[520px]:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
-          {filteredStreams.map((stream) => (
-            <AuctionCard
-              key={stream.id}
-              id={stream.id}
-              title={stream.title}
-              sellerName={stream.seller?.user?.displayName ?? "Verified seller"}
-              category={stream.category?.name}
-              currentBid={stream.currentBid}
-              timeLeft={getTimeLeftSeconds(stream)}
-              watchers={stream.watchersCount}
-              badge={stream.seller?.status === "APPROVED" ? "Verified" : "Live"}
-              imageUrl={getPrimaryImageUrl(stream)}
-              listingType={stream.listingType}
-              buyNowPrice={stream.buyNowPrice}
-              currency={stream.currency?.toUpperCase()}
-              gradeLabel={getGradeLabel(stream.item?.attributes) ?? undefined}
-            />
-          ))}
-        </div>
-      </section>
+      {filteredStreams.length > 0 ? (
+        <section className="streams-desktop-feed">
+          <div className="streams-desktop-feed-head">
+            <h2 className="app-section-title">Live rooms</h2>
+            <span className="market-count">{filteredStreams.length} active</span>
+          </div>
+          <div className="streams-desktop-grid">
+            {filteredStreams.map((stream) => (
+              <AuctionCard
+                key={stream.id}
+                id={stream.id}
+                title={stream.title}
+                sellerName={stream.seller?.user?.displayName ?? "Verified seller"}
+                category={stream.category?.name}
+                currentBid={stream.currentBid}
+                timeLeft={getTimeLeftSeconds(stream)}
+                watchers={stream.watchersCount}
+                badge={stream.seller?.status === "APPROVED" ? "Verified" : "Live"}
+                imageUrl={getPrimaryImageUrl(stream)}
+                listingType={stream.listingType}
+                buyNowPrice={stream.buyNowPrice}
+                currency={stream.currency?.toUpperCase()}
+                gradeLabel={getGradeLabel(stream.item?.attributes) ?? undefined}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -436,14 +436,14 @@ export default function TradeDetailPage() {
   };
 
   if (loading) {
-    return <CheckersLoader title="Loading trade..." compact className="ios-empty" />;
+    return <CheckersLoader title="Loading trade..." compact />;
   }
 
   if (error && !post) {
     return (
       <PageContainer className="trade-detail-page app-page--trade-detail">
         <section className="app-section">
-          <div className="ios-empty">
+          <div>
             <div className="product-card trade-detail-empty-state">
               <h2>Trade unavailable</h2>
               <p>{error}</p>
@@ -462,7 +462,7 @@ export default function TradeDetailPage() {
     return (
       <PageContainer className="trade-detail-page app-page--trade-detail">
         <section className="app-section">
-          <div className="ios-empty">
+          <div>
             <div className="product-card trade-detail-empty-state">
               <h2>Trade not found</h2>
               <p>This trade may have been removed, archived, or never existed.</p>
@@ -477,7 +477,7 @@ export default function TradeDetailPage() {
   }
 
   if (!post) {
-    return <CheckersLoader title="Loading trade..." compact className="ios-empty" />;
+    return <CheckersLoader title="Loading trade..." compact />;
   }
 
   const tags = toTagArray(post.tags);
@@ -615,7 +615,7 @@ export default function TradeDetailPage() {
                 <input
                   value={cashAdjustment}
                   onChange={(event) => setCashAdjustment(event.target.value)}
-                  className="ios-input"
+                  className="app-form-input"
                   inputMode="numeric"
                   placeholder="Cash adjustment in cents (+/-)"
                 />
@@ -625,51 +625,51 @@ export default function TradeDetailPage() {
                       <input
                         value={card.title}
                         onChange={(event) => replaceOfferCard(index, "title", event.target.value)}
-                        className="ios-input"
+                        className="app-form-input"
                         placeholder="Offered card title"
                       />
                       <div className="trade-detail-offer-grid">
                         <input
                           value={card.cardSet}
                           onChange={(event) => replaceOfferCard(index, "cardSet", event.target.value)}
-                          className="ios-input"
+                          className="app-form-input"
                           placeholder="Set"
                         />
                         <input
                           value={card.cardNumber}
                           onChange={(event) => replaceOfferCard(index, "cardNumber", event.target.value)}
-                          className="ios-input"
+                          className="app-form-input"
                           placeholder="Number"
                         />
                         <input
                           value={card.condition}
                           onChange={(event) => replaceOfferCard(index, "condition", event.target.value)}
-                          className="ios-input"
+                          className="app-form-input"
                           placeholder="Condition"
                         />
                         <input
                           value={card.estimatedValue}
                           onChange={(event) => replaceOfferCard(index, "estimatedValue", event.target.value)}
-                          className="ios-input"
+                          className="app-form-input"
                           placeholder="Estimated value (cents)"
                         />
                         <input
                           value={card.gradeCompany}
                           onChange={(event) => replaceOfferCard(index, "gradeCompany", event.target.value)}
-                          className="ios-input"
+                          className="app-form-input"
                           placeholder="Grade co"
                         />
                         <input
                           value={card.gradeLabel}
                           onChange={(event) => replaceOfferCard(index, "gradeLabel", event.target.value)}
-                          className="ios-input"
+                          className="app-form-input"
                           placeholder="Grade"
                         />
                       </div>
                       <input
                         value={card.notes}
                         onChange={(event) => replaceOfferCard(index, "notes", event.target.value)}
-                        className="ios-input"
+                        className="app-form-input"
                         placeholder="Notes"
                       />
                       {offerCards.length > 1 ? (
@@ -705,7 +705,7 @@ export default function TradeDetailPage() {
           <SectionHeader title="Offers" action={<span className="market-count">{post.offers.length}</span>} />
 
         {post.offers.length === 0 ? (
-          <div className="ios-empty mt-3">No offers yet.</div>
+          <div className="app-status-note">No offers yet.</div>
         ) : (
           <div className="mt-3 space-y-3">
             {post.offers.map((offer) => {
@@ -941,7 +941,7 @@ export default function TradeDetailPage() {
                       <input
                         value={counterDraft.cashAdjustment}
                         onChange={(event) => setCounterField(offer.id, "cashAdjustment", event.target.value)}
-                        className="ios-input mt-2"
+                        className="app-form-input"
                         inputMode="numeric"
                         placeholder="Counter cash adjustment (cents)"
                       />
@@ -949,7 +949,7 @@ export default function TradeDetailPage() {
                         <select
                           value={counterDraft.resolution}
                           onChange={(event) => setCounterField(offer.id, "resolution", event.target.value)}
-                          className="ios-input"
+                          className="app-form-input"
                         >
                           <option value="STANDARD">Standard counter</option>
                           <option value="DUEL">Counter + duel</option>
@@ -958,7 +958,7 @@ export default function TradeDetailPage() {
                           <select
                             value={counterDraft.duelMode}
                             onChange={(event) => setCounterField(offer.id, "duelMode", event.target.value)}
-                            className="ios-input"
+                            className="app-form-input"
                           >
                             {DUEL_OPTIONS.map((entry) => (
                               <option key={entry.value} value={entry.value}>{entry.label}</option>
@@ -979,12 +979,12 @@ export default function TradeDetailPage() {
                               type="datetime-local"
                               value={counterDraft.duelScheduledFor}
                               onChange={(event) => setCounterField(offer.id, "duelScheduledFor", event.target.value)}
-                              className="ios-input"
+                              className="app-form-input"
                             />
                             <input
                               value={counterDraft.duelDurationMinutes}
                               onChange={(event) => setCounterField(offer.id, "duelDurationMinutes", event.target.value)}
-                              className="ios-input"
+                              className="app-form-input"
                               inputMode="numeric"
                               placeholder="Clock (minutes)"
                             />

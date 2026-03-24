@@ -215,7 +215,7 @@ export function ForumPostClient() {
   if (loading) {
     return (
       <PageContainer className="forum-post-page app-page--forum-post">
-        <CheckersLoader title="Loading thread..." compact className="ios-empty" />
+        <CheckersLoader title="Loading thread..." compact />
       </PageContainer>
     );
   }

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { CheckersLoader } from "@/components/CheckersLoader";
+import { SkeletonRail } from "@/components/SkeletonCard";
 import { ListingCard } from "@/components/market/ListingCard";
 import { ListingGrid } from "@/components/market/ListingGrid";
 import type { MarketListing, MarketMode, SortMode } from "@/components/market/types";
@@ -246,7 +246,7 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
           </section>
 
           {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
-          {listingsLoading ? <CheckersLoader title="Loading inventory..." compact className="ios-empty" /> : null}
+          {listingsLoading ? <SkeletonRail count={4} /> : null}
 
           {!listingsLoading ? (
             <>
@@ -391,7 +391,7 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
         {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
 
         {listingsLoading ? (
-          <EmptyStateCard title="Loading inventory" description="Pulling in the latest listings now." />
+          <SkeletonRail count={6} />
         ) : (
           <section className="app-section listing-system-feed market-discovery-section">
             {[
@@ -447,7 +447,7 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
         />
 
         {listingsLoading ? (
-          <EmptyStateCard title="Loading listings" description="Inventory is on the way." />
+          <SkeletonRail count={8} />
         ) : sortedListings.length === 0 ? (
           <EmptyStateCard title="No listings match these filters." description="Try broadening the search, switching modes, or clearing a category." />
         ) : (

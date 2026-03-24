@@ -75,13 +75,14 @@ export function ProfileEditor() {
 
   if (!session?.user?.id) {
     return (
-      <div className="ios-empty">
+      <div className="app-status-note">
         Sign in to manage your profile.
-        <div className="mt-3">
+        <div style={{ marginTop: "12px" }}>
           <button
             type="button"
             onClick={() => void signIn()}
-            className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+            className="app-button app-button-primary"
+            style={{ minHeight: "34px", fontSize: "12px" }}
           >
             Sign in
           </button>
@@ -98,12 +99,7 @@ export function ProfileEditor() {
       const response = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username,
-          displayName,
-          bio,
-          image,
-        }),
+        body: JSON.stringify({ username, displayName, bio, image }),
       });
       const payload = (await response.json()) as ProfilePayload & { error?: string };
       if (!response.ok) {
@@ -133,10 +129,7 @@ export function ProfileEditor() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const response = await fetch("/api/profile/avatar", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch("/api/profile/avatar", { method: "POST", body: formData });
       const payload = (await response.json()) as {
         image?: string | null;
         username?: string | null;
@@ -174,7 +167,7 @@ export function ProfileEditor() {
         setSuccess("Email is already verified.");
         return;
       }
-      setSuccess(payload.sent ? "Verification email sent." : "SMTP not configured, so no email was sent.");
+      setSuccess(payload.sent ? "Verification email sent." : "SMTP not configured.");
     } catch {
       setError("Unable to send verification email.");
     } finally {
@@ -183,33 +176,23 @@ export function ProfileEditor() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="settings-profile-stack">
       {loading ? (
-        <CheckersLoader title="Loading profile..." compact className="ios-empty" />
+        <CheckersLoader title="Loading profile..." compact />
       ) : (
-        <div className="grid gap-4 settings-profile-stack">
+        <div className="grid gap-4">
           {setupMode ? (
-            <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+            <p className="app-status-note">
               Finish profile setup so buyers and sellers can find you by username.
-            </div>
-          ) : null}
-          {error ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          ) : null}
-          {success ? (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              {success}
-            </div>
-          ) : null}
-
-          <div className="ios-panel-muted rounded-[24px] p-4 settings-profile-card">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-              Profile photo
             </p>
-            <div className="mt-3 flex items-center gap-4">
-              <div className="relative h-16 w-16 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+          ) : null}
+          {error ? <p className="app-status-note is-error">{error}</p> : null}
+          {success ? <p className="app-status-note is-success">{success}</p> : null}
+
+          <div className="settings-profile-card">
+            <p className="app-eyebrow">Profile photo</p>
+            <div className="settings-avatar-row">
+              <div className="settings-avatar-wrap">
                 {image ? (
                   <Image
                     src={image}
@@ -221,12 +204,12 @@ export function ProfileEditor() {
                   />
                 ) : null}
               </div>
-              <label className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
-                {uploading ? "Uploading..." : "Upload avatar"}
+              <label className="app-button app-button-secondary settings-avatar-upload">
+                {uploading ? "Uploading…" : "Upload avatar"}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
-                  className="hidden"
+                  className="settings-file-input"
                   onChange={onUpload}
                   disabled={uploading}
                 />
@@ -234,69 +217,67 @@ export function ProfileEditor() {
             </div>
           </div>
 
-          <div className="ios-panel-muted rounded-[24px] p-4 settings-account-card">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-              Public profile
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500 settings-account-meta">
+          <div className="settings-account-card">
+            <p className="app-eyebrow">Public profile</p>
+            <div className="settings-account-meta">
               <span>{profile?.email ?? "No email"}</span>
-              <span>•</span>
-              <span>{profile?.emailVerified ? "Email verified" : "Email not verified"}</span>
+              <span>·</span>
+              <span>{profile?.emailVerified ? "Email verified" : "Not verified"}</span>
               {!profile?.emailVerified && profile?.email ? (
                 <button
                   type="button"
                   onClick={() => void onSendVerification()}
                   disabled={sendingVerification}
-                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700"
+                  className="app-button app-button-secondary"
+                  style={{ minHeight: "30px", fontSize: "12px" }}
                 >
-                  {sendingVerification ? "Sending..." : "Verify email"}
+                  {sendingVerification ? "Sending…" : "Verify email"}
                 </button>
               ) : null}
             </div>
-            <div className="mt-3 grid gap-3">
-              <label className="grid gap-1">
-                <span className="text-xs text-slate-500">Username</span>
+
+            <div className="app-form-container settings-form-column">
+              <div className="app-form-field">
+                <label className="app-form-label">Username</label>
                 <input
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
-                  className="ios-input rounded-xl px-3 py-2 text-sm"
+                  className="app-form-input"
                   placeholder="your_username"
                 />
-              </label>
-              <label className="grid gap-1">
-                <span className="text-xs text-slate-500">Display name</span>
+              </div>
+              <div className="app-form-field">
+                <label className="app-form-label">Display name</label>
                 <input
                   value={displayName}
                   onChange={(event) => setDisplayName(event.target.value)}
-                  className="ios-input rounded-xl px-3 py-2 text-sm"
+                  className="app-form-input"
                   placeholder="Your name"
                 />
-              </label>
-              <label className="grid gap-1">
-                <span className="text-xs text-slate-500">Bio</span>
+              </div>
+              <div className="app-form-field">
+                <label className="app-form-label">Bio</label>
                 <textarea
                   value={bio}
                   onChange={(event) => setBio(event.target.value)}
                   rows={3}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
-                  placeholder="Tell buyers and sellers about yourself..."
+                  className="app-form-textarea"
+                  placeholder="Tell buyers and sellers about yourself…"
                 />
-              </label>
+              </div>
             </div>
-            <div className="mt-4 flex flex-wrap items-center gap-2 settings-account-actions">
+
+            <div className="app-form-actions settings-account-actions">
               <button
                 type="button"
                 onClick={() => void onSave()}
                 disabled={saving}
-                className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+                className="app-button app-button-primary"
               >
-                {saving ? "Saving..." : "Save profile"}
+                {saving ? "Saving…" : "Save profile"}
               </button>
               {profile?.username ? (
-                <Link
-                  href={`/u/${profile.username}`}
-                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700"
-                >
+                <Link href={`/u/${profile.username}`} className="app-button app-button-secondary">
                   View public profile
                 </Link>
               ) : null}
