@@ -1,113 +1,146 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
+import { ensureConversationSchema, isConversationSchemaMissing } from "@/lib/conversation-schema";
 
 type MessageBody = {
   body?: string;
+  imageUrl?: string | null;
 };
+
+function normalizeImageUrl(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
+    return trimmed;
+  }
+  return null;
+}
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await context.params;
-  const { searchParams } = new URL(request.url);
-  const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 40), 1), 100);
-  const before = searchParams.get("before");
-  const beforeDate = before ? new Date(before) : null;
+  await ensureConversationSchema().catch(() => null);
 
-  const sessionUser = await getSessionUser();
-  if (!sessionUser) {
-    return jsonError("Authentication required.", 401);
-  }
-  const participant = await prisma.conversationParticipant.findUnique({
-    where: {
-      conversationId_userId: {
-        conversationId: id,
-        userId: sessionUser.id,
+  try {
+    const { id } = await context.params;
+    const { searchParams } = new URL(request.url);
+    const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 40), 1), 100);
+    const before = searchParams.get("before");
+    const beforeDate = before ? new Date(before) : null;
+
+    const sessionUser = await getSessionUser();
+    if (!sessionUser) {
+      return jsonError("Authentication required.", 401);
+    }
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: {
+        conversationId_userId: {
+          conversationId: id,
+          userId: sessionUser.id,
+        },
       },
-    },
-  });
-  if (!participant) {
-    return jsonError("Not authorized.", 403);
+    });
+    if (!participant) {
+      return jsonError("Not authorized.", 403);
+    }
+
+    const messages = await prisma.directMessage.findMany({
+      where: {
+        conversationId: id,
+        ...(beforeDate && !Number.isNaN(beforeDate.valueOf())
+          ? { createdAt: { lt: beforeDate } }
+          : {}),
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: limit + 1,
+      include: {
+        sender: { select: { displayName: true, id: true } },
+      },
+    });
+
+    const hasMore = messages.length > limit;
+    const visibleMessages = hasMore ? messages.slice(0, limit) : messages;
+    const nextCursor = hasMore
+      ? visibleMessages[visibleMessages.length - 1]?.createdAt.toISOString() ?? null
+      : null;
+
+    return jsonOk({
+      items: [...visibleMessages].reverse(),
+      nextCursor,
+    });
+  } catch (error) {
+    if (isConversationSchemaMissing(error)) {
+      await ensureConversationSchema().catch(() => null);
+      return jsonError("Messages are initializing. Retry in a few seconds.", 503);
+    }
+    throw error;
   }
-
-  const messages = await prisma.directMessage.findMany({
-    where: {
-      conversationId: id,
-      ...(beforeDate && !Number.isNaN(beforeDate.valueOf())
-        ? { createdAt: { lt: beforeDate } }
-        : {}),
-    },
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take: limit + 1,
-    include: {
-      sender: { select: { displayName: true, id: true } },
-    },
-  });
-
-  const hasMore = messages.length > limit;
-  const visibleMessages = hasMore ? messages.slice(0, limit) : messages;
-  const nextCursor = hasMore
-    ? visibleMessages[visibleMessages.length - 1]?.createdAt.toISOString() ?? null
-    : null;
-
-  return jsonOk({
-    items: [...visibleMessages].reverse(),
-    nextCursor,
-  });
 }
 
 export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const sessionUser = await getSessionUser();
-  if (!sessionUser) {
-    return jsonError("Authentication required.", 401);
-  }
+  await ensureConversationSchema().catch(() => null);
 
-  const { id } = await context.params;
-  const body = await parseJson<MessageBody>(request);
-  const senderId = sessionUser.id;
+  try {
+    const sessionUser = await getSessionUser();
+    if (!sessionUser) {
+      return jsonError("Authentication required.", 401);
+    }
 
-  const text = body?.body?.trim() ?? "";
-  if (!text) {
-    return jsonError("Message body is required.", 400);
-  }
+    const { id } = await context.params;
+    const body = await parseJson<MessageBody>(request);
+    const senderId = sessionUser.id;
 
-  const participant = await prisma.conversationParticipant.findUnique({
-    where: {
-      conversationId_userId: {
-        conversationId: id,
-        userId: senderId,
-      },
-    },
-  });
-  if (!participant) {
-    return jsonError("Not authorized.", 403);
-  }
+    const text = body?.body?.trim() ?? "";
+    const imageUrl = normalizeImageUrl(body?.imageUrl);
+    if (!text && !imageUrl) {
+      return jsonError("Message body or image is required.", 400);
+    }
 
-  const message = await prisma.$transaction(async (tx) => {
-    const created = await tx.directMessage.create({
-      data: {
-        conversationId: id,
-        senderId,
-        body: text,
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: {
+        conversationId_userId: {
+          conversationId: id,
+          userId: senderId,
+        },
       },
     });
+    if (!participant) {
+      return jsonError("Not authorized.", 403);
+    }
 
-    // Keep conversation ordering consistent with latest message activity.
-    await tx.conversation.update({
-      where: { id },
-      data: { updatedAt: new Date() },
+    const message = await prisma.$transaction(async (tx) => {
+      const created = await tx.directMessage.create({
+        data: {
+          conversationId: id,
+          senderId,
+          body: text,
+          imageUrl,
+        },
+      });
+
+      await tx.conversation.update({
+        where: { id },
+        data: { updatedAt: new Date() },
+      });
+
+      return tx.directMessage.findUnique({
+        where: { id: created.id },
+        include: { sender: { select: { displayName: true, id: true } } },
+      });
     });
 
-    return tx.directMessage.findUnique({
-      where: { id: created.id },
-      include: { sender: { select: { displayName: true, id: true } } },
-    });
-  });
-
-  return jsonOk(message, { status: 201 });
+    return jsonOk(message, { status: 201 });
+  } catch (error) {
+    if (isConversationSchemaMissing(error)) {
+      await ensureConversationSchema().catch(() => null);
+      return jsonError("Messages are initializing. Retry in a few seconds.", 503);
+    }
+    throw error;
+  }
 }

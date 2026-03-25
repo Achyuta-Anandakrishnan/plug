@@ -3,6 +3,7 @@ import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
 import { ensureProfileSchema } from "@/lib/profile-schema";
+import { ensureConversationSchema, isConversationSchemaMissing } from "@/lib/conversation-schema";
 
 type CreateConversationBody = {
   participantIds?: string[];
@@ -12,56 +13,65 @@ type CreateConversationBody = {
 
 export async function GET(request: Request) {
   await ensureProfileSchema().catch(() => null);
+  await ensureConversationSchema().catch(() => null);
 
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.get("q")?.trim() ?? "";
-  const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 40), 1), 100);
-  const sessionUser = await getSessionUser();
-  if (!sessionUser) {
-    return jsonError("Authentication required.", 401);
-  }
+  try {
+    const { searchParams } = new URL(request.url);
+    const query = searchParams.get("q")?.trim() ?? "";
+    const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 40), 1), 100);
+    const sessionUser = await getSessionUser();
+    if (!sessionUser) {
+      return jsonError("Authentication required.", 401);
+    }
 
-  const actorId = sessionUser.id;
+    const actorId = sessionUser.id;
 
-  const conversations = await prisma.conversation.findMany({
-    where: {
-      participants: {
-        some: { userId: actorId },
-      },
-      ...(query
-        ? {
-            OR: [
-              { subject: { contains: query, mode: "insensitive" } },
-              {
-                participants: {
-                  some: {
-                    user: {
-                      OR: [
-                        { displayName: { contains: query, mode: "insensitive" } },
-                        { username: { contains: query, mode: "insensitive" } },
-                      ],
+    const conversations = await prisma.conversation.findMany({
+      where: {
+        participants: {
+          some: { userId: actorId },
+        },
+        ...(query
+          ? {
+              OR: [
+                { subject: { contains: query, mode: "insensitive" } },
+                {
+                  participants: {
+                    some: {
+                      user: {
+                        OR: [
+                          { displayName: { contains: query, mode: "insensitive" } },
+                          { username: { contains: query, mode: "insensitive" } },
+                        ],
+                      },
                     },
                   },
                 },
-              },
-            ],
-          }
-        : {}),
-    },
-    include: {
-      participants: {
-        include: { user: { select: { displayName: true, username: true, id: true } } },
+              ],
+            }
+          : {}),
       },
-      messages: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
+      include: {
+        participants: {
+          include: { user: { select: { displayName: true, username: true, id: true } } },
+        },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
       },
-    },
-    orderBy: { updatedAt: "desc" },
-    take: limit,
-  });
+      orderBy: { updatedAt: "desc" },
+      take: limit,
+    });
 
-  return jsonOk({ items: conversations });
+    return jsonOk({ items: conversations });
+  } catch (error) {
+    if (isConversationSchemaMissing(error)) {
+      await ensureConversationSchema().catch(() => null);
+      return jsonError("Messages are initializing. Retry in a few seconds.", 503);
+    }
+    throw error;
+  }
 }
 
 export async function POST(request: Request) {

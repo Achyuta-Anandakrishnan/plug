@@ -52,8 +52,12 @@ export async function POST(request: Request) {
     return jsonError("Authentication required.", 401);
   }
 
+  const requestUrl = new URL(request.url);
+  const scope = requestUrl.searchParams.get("scope")?.trim().toLowerCase() ?? "";
+  const isMessageUpload = scope === "message" || scope === "messages";
+
   const isAdmin = isAdminEmail(sessionUser.email);
-  if (!isAdmin) {
+  if (!isAdmin && !isMessageUpload) {
     const sellerProfile = await prisma.sellerProfile.findUnique({
       where: { userId: sessionUser.id },
       select: { id: true },
@@ -83,7 +87,9 @@ export async function POST(request: Request) {
 
   const bucket = process.env.SUPABASE_BUCKET || "auction-images";
   const ext = getExtension(file.name, file.type);
-  const path = `auctions/${sessionUser.id}/${randomUUID()}.${ext}`;
+  const path = isMessageUpload
+    ? `messages/${sessionUser.id}/${randomUUID()}.${ext}`
+    : `auctions/${sessionUser.id}/${randomUUID()}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
   const detectedType = detectImageType(buffer);
   if (!detectedType || detectedType !== file.type) {

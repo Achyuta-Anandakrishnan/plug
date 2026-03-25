@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
@@ -26,6 +27,7 @@ type Conversation = {
   messages: Array<{
     id: string;
     body: string;
+    imageUrl?: string | null;
     createdAt: string;
     senderId: string;
   }>;
@@ -35,6 +37,7 @@ type DirectMessage = {
   id: string;
   senderId: string;
   body: string;
+  imageUrl?: string | null;
   createdAt: string;
   sender: { id: string; displayName: string | null };
 };
@@ -105,12 +108,16 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [attachedImageUrl, setAttachedImageUrl] = useState<string | null>(null);
+  const [attachedImageName, setAttachedImageName] = useState("");
   const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null);
   const [mobilePane, setMobilePane] = useState<"threads" | "chat">(
     preselectConversationId ? "chat" : "threads",
   );
 
   const messageEndRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const sessionUserId = session?.user?.id ?? "";
 
   useEffect(() => {
@@ -254,6 +261,8 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
     setMessages([]);
     setMessagesCursor(null);
     setDraft("");
+    setAttachedImageUrl(null);
+    setAttachedImageName("");
   }, [activeId, conversations]);
 
   const activeConversation = conversations.find((c) => c.id === activeId) ?? null;
@@ -296,19 +305,21 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
   async function handleSend() {
     if (!activeId) return;
     const text = draft.trim();
-    if (!text) return;
+    if (!text && !attachedImageUrl) return;
     setSending(true);
     try {
       const res = await fetch(`/api/conversations/${activeId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: text }),
+        body: JSON.stringify({ body: text, imageUrl: attachedImageUrl }),
       });
       const payload = (await res.json()) as DirectMessage;
       if (!res.ok) {
         throw new Error((payload as unknown as { error?: string })?.error ?? "Unable to send message.");
       }
       setDraft("");
+      setAttachedImageUrl(null);
+      setAttachedImageName("");
       setMessages((prev) => [...prev, payload]);
       setConversations((prev) =>
         prev.map((thread) =>
@@ -320,6 +331,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                   {
                     id: payload.id,
                     body: payload.body,
+                    imageUrl: payload.imageUrl ?? null,
                     createdAt: payload.createdAt,
                     senderId: payload.senderId,
                   },
@@ -333,6 +345,45 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
     } finally {
       setSending(false);
     }
+  }
+
+  async function handlePhotoSelected(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.set("file", file);
+      const res = await fetch("/api/uploads?scope=messages", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !payload.url) {
+        throw new Error(payload.error ?? "Unable to upload photo.");
+      }
+      setAttachedImageUrl(payload.url);
+      setAttachedImageName(file.name);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to upload photo.");
+      setAttachedImageUrl(null);
+      setAttachedImageName("");
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  }
+
+  function getConversationPreview(thread: Conversation) {
+    const lastMessage = thread.messages[0];
+    if (!lastMessage) return "No messages yet.";
+    if (lastMessage.body?.trim()) return lastMessage.body;
+    if (lastMessage.imageUrl) return "Sent a photo";
+    return "No messages yet.";
   }
 
   async function handleDeleteConversation(conversationId: string) {
@@ -412,6 +463,8 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
       setMessages([]);
       setMessagesCursor(null);
       setDraft("");
+      setAttachedImageUrl(null);
+      setAttachedImageName("");
       setProfileQuery("");
       setProfileResults([]);
       if (!isDesktop) setMobilePane("chat");
@@ -548,13 +601,13 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
             ) : (
               <div className="messages-thread-list">
                 {conversations.map((thread) => {
-                  const last = thread.messages[0]?.body ?? "";
                   const otherNames = thread.participants
                     .filter((p) => p.userId !== sessionUserId)
                     .map((p) => p.user.displayName ?? p.user.username ?? "Unknown")
                     .join(", ");
                   const title = thread.subject ?? otherNames ?? "Conversation";
                   const selected = thread.id === activeId;
+                  const preview = getConversationPreview(thread);
 
                   return (
                     <button
@@ -574,7 +627,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                           <p>{title || "Conversation"}</p>
                           <span>{formatTime(thread.updatedAt)}</span>
                         </div>
-                        <p className="messages-thread-item-preview">{last || "No messages yet."}</p>
+                        <p className="messages-thread-item-preview">{preview}</p>
                       </div>
                     </button>
                   );
@@ -647,7 +700,19 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                             <p className="messages-bubble-author">
                               {isMe ? "You" : message.sender?.displayName ?? "User"}
                             </p>
-                            <p className="messages-bubble-body">{message.body}</p>
+                            {message.imageUrl ? (
+                              <a href={message.imageUrl} target="_blank" rel="noreferrer" className="messages-bubble-image-link">
+                                <Image
+                                  src={message.imageUrl}
+                                  alt="Shared in chat"
+                                  width={320}
+                                  height={320}
+                                  unoptimized
+                                  className="messages-bubble-image"
+                                />
+                              </a>
+                            ) : null}
+                            {message.body ? <p className="messages-bubble-body">{message.body}</p> : null}
                             <p className="messages-bubble-time">{formatTime(message.createdAt)}</p>
                           </div>
                         );
@@ -660,10 +725,53 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
 
                 <div className="messages-compose">
                   <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={(event) => void handlePhotoSelected(event)}
+                    className="messages-compose-file"
+                  />
+                  {attachedImageUrl ? (
+                    <div className="messages-compose-attachment">
+                      <div className="messages-compose-attachment-preview">
+                        <Image
+                          src={attachedImageUrl}
+                          alt="Ready to send"
+                          width={44}
+                          height={44}
+                          unoptimized
+                          className="messages-compose-attachment-image"
+                        />
+                        <div className="messages-compose-attachment-copy">
+                          <strong>{attachedImageName || "Photo attached"}</strong>
+                          <span>Will send with your next message</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAttachedImageUrl(null);
+                          setAttachedImageName("");
+                        }}
+                        className="messages-compose-attachment-remove"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={!activeId || sending || uploadingPhoto}
+                    className="app-button app-button-secondary messages-compose-photo"
+                  >
+                    {uploadingPhoto ? "Uploading..." : "Photo"}
+                  </button>
+                  <input
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     placeholder={activeId ? "Message" : "Select a conversation"}
-                    disabled={!activeId || sending}
+                    disabled={!activeId || sending || uploadingPhoto}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -675,7 +783,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                   <button
                     type="button"
                     onClick={() => void handleSend()}
-                    disabled={!activeId || sending || !draft.trim()}
+                    disabled={!activeId || sending || uploadingPhoto || (!draft.trim() && !attachedImageUrl)}
                     className="app-button app-button-primary"
                   >
                     {sending ? "Sending..." : "Send"}

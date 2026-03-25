@@ -3379,8 +3379,8 @@ html[data-theme="dark"] .site-account-popover {
 .trade-duel-copy {
   margin: 0;
   color: var(--product-text);
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .trade-offer-duel-meta,
@@ -3388,7 +3388,7 @@ html[data-theme="dark"] .site-account-popover {
   margin: 0;
   color: var(--product-text-soft);
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .trade-offer-duel-statuses,
@@ -3402,8 +3402,8 @@ html[data-theme="dark"] .site-account-popover {
 .trade-duel-approval-list span {
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
+  min-height: 30px;
+  padding: 0 11px;
   border: 1px solid var(--product-border);
   border-radius: 999px;
   color: var(--product-text-soft);
@@ -5457,27 +5457,73 @@ html[data-theme="dark"] .streams-scheduled-item {
   gap: 12px;
 }
 
+.trade-duel-screen {
+  width: min(100%, 1160px);
+  margin-inline: auto;
+}
+
+.app-page--trade-duel .app-page-header {
+  align-items: start;
+}
+
+.app-page--trade-duel .app-page-header-copy {
+  max-width: min(100%, 920px);
+}
+
+.app-page--trade-duel .app-page-title {
+  max-width: 22ch;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 0.94;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.app-page--trade-duel .app-page-subtitle {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 .trade-duel-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 336px;
+  gap: 16px;
   align-items: start;
 }
 
 .trade-duel-panel {
   display: grid;
-  gap: 12px;
-  padding: 14px;
+  gap: 10px;
+  padding: 14px 15px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.8);
   box-shadow: none;
 }
 
+.trade-duel-panel .app-section-header {
+  align-items: start;
+  gap: 10px;
+}
+
+.trade-duel-panel .app-section-header-copy {
+  gap: 4px;
+}
+
+.trade-duel-panel .app-section-title {
+  font-size: 16px;
+  line-height: 1.05;
+}
+
+.trade-duel-panel .app-section-subtitle {
+  max-width: 42ch;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .trade-duel-board-frame {
   display: grid;
-  gap: 10px;
-  width: min(100%, 640px);
+  gap: 8px;
+  width: min(100%, 560px);
   margin-inline: auto;
 }
 
@@ -5498,14 +5544,14 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .trade-duel-board-player-name {
   color: var(--product-text);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
 }
 
 .trade-duel-board-player-meta {
   color: var(--product-text-soft);
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.3;
 }
 
@@ -5517,7 +5563,22 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .trade-duel-stats .app-stat-pill {
   min-height: auto;
-  padding: 12px;
+  gap: 6px;
+  padding: 10px 11px;
+  border-radius: 16px;
+}
+
+.trade-duel-stats .app-stat-pill p {
+  font-size: 10px;
+  line-height: 1.15;
+  letter-spacing: 0.12em;
+}
+
+.trade-duel-stats .app-stat-pill strong {
+  font-size: 13px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
 }
 
 .trade-duel-board {
@@ -5778,11 +5839,23 @@ html[data-theme="dark"] .streams-scheduled-item {
 .trade-duel-poker-grid article,
 .trade-duel-participant {
   display: grid;
-  gap: 4px;
-  padding: 12px;
+  gap: 5px;
+  padding: 12px 13px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 16px;
   background: rgba(248, 250, 252, 0.72);
+}
+
+.trade-duel-participant strong {
+  color: var(--product-text);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.trade-duel-participant span {
+  color: var(--product-text-soft);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .trade-duel-poker-hand {
@@ -7705,7 +7778,7 @@ html[data-theme="dark"] .streams-scheduled-item {
 .messages-feed {
   min-height: 0;
   overflow-y: auto;
-  padding: 0 14px;
+  padding: 0 18px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -7713,17 +7786,18 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-feed-inner {
   width: 100%;
-  max-width: 620px;
-  margin: 0 auto 0 0;
-  padding: 12px 0 8px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14px 0 10px;
   min-height: 100%;
 }
 
 .messages-bubble-list {
   display: grid;
-  gap: 6px;
+  width: 100%;
+  gap: 8px;
   align-content: start;
-  justify-items: start;
+  justify-items: stretch;
 }
 
 .messages-load-more {
@@ -7732,8 +7806,9 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-bubble {
   justify-self: start;
+  width: fit-content;
   max-width: min(66%, 420px);
-  padding: 7px 9px;
+  padding: 8px 10px;
   border-radius: 12px;
 }
 
@@ -7768,11 +7843,24 @@ html[data-theme="dark"] .streams-scheduled-item {
   line-height: 1.38;
 }
 
+.messages-bubble-image-link {
+  display: block;
+  margin-top: 4px;
+}
+
+.messages-bubble-image {
+  display: block;
+  width: min(100%, 240px);
+  height: auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
 .messages-compose {
   position: sticky;
   bottom: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   padding: 10px 14px 12px;
@@ -7781,10 +7869,69 @@ html[data-theme="dark"] .streams-scheduled-item {
   backdrop-filter: blur(10px);
 }
 
+.messages-compose-file {
+  display: none;
+}
+
+.messages-compose-photo {
+  min-height: 38px;
+  padding-inline: 12px;
+}
+
 .messages-compose-input {
   min-height: 38px;
   padding: 0 12px;
   border-radius: 12px;
+}
+
+.messages-compose-attachment {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.messages-compose-attachment-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.messages-compose-attachment-image {
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.messages-compose-attachment-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.messages-compose-attachment-copy strong {
+  color: var(--product-text);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.messages-compose-attachment-copy span {
+  color: var(--product-text-soft);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.messages-compose-attachment-remove {
+  border: 0;
+  background: transparent;
+  color: var(--product-text-soft);
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .messages-empty-state {
@@ -7797,7 +7944,7 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 @media (min-width: 1280px) {
   .messages-page .app-screen-section--messages {
-    width: min(100%, 1760px);
+    width: min(100%, 1540px);
     margin-inline: auto;
   }
 

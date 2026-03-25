@@ -410,6 +410,7 @@ model DirectMessage {
   conversationId  String
   senderId        String
   body            String
+  imageUrl        String?
   createdAt       DateTime      @default(now())
 
   conversation    Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
