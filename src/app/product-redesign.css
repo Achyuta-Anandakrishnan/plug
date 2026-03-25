@@ -7612,6 +7612,17 @@ html[data-theme="dark"] .streams-scheduled-item {
   justify-content: center;
 }
 
+@media (min-width: 1280px) {
+  .messages-page .app-screen-section--messages {
+    width: min(100%, 1760px);
+    margin-inline: auto;
+  }
+
+  .messages-layout {
+    grid-template-columns: minmax(248px, 272px) minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 600px) {
   .profile-meta-grid {
     grid-template-columns: 1fr 1fr;
