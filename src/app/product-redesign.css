@@ -9347,3 +9347,933 @@ html[data-theme="dark"] .admin-verification-row {
 html[data-theme="dark"] .admin-empty {
   background: rgba(255, 255, 255, 0.02);
 }
+
+.sell-quick-lookup-hint {
+  font-size: 0.75rem;
+  color: var(--product-muted, #64748b);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   VISUAL UPGRADE PASS — polish, motion, depth, hierarchy
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── New design tokens ──────────────────────────────────────────── */
+:root {
+  --accent-gradient: linear-gradient(145deg, #1d3d80 0%, #0e1f41 100%);
+  --accent-gradient-hover: linear-gradient(145deg, #2850a8 0%, #172d5c 100%);
+  --product-focus-ring: 0 0 0 3.5px rgba(29, 61, 128, 0.16);
+  --product-glow-primary: 0 8px 28px rgba(13, 28, 64, 0.36);
+  --product-glow-primary-hover: 0 12px 40px rgba(13, 28, 64, 0.48);
+}
+
+html[data-theme="dark"] {
+  --accent-gradient: linear-gradient(145deg, #2d5ed4 0%, #1a3a90 100%);
+  --accent-gradient-hover: linear-gradient(145deg, #3872ef 0%, #2249b8 100%);
+  --product-focus-ring: 0 0 0 3.5px rgba(45, 94, 212, 0.32);
+  --product-glow-primary: 0 8px 28px rgba(20, 44, 108, 0.52);
+  --product-glow-primary-hover: 0 14px 44px rgba(20, 44, 108, 0.68);
+}
+
+/* ── Buttons — gradient primary, polished secondary ─────────────── */
+.app-button {
+  min-height: 40px;
+  padding: 0 18px;
+  font-size: 13px;
+}
+
+.app-button-primary {
+  background: var(--accent-gradient);
+  box-shadow: var(--product-glow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.13);
+}
+
+.app-button-primary:hover {
+  background: var(--accent-gradient-hover);
+  box-shadow: var(--product-glow-primary-hover), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.app-button-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--product-glow-primary);
+}
+
+.app-button-secondary {
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.app-button-secondary:hover {
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+html[data-theme="dark"] .app-button-secondary {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme="dark"] .app-button-secondary:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.app-button-danger {
+  box-shadow: 0 1px 4px rgba(185, 28, 28, 0.08);
+}
+
+.app-button-danger:hover {
+  box-shadow: 0 4px 14px rgba(185, 28, 28, 0.15);
+  transform: translateY(-1px);
+}
+
+.app-button-approve {
+  box-shadow: 0 1px 4px rgba(4, 120, 87, 0.08);
+}
+
+.app-button-approve:hover {
+  background: rgba(209, 250, 229, 0.96);
+  box-shadow: 0 4px 14px rgba(4, 120, 87, 0.16);
+  transform: translateY(-1px);
+}
+
+/* ── Chips — gradient active state ──────────────────────────────── */
+.app-chip.is-active,
+.messages-participant-pill:hover {
+  background: var(--accent-gradient);
+  border-color: transparent;
+  box-shadow: 0 3px 14px rgba(13, 28, 64, 0.28);
+}
+
+/* ── Form inputs — sharper radius, blue focus ring ───────────────── */
+.app-form-input,
+.app-form-textarea {
+  border-radius: var(--r-lg);
+}
+
+.app-form-input:focus,
+.app-form-textarea:focus {
+  border-color: rgba(29, 61, 128, 0.38);
+  box-shadow: var(--product-focus-ring);
+}
+
+.stream-bid-field input {
+  border-radius: var(--r-md);
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.stream-bid-field input:focus {
+  border-color: rgba(29, 61, 128, 0.38);
+  box-shadow: var(--product-focus-ring);
+  outline: none;
+}
+
+/* ── Status notes — left-side accent stripe ─────────────────────── */
+.app-status-note.is-error {
+  border-left: 3px solid #dc2626;
+  padding-left: 15px;
+}
+
+.app-status-note.is-success {
+  border-left: 3px solid #059669;
+  padding-left: 15px;
+}
+
+.app-status-note.is-warning {
+  border-left: 3px solid #d97706;
+  padding-left: 15px;
+}
+
+/* ── Navigation active state — blue tint ────────────────────────── */
+.site-nav-link.is-active {
+  background: rgba(29, 61, 128, 0.09);
+  color: #1d3d80;
+  box-shadow: inset 0 0 0 1px rgba(29, 61, 128, 0.13);
+}
+
+html[data-theme="dark"] .site-nav-link.is-active {
+  background: rgba(45, 94, 212, 0.2);
+  color: #7aaaed;
+  box-shadow: inset 0 0 0 1px rgba(45, 94, 212, 0.25);
+}
+
+/* ── Listing cards — deeper hover lift ───────────────────────────── */
+.market-v2-listing-card {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+.market-v2-listing-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.17);
+}
+
+.listing-card-info {
+  gap: 6px;
+  padding: 12px 14px 15px;
+}
+
+.listing-card-price {
+  font-size: 16px;
+  letter-spacing: -0.04em;
+}
+
+/* ── Live / trade / forum cards — hover added ────────────────────── */
+.live-v3-stream-card,
+.live-v3-host-card,
+.trade-board-card,
+.forum-thread-card:not(.forum-thread-card-mobile) {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+.live-v3-stream-card:hover,
+.live-v3-host-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--product-shadow-hover);
+}
+
+.trade-board-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--product-shadow-hover);
+}
+
+.forum-thread-card:not(.forum-thread-card-mobile):hover {
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.12);
+}
+
+/* ── Auction cards — richer glass stats, deeper hover ────────────── */
+.auction-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 40px 88px rgba(0, 0, 0, 0.62);
+}
+
+.auction-card-stat {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.auction-card-stat-value {
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+/* ── Live badge — red pulse ──────────────────────────────────────── */
+@keyframes live-ring-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 48, 58, 0.6); }
+  60% { box-shadow: 0 0 0 6px rgba(192, 48, 58, 0); }
+}
+
+@keyframes live-dot-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.38; }
+}
+
+.stream-room-badge.is-live {
+  background: rgba(192, 48, 58, 0.2);
+  color: #fca5a5;
+  animation: live-ring-pulse 2.4s ease-in-out infinite;
+}
+
+/* live pill dots */
+.live-v3-live-pill.is-live::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-right: 5px;
+  animation: live-dot-blink 1.8s ease-in-out infinite;
+}
+
+/* ── Stream room panels — polished surfaces ──────────────────────── */
+.stream-room-rail-panel {
+  background: var(--product-surface);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="dark"] .stream-room-rail-panel {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.22);
+}
+
+.stream-room-bid-summary-panel {
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.1);
+}
+
+html[data-theme="dark"] .stream-room-bid-summary-panel {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.stream-room-chat-bubble {
+  background: var(--product-surface-muted);
+  border: 1px solid var(--product-border);
+  border-radius: 14px;
+}
+
+.stream-room-chat-bubble.is-own {
+  background: var(--product-accent-soft);
+  border-color: rgba(29, 61, 128, 0.1);
+}
+
+.stream-room-bid-row {
+  background: var(--product-surface-muted);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.stream-room-bid-row:hover {
+  background: var(--product-surface);
+}
+
+/* ── Quick bid buttons — invert on hover ─────────────────────────── */
+.stream-bid-quick-btn {
+  background: var(--product-surface);
+  border-color: var(--product-border-strong);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.stream-bid-quick-btn:hover {
+  background: var(--accent-gradient);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(13, 28, 64, 0.3);
+}
+
+/* ── Admin cards — subtle lift ───────────────────────────────────── */
+.admin-card {
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.07);
+  transition:
+    box-shadow var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+.admin-card:hover {
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.11);
+  transform: translateY(-1px);
+}
+
+.admin-verification-btn {
+  transition: background var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.admin-verification-btn.is-passed {
+  box-shadow: 0 2px 6px rgba(4, 120, 87, 0.12);
+}
+
+.admin-verification-btn.is-failed {
+  box-shadow: 0 2px 6px rgba(185, 28, 28, 0.12);
+}
+
+/* ── Trade status chips — subtle gradient tints ──────────────────── */
+.trade-status-chip {
+  font-weight: 700;
+}
+
+.trade-status-chip.is-open {
+  background: linear-gradient(135deg, rgba(253, 236, 238, 1), rgba(252, 224, 226, 1));
+  box-shadow: 0 1px 4px rgba(192, 48, 58, 0.1);
+}
+
+.trade-status-chip.is-matched {
+  background: linear-gradient(135deg, rgba(236, 253, 245, 1), rgba(209, 250, 229, 1));
+  box-shadow: 0 1px 4px rgba(4, 120, 87, 0.1);
+}
+
+.trade-status-chip.is-paused {
+  background: linear-gradient(135deg, rgba(255, 251, 235, 1), rgba(254, 243, 199, 1));
+  box-shadow: 0 1px 4px rgba(161, 98, 7, 0.1);
+}
+
+/* ── Account popover — more depth ────────────────────────────────── */
+.site-account-popover {
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18), 0 0 0 1px var(--product-border);
+  border-color: transparent;
+}
+
+html[data-theme="dark"] .site-account-popover {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--product-border-strong);
+}
+
+/* ── Landing hero CTA buttons — bigger ───────────────────────────── */
+.landing-hero-actions .app-button-primary,
+.landing-final-actions .app-button-primary,
+.landing-mobile-actions .app-button-primary {
+  min-height: 46px;
+  padding: 0 24px;
+  font-size: 14px;
+}
+
+.landing-hero-actions .app-button-secondary,
+.landing-final-actions .app-button-secondary,
+.landing-mobile-actions .app-button-secondary {
+  min-height: 46px;
+  padding: 0 22px;
+  font-size: 14px;
+}
+
+/* ── App eyebrow — tighter tracking refinement ───────────────────── */
+.app-eyebrow {
+  letter-spacing: 0.2em;
+}
+
+/* ── Listing card badge — subtle shimmer border ──────────────────── */
+.listing-card-badge {
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* ── App section title — tighter tracking ────────────────────────── */
+.app-section-title {
+  letter-spacing: -0.03em;
+}
+
+/* ── Sell submit button — full width emphasis ────────────────────── */
+.sell-submit-btn {
+  min-height: 46px;
+  font-size: 14px;
+}
+
+/* ── Empty states — more refined ─────────────────────────────────── */
+.app-empty-state {
+  border-radius: var(--r-2xl);
+}
+
+.admin-empty {
+  border-radius: var(--r-xl);
+}
+
+/* ── Skeleton — slightly faster shimmer ──────────────────────────── */
+.skeleton-block {
+  animation-duration: 1.4s;
+}
+
+/* ── Messages thread item — hover ────────────────────────────────── */
+.messages-thread-item {
+  transition: background var(--dur-fast) var(--ease-out);
+  cursor: pointer;
+}
+
+.messages-thread-item:hover:not(.is-active) {
+  background: var(--product-surface-muted);
+}
+
+/* ── Fade-in animation — faster/snappier ─────────────────────────── */
+.animate-fade-in {
+  animation-duration: 240ms;
+}
+
+/* ── Landing visual cards — hover lift ───────────────────────────── */
+.landing-visual-card {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+.landing-visual-card:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 32px 64px rgba(15, 23, 42, 0.18);
+}
+
+.landing-visual-card:hover .landing-visual-media img {
+  transform: scale(1.04);
+}
+
+.landing-visual-media img {
+  transition: transform 500ms var(--ease-out);
+}
+
+/* ── Stream bid summary — bolder numbers ─────────────────────────── */
+.stream-bid-summary strong {
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+/* ── Stream room bid panel heading row ───────────────────────────── */
+.stream-bid-summary > div > p {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+}
+
+/* ── Admin page title sizing ─────────────────────────────────────── */
+.admin-page-head {
+  padding-bottom: 4px;
+}
+
+.admin-page-title {
+  font-size: clamp(1.7rem, 4vw, 2.2rem);
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+/* ── Landing hero h1 — tighter, bigger ───────────────────────────── */
+.landing-hero-copy h1 {
+  font-size: clamp(4.4rem, 9.5vw, 7.8rem);
+}
+
+/* ── Trust/action sections — refined border ──────────────────────── */
+.landing-action-column + .landing-action-column {
+  border-left-color: var(--product-border);
+}
+
+/* ── Popover polish — smooth entry ───────────────────────────────── */
+.site-account-popover {
+  animation: popover-enter 180ms var(--ease-out) both;
+}
+
+@keyframes popover-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Message compose input — tighter ─────────────────────────────── */
+.messages-compose-input:focus {
+  border-color: rgba(29, 61, 128, 0.38);
+  box-shadow: var(--product-focus-ring);
+}
+
+/* ── Forum compose ───────────────────────────────────────────────── */
+.forum-compose-input:focus,
+.forum-compose-textarea:focus {
+  border-color: rgba(29, 61, 128, 0.38);
+  box-shadow: var(--product-focus-ring);
+}
+
+/* ── Page container max-width refinement ─────────────────────────── */
+.app-container,
+.site-shell {
+  max-width: 1360px;
+}
+
+/* ── Listing card media — slightly taller ratio ──────────────────── */
+.market-v2-listing-card.is-market-card .listing-card-media {
+  aspect-ratio: 3 / 4;
+}
+
+/* ── Header bell icon — hover pulse ──────────────────────────────── */
+.site-header-bell:hover {
+  transform: scale(1.12);
+  transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+/* ── App section header — bolder title ───────────────────────────── */
+.app-section-title {
+  font-weight: 800;
+}
+
+/* ── Stream room video title — bigger impact ─────────────────────── */
+.stream-room-video-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ── Stream room video price value ───────────────────────────────── */
+.stream-room-video-price-value {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+/* ── Bid amount stat values — bigger impact ──────────────────────── */
+.stream-bid-summary .stream-bid-current strong {
+  color: var(--product-text);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+/* ── Trade offer cards — refined spacing ─────────────────────────── */
+.trade-offer-cards-grid {
+  gap: 10px;
+}
+
+/* ── Sell preview title — bigger ─────────────────────────────────── */
+.sell-preview-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* ── Sell quick row values — bolder ──────────────────────────────── */
+.sell-quick-row-value {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ── Reduce motion — respect user preference ─────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .landing-visual-card,
+  .market-v2-listing-card,
+  .live-v3-stream-card,
+  .live-v3-host-card,
+  .trade-board-card,
+  .auction-card,
+  .forum-thread-card,
+  .admin-card,
+  .app-button {
+    transition: none;
+  }
+  .stream-room-badge.is-live,
+  .live-v3-live-pill.is-live::before,
+  .skeleton-block {
+    animation: none;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   UNIFIED LISTING CARD v2 — full-bleed overlay, consistent across
+   marketplace, trades, live, bounty
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Base card ──────────────────────────────────────────────────── */
+.listing-card {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0a0f1e;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+  transition:
+    transform 220ms var(--ease-out),
+    box-shadow 220ms var(--ease-out);
+}
+
+.listing-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.42);
+}
+
+/* ── Full-coverage link ─────────────────────────────────────────── */
+.listing-card .listing-card-link {
+  display: block;
+  position: absolute;
+  inset: 0;
+  text-decoration: none;
+  color: inherit;
+  flex-direction: unset;
+  height: 100%;
+}
+
+/* ── Image ──────────────────────────────────────────────────────── */
+.listing-card .listing-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  transition: transform 500ms var(--ease-out);
+}
+
+.listing-card:hover .listing-card-img {
+  transform: scale(1.05);
+}
+
+/* ── Fallback (no image) ────────────────────────────────────────── */
+.listing-card .listing-card-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #16263d 0%, #0f1728 64%, #0b1220 100%);
+}
+
+.listing-card .listing-card-fallback span {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* ── Gradient overlays ──────────────────────────────────────────── */
+.listing-card .listing-card-gradient-top {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 70% 0%,
+    rgba(255, 255, 255, 0.1),
+    transparent 54%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.listing-card .listing-card-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(2, 6, 23, 0.94) 0%,
+    rgba(2, 6, 23, 0.55) 40%,
+    rgba(2, 6, 23, 0.1) 68%,
+    rgba(2, 6, 23, 0) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Top row — badge ────────────────────────────────────────────── */
+.listing-card .listing-card-top {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 48px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ── Badge ──────────────────────────────────────────────────────── */
+.listing-card .listing-card-badge {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  color: rgba(11, 26, 43, 0.9);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Live badge — red */
+.listing-card .listing-card-badge.is-live-badge {
+  background: rgba(192, 48, 58, 0.88);
+  border-color: rgba(192, 48, 58, 0.5);
+  color: white;
+}
+
+/* Status badge variants */
+.listing-card .listing-card-badge.trade-status-chip.is-open {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: var(--product-live);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.listing-card .listing-card-badge.trade-status-chip.is-matched {
+  background: rgba(236, 253, 245, 0.92);
+  border-color: transparent;
+  color: #047857;
+}
+
+.listing-card .listing-card-badge.trade-status-chip.is-paused {
+  background: rgba(255, 251, 235, 0.92);
+  border-color: transparent;
+  color: #a16207;
+}
+
+.listing-card .listing-card-badge.trade-status-chip.is-closed {
+  background: rgba(241, 245, 249, 0.9);
+  border-color: transparent;
+  color: #64748b;
+}
+
+/* ── Bottom body — text overlay ─────────────────────────────────── */
+.listing-card .listing-card-body {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+  z-index: 3;
+}
+
+.listing-card .listing-card-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.listing-card .listing-card-title {
+  margin: 0;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.listing-card .listing-card-seller {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Stats row ──────────────────────────────────────────────────── */
+.listing-card .listing-card-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.listing-card .listing-card-stat {
+  padding: 7px 9px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.listing-card .listing-card-stat.is-right {
+  text-align: right;
+}
+
+.listing-card .listing-card-stat-label {
+  margin: 0 0 2px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.46);
+}
+
+.listing-card .listing-card-stat-value {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Save/watch button ──────────────────────────────────────────── */
+.listing-card .listing-card-watch {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  line-height: 1;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.listing-card .listing-card-watch:hover {
+  background: rgba(255, 255, 255, 0.28);
+  color: white;
+  transform: scale(1.1);
+}
+
+.listing-card .listing-card-watch.is-active {
+  background: rgba(192, 48, 58, 0.72);
+  border-color: rgba(192, 48, 58, 0.45);
+  color: white;
+}
+
+/* ── Grid standardization — same across all three pages ────────── */
+.market-v2-grid,
+.market-page .market-v2-grid,
+.trade-board-grid,
+.live-v3-live-grid,
+.live-v3-upcoming-grid,
+.live-v3-spotlight-grid,
+.live-v3-featured-grid,
+.bounty-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  align-items: start;
+  width: 100%;
+}
+
+/* sparse grids — few items */
+.market-v2-grid.is-sparse,
+.market-page .market-v2-grid.is-sparse,
+.trade-board-grid.is-sparse,
+.live-v3-live-grid.is-sparse,
+.live-v3-upcoming-grid.is-sparse,
+.live-v3-spotlight-grid.is-sparse,
+.bounty-board-grid.is-sparse {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 240px));
+  justify-content: start;
+}
+
+/* ── Mobile — 2 columns everywhere ─────────────────────────────── */
+@media (max-width: 768px) {
+  .market-v2-grid,
+  .market-page .market-v2-grid,
+  .trade-board-grid,
+  .live-v3-live-grid,
+  .live-v3-upcoming-grid,
+  .live-v3-spotlight-grid,
+  .live-v3-featured-grid,
+  .bounty-board-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .market-v2-grid.is-sparse,
+  .trade-board-grid.is-sparse,
+  .live-v3-live-grid.is-sparse,
+  .live-v3-upcoming-grid.is-sparse,
+  .live-v3-spotlight-grid.is-sparse,
+  .bounty-board-grid.is-sparse {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .listing-card .listing-card-title {
+    font-size: 12px;
+  }
+
+  .listing-card .listing-card-stat-value {
+    font-size: 11px;
+  }
+
+  .listing-card .listing-card-stat {
+    padding: 5px 7px;
+  }
+}

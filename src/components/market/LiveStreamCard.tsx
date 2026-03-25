@@ -57,38 +57,45 @@ export function LiveStreamCard({ stream, canEnd, ending, onEnd }: LiveStreamCard
   }, [image]);
 
   return (
-    <article className="market-v2-stream-card">
-      <Link href={`/streams/${stream.id}`} className="market-v2-stream-link">
-        <div className="market-v2-stream-media">
-          <Image
-            src={imageSrc}
-            alt="Live stream cover"
-            fill
-            sizes="(max-width: 768px) 72vw, (max-width: 1280px) 28vw, 320px"
-            className="object-cover"
-            unoptimized
-            onError={() => {
-              if (imageSrc !== fallbackImage) {
-                setImageSrc(fallbackImage);
-              }
-            }}
-          />
-          <div className="market-v2-stream-overlay" />
-          <div className="market-v2-stream-badges">
-            <span className={`market-v2-live-badge ${stream.streamStatus === "live" ? "is-live" : "is-scheduled"}`}>
-              {stream.streamStatus === "live" ? "Live" : "Scheduled"}
-            </span>
-            <span className="market-v2-live-pill">{streamPrice(stream)}</span>
-          </div>
+    <article className={`listing-card is-live-card${stream.streamStatus === "live" ? " is-live" : ""}`}>
+      <Link href={`/streams/${stream.id}`} className="listing-card-link">
+        <Image
+          src={imageSrc}
+          alt="Live stream cover"
+          fill
+          sizes="(max-width: 768px) 72vw, (max-width: 1280px) 28vw, 320px"
+          className="listing-card-img"
+          unoptimized
+          onError={() => {
+            if (imageSrc !== fallbackImage) {
+              setImageSrc(fallbackImage);
+            }
+          }}
+        />
+        <div className="listing-card-gradient-top" aria-hidden="true" />
+        <div className="listing-card-gradient" aria-hidden="true" />
+
+        <div className="listing-card-top">
+          <span className={`listing-card-badge${stream.streamStatus === "live" ? " is-live-badge" : ""}`}>
+            {stream.streamStatus === "live" ? "Live" : "Scheduled"}
+          </span>
         </div>
 
-        <div className="market-v2-stream-body">
-          <h3 className="market-v2-stream-title">{stream.title}</h3>
-          <p className="market-v2-stream-meta-primary">
-            <span>{seller}</span>
-            <span>{category}</span>
-          </p>
-          <p className="market-v2-stream-meta-secondary">{streamMeta(stream)}</p>
+        <div className="listing-card-body">
+          <div className="listing-card-copy">
+            <h3 className="listing-card-title">{stream.title}</h3>
+            <p className="listing-card-seller">{seller}</p>
+          </div>
+          <div className="listing-card-stats">
+            <div className="listing-card-stat">
+              <p className="listing-card-stat-label">Price</p>
+              <p className="listing-card-stat-value">{streamPrice(stream)}</p>
+            </div>
+            <div className="listing-card-stat is-right">
+              <p className="listing-card-stat-label">Activity</p>
+              <p className="listing-card-stat-value">{streamMeta(stream)}</p>
+            </div>
+          </div>
         </div>
       </Link>
 
@@ -97,9 +104,10 @@ export function LiveStreamCard({ stream, canEnd, ending, onEnd }: LiveStreamCard
           type="button"
           onClick={() => onEnd(stream.id)}
           disabled={ending}
-          className="market-v2-stream-end"
+          className="listing-card-watch"
+          aria-label="End stream"
         >
-          {ending ? "Ending..." : "End"}
+          ✕
         </button>
       ) : null}
     </article>

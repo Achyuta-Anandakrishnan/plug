@@ -284,39 +284,53 @@ export function ListingCard(props: ListingCardProps) {
   };
 
   return (
-    <article className={`market-v2-listing-card product-card listing-card is-${surfaceKind}-card`}>
+    <article className={`listing-card is-${surfaceKind}-card`}>
       <Link href={surface.href} className="listing-card-link">
-        <div className={`listing-card-media${surface.hasImage ? "" : " is-fallback"}`}>
-          {surface.hasImage ? (
-            <Image
-              src={imageSrc}
-              alt={surface.title}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1440px) 25vw, 260px"
-              className="listing-card-image"
-              unoptimized
-              onError={() => {
-                if (failedSrc !== surface.imageUrl) {
-                  setFailedSrc(surface.imageUrl);
-                }
-              }}
-            />
-          ) : (
-            <div className="listing-card-fallback-copy">
-              <span>{surface.badgeLabel}</span>
-            </div>
-          )}
-          <span className={`listing-card-badge ${surface.badgeClassName}`}>{surface.badgeLabel}</span>
+        {surface.hasImage ? (
+          <Image
+            src={imageSrc}
+            alt={surface.title}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 260px"
+            className="listing-card-img"
+            unoptimized
+            onError={() => {
+              if (failedSrc !== surface.imageUrl) {
+                setFailedSrc(surface.imageUrl);
+              }
+            }}
+          />
+        ) : (
+          <div className="listing-card-fallback">
+            <span>{surface.badgeLabel}</span>
+          </div>
+        )}
+
+        <div className="listing-card-gradient-top" aria-hidden="true" />
+        <div className="listing-card-gradient" aria-hidden="true" />
+
+        <div className="listing-card-top">
+          <span className={`listing-card-badge ${surface.badgeClassName}`}>
+            {surface.badgeLabel}
+          </span>
         </div>
 
-        <div className="listing-card-info">
-          <h3 className="listing-card-title">{surface.title}</h3>
-          <p className="listing-card-meta">{surface.metaLabel}</p>
-          <strong className="listing-card-price">{surface.priceLabel}</strong>
-          {surface.secondaryLabel ? <p className="listing-card-secondary">{surface.secondaryLabel}</p> : null}
-          <div className="listing-card-foot">
-            <span className="listing-card-activity">{surface.activityLabel}</span>
-            <span className="listing-card-seller">{compactName(surface.sellerLabel)}</span>
+        <div className="listing-card-body">
+          <div className="listing-card-copy">
+            <h3 className="listing-card-title">{surface.title}</h3>
+            <p className="listing-card-seller">{compactName(surface.sellerLabel)}</p>
+          </div>
+          <div className="listing-card-stats">
+            <div className="listing-card-stat">
+              <p className="listing-card-stat-label">Price</p>
+              <p className="listing-card-stat-value">{surface.priceLabel}</p>
+            </div>
+            <div className="listing-card-stat is-right">
+              <p className="listing-card-stat-label">
+                {surfaceKind === "trade" ? "Offers" : surfaceKind === "bounty" ? "Budget" : "Activity"}
+              </p>
+              <p className="listing-card-stat-value">{surface.activityLabel}</p>
+            </div>
           </div>
         </div>
       </Link>

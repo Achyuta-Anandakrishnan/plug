@@ -372,7 +372,7 @@ export function SellerListingQuickForm() {
         </div>
 
         <div className="sell-quick-lookup">
-          <p className="text-xs text-slate-600">
+          <p className="sell-quick-lookup-hint">
             {lookupLoading ? "Checking certificate..." : lookupMessage || "Enter cert number to auto-fill listing details."}
           </p>
         </div>
