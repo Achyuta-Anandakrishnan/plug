@@ -5,14 +5,14 @@ import { CheckersLoader } from "@/components/CheckersLoader";
 import { LiveFilters } from "@/components/live/LiveFilters";
 import { LiveNowRail } from "@/components/live/LiveNowRail";
 import { StreamerSpotlight } from "@/components/live/StreamerSpotlight";
-import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveStreamTypeFilter, LiveTimingFilter, SpotlightHost } from "@/components/live/types";
+import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveTimingFilter, SpotlightHost } from "@/components/live/types";
 import { UpcomingStreamsSection } from "@/components/live/UpcomingStreamsSection";
 import { EmptyStateCard, PageContainer, PageHeader } from "@/components/product/ProductUI";
 import { useMobileUi } from "@/hooks/useMobileUi";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { useStreamReminders } from "@/hooks/useStreamReminders";
 import { useUserFollows } from "@/hooks/useUserFollows";
-import { categoryMatches, filterByStreamType, isVisibleLiveStream, isVisibleUpcomingStream, searchMatches, sortLiveStreams, sortUpcomingStreams, streamCategory, streamHost, withStreamState } from "@/components/live/utils";
+import { categoryMatches, isVisibleLiveStream, isVisibleUpcomingStream, searchMatches, sortLiveStreams, sortUpcomingStreams, streamCategory, streamHost, withStreamState } from "@/components/live/utils";
 import { useAuctions } from "@/hooks/useAuctions";
 
 function formatNextStream(value: string | null) {
@@ -85,7 +85,6 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
   const isMobileUi = useMobileUi(initialIsMobile);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<LiveCategoryFilter>("all");
-  const [streamType, setStreamType] = useState<LiveStreamTypeFilter>("all");
   const [sort, setSort] = useState<LiveSortMode>("viewers");
   const [timing, setTiming] = useState<LiveTimingFilter>("live");
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -132,21 +131,13 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
   );
 
   const filteredLive = useMemo(
-    () =>
-      sortLiveStreams(
-        filterByStreamType(applyStreamFilters(visibleLiveStreams, query, category), streamType),
-        sort,
-      ),
-    [visibleLiveStreams, query, category, streamType, sort],
+    () => sortLiveStreams(applyStreamFilters(visibleLiveStreams, query, category), sort),
+    [visibleLiveStreams, query, category, sort],
   );
 
   const filteredUpcoming = useMemo(
-    () =>
-      sortUpcomingStreams(
-        filterByStreamType(applyStreamFilters(upcomingStreams, query, category), streamType),
-        sort,
-      ),
-    [upcomingStreams, query, category, streamType, sort],
+    () => sortUpcomingStreams(applyStreamFilters(upcomingStreams, query, category), sort),
+    [upcomingStreams, query, category, sort],
   );
 
   const spotlightHosts = useMemo(
@@ -177,8 +168,6 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
           onQueryChange={setQuery}
           category={category}
           onCategoryChange={setCategory}
-          streamType={streamType}
-          onStreamTypeChange={setStreamType}
           sort={sort}
           onSortChange={setSort}
           timing={timing}
@@ -233,8 +222,6 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
         onQueryChange={setQuery}
         category={category}
         onCategoryChange={setCategory}
-        streamType={streamType}
-        onStreamTypeChange={setStreamType}
         sort={sort}
         onSortChange={setSort}
         timing={timing}

@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { signIn, useSession } from "next-auth/react";
 import type { LiveStreamItem } from "@/components/live/types";
 import { streamPriceLabel, streamTimeLabel } from "@/components/live/utils";
 import type { MarketListing } from "@/components/market/types";
@@ -68,8 +67,6 @@ type ListingSurfaceData = {
   saveInactiveLabel: string;
   saveActiveLabel: string;
   hasImage: boolean;
-  backImageUrl?: string | null;
-  buyNowId?: string | null;
 };
 
 function compactName(value: string) {
@@ -126,11 +123,7 @@ function compactTradeMetadata(trade: TradePostListItem) {
 function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData {
   const currency = listing.currency?.toUpperCase() || "USD";
   const fallbackImage = "/placeholders/pokemon-generic.svg";
-  const rawImages = listing.item?.images ?? [];
-  const primaryImgObj = rawImages.find((img) => img.isPrimary) ?? rawImages[0] ?? null;
-  const backImgObj = rawImages.find((img) => img !== primaryImgObj) ?? null;
-  const imageUrl = resolveDisplayMediaUrl(primaryImgObj?.url ?? null, fallbackImage);
-  const backImageUrl = backImgObj ? resolveDisplayMediaUrl(backImgObj.url, "") || null : null;
+  const imageUrl = resolveDisplayMediaUrl(getPrimaryImageUrl(listing), fallbackImage);
   const price = listing.listingType === "AUCTION"
     ? formatCurrency(listing.currentBid, currency)
     : formatCurrency(listing.buyNowPrice ?? listing.currentBid, currency);
@@ -144,10 +137,6 @@ function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData 
   const activity = listing.listingType === "BUY_NOW"
     ? `${listing.watchersCount} watching`
     : `${timeMeta} · ${listing.watchersCount} watching`;
-  const buyNowId = (listing.listingType === "BUY_NOW" || listing.listingType === "BOTH") && listing.buyNowPrice
-    ? listing.id
-    : null;
-
   return {
     href: `/auctions/${listing.id}`,
     imageUrl,
@@ -161,8 +150,6 @@ function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData 
     saveInactiveLabel: "Add listing to watchlist",
     saveActiveLabel: "Remove listing from watchlist",
     hasImage: true,
-    backImageUrl,
-    buyNowId,
   };
 }
 
@@ -261,9 +248,6 @@ export function ListingCard(props: ListingCardProps) {
   const controlledSaved = isLiveCard ? props.saved : undefined;
   const [localSaved, setLocalSaved] = useState(false);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const [failedBackSrc, setFailedBackSrc] = useState<string | null>(null);
-  const [buying, setBuying] = useState(false);
-  const { data: session } = useSession();
   const trade = "trade" in props ? props.trade : undefined;
   const bounty = "bounty" in props ? props.bounty : undefined;
   const stream = "stream" in props ? props.stream : undefined;
@@ -276,9 +260,6 @@ export function ListingCard(props: ListingCardProps) {
   }, [trade, bounty, stream, listing]);
   const fallbackImage = "/placeholders/pokemon-generic.svg";
   const imageSrc = failedSrc === surface.imageUrl ? fallbackImage : surface.imageUrl;
-  const backImageSrc = surface.backImageUrl
-    ? (failedBackSrc === surface.backImageUrl ? fallbackImage : surface.backImageUrl)
-    : null;
   const saved = props.saved ?? controlledSaved ?? localSaved;
 
   const toggleSave = () => {
@@ -301,71 +282,19 @@ export function ListingCard(props: ListingCardProps) {
     setLocalSaved((prev) => !prev);
   };
 
-  const handleBuyNow = async () => {
-    if (!surface.buyNowId) return;
-    if (!session?.user) {
-      await signIn();
-      return;
-    }
-    setBuying(true);
-    try {
-      const res = await fetch(`/api/auctions/${surface.buyNowId}/buy`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      const data = await res.json() as { checkoutUrl?: string };
-      if (data.checkoutUrl && /^https?:\/\//i.test(data.checkoutUrl)) {
-        window.location.assign(data.checkoutUrl);
-        return;
-      }
-    } catch {
-      // silently fall through
-    } finally {
-      setBuying(false);
-    }
-  };
-
   return (
-    <article className={`listing-card is-${surfaceKind}-card${surface.buyNowId ? " has-buy-now" : ""}`}>
+    <article className={`listing-card is-${surfaceKind}-card`}>
       <Link href={surface.href} className="listing-card-link">
         {surface.hasImage ? (
-          backImageSrc ? (
-            <div className="listing-card-slab-images">
-              <div className="listing-card-slab-face">
-                <Image
-                  src={imageSrc}
-                  alt={`${surface.title} — front`}
-                  fill
-                  sizes="(max-width: 640px) 25vw, 130px"
-                  className="listing-card-img"
-                  unoptimized
-                  onError={() => { if (failedSrc !== surface.imageUrl) setFailedSrc(surface.imageUrl); }}
-                />
-              </div>
-              <div className="listing-card-slab-face">
-                <Image
-                  src={backImageSrc}
-                  alt={`${surface.title} — back`}
-                  fill
-                  sizes="(max-width: 640px) 25vw, 130px"
-                  className="listing-card-img"
-                  unoptimized
-                  onError={() => { if (failedBackSrc !== surface.backImageUrl) setFailedBackSrc(surface.backImageUrl ?? null); }}
-                />
-              </div>
-            </div>
-          ) : (
-            <Image
-              src={imageSrc}
-              alt={surface.title}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 260px"
-              className="listing-card-img"
-              unoptimized
-              onError={() => { if (failedSrc !== surface.imageUrl) setFailedSrc(surface.imageUrl); }}
-            />
-          )
+          <Image
+            src={imageSrc}
+            alt={surface.title}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 260px"
+            className="listing-card-img"
+            unoptimized
+            onError={() => { if (failedSrc !== surface.imageUrl) setFailedSrc(surface.imageUrl); }}
+          />
         ) : (
           <div className="listing-card-fallback">
             <span>{surface.badgeLabel}</span>
@@ -400,18 +329,6 @@ export function ListingCard(props: ListingCardProps) {
           </div>
         </div>
       </Link>
-
-      {surface.buyNowId ? (
-        <button
-          type="button"
-          className={`listing-card-buy-btn${buying ? " is-loading" : ""}`}
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); void handleBuyNow(); }}
-          disabled={buying}
-          aria-label={`Buy now — ${surface.priceLabel}`}
-        >
-          {buying ? "…" : "Buy Now"}
-        </button>
-      ) : null}
 
       <button
         type="button"

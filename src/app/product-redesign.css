@@ -10181,7 +10181,7 @@ html[data-theme="dark"] .site-account-popover {
   display: block;
   aspect-ratio: 7 / 10;
   overflow: hidden;
-  border-radius: 0;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: #0a0f1e;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
@@ -10218,59 +10218,6 @@ html[data-theme="dark"] .site-account-popover {
 
 .listing-card:hover .listing-card-img {
   transform: scale(1.05);
-}
-
-/* ── Dual PSA slab images ───────────────────────────────────────── */
-.listing-card-slab-images {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  background: #0a0f1e;
-}
-
-.listing-card-slab-face {
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-}
-
-.listing-card-slab-face .listing-card-img {
-  object-fit: contain !important;
-}
-
-/* ── Buy now button ─────────────────────────────────────────────── */
-.listing-card .listing-card-buy-btn {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 5;
-  height: 30px;
-  padding: 0;
-  background: rgba(192, 48, 58, 0.95);
-  color: #fff;
-  border: none;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 120ms var(--ease-out);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.listing-card .listing-card-buy-btn:hover {
-  background: rgb(192, 48, 58);
-}
-
-.listing-card .listing-card-buy-btn.is-loading {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.listing-card.has-buy-now .listing-card-body {
-  padding-bottom: 42px;
 }
 
 /* ── Fallback (no image) ────────────────────────────────────────── */
