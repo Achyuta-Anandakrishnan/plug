@@ -9,6 +9,7 @@ import {
   SecondaryButton,
 } from "@/components/product/ProductUI";
 import { ProfileEditor } from "@/components/settings/ProfileEditor";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useMobileUi } from "@/hooks/useMobileUi";
 
 export default function SettingsPage() {
@@ -27,6 +28,7 @@ export default function SettingsPage() {
           <section className="settings-mobile-actions-list" aria-label="Settings shortcuts">
             <SecondaryButton href="/orders">Orders</SecondaryButton>
             <SecondaryButton href="/referral">Referral program</SecondaryButton>
+            <ThemeToggle />
             {session?.user?.id ? (
               <SecondaryButton onClick={() => void signOut()}>Sign out</SecondaryButton>
             ) : (
@@ -64,6 +66,7 @@ export default function SettingsPage() {
         <div className="settings-quick-links" aria-label="Settings shortcuts">
           <SecondaryButton href="/orders">Orders</SecondaryButton>
           <SecondaryButton href="/referral">Referral program</SecondaryButton>
+          <ThemeToggle />
           {session?.user?.id ? (
             <SecondaryButton onClick={() => void signOut()}>Sign out</SecondaryButton>
           ) : (

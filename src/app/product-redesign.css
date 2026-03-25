@@ -703,7 +703,7 @@ html[data-theme="dark"] .site-account-popover {
   box-sizing: border-box;
   width: 100%;
   min-height: 100%;
-  padding: 14px 0 18px;
+  padding-block: 14px 18px;
   display: grid;
   align-content: start;
   gap: 16px;
@@ -10405,39 +10405,40 @@ html[data-theme="dark"] .site-account-popover {
 
 /* ─── My Listings page ───────────────────────────────────────────── */
 .my-listings-page {
-  padding: 32px 0 80px;
+  padding: 8px 0 80px;
 }
 
 .my-listings-tabs {
   display: flex;
-  gap: 4px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-  margin-bottom: 28px;
-  padding: 0 2px;
+  gap: 2px;
+  border-bottom: 1px solid var(--product-border);
+  margin-bottom: 24px;
+  padding: 0;
 }
 
 .my-listings-tab {
-  padding: 9px 18px;
-  border-radius: 8px 8px 0 0;
+  padding: 9px 16px;
+  border-radius: 0;
   font-size: 13px;
   font-weight: 600;
-  color: var(--product-muted, #64748b);
+  color: var(--product-text-soft);
   background: none;
   border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
   cursor: pointer;
-  transition: color 160ms, background 160ms;
+  transition: color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
   letter-spacing: 0.01em;
 }
 
 .my-listings-tab:hover {
-  color: #e2e8f0;
-  background: rgba(255,255,255,0.05);
+  color: var(--product-text);
 }
 
 .my-listings-tab.is-active {
-  color: #e2e8f0;
-  border-bottom: 2px solid var(--product-accent, #1d3d80);
-  margin-bottom: -1px;
+  color: var(--product-text);
+  border-bottom-color: var(--product-accent);
 }
 
 .my-listings-section {
@@ -10449,7 +10450,7 @@ html[data-theme="dark"] .site-account-popover {
 .my-listings-list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
 .my-listings-item {
@@ -10457,15 +10458,17 @@ html[data-theme="dark"] .site-account-popover {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 18px;
-  background: rgba(255,255,255,0.03);
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-  transition: background 160ms;
+  padding: 12px 16px;
+  background: var(--product-surface);
+  border-radius: var(--r-md);
+  border: 1px solid var(--product-border);
+  transition: background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
 }
 
 .my-listings-item:hover {
-  background: rgba(255,255,255,0.055);
+  background: var(--product-surface-muted);
+  border-color: var(--product-border-strong);
 }
 
 .my-listings-item-info {
@@ -10479,15 +10482,16 @@ html[data-theme="dark"] .site-account-popover {
 .my-listings-item-title {
   font-size: 14px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--product-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .my-listings-item-title:hover {
-  color: #fff;
+  color: var(--product-accent);
 }
 
 .my-listings-item-meta {
@@ -10495,7 +10499,7 @@ html[data-theme="dark"] .site-account-popover {
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: var(--product-muted, #64748b);
+  color: var(--product-text-soft);
   flex-wrap: wrap;
 }
 
@@ -10503,25 +10507,265 @@ html[data-theme="dark"] .site-account-popover {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border-radius: 20px;
-  font-size: 11px;
+  border-radius: var(--r-pill);
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  background: rgba(255,255,255,0.08);
-  color: #94a3b8;
+  background: var(--product-accent-soft);
+  color: var(--product-text-soft);
 }
 
 .my-listings-item-status.is-open,
-.my-listings-item-status.is-live { background: rgba(34,197,94,0.12); color: #4ade80; }
-.my-listings-item-status.is-draft { background: rgba(148,163,184,0.1); color: #94a3b8; }
-.my-listings-item-status.is-scheduled { background: rgba(251,191,36,0.12); color: #fbbf24; }
-.my-listings-item-status.is-matched { background: rgba(99,102,241,0.12); color: #818cf8; }
-.my-listings-item-status.is-paused { background: rgba(251,191,36,0.1); color: #fbbf24; }
+.my-listings-item-status.is-live {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+.my-listings-item-status.is-draft {
+  background: var(--product-surface-muted);
+  color: var(--product-text-faint);
+}
+.my-listings-item-status.is-scheduled {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+.my-listings-item-status.is-matched {
+  background: rgba(99, 102, 241, 0.1);
+  color: #4338ca;
+}
+.my-listings-item-status.is-paused {
+  background: rgba(245, 158, 11, 0.1);
+  color: #b45309;
+}
 .my-listings-item-status.is-closed,
 .my-listings-item-status.is-expired,
-.my-listings-item-status.is-canceled { background: rgba(239,68,68,0.1); color: #f87171; }
-.my-listings-item-status.is-fulfilled { background: rgba(99,102,241,0.12); color: #818cf8; }
+.my-listings-item-status.is-canceled {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+}
+.my-listings-item-status.is-fulfilled {
+  background: rgba(99, 102, 241, 0.1);
+  color: #4338ca;
+}
+
+html[data-theme="dark"] .my-listings-item-status.is-open,
+html[data-theme="dark"] .my-listings-item-status.is-live {
+  color: #4ade80;
+}
+html[data-theme="dark"] .my-listings-item-status.is-scheduled,
+html[data-theme="dark"] .my-listings-item-status.is-paused {
+  color: #fbbf24;
+}
+html[data-theme="dark"] .my-listings-item-status.is-matched,
+html[data-theme="dark"] .my-listings-item-status.is-fulfilled {
+  color: #818cf8;
+}
+html[data-theme="dark"] .my-listings-item-status.is-closed,
+html[data-theme="dark"] .my-listings-item-status.is-expired,
+html[data-theme="dark"] .my-listings-item-status.is-canceled {
+  color: #f87171;
+}
+
+/* ══════════════════════════════════════════════
+   Trades page — compact row layout
+   ═══════════════════════════════════════════════ */
+
+.trades-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: 20px;
+}
+
+.trades-feed-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--product-border);
+  margin-bottom: 2px;
+}
+
+.trades-feed-count {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--product-text-faint);
+}
+
+.trades-compact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* ── Trade row ── */
+.trade-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.trade-row:hover {
+  background: var(--product-surface);
+  border-color: var(--product-border);
+}
+
+/* thumbnail */
+.trade-row-thumb {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--product-surface-muted);
+  flex-shrink: 0;
+}
+
+.trade-row-img {
+  object-fit: cover;
+}
+
+/* body */
+.trade-row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.trade-row-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--product-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+.trade-row-meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--product-text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* aside — status + value */
+.trade-row-aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.trade-row-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.trade-row-status.is-open {
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+}
+.trade-row-status.is-matched {
+  background: rgba(99, 102, 241, 0.1);
+  color: #4338ca;
+}
+.trade-row-status.is-paused {
+  background: rgba(245, 158, 11, 0.1);
+  color: #b45309;
+}
+.trade-row-status.is-closed {
+  background: rgba(100, 116, 139, 0.1);
+  color: var(--product-text-faint);
+}
+
+html[data-theme="dark"] .trade-row-status.is-open { color: #4ade80; }
+html[data-theme="dark"] .trade-row-status.is-matched { color: #818cf8; }
+html[data-theme="dark"] .trade-row-status.is-paused { color: #fbbf24; }
+
+.trade-row-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--product-text);
+  letter-spacing: -0.02em;
+}
+
+/* stats — offers + time */
+.trade-row-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 56px;
+}
+
+.trade-row-offers {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--product-text-soft);
+}
+
+.trade-row-time {
+  font-size: 11px;
+  color: var(--product-text-faint);
+}
+
+/* ── Mobile trades: compact rows too (smaller) ── */
+@media (max-width: 768px) {
+  .trade-row {
+    grid-template-columns: 44px 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 10px 12px;
+    padding: 10px 12px;
+  }
+
+  .trade-row-thumb {
+    width: 44px;
+    height: 44px;
+    grid-row: 1 / 3;
+  }
+
+  .trade-row-body {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .trade-row-aside {
+    grid-column: 3;
+    grid-row: 1;
+    align-items: flex-end;
+  }
+
+  .trade-row-stats {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+  }
+}
 
 .my-listings-item-actions {
   display: flex;
