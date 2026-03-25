@@ -48,6 +48,20 @@ type MessageListResponse = {
   nextCursor: string | null;
 };
 
+type ProfileSearchResult = {
+  id: string;
+  username: string | null;
+  displayName: string | null;
+  bio: string | null;
+  image: string | null;
+  role: string;
+  sellerProfile: {
+    status: string | null;
+    trustTier: string | null;
+    auctions: Array<{ id: string }>;
+  } | null;
+};
+
 function formatTime(value: string) {
   const d = new Date(value);
   if (Number.isNaN(d.valueOf())) return "";
@@ -79,6 +93,10 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [profileQuery, setProfileQuery] = useState("");
+  const [profileResults, setProfileResults] = useState<ProfileSearchResult[]>([]);
+  const [profilesLoading, setProfilesLoading] = useState(false);
+  const [startingConversationId, setStartingConversationId] = useState<string | null>(null);
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<DirectMessage[]>([]);
@@ -93,6 +111,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
   );
 
   const messageEndRef = useRef<HTMLDivElement | null>(null);
+  const sessionUserId = session?.user?.id ?? "";
 
   useEffect(() => {
     if (preselectConversationId) {
@@ -104,6 +123,50 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
     if (!messageEndRef.current || messagesLoading || loadingOlder) return;
     messageEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, activeId, loadingOlder, messagesLoading]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProfiles() {
+      const nextQuery = profileQuery.trim();
+      if (!nextQuery || !session?.user?.id) {
+        setProfileResults([]);
+        setProfilesLoading(false);
+        return;
+      }
+
+      setProfilesLoading(true);
+      try {
+        const params = new URLSearchParams({
+          q: nextQuery,
+          limit: "8",
+        });
+        const res = await fetch(`/api/users?${params.toString()}`);
+        const payload = (await res.json()) as ProfileSearchResult[] & { error?: string };
+        if (!res.ok) {
+          throw new Error(payload.error ?? "Unable to search collectors.");
+        }
+        if (cancelled) return;
+        setProfileResults(payload.filter((entry) => entry.id !== sessionUserId));
+      } catch {
+        if (cancelled) return;
+        setProfileResults([]);
+      } finally {
+        if (!cancelled) {
+          setProfilesLoading(false);
+        }
+      }
+    }
+
+    const timeout = window.setTimeout(() => {
+      void loadProfiles();
+    }, profileQuery.trim() ? 180 : 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
+  }, [profileQuery, session?.user?.id, sessionUserId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -193,7 +256,6 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
     setDraft("");
   }, [activeId, conversations]);
 
-  const sessionUserId = session?.user?.id ?? "";
   const activeConversation = conversations.find((c) => c.id === activeId) ?? null;
   const activeParticipantsLabel =
     activeConversation?.participants
@@ -304,6 +366,62 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
     }
   }
 
+  async function handleStartConversation(targetUserId: string) {
+    if (!sessionUserId || !targetUserId || startingConversationId === targetUserId) return;
+
+    const existingDirect = conversations.find((thread) => {
+      if (thread.subject || thread.isSupport || thread.participants.length !== 2) return false;
+      const ids = thread.participants.map((participant) => participant.userId);
+      return ids.includes(sessionUserId) && ids.includes(targetUserId);
+    });
+
+    if (existingDirect) {
+      setActiveId(existingDirect.id);
+      setProfileQuery("");
+      setProfileResults([]);
+      if (!isDesktop) setMobilePane("chat");
+      return;
+    }
+
+    setStartingConversationId(targetUserId);
+    setError("");
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          participantIds: [sessionUserId, targetUserId],
+        }),
+      });
+      const payload = (await res.json()) as Conversation & { error?: string };
+      if (!res.ok) {
+        throw new Error(payload.error ?? "Unable to start conversation.");
+      }
+
+      setConversations((prev) => {
+        const withoutExisting = prev.filter((thread) => thread.id !== payload.id);
+        return [
+          {
+            ...payload,
+            messages: payload.messages ?? [],
+          },
+          ...withoutExisting,
+        ];
+      });
+      setActiveId(payload.id);
+      setMessages([]);
+      setMessagesCursor(null);
+      setDraft("");
+      setProfileQuery("");
+      setProfileResults([]);
+      if (!isDesktop) setMobilePane("chat");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to start conversation.");
+    } finally {
+      setStartingConversationId(null);
+    }
+  }
+
   if (!session?.user?.id) {
     return (
       <PageContainer className="messages-page app-page--messages">
@@ -368,6 +486,57 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
         <section className="messages-layout">
         {showThreadsPane ? (
           <aside className="messages-sidebar messages-panel">
+            <div className="messages-profile-search">
+              <div className="messages-profile-search-head">
+                <strong>Start a conversation</strong>
+                <span>Find collectors by name or username.</span>
+              </div>
+              <div className="app-search messages-profile-search-input">
+                <SearchIcon />
+                <input
+                  value={profileQuery}
+                  onChange={(e) => setProfileQuery(e.target.value)}
+                  placeholder="Search profiles"
+                />
+              </div>
+              {profileQuery.trim() ? (
+                <div className="messages-profile-results">
+                  {profilesLoading ? (
+                    <p className="messages-profile-search-status">Searching collectors...</p>
+                  ) : profileResults.length === 0 ? (
+                    <p className="messages-profile-search-status">No matching collectors.</p>
+                  ) : (
+                    profileResults.map((profile) => {
+                      const profileName = profile.displayName ?? profile.username ?? "Collector";
+                      const profileMeta = profile.username ? `@${profile.username}` : (profile.bio ?? "Collector profile");
+                      const isStarting = startingConversationId === profile.id;
+
+                      return (
+                        <button
+                          key={profile.id}
+                          type="button"
+                          onClick={() => void handleStartConversation(profile.id)}
+                          className="messages-profile-result"
+                          disabled={isStarting}
+                        >
+                          <div className="messages-thread-item-avatar" aria-hidden="true">
+                            {getInitials(profileName)}
+                          </div>
+                          <div className="messages-profile-result-copy">
+                            <p>{profileName}</p>
+                            <span>{profileMeta}</span>
+                          </div>
+                          <span className="messages-profile-result-action">
+                            {isStarting ? "Opening..." : "Message"}
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              ) : null}
+            </div>
+
             {loading ? (
               <CheckersLoader title="Loading conversations..." compact />
             ) : conversations.length === 0 ? (

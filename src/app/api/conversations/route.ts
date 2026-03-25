@@ -88,6 +88,31 @@ export async function POST(request: Request) {
   const isSupport = allowSupportFlag && Boolean(body.isSupport);
 
   const subject = body.subject?.trim() || null;
+  if (!subject && !isSupport && uniqueParticipants.length === 2) {
+    const existingDirect = await prisma.conversation.findFirst({
+      where: {
+        subject: null,
+        isSupport: false,
+        AND: uniqueParticipants.map((userId) => ({
+          participants: { some: { userId } },
+        })),
+      },
+      include: {
+        participants: {
+          include: { user: { select: { displayName: true, username: true, id: true } } },
+        },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
+      },
+    });
+
+    if (existingDirect && existingDirect.participants.length === 2) {
+      return jsonOk(existingDirect);
+    }
+  }
+
   if (subject) {
     const existing = await prisma.conversation.findFirst({
       where: {
