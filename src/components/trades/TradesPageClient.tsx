@@ -9,6 +9,7 @@ import {
   EmptyStateCard,
   FilterChip,
   PageContainer,
+  PageHeader,
   PrimaryButton,
   SearchIcon,
   SectionHeader,
@@ -153,9 +154,13 @@ export function TradesPageClient({ initialIsMobile }: TradesPageClientProps) {
 
   return (
     <PageContainer className="trades-page listing-system-page app-page--trades">
+      <PageHeader
+        title="Trades"
+        subtitle="Post what you have. Find what you want."
+        actions={<PrimaryButton href="/trades/new">New trade</PrimaryButton>}
+      />
       <section className="app-section">
         <DiscoveryBar className="app-control-bar listing-system-toolbar trades-toolbar">
-          <div className="app-control-title">Trades</div>
           <div className="listing-system-toolbar-main trades-toolbar-main">
             <div className="app-search">
               <SearchIcon />
@@ -175,10 +180,6 @@ export function TradesPageClient({ initialIsMobile }: TradesPageClientProps) {
                 />
               ))}
             </div>
-          </div>
-          <div className="listing-system-toolbar-meta trades-toolbar-meta">
-            <div className="app-toolbar-spacer" aria-hidden="true" />
-            <PrimaryButton href="/trades/new" className="trades-toolbar-create">New trade</PrimaryButton>
           </div>
         </DiscoveryBar>
 

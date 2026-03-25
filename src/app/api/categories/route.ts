@@ -15,7 +15,10 @@ type CreateCategoryBody = {
   slug?: string;
 };
 
+let defaultCategoriesEnsured = false;
+
 async function ensureDefaultCategories() {
+  if (defaultCategoriesEnsured) return;
   const defaults = [
     { name: "Pokemon", slug: "pokemon" },
     { name: "Sports", slug: "sports" },
@@ -30,6 +33,7 @@ async function ensureDefaultCategories() {
         create: category,
       })),
   );
+  defaultCategoriesEnsured = true;
 }
 
 export async function GET() {

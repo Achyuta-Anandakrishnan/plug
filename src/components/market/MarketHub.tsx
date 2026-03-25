@@ -11,6 +11,7 @@ import {
   EmptyStateCard,
   FilterChip,
   PageContainer,
+  PageHeader,
   SearchIcon,
   SectionHeader,
   SegmentedControl,
@@ -296,6 +297,10 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
 
   return (
     <PageContainer className="market-page listing-system-page app-page--market">
+      <PageHeader
+        title="Marketplace"
+        subtitle="Browse active listings and compare them fast."
+      />
       <section className="app-section market-overview">
         {isMobileUi ? (
           <section className="mobile-page-toolbar market-mobile-toolbar" aria-label="Marketplace discovery controls">
@@ -347,7 +352,6 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
           </section>
         ) : (
           <DiscoveryBar className="app-control-bar listing-system-toolbar market-toolbar">
-            <div className="app-control-title">Marketplace</div>
             <div className="listing-system-toolbar-main market-toolbar-main">
               <div className="app-search">
                 <SearchIcon />

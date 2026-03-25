@@ -128,6 +128,11 @@ export async function POST(request: Request, { params }: RouteContext) {
         .slice(0, 16)
       : [];
 
+    const cashAdj = parseIntOrNull(body.cashAdjustment) ?? 0;
+    if (Math.abs(cashAdj) > 100_000_00) {
+      return jsonError("Cash adjustment exceeds the allowed limit.");
+    }
+
     const message = body.message?.trim() || "";
     if (!message && cards.length === 0) {
       return jsonError("Add a message or at least one offered card.");
@@ -147,7 +152,7 @@ export async function POST(request: Request, { params }: RouteContext) {
         postId: id,
         proposerId: sessionUser.id,
         message: message || null,
-        cashAdjustment: parseIntOrNull(body.cashAdjustment) ?? 0,
+        cashAdjustment: cashAdj,
         expiresAt,
         cards: cards.length > 0
           ? {

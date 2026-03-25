@@ -10,6 +10,7 @@ import {
   Bell,
   ChevronDown,
   Gift,
+  LayoutList,
   LogOut,
   Mail,
   MessageSquare,
@@ -105,6 +106,11 @@ function AccountButton({ signedIn, isAdmin = false, mobile = false, inboxHref }:
               <div className="popover-divider" />
             </>
           ) : null}
+          <Link href="/my/listings" role="menuitem" onClick={() => setOpen(false)}>
+            <LayoutList size={14} strokeWidth={1.8} aria-hidden="true" />
+            My listings
+          </Link>
+          <div className="popover-divider" />
           <Link href="/settings" role="menuitem" onClick={() => setOpen(false)}>
             <Settings size={14} strokeWidth={1.8} aria-hidden="true" />
             Settings
@@ -201,6 +207,7 @@ function useSiteHeaderState() {
     if (pathname === "/forum/new") return "Write thread";
     if (pathname.startsWith("/forum/")) return "Thread";
     if (pathname === "/messages" || pathname.startsWith("/messages/")) return "Inbox";
+    if (pathname.startsWith("/my/")) return "My activity";
     if (pathname === "/sell") return "Create listing";
     if (pathname === "/settings") return "Settings";
     if (pathname === "/orders") return "Orders";
@@ -221,6 +228,7 @@ function useSiteHeaderState() {
     if (pathname.startsWith("/trades/")) return "/trades";
     if (pathname.startsWith("/streams/")) return "/live";
     if (pathname.startsWith("/auctions/")) return "/listings";
+    if (pathname.startsWith("/my/")) return "/settings";
     if (pathname === "/referral" || pathname === "/orders") return "/settings";
     if (pathname.startsWith("/profiles/") || pathname.startsWith("/u/")) return "/listings";
     return null;

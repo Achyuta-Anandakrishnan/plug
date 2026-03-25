@@ -28,18 +28,21 @@ export async function POST(request: Request) {
     case "payment_intent.succeeded": {
       const intent = event.data.object;
       await prisma.payment.updateMany({
-        where: { providerPaymentIntent: intent.id },
+        where: { providerPaymentIntent: intent.id, status: { not: "SUCCEEDED" } },
         data: { status: "SUCCEEDED" },
       });
       await prisma.order.updateMany({
-        where: { payment: { providerPaymentIntent: intent.id } },
+        where: { payment: { providerPaymentIntent: intent.id }, status: { not: "PAID" } },
         data: { status: "PAID" },
       });
       const tradeSettlementId = intent.metadata?.tradeSettlementId;
       await prisma.tradeSettlement.updateMany({
-        where: tradeSettlementId
-          ? { id: tradeSettlementId }
-          : { providerPaymentIntent: intent.id },
+        where: {
+          ...(tradeSettlementId
+            ? { id: tradeSettlementId }
+            : { providerPaymentIntent: intent.id }),
+          status: { not: "SUCCEEDED" },
+        },
         data: {
           status: "SUCCEEDED",
           providerPaymentIntent: intent.id,
@@ -53,14 +56,17 @@ export async function POST(request: Request) {
     case "payment_intent.payment_failed": {
       const intent = event.data.object;
       await prisma.payment.updateMany({
-        where: { providerPaymentIntent: intent.id },
+        where: { providerPaymentIntent: intent.id, status: { not: "FAILED" } },
         data: { status: "FAILED" },
       });
       const tradeSettlementId = intent.metadata?.tradeSettlementId;
       await prisma.tradeSettlement.updateMany({
-        where: tradeSettlementId
-          ? { id: tradeSettlementId }
-          : { providerPaymentIntent: intent.id },
+        where: {
+          ...(tradeSettlementId
+            ? { id: tradeSettlementId }
+            : { providerPaymentIntent: intent.id }),
+          status: { not: "FAILED" },
+        },
         data: {
           status: "FAILED",
           providerPaymentIntent: intent.id,

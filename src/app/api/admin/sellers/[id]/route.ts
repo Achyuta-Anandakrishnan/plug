@@ -38,7 +38,7 @@ export async function PATCH(
             throw new Error("Invalid verification status.");
           }
           await tx.verificationCheck.update({
-            where: { id: verification.id },
+            where: { id: verification.id, sellerId: id },
             data: { status: verification.status },
           });
         }

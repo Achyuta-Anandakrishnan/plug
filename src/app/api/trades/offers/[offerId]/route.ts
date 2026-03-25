@@ -261,6 +261,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     if (nextCashAdjustment === null) {
       return jsonError("Invalid counter cash adjustment.");
     }
+    if (Math.abs(nextCashAdjustment) > 100_000_00) {
+      return jsonError("Cash adjustment exceeds the allowed limit.");
+    }
 
     const nextMessage = body.message !== undefined
       ? (body.message?.trim() || null)

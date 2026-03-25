@@ -10365,3 +10365,603 @@ html[data-theme="dark"] .site-account-popover {
     font-size: 22px;
   }
 }
+
+/* ─── Card text overflow & sizing consistency ─────────────────────── */
+.listing-card .listing-card-title {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+.listing-card .listing-card-seller {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.listing-card .listing-card-stat-value {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* All listing grids standardized — same column width, same gap */
+.market-rail-grid,
+.market-v2-grid,
+.trade-board-grid,
+.bounty-board-grid,
+.live-v3-live-grid,
+.live-v3-upcoming-grid,
+.live-v3-spotlight-grid,
+.live-v3-featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+/* ─── My Listings page ───────────────────────────────────────────── */
+.my-listings-page {
+  padding: 32px 0 80px;
+}
+
+.my-listings-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  margin-bottom: 28px;
+  padding: 0 2px;
+}
+
+.my-listings-tab {
+  padding: 9px 18px;
+  border-radius: 8px 8px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--product-muted, #64748b);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 160ms, background 160ms;
+  letter-spacing: 0.01em;
+}
+
+.my-listings-tab:hover {
+  color: #e2e8f0;
+  background: rgba(255,255,255,0.05);
+}
+
+.my-listings-tab.is-active {
+  color: #e2e8f0;
+  border-bottom: 2px solid var(--product-accent, #1d3d80);
+  margin-bottom: -1px;
+}
+
+.my-listings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.my-listings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.my-listings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: background 160ms;
+}
+
+.my-listings-item:hover {
+  background: rgba(255,255,255,0.055);
+}
+
+.my-listings-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.my-listings-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+}
+
+.my-listings-item-title:hover {
+  color: #fff;
+}
+
+.my-listings-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--product-muted, #64748b);
+  flex-wrap: wrap;
+}
+
+.my-listings-item-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.08);
+  color: #94a3b8;
+}
+
+.my-listings-item-status.is-open,
+.my-listings-item-status.is-live { background: rgba(34,197,94,0.12); color: #4ade80; }
+.my-listings-item-status.is-draft { background: rgba(148,163,184,0.1); color: #94a3b8; }
+.my-listings-item-status.is-scheduled { background: rgba(251,191,36,0.12); color: #fbbf24; }
+.my-listings-item-status.is-matched { background: rgba(99,102,241,0.12); color: #818cf8; }
+.my-listings-item-status.is-paused { background: rgba(251,191,36,0.1); color: #fbbf24; }
+.my-listings-item-status.is-closed,
+.my-listings-item-status.is-expired,
+.my-listings-item-status.is-canceled { background: rgba(239,68,68,0.1); color: #f87171; }
+.my-listings-item-status.is-fulfilled { background: rgba(99,102,241,0.12); color: #818cf8; }
+
+.my-listings-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.my-listings-manage-link {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.07);
+  color: #e2e8f0;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: background 160ms;
+}
+
+.my-listings-manage-link:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.my-listings-delete-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(239,68,68,0.08);
+  color: #f87171;
+  border: 1px solid rgba(239,68,68,0.15);
+  cursor: pointer;
+  transition: background 160ms;
+}
+
+.my-listings-delete-btn:hover {
+  background: rgba(239,68,68,0.16);
+}
+
+.my-listings-delete-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.my-listings-error {
+  font-size: 12px;
+  color: #f87171;
+  margin-top: 2px;
+}
+
+/* ─── Auction Detail page ────────────────────────────────────────── */
+.auction-detail-page {
+  padding: 32px 0 80px;
+}
+
+.auction-detail-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.auction-detail-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0a0f1e;
+}
+
+.auction-detail-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auction-detail-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  opacity: 0.12;
+}
+
+.auction-detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auction-detail-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auction-detail-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.08);
+  color: #94a3b8;
+}
+
+.auction-detail-status.is-live { background: rgba(239,68,68,0.15); color: #f87171; }
+.auction-detail-status.is-scheduled { background: rgba(251,191,36,0.12); color: #fbbf24; }
+.auction-detail-status.is-ended { background: rgba(148,163,184,0.08); color: #64748b; }
+
+.auction-detail-category {
+  font-size: 12px;
+  color: var(--product-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.auction-detail-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #e2e8f0;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.auction-detail-seller {
+  font-size: 13px;
+  color: var(--product-muted, #64748b);
+}
+
+.auction-detail-seller strong {
+  color: #94a3b8;
+}
+
+.auction-detail-price-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.auction-detail-price-cell {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.auction-detail-price-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--product-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.auction-detail-price-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #e2e8f0;
+  letter-spacing: -0.02em;
+}
+
+.auction-detail-time {
+  font-size: 13px;
+  color: var(--product-muted, #64748b);
+}
+
+.auction-detail-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auction-detail-cta-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--accent-gradient, linear-gradient(145deg, #1d3d80, #0e1f41));
+  color: #fff;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: opacity 160ms;
+}
+
+.auction-detail-cta-primary:hover { opacity: 0.88; }
+
+.auction-detail-cta-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.07);
+  color: #e2e8f0;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  transition: background 160ms;
+}
+
+.auction-detail-cta-secondary:hover { background: rgba(255,255,255,0.11); }
+
+.auction-detail-description {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #94a3b8;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .auction-detail-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 0 16px;
+  }
+
+  .auction-detail-title {
+    font-size: 20px;
+  }
+
+  .auction-detail-price-value {
+    font-size: 18px;
+  }
+
+  .my-listings-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .my-listings-item-actions {
+    align-self: flex-end;
+  }
+
+  .my-listings-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .my-listings-tabs::-webkit-scrollbar { display: none; }
+}
+
+/* ══════════════════════════════════════════════
+   Hub Page Redesign — Marketplace, Trades, Bounties
+   Consistent, professional, elegant, modern.
+   ═══════════════════════════════════════════════ */
+
+/* ── Hub hero section ── */
+.app-page--market .app-page-header,
+.app-page--trades .app-page-header,
+.app-page--bounties .app-page-header {
+  padding: 28px 0 22px;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.app-page--market .app-page-title,
+.app-page--trades .app-page-title,
+.app-page--bounties .app-page-title {
+  font-size: clamp(2rem, 3.2vw, 2.5rem);
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.app-page--market .app-page-subtitle,
+.app-page--trades .app-page-subtitle,
+.app-page--bounties .app-page-subtitle {
+  font-size: 14px;
+  margin-top: 3px;
+}
+
+/* ── Desktop: sticky glass toolbar ── */
+.app-page--market .app-discovery-bar,
+.app-page--trades .app-discovery-bar,
+.app-page--bounties .app-discovery-bar {
+  position: sticky;
+  top: var(--app-header-height);
+  z-index: 38;
+  background: rgba(244, 245, 248, 0.94);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border-top: 1px solid var(--product-border);
+  border-bottom: 1px solid var(--product-border);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+}
+
+html[data-theme="dark"] .app-page--market .app-discovery-bar,
+html[data-theme="dark"] .app-page--trades .app-discovery-bar,
+html[data-theme="dark"] .app-page--bounties .app-discovery-bar {
+  background: rgba(12, 14, 20, 0.94);
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+}
+
+/* ── Hide toolbar title — now in PageHeader ── */
+.app-page--market .market-toolbar > .app-control-title,
+.app-page--trades .trades-toolbar > .app-control-title,
+.app-page--trades .trades-toolbar-meta {
+  display: none;
+}
+
+/* Fix grid layout after removing title/create from toolbar ── */
+@media (max-width: 768px) {
+  .app-page--market .market-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "main sort";
+  }
+
+  .app-page--trades .trades-toolbar {
+    grid-template-columns: 1fr;
+    grid-template-areas: "main";
+  }
+}
+
+/* ── Hub page section spacing ── */
+.app-page--market .app-section,
+.app-page--trades .app-section,
+.app-page--bounties .app-section {
+  gap: 0;
+}
+
+.app-page--market .market-discovery-section {
+  gap: 36px;
+  padding-top: 24px;
+}
+
+.app-page--market .market-inventory-section,
+.app-page--trades .listing-system-feed,
+.app-page--bounties .listing-system-feed,
+.app-page--bounties .bounty-featured-section,
+.app-page--bounties .bounty-feed-section {
+  padding-top: 24px;
+}
+
+.app-page--market .market-rail-section {
+  display: grid;
+  gap: 14px;
+}
+
+/* ── Hub section headers: clean ruled separator ── */
+.app-page--market .app-section-header,
+.app-page--trades .app-section-header,
+.app-page--bounties .app-section-header {
+  border-bottom: 1px solid var(--product-border);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+
+/* ── Market count: elegant count pill ── */
+.market-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--product-border);
+  background: var(--product-surface-muted);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--product-text-faint);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Hub empty state: card style ── */
+.app-page--market .app-empty-state,
+.app-page--trades .app-empty-state,
+.app-page--bounties .app-empty-state {
+  padding: 28px 24px;
+  border-radius: var(--r-xl);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+}
+
+.app-page--market .app-empty-state h3,
+.app-page--trades .app-empty-state h3,
+.app-page--bounties .app-empty-state h3 {
+  font-size: 15px;
+}
+
+/* ── Bounty board CTA row ── */
+.bounty-board-cta {
+  padding: 20px 0 8px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── App chips: crisper transitions ── */
+.app-chip {
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.app-chip.is-active {
+  box-shadow: 0 1px 6px rgba(19, 34, 56, 0.15);
+}
+
+html[data-theme="dark"] .app-chip.is-active {
+  box-shadow: 0 1px 6px rgba(44, 74, 128, 0.28);
+}
+
+/* ── Mobile: hub hero condensed ── */
+@media (max-width: 640px) {
+  .app-page--market .app-page-header,
+  .app-page--trades .app-page-header,
+  .app-page--bounties .app-page-header {
+    padding: 18px 0 14px;
+  }
+
+  .app-page--market .app-page-title,
+  .app-page--trades .app-page-title,
+  .app-page--bounties .app-page-title {
+    font-size: 1.75rem;
+  }
+}

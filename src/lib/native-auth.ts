@@ -18,7 +18,14 @@ type NativeUserLike = {
 const DEFAULT_TTL_SECONDS = 60 * 60 * 24 * 30;
 
 function getSecret() {
-  return process.env.NATIVE_AUTH_SECRET || process.env.NEXTAUTH_SECRET || "dev-native-secret-change-me";
+  const secret = process.env.NATIVE_AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("NATIVE_AUTH_SECRET or NEXTAUTH_SECRET must be set in production.");
+    }
+    return "dev-native-secret-change-me";
+  }
+  return secret;
 }
 
 function toBase64Url(input: string | Buffer) {

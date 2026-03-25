@@ -104,11 +104,7 @@ export async function POST(
         },
       });
 
-      const updatedAuction = await tx.auction.findUnique({
-        where: { id: auction.id },
-      });
-
-      return { bid, auction: updatedAuction };
+      return { bid, auction: { ...auction, currentBid: body.amount as number, extendedTime: nextEndTime } };
     });
 
     return jsonOk(result, { status: 201 });

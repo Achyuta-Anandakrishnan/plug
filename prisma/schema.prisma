@@ -273,7 +273,7 @@ model SellerProfile {
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
-  user             User                @relation(fields: [userId], references: [id])
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   verifications    VerificationCheck[]
   auctions         Auction[]
   items            Item[]
@@ -290,7 +290,9 @@ model VerificationCheck {
   reviewedAt  DateTime?
   createdAt   DateTime           @default(now())
 
-  seller      SellerProfile @relation(fields: [sellerId], references: [id])
+  seller      SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([sellerId])
 }
 
 model Category {
@@ -338,6 +340,12 @@ model Auction {
   saves              UserSave[]
   reminders          StreamReminder[]
   streamSessions     StreamSession[]
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([startTime])
+  @@index([endTime])
 }
 
 model Bid {
@@ -349,8 +357,11 @@ model Bid {
   extendsTimerBy Int       @default(12)
   createdAt      DateTime  @default(now())
 
-  auction        Auction   @relation(fields: [auctionId], references: [id])
+  auction        Auction   @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   bidder         User      @relation(fields: [bidderId], references: [id])
+
+  @@index([auctionId])
+  @@index([bidderId])
 }
 
 model AuctionChatMessage {
@@ -361,8 +372,11 @@ model AuctionChatMessage {
   isModerator Boolean  @default(false)
   createdAt   DateTime @default(now())
 
-  auction     Auction  @relation(fields: [auctionId], references: [id])
+  auction     Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   sender      User     @relation(fields: [senderId], references: [id])
+
+  @@index([auctionId])
+  @@index([senderId])
 }
 
 model Conversation {
@@ -383,10 +397,11 @@ model ConversationParticipant {
   role            ConversationRole @default(BUYER)
   joinedAt        DateTime         @default(now())
 
-  conversation    Conversation     @relation(fields: [conversationId], references: [id])
+  conversation    Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   user            User             @relation(fields: [userId], references: [id])
 
   @@unique([conversationId, userId])
+  @@index([userId])
 }
 
 model DirectMessage {
@@ -396,8 +411,11 @@ model DirectMessage {
   body            String
   createdAt       DateTime      @default(now())
 
-  conversation    Conversation  @relation(fields: [conversationId], references: [id])
+  conversation    Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender          User          @relation("DirectMessageSender", fields: [senderId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
 }
 
 model ForumPost {
@@ -669,8 +687,12 @@ model Dispute {
   createdAt   DateTime      @default(now())
   resolvedAt  DateTime?
 
-  auction     Auction       @relation(fields: [auctionId], references: [id])
+  auction     Auction       @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   reporter    User          @relation("DisputeReporter", fields: [reporterId], references: [id])
+
+  @@index([auctionId])
+  @@index([reporterId])
+  @@index([status])
 }
 
 model Item {
@@ -684,10 +706,13 @@ model Item {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  seller      SellerProfile @relation(fields: [sellerId], references: [id])
+  seller      SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   category    Category?     @relation(fields: [categoryId], references: [id])
   images      ItemImage[]
   auctions    Auction[]
+
+  @@index([sellerId])
+  @@index([categoryId])
 }
 
 model ItemImage {
@@ -702,7 +727,7 @@ model ItemImage {
   isPrimary        Boolean              @default(false)
   createdAt        DateTime             @default(now())
 
-  item             Item                 @relation(fields: [itemId], references: [id])
+  item             Item                 @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@index([itemId])
 }
@@ -727,8 +752,10 @@ model Order {
   payout         Payout?
   shipment       Shipment?
 
+  @@index([auctionId])
   @@index([buyerId])
   @@index([sellerId])
+  @@index([status])
 }
 
 model Payment {
@@ -745,7 +772,7 @@ model Payment {
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
 
-  order                  Order          @relation(fields: [orderId], references: [id])
+  order                  Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Payout {
@@ -761,7 +788,7 @@ model Payout {
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
 
-  order                Order         @relation(fields: [orderId], references: [id])
+  order                Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Shipment {
@@ -776,7 +803,7 @@ model Shipment {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  order          Order          @relation(fields: [orderId], references: [id])
+  order          Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model StreamSession {
@@ -791,7 +818,7 @@ model StreamSession {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  auction       Auction        @relation(fields: [auctionId], references: [id])
+  auction       Auction        @relation(fields: [auctionId], references: [id], onDelete: Cascade)
 
   @@index([auctionId])
 }

@@ -96,7 +96,7 @@ export function isTradeDuelStatus(value: unknown): value is TradeDuelStatus {
 export function normalizeTradeDuelTerms(value: unknown) {
   if (typeof value !== "string") return null;
   const normalized = value.trim().replace(/\s+/g, " ");
-  return normalized.length >= 12 ? normalized : null;
+  return normalized.length >= 12 && normalized.length <= 1000 ? normalized : null;
 }
 
 export function parseScheduledFor(value: unknown) {
@@ -395,7 +395,7 @@ export function resolveCoinDuel(state: CoinDuelState): DuelActionResult {
     return { ok: false, error: "This coin duel has already been flipped." };
   }
 
-  const result: CoinResult = Math.random() < 0.5 ? "HEADS" : "TAILS";
+  const result: CoinResult = cryptoRandom() < 0.5 ? "HEADS" : "TAILS";
   const winner: DuelParty = result === challengerCoinResult ? "CHALLENGER" : "DEFENDER";
 
   return {
@@ -592,10 +592,16 @@ function buildDeck(): PokerCard[] {
   return deck;
 }
 
+function cryptoRandom(): number {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return buf[0] / (0xffffffff + 1);
+}
+
 function shuffleDeck(deck: PokerCard[]) {
   const next = [...deck];
   for (let i = next.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(cryptoRandom() * (i + 1));
     [next[i], next[j]] = [next[j], next[i]];
   }
   return next;
@@ -657,7 +663,7 @@ function isChessSquare(value: string): value is Square {
 }
 
 function houseTiebreakWinner(): DuelParty {
-  return Math.random() < 0.5 ? "CHALLENGER" : "DEFENDER";
+  return cryptoRandom() < 0.5 ? "CHALLENGER" : "DEFENDER";
 }
 
 export function duelResultSummary(mode: TradeDuelMode, state: TradeDuelState) {

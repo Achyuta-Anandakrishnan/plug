@@ -67,37 +67,43 @@ export async function POST(_request: Request, { params }: RouteContext) {
     || process.env.NEXTAUTH_URL
     || "http://localhost:3000";
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    success_url: `${appUrl}/trades/${offer.post.id}?offer=${offer.id}&settlement=success`,
-    cancel_url: `${appUrl}/trades/${offer.post.id}?offer=${offer.id}&settlement=cancel`,
-    payment_method_types: ["card"],
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: offer.settlement.currency,
-          unit_amount: offer.settlement.amount,
-          product_data: {
-            name: `Trade settlement - ${offer.post.title}`.slice(0, 120),
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      success_url: `${appUrl}/trades/${offer.post.id}?offer=${offer.id}&settlement=success`,
+      cancel_url: `${appUrl}/trades/${offer.post.id}?offer=${offer.id}&settlement=cancel`,
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: offer.settlement.currency,
+            unit_amount: offer.settlement.amount,
+            product_data: {
+              name: `Trade settlement - ${offer.post.title}`.slice(0, 120),
+            },
           },
         },
-      },
-    ],
-    metadata: {
-      tradeSettlementId: offer.settlement.id,
-      tradeOfferId: offer.id,
-      tradePostId: offer.post.id,
-    },
-    payment_intent_data: {
+      ],
       metadata: {
         tradeSettlementId: offer.settlement.id,
         tradeOfferId: offer.id,
         tradePostId: offer.post.id,
       },
-    },
-  });
+      payment_intent_data: {
+        metadata: {
+          tradeSettlementId: offer.settlement.id,
+          tradeOfferId: offer.id,
+          tradePostId: offer.post.id,
+        },
+      },
+    });
+  } catch {
+    return jsonError("Unable to create checkout session. Please try again.", 502);
+  }
 
+  // Only update DB status after Stripe session is confirmed created.
   const updatedSettlement = await prisma.tradeSettlement.update({
     where: { id: offer.settlement.id },
     data: {

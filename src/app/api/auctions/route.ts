@@ -50,7 +50,7 @@ export async function GET(request: Request) {
   const category = searchParams.get("category");
   const statusParam = searchParams.get("status");
   const view = searchParams.get("view");
-  const q = searchParams.get("q")?.trim() ?? "";
+  const q = (searchParams.get("q")?.trim() ?? "").slice(0, 200);
   const limitParam = Number(searchParams.get("limit") ?? 30);
 
   if (statusParam && !allowedStatuses.has(statusParam)) {
@@ -119,6 +119,14 @@ export async function GET(request: Request) {
     where.streamSessions = {
       none: { status: "LIVE" },
     };
+  }
+
+  const mine = searchParams.get("mine") === "1";
+  if (mine) {
+    if (!sessionUser?.id) {
+      return jsonError("Authentication required.", 401);
+    }
+    where.seller = { userId: sessionUser.id };
   }
 
   if (category) {
@@ -258,6 +266,8 @@ export async function POST(request: Request) {
     categoryId: body.categoryId,
   };
 
+  const rawImages = Array.isArray(body.images) ? body.images.slice(0, 50) : [];
+
   const item = await prisma.item.create({
     data: {
       sellerId,
@@ -266,9 +276,9 @@ export async function POST(request: Request) {
       description: itemPayload.description?.trim() || body.description?.trim(),
       condition: itemPayload.condition,
       attributes: itemPayload.attributes as Prisma.InputJsonValue | undefined,
-      images: body.images?.length
+      images: rawImages.length
         ? {
-            create: body.images.map((image) => ({
+            create: rawImages.map((image) => ({
               url: image.url,
               isPrimary: Boolean(image.isPrimary),
               storageProvider: image.storageProvider ?? "DATABASE",

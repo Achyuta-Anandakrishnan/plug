@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { jsonError, jsonOk } from "@/lib/api";
+import { checkRateLimit, jsonError, jsonOk } from "@/lib/api";
 import { getStripeClient } from "@/lib/stripe";
 import { getSessionUser } from "@/lib/auth";
 
@@ -12,6 +12,10 @@ export async function POST(
   const buyerId = sessionUser?.id ?? null;
   if (!buyerId) {
     return jsonError("Authentication required.", 401);
+  }
+
+  if (!(await checkRateLimit(`confirm-order:${id}`, 5, 60_000))) {
+    return jsonError("Too many confirmation attempts. Try again shortly.", 429);
   }
 
   const order = await prisma.order.findUnique({
