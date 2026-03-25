@@ -63,8 +63,23 @@ ADD COLUMN IF NOT EXISTS "bountyAmount" INTEGER;
   `CREATE INDEX IF NOT EXISTS "WantRequest_createdAt_idx" ON "WantRequest"("createdAt");`,
   `CREATE INDEX IF NOT EXISTS "WantRequest_category_idx" ON "WantRequest"("category");`,
   `CREATE INDEX IF NOT EXISTS "WantRequest_bountyAmount_idx" ON "WantRequest"("bountyAmount");`,
+  `
+CREATE TABLE IF NOT EXISTS "UserSave" (
+  "id" TEXT NOT NULL,
+  "userId" TEXT NOT NULL,
+  "auctionId" TEXT,
+  "tradePostId" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "UserSave_pkey" PRIMARY KEY ("id")
+);
+`,
   `ALTER TABLE "UserSave" ADD COLUMN IF NOT EXISTS "wantRequestId" TEXT;`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "UserSave_userId_auctionId_key" ON "UserSave"("userId", "auctionId");`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "UserSave_userId_tradePostId_key" ON "UserSave"("userId", "tradePostId");`,
   `CREATE INDEX IF NOT EXISTS "UserSave_wantRequestId_idx" ON "UserSave"("wantRequestId");`,
+  `CREATE INDEX IF NOT EXISTS "UserSave_userId_createdAt_idx" ON "UserSave"("userId", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "UserSave_auctionId_idx" ON "UserSave"("auctionId");`,
+  `CREATE INDEX IF NOT EXISTS "UserSave_tradePostId_idx" ON "UserSave"("tradePostId");`,
   `
 DO $$
 BEGIN
@@ -122,5 +137,5 @@ export async function ensureBountySchema() {
 
 export function isBountySchemaMissing(error?: unknown) {
   const message = error instanceof Error ? error.message : String(error ?? "");
-  return /WantRequest|WantRequestStatus|column .* does not exist|relation .* does not exist/i.test(message);
+  return /WantRequest|WantRequestStatus|UserSave|column .* does not exist|relation .* does not exist/i.test(message);
 }
