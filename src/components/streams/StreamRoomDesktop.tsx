@@ -213,18 +213,14 @@ export function StreamRoomDesktop({
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-6 py-10 text-sm text-slate-500">
+      <div className="stream-room-empty">
         <CheckersLoader title="Loading stream room..." compact />
       </div>
     );
   }
 
   if (error || !data) {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-        {error || "Unable to load listing."}
-      </div>
-    );
+    return <p className="app-status-note is-error">{error || "Unable to load listing."}</p>;
   }
 
   const imageUrl = data.item?.images?.find((img) => img.isPrimary)?.url ?? data.item?.images?.[0]?.url ?? null;
@@ -244,61 +240,59 @@ export function StreamRoomDesktop({
           onStatusChange={setStreamStatus}
         />
 
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,_rgba(2,6,23,0.75),_rgba(2,6,23,0.15)_45%,_transparent)]" />
+        <div className="stream-room-video-overlay-gradient" aria-hidden="true" />
 
-        <div className="absolute left-4 top-4 right-4 z-20 flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="stream-room-video-top">
+          <div className="stream-room-video-top-left">
             {!isHost && (
-              <span className={`rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] ${streamStatus === "live" ? "bg-emerald-400/20 text-emerald-100" : "bg-white/15 text-white"}`}>
+              <span className={`stream-room-badge${streamStatus === "live" ? " is-live" : ""}`}>
                 {streamStatus === "live" ? "Live" : "Offline"}
               </span>
             )}
-            <span className="rounded-full bg-white/15 px-3 py-1 text-xs text-white">
-              {formatSeconds(timeLeft)} left
-            </span>
+            <span className="stream-room-badge">{formatSeconds(timeLeft)} left</span>
           </div>
           <button
             type="button"
             onClick={handleFullscreenToggle}
-            className="rounded-full border border-white/30 bg-slate-900/40 px-3 py-1 text-xs font-semibold text-white"
+            className="stream-room-video-fullscreen-btn"
           >
             {isFullscreen ? "Exit full" : "Full screen"}
           </button>
         </div>
 
-        <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white">
+        <div className="stream-room-video-bottom">
           <div>
-            <p className="font-display text-2xl">{data.title}</p>
-            <p className="text-xs text-white/70">
+            <p className="stream-room-video-title">{data.title}</p>
+            <p className="stream-room-video-meta">
               {data.seller?.user?.displayName ?? "Verified seller"} · {(participantCount ?? data.watchersCount)} watching
             </p>
           </div>
-          <div className="rounded-2xl bg-slate-950/60 px-4 py-2 text-right">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-white/60">Current</p>
-            <p className="font-display text-xl">{formatCurrency(data.currentBid, currency)}</p>
+          <div className="stream-room-video-price">
+            <p className="stream-room-video-price-label">Current</p>
+            <p className="stream-room-video-price-value">{formatCurrency(data.currentBid, currency)}</p>
           </div>
         </div>
 
         {isFullscreen && (
-          <div className="absolute bottom-4 right-4 top-16 w-[340px] space-y-3">
-            <div className="rounded-2xl border border-white/20 bg-slate-950/65 p-3 backdrop-blur">
-              <p className="mb-2 text-xs uppercase tracking-[0.2em] text-white/70">Quick bids</p>
-              <div className="max-h-40 space-y-2 overflow-y-auto pr-1 text-xs text-white/90">
+          <div className="stream-room-fullscreen-panels">
+            <div className="stream-room-fullscreen-panel">
+              <p className="stream-room-panel-eyebrow">Quick bids</p>
+              <div className="stream-room-panel-list">
                 {data.bids.slice(0, 10).map((bid) => (
-                  <div key={bid.id} className="flex items-center justify-between rounded-xl bg-white/10 px-2 py-1.5">
+                  <div key={bid.id} className="stream-room-panel-row">
                     <span>{bid.bidderId.slice(0, 6)}...</span>
-                    <span className="font-semibold">{formatCurrency(bid.amount, currency)}</span>
+                    <span>{formatCurrency(bid.amount, currency)}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/20 bg-slate-950/65 p-3 backdrop-blur">
-              <p className="mb-2 text-xs uppercase tracking-[0.2em] text-white/70">Chat</p>
-              <div className="max-h-44 space-y-2 overflow-y-auto pr-1 text-xs text-white/90">
+            <div className="stream-room-fullscreen-panel">
+              <p className="stream-room-panel-eyebrow">Chat</p>
+              <div className="stream-room-panel-list">
                 {data.chatMessages.slice(-20).map((entry) => (
-                  <div key={entry.id} className="rounded-xl bg-white/10 px-2 py-1.5">
-                    <span className="block text-[10px] text-white/60">{entry.sender.displayName ?? "Guest"}</span>
+                  <div key={entry.id} className="stream-room-panel-bubble">
+                    <span className="stream-room-panel-sender">{entry.sender.displayName ?? "Guest"}</span>
                     {entry.body}
                   </div>
                 ))}
@@ -354,12 +348,12 @@ export function StreamRoomDesktop({
             </div>
           )}
 
-          <div className="grid gap-2">
+          <div className="stream-room-action-stack">
             {data.listingType !== "BUY_NOW" && (
               <button
                 onClick={() => void handleBid()}
                 disabled={isListingSeller || !canUseStripe || !roomLive}
-                className="rounded-full bg-[var(--royal)] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+                className="app-button app-button-primary"
               >
                 Place bid {formatCurrency(validBidAmount, currency)}
               </button>
@@ -368,7 +362,7 @@ export function StreamRoomDesktop({
               <button
                 onClick={handleBuyNow}
                 disabled={isListingSeller || !canUseStripe}
-                className="rounded-full border border-slate-200 bg-white/90 px-4 py-3 text-sm font-semibold text-slate-700 disabled:opacity-60"
+                className="app-button app-button-secondary"
               >
                 Buy now {formatCurrency(data.buyNowPrice, currency)}
               </button>
@@ -376,36 +370,36 @@ export function StreamRoomDesktop({
             <button
               onClick={handleMessageSeller}
               disabled={isListingSeller}
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-3 text-sm font-semibold text-slate-700 disabled:opacity-60"
+              className="app-button app-button-secondary"
             >
               Message seller
             </button>
           </div>
 
           {!canUseStripe && (
-            <p className="text-xs text-amber-700">Stripe checkout is disabled. Connect Stripe to place offers.</p>
+            <p className="app-form-hint is-warning">Stripe checkout is disabled. Connect Stripe to place offers.</p>
           )}
-          {actionStatus && <p className="text-xs text-slate-600">{actionStatus}</p>}
+          {actionStatus && <p className="app-form-hint">{actionStatus}</p>}
         </section>
 
         <ListingImageStrip images={data.item?.images ?? []} />
 
         <section className="stream-room-rail-panel stream-room-chat-panel">
           <div className="stream-room-rail-head">
-            <h3 className="font-display text-lg text-slate-900">Chat</h3>
-            <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Live room</span>
+            <h3 className="stream-room-panel-title">Chat</h3>
+            <span className="app-eyebrow">Live room</span>
           </div>
 
           <div className="stream-room-chat-feed">
             {data.chatMessages.length === 0 && (
-              <div className="rounded-2xl bg-slate-100 px-3 py-2 text-xs text-slate-500">No chat yet. Be first to comment.</div>
+              <p className="stream-room-empty">No chat yet. Be first to comment.</p>
             )}
             {data.chatMessages.map((entry) => (
               <div
                 key={entry.id}
-                className={`rounded-2xl px-3 py-2 ${entry.senderId === sessionUserId ? "ml-auto bg-[var(--royal)]/10 text-slate-800" : "bg-slate-100 text-slate-600"}`}
+                className={`stream-room-chat-bubble${entry.senderId === sessionUserId ? " is-own" : ""}`}
               >
-                <span className="block text-xs font-semibold text-slate-500">{entry.sender.displayName ?? "Guest"}</span>
+                <span className="stream-room-chat-sender">{entry.sender.displayName ?? "Guest"}</span>
                 <span>{entry.body}</span>
               </div>
             ))}
@@ -416,12 +410,9 @@ export function StreamRoomDesktop({
               value={message}
               onChange={(event) => setMessage(event.target.value)}
               placeholder="Message the room"
-              className="flex-1 rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm text-slate-700 outline-none focus:border-[var(--royal)]"
+              className="app-form-input"
             />
-            <button
-              onClick={handleSend}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
-            >
+            <button onClick={handleSend} className="app-button app-button-primary">
               Send
             </button>
           </div>
@@ -429,17 +420,17 @@ export function StreamRoomDesktop({
 
         <section className="stream-room-rail-panel stream-room-bids-panel">
           <div className="stream-room-rail-head">
-            <h3 className="font-display text-lg text-slate-900">Recent bids</h3>
-            <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Activity</span>
+            <h3 className="stream-room-panel-title">Recent bids</h3>
+            <span className="app-eyebrow">Activity</span>
           </div>
           <div className="stream-room-bids-feed">
             {data.bids.length === 0 && (
-              <div className="rounded-2xl bg-slate-100 px-3 py-2 text-xs text-slate-500">No bids yet.</div>
+              <p className="stream-room-empty">No bids yet.</p>
             )}
             {data.bids.map((bid) => (
-              <div key={bid.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white/80 px-3 py-2">
-                <span className="text-xs uppercase tracking-[0.2em] text-slate-400">{bid.bidderId.slice(0, 6)}...</span>
-                <span className="font-semibold text-slate-900">{formatCurrency(bid.amount, currency)}</span>
+              <div key={bid.id} className="stream-room-bid-row">
+                <span className="stream-room-bid-bidder">{bid.bidderId.slice(0, 6)}...</span>
+                <span className="stream-room-bid-amount">{formatCurrency(bid.amount, currency)}</span>
               </div>
             ))}
           </div>

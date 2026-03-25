@@ -180,7 +180,7 @@ export function ProfileEditor() {
       {loading ? (
         <CheckersLoader title="Loading profile..." compact />
       ) : (
-        <div className="grid gap-4">
+        <div className="settings-profile-form-body">
           {setupMode ? (
             <p className="app-status-note">
               Finish profile setup so buyers and sellers can find you by username.

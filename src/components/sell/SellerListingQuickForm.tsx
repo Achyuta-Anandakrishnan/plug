@@ -300,7 +300,7 @@ export function SellerListingQuickForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="surface-panel rounded-3xl p-4 sm:p-5 space-y-4 sell-quick-form">
+    <form onSubmit={handleSubmit} className="sell-form-panel sell-quick-form">
       <div className="sell-quick-head">
         <div>
           <p className="app-eyebrow">Fast lane</p>
@@ -312,16 +312,14 @@ export function SellerListingQuickForm() {
         </div>
       </div>
       {isSeller ? null : (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
-          {session?.user?.id
-            ? "Your account is not a seller yet. Submit seller verification for manual review."
-            : "Sign in to publish listings."}
+        <div className="sell-alert-stack">
+          <p className="app-status-note is-warning">
+            {session?.user?.id
+              ? "Your account is not a seller yet. Submit seller verification for manual review."
+              : "Sign in to publish listings."}
+          </p>
           {!session?.user?.id ? (
-            <button
-              type="button"
-              onClick={() => signIn()}
-              className="ml-3 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white"
-            >
+            <button type="button" onClick={() => signIn()} className="app-button app-button-primary">
               Sign in
             </button>
           ) : null}
@@ -337,9 +335,9 @@ export function SellerListingQuickForm() {
           <p>Look up the cert, confirm the grader, and set the target ask.</p>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 listing-form-stage-grid">
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Grader</p>
+        <div className="listing-form-stage-grid">
+          <div className="sell-field-group">
+            <p className="app-eyebrow">Grader</p>
             <select
               value={grader}
               onChange={(event) => setGrader(event.target.value as CertGrader)}
@@ -352,8 +350,8 @@ export function SellerListingQuickForm() {
               ))}
             </select>
           </div>
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Cert number</p>
+          <div className="sell-field-group">
+            <p className="app-eyebrow">Cert number</p>
             <input
               value={certNumber}
               onChange={(event) => setCertNumber(event.target.value)}
@@ -361,8 +359,8 @@ export function SellerListingQuickForm() {
               className="app-form-input"
             />
           </div>
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Desired price (USD)</p>
+          <div className="sell-field-group">
+            <p className="app-eyebrow">Desired price (USD)</p>
             <input
               value={desiredPrice}
               onChange={(event) => setDesiredPrice(event.target.value)}
@@ -373,7 +371,7 @@ export function SellerListingQuickForm() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white/80 p-3 sell-quick-lookup">
+        <div className="sell-quick-lookup">
           <p className="text-xs text-slate-600">
             {lookupLoading ? "Checking certificate..." : lookupMessage || "Enter cert number to auto-fill listing details."}
           </p>
@@ -389,17 +387,13 @@ export function SellerListingQuickForm() {
           <p>Pick the mode that matches how you want the item to move.</p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="sell-type-grid">
           {listingTypes.map((entry) => (
             <button
               key={entry.value}
               type="button"
               onClick={() => setListingType(entry.value)}
-              className={`rounded-full border px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] ${
-                listingType === entry.value
-                  ? "border-slate-900 bg-slate-900 text-white"
-                  : "border-slate-200 bg-white text-slate-700"
-              }`}
+              className={`app-chip${listingType === entry.value ? " is-active" : ""}`}
             >
               {entry.label}
             </button>
@@ -432,42 +426,32 @@ export function SellerListingQuickForm() {
         ) : null}
 
         <div>
-          <p className="font-display text-xl text-slate-900">{previewTitle}</p>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="sell-preview-title">{previewTitle}</p>
+          <p className="sell-preview-subtitle">
             {(lookup?.grader ?? "Grading company")} {lookup?.grade ?? "Grade"} • Cert {cert || "-"}
           </p>
-          <p className="mt-2 text-sm text-slate-700">
+          <p className="sell-preview-note">
             Desired price: {desiredCents !== null ? formatCurrency(desiredCents, "USD") : "Enter desired price"}
           </p>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="sell-quick-rows-grid">
           {previewRows.map((row) => (
-            <div key={row.label} className="rounded-xl border border-slate-200 bg-white px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">{row.label}</p>
-              <p className="mt-1 text-sm text-slate-800">{row.value}</p>
+            <div key={row.label} className="sell-quick-row">
+              <p className="app-eyebrow">{row.label}</p>
+              <p className="sell-quick-row-value">{row.value}</p>
             </div>
           ))}
         </div>
       </section>
 
       {submitMessage ? (
-        <div
-          className={`rounded-2xl px-4 py-3 text-sm ${
-            status === "success"
-              ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-              : status === "error"
-                ? "border border-red-200 bg-red-50 text-red-600"
-                : "border border-slate-200 bg-white text-slate-600"
-          }`}
-        >
+        <p className={`app-status-note${status === "success" ? " is-success" : status === "error" ? " is-error" : ""}`}>
           {submitMessage}
           {status === "success" && listingId ? (
-            <Link href={`/streams/${listingId}`} className="ml-2 font-semibold text-[var(--royal)]">
-              Open listing
-            </Link>
+            <Link href={`/streams/${listingId}`} className="app-link"> Open listing</Link>
           ) : null}
-        </div>
+        </p>
       ) : null}
 
       <div className="sell-quick-actions listing-form-publish">
@@ -481,7 +465,7 @@ export function SellerListingQuickForm() {
         <button
           type="submit"
           disabled={!canSubmit || status === "loading"}
-          className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
+          className="app-button app-button-primary sell-submit-btn"
         >
           {status === "loading" ? "Creating..." : "Create listing"}
         </button>

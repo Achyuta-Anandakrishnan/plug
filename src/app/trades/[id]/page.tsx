@@ -77,24 +77,24 @@ async function readJsonSafely<T>(response: Response): Promise<T | null> {
 }
 
 function postStatusClass(status: TradePostDetail["status"]) {
-  if (status === "OPEN") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (status === "MATCHED") return "border-slate-300 bg-slate-100 text-slate-700";
-  if (status === "PAUSED") return "border-amber-200 bg-amber-50 text-amber-700";
-  return "border-slate-200 bg-white text-slate-600";
+  if (status === "OPEN") return "is-open";
+  if (status === "MATCHED") return "is-matched";
+  if (status === "PAUSED") return "is-paused";
+  return "";
 }
 
 function offerStatusClass(status: TradeOfferItem["status"]) {
-  if (status === "ACCEPTED") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (status === "DECLINED" || status === "WITHDRAWN") return "border-slate-200 bg-white text-slate-500";
-  if (status === "COUNTERED") return "border-slate-300 bg-slate-100 text-slate-700";
-  return "border-amber-200 bg-amber-50 text-amber-700";
+  if (status === "ACCEPTED") return "is-open";
+  if (status === "DECLINED" || status === "WITHDRAWN") return "";
+  if (status === "COUNTERED") return "is-matched";
+  return "is-paused";
 }
 
 function settlementStatusClass(status: NonNullable<TradeOfferItem["settlement"]>["status"]) {
-  if (status === "SUCCEEDED") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (status === "FAILED" || status === "CANCELED") return "border-red-200 bg-red-50 text-red-700";
-  if (status === "PROCESSING") return "border-slate-300 bg-slate-100 text-slate-700";
-  return "border-amber-200 bg-amber-50 text-amber-700";
+  if (status === "SUCCEEDED") return "is-open";
+  if (status === "FAILED" || status === "CANCELED") return "is-error";
+  if (status === "PROCESSING") return "is-matched";
+  return "is-paused";
 }
 
 function formatDatetimeInput(value: string | null | undefined) {
@@ -110,11 +110,11 @@ function formatDatetimeInput(value: string | null | undefined) {
 }
 
 function duelStatusClass(status: NonNullable<TradeDuelItem["status"]>) {
-  if (status === "ACTIVE") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (status === "COMPLETED") return "border-slate-300 bg-slate-100 text-slate-700";
-  if (status === "READY") return "border-sky-200 bg-sky-50 text-sky-700";
-  if (status === "SCHEDULED") return "border-amber-200 bg-amber-50 text-amber-700";
-  return "border-slate-200 bg-white text-slate-600";
+  if (status === "ACTIVE") return "is-open";
+  if (status === "COMPLETED") return "is-matched";
+  if (status === "READY") return "is-ready";
+  if (status === "SCHEDULED") return "is-paused";
+  return "";
 }
 
 export default function TradeDetailPage() {
@@ -503,7 +503,7 @@ export default function TradeDetailPage() {
         />
 
         <div className="trade-detail-meta-row">
-          <span className={`rounded-full border px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${postStatusClass(post.status)}`}>
+          <span className={`trade-status-chip ${postStatusClass(post.status)}`}>
             {post.status}
           </span>
           <span>{formatTradeDateTime(post.createdAt)}</span>
@@ -519,11 +519,7 @@ export default function TradeDetailPage() {
           </div>
         ) : null}
 
-        {error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
-          </div>
-        ) : null}
+        {error ? <p className="app-status-note is-error">{error}</p> : null}
 
         <section className="trade-detail-layout">
           <section className="product-card trade-detail-gallery">
@@ -541,7 +537,7 @@ export default function TradeDetailPage() {
                         <img
                           src={image.url}
                           alt={post.title}
-                          className="h-full w-full object-cover"
+                          className="trade-detail-gallery-img"
                         />
                       ) : (
                         <div className="trade-detail-gallery-fallback">Image unavailable</div>
@@ -590,11 +586,7 @@ export default function TradeDetailPage() {
                       type="button"
                       onClick={() => void updatePostStatus(status)}
                       disabled={updatingStatus || post.status === status}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] ${
-                        post.status === status
-                          ? "border-slate-900 bg-slate-900 text-white"
-                          : "border-slate-200 bg-white/90 text-slate-700"
-                      } disabled:opacity-50`}
+                      className={`app-chip${post.status === status ? " is-active" : ""}`}
                     >
                       {status.toLowerCase()}
                     </button>
@@ -707,7 +699,7 @@ export default function TradeDetailPage() {
         {post.offers.length === 0 ? (
           <div className="app-status-note">No offers yet.</div>
         ) : (
-          <div className="mt-3 space-y-3">
+          <div className="trade-offers-stack">
             {post.offers.map((offer) => {
               const viewerIsProposer = offer.proposerId === currentUserId;
               const activeOffer = ["PENDING", "COUNTERED"].includes(offer.status);
@@ -754,20 +746,20 @@ export default function TradeDetailPage() {
                   key={offer.id}
                   className="trade-detail-offer-row"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="trade-offer-row-head">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">
+                      <p className="trade-offer-proposer">
                         {offer.proposer.displayName ?? offer.proposer.username ?? "Member"}
                       </p>
-                      <p className="text-xs text-slate-500">{formatTradeDateTime(offer.createdAt)}</p>
+                      <p className="trade-offer-timestamp">{formatTradeDateTime(offer.createdAt)}</p>
                     </div>
-                    <span className={`rounded-full border px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${offerStatusClass(offer.status)}`}>
+                    <span className={`trade-status-chip ${offerStatusClass(offer.status)}`}>
                       {offer.status}
                     </span>
                   </div>
 
-                  {offer.message ? <p className="mt-2 text-sm text-slate-700">{offer.message}</p> : null}
-                  <p className="mt-2 text-xs text-slate-500">
+                  {offer.message ? <p className="trade-offer-message">{offer.message}</p> : null}
+                  <p className="trade-offer-meta">
                     Cash adjustment: {offer.cashAdjustment >= 0 ? "+" : ""}{offer.cashAdjustment} cents
                     {offer.cashAdjustment !== 0 ? ` (${formatCurrency(Math.abs(offer.cashAdjustment), "USD")})` : ""}
                   </p>
@@ -781,7 +773,7 @@ export default function TradeDetailPage() {
                             {DUEL_OPTIONS.find((entry) => entry.value === (duel?.mode ?? offer.gameType))?.label ?? duel?.mode ?? offer.gameType}
                           </p>
                         </div>
-                        <span className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${duelStatusClass(duelStatus)}`}>
+                        <span className={`trade-status-chip ${duelStatusClass(duelStatus)}`}>
                           {duelStatus}
                         </span>
                       </div>
@@ -793,10 +785,10 @@ export default function TradeDetailPage() {
                         <p className="trade-offer-duel-meta">Clock: {Math.round(duel.durationSeconds / 60)} minutes</p>
                       ) : null}
                       <div className="trade-offer-duel-statuses">
-                        <span className={`rounded-full border px-2 py-1 ${ownerAgreed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-600"}`}>
+                        <span className={`trade-status-chip ${ownerAgreed ? "is-open" : ""}`}>
                           Owner {ownerAgreed ? "ready" : "pending"}
                         </span>
-                        <span className={`rounded-full border px-2 py-1 ${proposerAgreed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-600"}`}>
+                        <span className={`trade-status-chip ${proposerAgreed ? "is-open" : ""}`}>
                           Proposer {proposerAgreed ? "ready" : "pending"}
                         </span>
                       </div>
@@ -806,7 +798,7 @@ export default function TradeDetailPage() {
                             type="button"
                             onClick={() => void agreeToDuelTerms(offer.id)}
                             disabled={actingOfferId === offer.id}
-                            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 disabled:opacity-60"
+                            className="app-button app-button-secondary"
                           >
                             Approve duel
                           </button>
@@ -814,7 +806,7 @@ export default function TradeDetailPage() {
                         <button
                           type="button"
                           onClick={() => router.push(`/trades/${encodeURIComponent(post.id)}/duel?offer=${encodeURIComponent(offer.id)}`)}
-                          className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white"
+                          className="app-button app-button-primary"
                         >
                           {duelActionLabel}
                         </button>
@@ -831,66 +823,66 @@ export default function TradeDetailPage() {
                   ) : null}
 
                   {offer.cards.length > 0 ? (
-                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <div className="trade-offer-cards-grid">
                       {offer.cards.map((card) => (
-                        <div key={card.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/60 p-3">
-                          <p className="text-sm font-semibold text-slate-900">{card.title}</p>
-                          <p className="mt-1 text-xs text-slate-500">
+                        <div key={card.id} className="trade-offer-card-item">
+                          <p className="trade-offer-card-title">{card.title}</p>
+                          <p className="trade-offer-card-meta">
                             {[card.cardSet, card.cardNumber, card.condition].filter(Boolean).join(" • ") || "No extra card details"}
                           </p>
                           {(card.gradeCompany || card.gradeLabel) ? (
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className="trade-offer-card-meta">
                               {[card.gradeCompany, card.gradeLabel].filter(Boolean).join(" ")}
                             </p>
                           ) : null}
                           {card.estimatedValue ? (
-                            <p className="mt-1 text-xs text-slate-500">Est: {formatCurrency(card.estimatedValue, "USD")}</p>
+                            <p className="trade-offer-card-meta">Est: {formatCurrency(card.estimatedValue, "USD")}</p>
                           ) : null}
-                          {card.notes ? <p className="mt-1 text-xs text-slate-500">{card.notes}</p> : null}
+                          {card.notes ? <p className="trade-offer-card-meta">{card.notes}</p> : null}
                         </div>
                       ))}
                     </div>
                   ) : null}
 
                   {settlement ? (
-                    <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Cash settlement</p>
-                        <span className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${settlementStatusClass(settlement.status)}`}>
+                    <div className="trade-settlement-panel">
+                      <div className="trade-settlement-head">
+                        <p className="app-eyebrow">Cash settlement</p>
+                        <span className={`trade-status-chip ${settlementStatusClass(settlement.status)}`}>
                           {settlement.status}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-slate-700">
+                      <p className="trade-settlement-amount">
                         {formatCurrency(settlement.amount, (settlement.currency || "usd").toUpperCase())}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="trade-offer-meta">
                         {settlement.payer.displayName ?? settlement.payer.username ?? "Payer"} pays {settlement.payee.displayName ?? settlement.payee.username ?? "Payee"}
                       </p>
                       {settlement.status === "SUCCEEDED" ? (
-                        <p className="mt-2 text-xs text-emerald-700">Payment completed.</p>
+                        <p className="app-status-note is-success">Payment completed.</p>
                       ) : canPaySettlement ? (
                         <button
                           type="button"
                           onClick={() => void startCheckout(offer.id)}
                           disabled={startingCheckoutOfferId === offer.id}
-                          className="mt-2 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
+                          className="app-button app-button-primary"
                         >
                           {startingCheckoutOfferId === offer.id ? "Opening checkout..." : "Pay with Stripe"}
                         </button>
                       ) : (
-                        <p className="mt-2 text-xs text-slate-500">Waiting on payer to complete Stripe checkout.</p>
+                        <p className="trade-offer-meta">Waiting on payer to complete Stripe checkout.</p>
                       )}
                     </div>
                   ) : null}
 
                   {canAccept || canDecline ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="trade-offer-actions">
                       {canAccept ? (
                         <button
                           type="button"
                           onClick={() => void updateOfferStatus(offer.id, { status: "ACCEPTED" })}
                           disabled={actingOfferId === offer.id}
-                          className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
+                          className="app-button app-button-primary"
                         >
                           Accept
                         </button>
@@ -900,7 +892,7 @@ export default function TradeDetailPage() {
                           type="button"
                           onClick={() => openCounterDraft(offer)}
                           disabled={actingOfferId === offer.id}
-                          className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 disabled:opacity-60"
+                          className="app-button app-button-secondary"
                         >
                           Counter
                         </button>
@@ -910,19 +902,19 @@ export default function TradeDetailPage() {
                           type="button"
                           onClick={() => void updateOfferStatus(offer.id, { status: "DECLINED" })}
                           disabled={actingOfferId === offer.id}
-                          className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-red-700 disabled:opacity-60"
+                          className="app-button app-button-danger"
                         >
                           Decline
                         </button>
                       ) : null}
                     </div>
                   ) : canWithdraw ? (
-                    <div className="mt-3">
+                    <div className="trade-offer-actions">
                       <button
                         type="button"
                         onClick={() => void updateOfferStatus(offer.id, { status: "WITHDRAWN" })}
                         disabled={actingOfferId === offer.id}
-                        className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-red-700 disabled:opacity-60"
+                        className="app-button app-button-danger"
                       >
                         Withdraw
                       </button>
@@ -930,12 +922,12 @@ export default function TradeDetailPage() {
                   ) : null}
 
                   {counterDraft?.open ? (
-                    <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Counter offer</p>
+                    <div className="trade-counter-panel">
+                      <p className="app-eyebrow">Counter offer</p>
                       <textarea
                         value={counterDraft.message}
                         onChange={(event) => setCounterField(offer.id, "message", event.target.value)}
-                        className="mt-2 min-h-20 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+                        className="app-form-textarea"
                         placeholder="Counter message"
                       />
                       <input
@@ -945,7 +937,7 @@ export default function TradeDetailPage() {
                         inputMode="numeric"
                         placeholder="Counter cash adjustment (cents)"
                       />
-                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <div className="trade-counter-grid">
                         <select
                           value={counterDraft.resolution}
                           onChange={(event) => setCounterField(offer.id, "resolution", event.target.value)}
@@ -971,10 +963,10 @@ export default function TradeDetailPage() {
                           <textarea
                             value={counterDraft.duelTerms}
                             onChange={(event) => setCounterField(offer.id, "duelTerms", event.target.value)}
-                            className="mt-2 min-h-20 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+                            className="app-form-textarea"
                             placeholder="Duel terms (what happens if the challenger wins)"
                           />
-                          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                          <div className="trade-counter-grid">
                             <input
                               type="datetime-local"
                               value={counterDraft.duelScheduledFor}
@@ -991,19 +983,19 @@ export default function TradeDetailPage() {
                           </div>
                         </>
                       ) : null}
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <div className="trade-counter-actions">
                         <button
                           type="button"
                           onClick={() => void submitCounter(offer.id)}
                           disabled={actingOfferId === offer.id}
-                          className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white disabled:opacity-60"
+                          className="app-button app-button-primary"
                         >
                           Send counter
                         </button>
                         <button
                           type="button"
                           onClick={() => closeCounterDraft(offer.id)}
-                          className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700"
+                          className="app-button app-button-secondary"
                         >
                           Cancel
                         </button>

@@ -250,18 +250,18 @@ export function LiveKitStream({
     status !== "live" && !remoteVideoTrack && !localVideoTrack;
 
   return (
-    <div className={`relative h-full w-full ${className ?? ""}`}>
+    <div className={`livekit-stream-root ${className ?? ""}`}>
       {showFallback && displayFallbackVideo ? (
         <video
           src={displayFallbackVideo}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="livekit-stream-video"
           controls
           playsInline
         />
       ) : (
         <video
           ref={videoRef}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="livekit-stream-video"
           muted={isHost}
           playsInline
         />
@@ -279,13 +279,13 @@ export function LiveKitStream({
       )}
 
       {isHost && (
-        <div className="absolute right-4 top-14 z-40 flex flex-wrap items-center justify-end gap-2 md:top-16">
-          <span className="rounded-full bg-white/15 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white">
+        <div className="livekit-stream-host-controls">
+          <span className="stream-room-badge">
             {status === "live" ? "Live" : "Offline"}
           </span>
           <button
             onClick={status === "live" ? stopBroadcast : startBroadcast}
-            className="rounded-full bg-[var(--royal)] px-3 py-1 text-xs font-semibold text-white transition hover:bg-[var(--royal-deep)]"
+            className={`livekit-stream-go-btn${status === "live" ? " is-live" : ""}`}
           >
             {status === "live" ? "Stop stream" : "Go live"}
           </button>
@@ -293,15 +293,11 @@ export function LiveKitStream({
       )}
 
       {status === "connecting" && (
-        <div className="absolute bottom-4 left-4 rounded-full bg-white/15 px-3 py-1 text-xs text-white/70">
-          Connecting...
-        </div>
+        <div className="livekit-stream-connecting">Connecting...</div>
       )}
 
       {error && (
-        <div className="absolute bottom-4 left-4 rounded-full bg-red-500/20 px-3 py-1 text-xs text-red-100">
-          {error}
-        </div>
+        <div className="livekit-stream-error">{error}</div>
       )}
     </div>
   );

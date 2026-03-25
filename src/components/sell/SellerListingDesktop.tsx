@@ -258,7 +258,7 @@ export function SellerListingDesktop() {
             Signed in as {session?.user?.email ?? "seller"}.
           </p>
         ) : (
-          <div className="grid gap-2">
+          <div className="sell-alert-stack">
             <p className="app-status-note is-warning">
               {session?.user?.id
                 ? "Your account is not a seller yet. Submit seller verification for manual review."
@@ -378,7 +378,7 @@ export function SellerListingDesktop() {
                 </div>
 
                 {isGraded === "YES" ? (
-                  <div className="grid gap-12px">
+                  <div className="sell-grading-stack">
                     <p className="sell-hint">{gradingProfile.note}</p>
                     <div className="sell-form-cols">
                       <div className="app-form-field">

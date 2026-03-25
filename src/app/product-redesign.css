@@ -4493,6 +4493,394 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 /* ─── End Sell Form ──────────────────────────────────────────────────── */
 
+/* ─── Profile Pages ──────────────────────────────────────────────────── */
+
+.profile-page-screen {
+  display: grid;
+  gap: 20px;
+  padding-bottom: 40px;
+}
+
+.profile-page-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.profile-back-btn {
+  min-height: 32px;
+  font-size: var(--text-xs);
+}
+
+.profile-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  background: var(--product-surface);
+  border: 1px solid var(--product-border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--product-shadow-soft);
+}
+
+.profile-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-avatar {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid var(--product-border);
+  background: var(--product-surface-muted);
+  flex-shrink: 0;
+}
+
+.profile-card-identity {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.profile-display-name {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--product-text);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.profile-username,
+.profile-since {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--product-text-faint);
+}
+
+.profile-bio-block {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--product-surface-muted);
+  border: 1px solid var(--product-border);
+  border-radius: var(--r-lg);
+}
+
+.profile-bio-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--product-text-soft);
+  line-height: 1.6;
+}
+
+.profile-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.profile-meta-item {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  background: var(--product-surface-muted);
+  border: 1px solid var(--product-border);
+  border-radius: var(--r-md);
+}
+
+.profile-meta-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--product-text-faint);
+}
+
+.profile-meta-value {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--product-text);
+}
+
+.profile-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.profile-listings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profile-listing-item {
+  display: grid;
+  gap: 5px;
+  padding: 12px 14px;
+  background: var(--product-surface-muted);
+  border: 1px solid var(--product-border);
+  border-radius: var(--r-lg);
+  text-decoration: none;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              background var(--duration-fast) var(--ease-out);
+}
+
+.profile-listing-item:hover {
+  border-color: rgba(19, 34, 56, 0.14);
+  background: var(--product-surface);
+}
+
+.profile-listing-title {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--product-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-listing-meta {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--product-text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-listing-price {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--product-text);
+}
+
+/* ─── End Profile Pages ──────────────────────────────────────────────── */
+
+/* ─── Stream Schedule Page ───────────────────────────────────────────── */
+
+.schedule-day-list {
+  display: grid;
+  gap: 14px;
+}
+
+.schedule-day-group {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  background: var(--product-surface-muted);
+  border: 1px solid var(--product-border);
+  border-radius: var(--r-xl);
+}
+
+.schedule-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.schedule-day-label {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--product-text);
+}
+
+.schedule-entry-list {
+  display: grid;
+  gap: 6px;
+}
+
+.schedule-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--product-surface);
+  border: 1px solid var(--product-border);
+  border-radius: var(--r-md);
+}
+
+.schedule-entry-copy {
+  min-width: 0;
+}
+
+.schedule-entry-title {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--product-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-entry-seller {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--product-text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-entry-time {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.schedule-entry-status {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--product-text-soft);
+}
+
+.schedule-entry-clock {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--product-text-faint);
+}
+
+/* ─── End Stream Schedule Page ───────────────────────────────────────── */
+
+/* ─── App Loading Screen ─────────────────────────────────────────────── */
+
+.app-loading-screen {
+  display: flex;
+  min-height: calc(100vh - 180px);
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+/* ─── End App Loading Screen ─────────────────────────────────────────── */
+
+/* ─── Landing Slideshow ──────────────────────────────────────────────── */
+
+.landing-slideshow {
+  padding: 20px;
+  background: var(--product-surface);
+  border: 1px solid var(--product-border);
+  border-radius: var(--r-2xl);
+  box-shadow: var(--product-shadow-soft);
+}
+
+.landing-slideshow-layout {
+  display: grid;
+  gap: 20px;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .landing-slideshow-layout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+
+.landing-slideshow-copy {
+  display: grid;
+  gap: 14px;
+}
+
+.landing-slideshow-title {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--product-text);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.landing-slideshow-blurb {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: var(--product-text-soft);
+}
+
+.landing-slideshow-metric {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--product-surface-muted);
+  border: 1px solid var(--product-border);
+  border-radius: var(--r-lg);
+}
+
+.landing-slideshow-metric-value {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 800;
+  color: var(--product-text);
+  letter-spacing: -0.01em;
+}
+
+.landing-slideshow-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.landing-slideshow-dot {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--product-border);
+  border: 0;
+  cursor: pointer;
+  transition: width var(--duration-fast) var(--ease-out),
+              background var(--duration-fast) var(--ease-out);
+  width: 10px;
+}
+
+.landing-slideshow-dot.is-active {
+  width: 28px;
+  background: var(--product-text);
+}
+
+.landing-slideshow-media {
+  display: grid;
+  gap: 8px;
+}
+
+.landing-slideshow-img-primary {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--product-border);
+  background: #000;
+}
+
+.landing-slideshow-img-secondary {
+  position: relative;
+  height: 96px;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--product-border);
+  background: #000;
+}
+
+.landing-slideshow-img-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ─── End Landing Slideshow ──────────────────────────────────────────── */
+
 .auth-page,
 .referral-page,
 .trade-compose-page,
@@ -6856,6 +7244,16 @@ html[data-theme="dark"] .streams-scheduled-item {
   justify-content: center;
 }
 
+@media (max-width: 600px) {
+  .profile-meta-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .profile-listings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 1100px) {
   .live-auction-room {
     grid-template-columns: 1fr;
@@ -8031,4 +8429,921 @@ html[data-theme="dark"] .streams-scheduled-item {
   .live-v3-spotlight-grid {
     grid-auto-columns: minmax(188px, 82vw);
   }
+}
+
+/* ── Theme toggle ─────────────────────────────────────────── */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--product-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--product-text);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.theme-toggle:hover {
+  border-color: var(--product-border-strong);
+}
+
+.theme-toggle-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--royal);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.22);
+  flex-shrink: 0;
+}
+
+html[data-theme="dark"] .theme-toggle {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Auth buttons ─────────────────────────────────────────── */
+
+.auth-buttons-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-username-field {
+  display: grid;
+  gap: 4px;
+}
+
+.app-form-hint {
+  font-size: 11px;
+  color: var(--product-text-soft);
+}
+
+.app-form-hint.is-warning {
+  color: #92400e;
+}
+
+html[data-theme="dark"] .app-form-hint.is-warning {
+  color: #fbbf24;
+}
+
+/* ── App shell content layer ──────────────────────────────── */
+
+.app-shell-content {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ── LiveKit stream ───────────────────────────────────────── */
+
+.livekit-stream-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.livekit-stream-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.livekit-stream-host-controls {
+  position: absolute;
+  right: 16px;
+  top: 56px;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .livekit-stream-host-controls {
+    top: 64px;
+  }
+}
+
+.livekit-stream-go-btn {
+  border-radius: 999px;
+  background: var(--royal);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.livekit-stream-go-btn:hover {
+  background: var(--royal-deep);
+}
+
+.livekit-stream-go-btn.is-live {
+  background: rgba(239, 68, 68, 0.85);
+}
+
+.livekit-stream-connecting {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.livekit-stream-error {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.2);
+  padding: 4px 12px;
+  font-size: 12px;
+  color: rgba(254, 202, 202, 1);
+}
+
+/* ── Stream room desktop overlays ─────────────────────────── */
+
+.stream-room-video-overlay-gradient {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.15) 45%, transparent);
+}
+
+.stream-room-video-top {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stream-room-video-top-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stream-room-video-fullscreen-btn {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(15, 23, 42, 0.4);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.stream-room-video-bottom {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  color: white;
+}
+
+.stream-room-video-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.stream-room-video-meta {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.stream-room-video-price {
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.6);
+  padding: 8px 16px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.stream-room-video-price-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.stream-room-video-price-value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: white;
+}
+
+.stream-room-fullscreen-panels {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  top: 64px;
+  width: 340px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.stream-room-fullscreen-panel {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(2, 6, 23, 0.65);
+  padding: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.stream-room-panel-eyebrow {
+  margin-bottom: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.stream-room-panel-list {
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 4px;
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.stream-room-panel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 8px;
+}
+
+.stream-room-panel-bubble {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 8px;
+}
+
+.stream-room-panel-sender {
+  display: block;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 2px;
+}
+
+.stream-room-panel-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--product-text);
+}
+
+.stream-room-action-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.stream-room-chat-bubble {
+  border-radius: 16px;
+  padding: 8px 12px;
+  font-size: 13px;
+  background: var(--product-surface-raised);
+  color: var(--product-text-soft);
+}
+
+.stream-room-chat-bubble.is-own {
+  margin-left: auto;
+  background: rgba(var(--royal-rgb, 22, 28, 43), 0.08);
+  color: var(--product-text);
+}
+
+.stream-room-chat-sender {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--product-text-soft);
+  margin-bottom: 2px;
+}
+
+.stream-room-bid-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 16px;
+  border: 1px solid var(--product-border);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 8px 12px;
+}
+
+html[data-theme="dark"] .stream-room-bid-row {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.stream-room-bid-bidder {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--product-text-soft);
+}
+
+.stream-room-bid-amount {
+  font-weight: 600;
+  color: var(--product-text);
+}
+
+/* ── Trade status chip ────────────────────────────────────── */
+
+.trade-status-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--product-border);
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--product-text-soft);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.trade-status-chip.is-open {
+  border-color: rgba(16, 185, 129, 0.2);
+  background: rgba(236, 253, 245, 0.9);
+  color: #047857;
+}
+
+.trade-status-chip.is-matched {
+  border-color: rgba(100, 116, 139, 0.2);
+  background: rgba(241, 245, 249, 0.9);
+  color: #475569;
+}
+
+.trade-status-chip.is-paused {
+  border-color: rgba(245, 158, 11, 0.2);
+  background: rgba(255, 251, 235, 0.9);
+  color: #92400e;
+}
+
+.trade-status-chip.is-error {
+  border-color: rgba(220, 38, 38, 0.2);
+  background: rgba(254, 242, 242, 0.9);
+  color: #b91c1c;
+}
+
+.trade-status-chip.is-ready {
+  border-color: rgba(14, 165, 233, 0.2);
+  background: rgba(240, 249, 255, 0.9);
+  color: #0369a1;
+}
+
+html[data-theme="dark"] .trade-status-chip {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ── Trade offers ─────────────────────────────────────────── */
+
+.trade-offers-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.trade-offer-row-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.trade-offer-proposer {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--product-text);
+}
+
+.trade-offer-timestamp {
+  font-size: 12px;
+  color: var(--product-text-soft);
+}
+
+.trade-offer-message {
+  font-size: 14px;
+  color: var(--product-text);
+  margin-top: 8px;
+}
+
+.trade-offer-meta {
+  font-size: 12px;
+  color: var(--product-text-soft);
+  margin-top: 4px;
+}
+
+.trade-offer-cards-grid {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (min-width: 600px) {
+  .trade-offer-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.trade-offer-card-item {
+  border-radius: 16px;
+  border: 1px solid rgba(var(--product-border-rgb, 0, 0, 0), 0.08);
+  background: rgba(248, 250, 252, 0.6);
+  padding: 12px;
+}
+
+html[data-theme="dark"] .trade-offer-card-item {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.trade-offer-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--product-text);
+}
+
+.trade-offer-card-meta {
+  font-size: 12px;
+  color: var(--product-text-soft);
+  margin-top: 4px;
+}
+
+.trade-detail-gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trade-settlement-panel {
+  margin-top: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--product-border);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 12px;
+}
+
+html[data-theme="dark"] .trade-settlement-panel {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.trade-settlement-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.trade-settlement-amount {
+  font-size: 14px;
+  color: var(--product-text);
+  margin-top: 4px;
+}
+
+.trade-settlement-parties {
+  font-size: 12px;
+  color: var(--product-text-soft);
+  margin-top: 4px;
+}
+
+.trade-offer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.trade-counter-panel {
+  margin-top: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--product-border);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+html[data-theme="dark"] .trade-counter-panel {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.trade-counter-grid {
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 600px) {
+  .trade-counter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.trade-counter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ── App button danger variant ────────────────────────────── */
+
+.app-button-danger {
+  border-color: rgba(220, 38, 38, 0.2);
+  background: rgba(254, 242, 242, 0.9);
+  color: #b91c1c;
+}
+
+.app-button-danger:hover {
+  border-color: rgba(220, 38, 38, 0.35);
+  background: rgba(254, 226, 226, 0.95);
+}
+
+/* ── App button approve variant ───────────────────────────── */
+
+.app-button-approve {
+  border-color: rgba(16, 185, 129, 0.2);
+  background: rgba(236, 253, 245, 0.9);
+  color: #047857;
+}
+
+.app-button-approve:hover {
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+/* ── Sell quick form additions ────────────────────────────── */
+
+.sell-alert-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.sell-grading-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.sell-field-group {
+  display: grid;
+  gap: 6px;
+}
+
+.listing-form-stage-grid {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .listing-form-stage-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.sell-quick-lookup {
+  border-radius: 16px;
+  border: 1px solid var(--product-border);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 12px;
+  font-size: 12px;
+  color: var(--product-text-soft);
+}
+
+html[data-theme="dark"] .sell-quick-lookup {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sell-preview-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--product-text);
+}
+
+.sell-preview-subtitle {
+  font-size: 14px;
+  color: var(--product-text-soft);
+  margin-top: 4px;
+}
+
+.sell-quick-rows-grid {
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 600px) {
+  .sell-quick-rows-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.sell-quick-row {
+  border-radius: 12px;
+  border: 1px solid var(--product-border);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 12px;
+}
+
+html[data-theme="dark"] .sell-quick-row {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sell-quick-row-value {
+  font-size: 14px;
+  color: var(--product-text);
+  margin-top: 4px;
+}
+
+/* ── Settings profile form body ───────────────────────────── */
+
+.settings-profile-form-body {
+  display: grid;
+  gap: 16px;
+}
+
+/* ── Admin pages ──────────────────────────────────────────── */
+
+.admin-page {
+  display: grid;
+  gap: 32px;
+}
+
+.admin-page-head {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-page-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--product-text);
+}
+
+.admin-page-subtitle {
+  font-size: 14px;
+  color: var(--product-text-soft);
+}
+
+.admin-panel {
+  border-radius: 28px;
+  background: var(--product-surface);
+  border: 1px solid var(--product-border);
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.admin-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-nav-tab {
+  border-radius: 999px;
+  border: 1px solid var(--product-border);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 6px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--product-text-soft);
+  text-decoration: none;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.admin-nav-tab.is-active {
+  background: var(--royal);
+  border-color: var(--royal);
+  color: white;
+}
+
+.admin-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-list {
+  display: grid;
+  gap: 20px;
+}
+
+.admin-profiles-grid {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 1024px) {
+  .admin-profiles-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.admin-card {
+  border-radius: 24px;
+  background: var(--product-surface);
+  border: 1px solid var(--product-border);
+  padding: 20px 24px;
+  display: grid;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--product-text-soft);
+}
+
+.admin-card-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-card-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--product-text);
+}
+
+.admin-card-meta-text {
+  font-size: 12px;
+  color: var(--product-text-soft);
+}
+
+.admin-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-badge {
+  border-radius: 999px;
+  border: 1px solid var(--product-border);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 4px 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--product-text-soft);
+  flex-shrink: 0;
+}
+
+html[data-theme="dark"] .admin-badge {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-tag {
+  border-radius: 999px;
+  border: 1px solid var(--product-border);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--product-text-soft);
+}
+
+html[data-theme="dark"] .admin-tag {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-card-bio {
+  font-size: 12px;
+  color: var(--product-text-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.admin-card-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-verifications {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-verification-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 8px 16px;
+}
+
+html[data-theme="dark"] .admin-verification-row {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-verification-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--product-text-soft);
+}
+
+.admin-verification-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-verification-btn {
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--product-text-soft);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.admin-verification-btn.is-passed {
+  background: rgba(236, 253, 245, 0.9);
+  color: #047857;
+}
+
+.admin-verification-btn.is-failed {
+  background: rgba(254, 242, 242, 0.9);
+  color: #b91c1c;
+}
+
+.admin-verification-btn.is-pending {
+  background: rgba(241, 245, 249, 0.9);
+  color: #475569;
+}
+
+.admin-notes-input {
+  width: 100%;
+}
+
+.admin-notes-text {
+  font-size: 12px;
+  color: var(--product-text-soft);
+}
+
+.admin-empty {
+  border-radius: 16px;
+  border: 1px dashed var(--product-border);
+  background: rgba(255, 255, 255, 0.6);
+  padding: 32px 24px;
+  font-size: 14px;
+  color: var(--product-text-soft);
+  text-align: center;
+}
+
+html[data-theme="dark"] .admin-empty {
+  background: rgba(255, 255, 255, 0.02);
 }

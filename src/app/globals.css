@@ -57,6 +57,8 @@ html[data-theme="dark"] {
 }
 
 body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background-color: var(--background);
   background-image:
     radial-gradient(circle at 12% 18%, var(--halo-1), transparent 42%),

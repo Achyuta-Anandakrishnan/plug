@@ -36,11 +36,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body>
         <AppProviders>
           <NativeShell />
-          <div className="app-shell relative min-h-screen">
-            <div className="relative z-10 min-h-screen">
+          <div className="app-shell">
+            <div className="app-shell-content">
               <SiteChrome>{children}</SiteChrome>
             </div>
           </div>

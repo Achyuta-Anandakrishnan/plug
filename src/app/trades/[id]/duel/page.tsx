@@ -330,11 +330,7 @@ export default function TradeDuelPage() {
           )}
         />
 
-        {error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
-          </div>
-        ) : null}
+        {error ? <p className="app-status-note is-error">{error}</p> : null}
 
         <section className="trade-duel-layout">
           <div className="trade-duel-main">

@@ -28,33 +28,22 @@ export function AuthButtons() {
   }, []);
 
   if (status === "loading") {
-    return (
-      <div className="rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 text-xs text-slate-500">
-        Checking session...
-      </div>
-    );
+    return <p className="app-status-note">Checking session...</p>;
   }
 
   if (session?.user?.id) {
     const needsSetup = !session.user.username || !session.user.displayName;
     return (
-      <div className="grid gap-3">
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-700">
+      <div className="auth-buttons-stack">
+        <p className="app-status-note is-success">
           Signed in as {session.user.email ?? session.user.name ?? "account"}.
-        </div>
+        </p>
         {needsSetup ? (
-          <Link
-            href="/settings?setup=1"
-            className="rounded-full bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white"
-          >
+          <Link href="/settings?setup=1" className="app-button app-button-primary">
             Complete profile setup
           </Link>
         ) : null}
-        <button
-          type="button"
-          onClick={() => signOut()}
-          className="rounded-full border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300"
-        >
+        <button type="button" onClick={() => signOut()} className="app-button app-button-secondary">
           Sign out
         </button>
       </div>
@@ -70,22 +59,20 @@ export function AuthButtons() {
     : "/settings?setup=1";
 
   return (
-    <div className="grid gap-3">
-      <div className="grid gap-1">
-        <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-          Username
-        </label>
+    <div className="auth-buttons-stack">
+      <div className="auth-username-field">
+        <label className="app-eyebrow">Username</label>
         <input
           value={username}
           onChange={(event) => setUsername(event.target.value)}
           placeholder="Optional username"
-          className="rounded-full border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400"
+          className="app-form-input"
         />
-        <p className="text-[11px] text-slate-500">
+        <p className="app-form-hint">
           Optional. Set it now or finish profile setup after sign-in.
         </p>
         {username.trim() && !usernameValid ? (
-          <p className="text-[11px] text-amber-600">
+          <p className="app-form-hint is-warning">
             We&apos;ll ignore this until it matches 3-24 lowercase letters, numbers, or underscores.
           </p>
         ) : null}
@@ -94,7 +81,7 @@ export function AuthButtons() {
         type="button"
         onClick={() => signIn("google", { callbackUrl })}
         disabled={!googleAvailable}
-        className="rounded-full border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
+        className="app-button app-button-secondary"
       >
         {!googleAvailable ? "Google not configured" : "Continue with Google"}
       </button>
@@ -102,7 +89,7 @@ export function AuthButtons() {
         type="button"
         onClick={() => signIn("apple", { callbackUrl })}
         disabled={!appleAvailable}
-        className="rounded-full border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
+        className="app-button app-button-secondary"
       >
         {!appleAvailable ? "Apple not configured" : "Continue with Apple"}
       </button>

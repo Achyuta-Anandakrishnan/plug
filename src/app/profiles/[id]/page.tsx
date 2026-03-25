@@ -63,71 +63,73 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="ios-screen">
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <Link
-          href="/explore"
-          className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700"
-        >
+    <div className="profile-page-screen">
+      <div className="profile-page-top-row">
+        <Link href="/explore" className="app-button app-button-secondary profile-back-btn">
           Back
         </Link>
         <MessageUserButton targetUserId={profile.id} />
       </div>
 
-      <section className="ios-panel p-5">
-        <div className="flex items-center gap-4">
-          <div className="relative h-14 w-14 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+      <section className="profile-card">
+        <div className="profile-card-header">
+          <div className="profile-avatar">
             {profile.image ? (
               <Image src={profile.image} alt={profile.displayName ?? "User"} fill sizes="56px" className="object-cover" unoptimized />
             ) : null}
           </div>
-          <div>
-            <h1 className="font-display text-3xl text-slate-900">{profile.displayName ?? profile.name ?? "User"}</h1>
-            <p className="text-xs text-slate-500">Member since {new Date(profile.createdAt).toLocaleDateString()}</p>
+          <div className="profile-card-identity">
+            <h1 className="profile-display-name">
+              {profile.displayName ?? profile.name ?? "User"}
+            </h1>
+            <p className="profile-since">
+              Member since {new Date(profile.createdAt).toLocaleDateString()}
+            </p>
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-white/70 bg-white/70 px-3 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-            Bio
-          </p>
-          <p className="mt-1 text-sm text-slate-700">
-            {profile.bio ?? "No bio added yet."}
-          </p>
+        <div className="profile-bio-block">
+          <p className="app-eyebrow">Bio</p>
+          <p className="profile-bio-text">{profile.bio ?? "No bio added yet."}</p>
         </div>
 
-        <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
-          <div className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2">
-            Role: <span className="font-semibold text-slate-900">{profile.role}</span>
+        <div className="profile-meta-grid">
+          <div className="profile-meta-item">
+            <span className="profile-meta-label">Role</span>
+            <span className="profile-meta-value">{profile.role}</span>
           </div>
-          <div className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2">
-            Seller status: <span className="font-semibold text-slate-900">{profile.sellerProfile?.status ?? "N/A"}</span>
+          <div className="profile-meta-item">
+            <span className="profile-meta-label">Seller status</span>
+            <span className="profile-meta-value">{profile.sellerProfile?.status ?? "N/A"}</span>
           </div>
-          <div className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2">
-            Trust tier: <span className="font-semibold text-slate-900">{profile.sellerProfile?.trustTier ?? "-"}</span>
+          <div className="profile-meta-item">
+            <span className="profile-meta-label">Trust tier</span>
+            <span className="profile-meta-value">{profile.sellerProfile?.trustTier ?? "–"}</span>
           </div>
         </div>
       </section>
 
-      <section className="ios-panel p-5">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="font-display text-lg text-slate-900">Live / Scheduled listings</h2>
-          <span className="text-xs uppercase tracking-[0.2em] text-slate-400">{profile.sellerProfile?.auctions.length ?? 0} active</span>
+      <section className="profile-card">
+        <div className="profile-section-head">
+          <h2 className="app-section-title">Live / Scheduled listings</h2>
+          <span className="market-count">{profile.sellerProfile?.auctions.length ?? 0} active</span>
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="profile-listings-grid">
           {(profile.sellerProfile?.auctions ?? []).map((listing) => (
-            <Link key={listing.id} href={`/streams/${listing.id}`} className="rounded-2xl border border-white/70 bg-white/70 p-3">
-              <p className="text-base font-semibold text-slate-900">{listing.title}</p>
-              <p className="mt-1 text-xs text-slate-500">{listing.category?.name ?? "Collectible"} · {listing.status}</p>
-              <p className="mt-2 text-sm text-slate-700">Current {formatCurrency(listing.currentBid, listing.currency?.toUpperCase() ?? "USD")}</p>
+            <Link key={listing.id} href={`/streams/${listing.id}`} className="profile-listing-item">
+              <p className="profile-listing-title">{listing.title}</p>
+              <p className="profile-listing-meta">
+                {listing.category?.name ?? "Collectible"} · {listing.status}
+              </p>
+              <p className="profile-listing-price">
+                {formatCurrency(listing.currentBid, listing.currency?.toUpperCase() ?? "USD")}
+              </p>
             </Link>
           ))}
-          {(profile.sellerProfile?.auctions?.length ?? 0) === 0 && (
-            <div className="app-status-note">
-              No active listings.
-            </div>
-          )}
+          {(profile.sellerProfile?.auctions?.length ?? 0) === 0 ? (
+            <p className="app-status-note">No active listings.</p>
+          ) : null}
         </div>
       </section>
     </div>

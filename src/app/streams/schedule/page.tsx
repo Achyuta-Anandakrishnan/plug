@@ -88,32 +88,29 @@ export default async function StreamSchedulePage() {
         {sortedKeys.length === 0 ? (
           <EmptyStateCard title="No scheduled streams yet." description="Once hosts publish sessions, they will appear here." />
         ) : (
-          <div className="product-card trade-dispute-card">
-          <div className="grid gap-3">
+          <div className="schedule-day-list">
             {sortedKeys.map((key) => {
               const firstTime = key === "TBD" ? null : new Date(`${key}T00:00:00`);
               const dayEntries = grouped[key];
               return (
-                <div key={key} className="ios-panel-muted rounded-[24px] px-4 py-4 text-sm text-slate-600">
-                  <div className="flex items-center justify-between">
-                    <p className="font-display text-base text-slate-900">{dayLabel(firstTime)}</p>
-                    <span className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                <div key={key} className="schedule-day-group">
+                  <div className="schedule-day-head">
+                    <p className="schedule-day-label">{dayLabel(firstTime)}</p>
+                    <span className="market-count">
                       {dayEntries.length} stream{dayEntries.length === 1 ? "" : "s"}
                     </span>
                   </div>
 
-                  <div className="mt-3 grid gap-2">
+                  <div className="schedule-entry-list">
                     {dayEntries.map((entry) => (
-                      <div key={entry.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white/70 px-3 py-2">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-slate-900">{entry.title}</p>
-                          <p className="truncate text-xs text-slate-500">{entry.sellerName}</p>
+                      <div key={entry.id} className="schedule-entry">
+                        <div className="schedule-entry-copy">
+                          <p className="schedule-entry-title">{entry.title}</p>
+                          <p className="schedule-entry-seller">{entry.sellerName}</p>
                         </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-                            {entry.status}
-                          </p>
-                          <p className="text-xs text-slate-500">{timeLabel(entry.startTime)}</p>
+                        <div className="schedule-entry-time">
+                          <p className="schedule-entry-status">{entry.status}</p>
+                          <p className="schedule-entry-clock">{timeLabel(entry.startTime)}</p>
                         </div>
                       </div>
                     ))}
@@ -121,7 +118,6 @@ export default async function StreamSchedulePage() {
                 </div>
               );
             })}
-          </div>
           </div>
         )}
       </section>

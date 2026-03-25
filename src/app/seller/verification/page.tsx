@@ -180,7 +180,7 @@ export default function SellerVerificationPage() {
               </label>
 
               <label className="app-form-check">
-                <input name="agreeToTerms" type="checkbox" required className="mt-0.5" />
+                <input name="agreeToTerms" type="checkbox" required />
                 <span>I confirm all information is accurate and understand seller approval is manual and can be rejected.</span>
               </label>
 

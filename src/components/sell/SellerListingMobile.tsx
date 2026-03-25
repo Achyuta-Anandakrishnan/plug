@@ -274,7 +274,7 @@ export function SellerListingMobile() {
               Signed in as {session?.user?.email ?? "seller"}.
             </p>
           ) : (
-            <div className="grid gap-2">
+            <div className="sell-alert-stack">
               {session?.user?.id ? (
                 <p className="app-status-note is-warning">
                   Your account is not a seller yet. Submit seller verification for manual review.
