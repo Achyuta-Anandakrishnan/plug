@@ -4,69 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import { LiveFilters } from "@/components/live/LiveFilters";
 import { LiveNowRail } from "@/components/live/LiveNowRail";
-import { StreamerSpotlight } from "@/components/live/StreamerSpotlight";
-import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveTimingFilter, SpotlightHost } from "@/components/live/types";
+import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveTimingFilter } from "@/components/live/types";
 import { UpcomingStreamsSection } from "@/components/live/UpcomingStreamsSection";
 import { EmptyStateCard, PageContainer, PageHeader } from "@/components/product/ProductUI";
 import { useMobileUi } from "@/hooks/useMobileUi";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { useStreamReminders } from "@/hooks/useStreamReminders";
-import { useUserFollows } from "@/hooks/useUserFollows";
-import { categoryMatches, isVisibleLiveStream, isVisibleUpcomingStream, searchMatches, sortLiveStreams, sortUpcomingStreams, streamCategory, streamHost, withStreamState } from "@/components/live/utils";
+import { categoryMatches, isVisibleLiveStream, isVisibleUpcomingStream, searchMatches, sortLiveStreams, sortUpcomingStreams, withStreamState } from "@/components/live/utils";
 import { useAuctions } from "@/hooks/useAuctions";
-
-function formatNextStream(value: string | null) {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-function buildSpotlightHosts(live: LiveStreamItem[], upcoming: LiveStreamItem[]): SpotlightHost[] {
-  const map = new Map<string, SpotlightHost>();
-
-  for (const stream of [...live, ...upcoming]) {
-    const sellerId = stream.seller?.user?.id ?? `host-${stream.id}`;
-    const name = streamHost(stream);
-    const profileHref = stream.seller?.user?.id ? `/profiles/${stream.seller.user.id}` : "/explore";
-    const existing = map.get(sellerId);
-    const streamAt = formatNextStream(stream.startTime);
-    if (!existing) {
-      map.set(sellerId, {
-        id: sellerId,
-        name,
-        specialty: streamCategory(stream),
-        followers: 0,
-        isLive: stream.streamState === "live",
-        nextStreamAt: stream.streamState === "upcoming" ? streamAt : null,
-        profileHref,
-        streamHref: `/streams/${stream.id}`,
-        followable: Boolean(stream.seller?.user?.id),
-      });
-      continue;
-    }
-
-    if (stream.streamState === "live") {
-      existing.isLive = true;
-      existing.streamHref = `/streams/${stream.id}`;
-    }
-    if (stream.streamState === "upcoming" && !existing.nextStreamAt) {
-      existing.nextStreamAt = streamAt;
-    }
-  }
-
-  return [...map.values()]
-    .sort((a, b) => {
-      if (a.isLive !== b.isLive) return a.isLive ? -1 : 1;
-      return b.followers - a.followers;
-    })
-    .slice(0, 6);
-}
 
 function applyStreamFilters(
   items: LiveStreamItem[],
@@ -140,23 +85,10 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
     [upcomingStreams, query, category, sort],
   );
 
-  const spotlightHosts = useMemo(
-    () => buildSpotlightHosts(filteredLive, filteredUpcoming),
-    [filteredLive, filteredUpcoming],
-  );
-  const followableHostIds = useMemo(
-    () => spotlightHosts.filter((host) => host.followable).map((host) => host.id),
-    [spotlightHosts],
-  );
-  const { counts: followerCounts, followedIds, toggleFollow } = useUserFollows(
-    followableHostIds,
-  );
-
   const hasError = liveError || upcomingError;
   const loading = liveLoading || upcomingLoading;
   const liveLimit = isMobileUi ? 8 : timing === "live" ? 24 : 12;
   const upcomingLimit = isMobileUi ? 4 : timing === "upcoming" ? 12 : 6;
-  const spotlightLimit = isMobileUi ? 4 : 6;
 
   if (isMobileUi) {
     return (
@@ -192,14 +124,6 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
               reminders={reminderIds}
               onToggleReminder={toggleReminder}
               limit={upcomingLimit}
-              compact
-            />
-
-            <StreamerSpotlight
-              hosts={spotlightHosts.slice(0, spotlightLimit)}
-              followerCounts={followerCounts}
-              followedIds={followedIds}
-              onToggleFollow={toggleFollow}
               compact
             />
           </div>
@@ -252,20 +176,6 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
             reminders={reminderIds}
             onToggleReminder={toggleReminder}
             limit={upcomingLimit}
-            compact={isMobileUi}
-          />
-        </div>
-      )}
-
-      {loading ? (
-        <CheckersLoader title="Loading host activity..." compact className="live-v3-empty" />
-      ) : (
-        <div className="listing-system-feed">
-          <StreamerSpotlight
-            hosts={spotlightHosts.slice(0, spotlightLimit)}
-            followerCounts={followerCounts}
-            followedIds={followedIds}
-            onToggleFollow={toggleFollow}
             compact={isMobileUi}
           />
         </div>

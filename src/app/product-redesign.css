@@ -10179,7 +10179,7 @@ html[data-theme="dark"] .site-account-popover {
 .listing-card {
   position: relative;
   display: block;
-  aspect-ratio: 7 / 10;
+  aspect-ratio: 11 / 16;
   overflow: hidden;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -10335,9 +10335,9 @@ html[data-theme="dark"] .site-account-popover {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 12px;
+  padding: 13px 12px 14px;
   display: grid;
-  gap: 8px;
+  gap: 9px;
   z-index: 3;
 }
 
@@ -10349,9 +10349,9 @@ html[data-theme="dark"] .site-account-popover {
 .listing-card .listing-card-title {
   margin: 0;
   color: white;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.18;
   letter-spacing: -0.01em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -10372,8 +10372,8 @@ html[data-theme="dark"] .site-account-popover {
 /* ── Stats row ──────────────────────────────────────────────────── */
 .listing-card .listing-card-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.96fr);
+  gap: 7px;
 }
 
 .listing-card .listing-card-stat {
@@ -10383,10 +10383,13 @@ html[data-theme="dark"] .site-account-popover {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  min-height: 44px;
+  display: grid;
+  align-content: center;
 }
 
 .listing-card .listing-card-stat.is-right {
-  text-align: right;
+  text-align: left;
 }
 
 .listing-card .listing-card-stat-label {
@@ -10400,13 +10403,16 @@ html[data-theme="dark"] .site-account-popover {
 
 .listing-card .listing-card-stat-value {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: white;
-  line-height: 1;
+  line-height: 1.18;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.listing-card .listing-card-stat-label {
+  display: none;
 }
 
 /* ── Save/watch button ──────────────────────────────────────────── */
@@ -10455,7 +10461,6 @@ html[data-theme="dark"] .site-account-popover {
 .trade-board-grid,
 .live-v3-live-grid,
 .live-v3-upcoming-grid,
-.live-v3-spotlight-grid,
 .live-v3-featured-grid,
 .bounty-board-grid {
   display: grid;
@@ -10471,7 +10476,6 @@ html[data-theme="dark"] .site-account-popover {
 .trade-board-grid.is-sparse,
 .live-v3-live-grid.is-sparse,
 .live-v3-upcoming-grid.is-sparse,
-.live-v3-spotlight-grid.is-sparse,
 .bounty-board-grid.is-sparse {
   grid-template-columns: repeat(auto-fit, minmax(200px, 240px));
   justify-content: start;
@@ -10484,7 +10488,6 @@ html[data-theme="dark"] .site-account-popover {
   .trade-board-grid,
   .live-v3-live-grid,
   .live-v3-upcoming-grid,
-  .live-v3-spotlight-grid,
   .live-v3-featured-grid,
   .bounty-board-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -10495,7 +10498,6 @@ html[data-theme="dark"] .site-account-popover {
   .trade-board-grid.is-sparse,
   .live-v3-live-grid.is-sparse,
   .live-v3-upcoming-grid.is-sparse,
-  .live-v3-spotlight-grid.is-sparse,
   .bounty-board-grid.is-sparse {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     justify-content: stretch;
@@ -10511,6 +10513,22 @@ html[data-theme="dark"] .site-account-popover {
 
   .listing-card .listing-card-stat {
     padding: 5px 7px;
+  }
+
+  .listing-card {
+    aspect-ratio: 5 / 8;
+  }
+
+  .listing-card .listing-card-title {
+    font-size: 11px;
+  }
+
+  .listing-card .listing-card-stat {
+    min-height: 38px;
+  }
+
+  .listing-card .listing-card-stat-value {
+    font-size: 10px;
   }
 }
 

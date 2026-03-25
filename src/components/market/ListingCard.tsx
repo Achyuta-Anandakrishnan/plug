@@ -13,8 +13,6 @@ import { tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
 import {
   bountyAmountLabel,
   bountyBudgetLabel,
-  compactBountyActivity,
-  compactBountyMeta,
   type BountyRequestListItem,
 } from "@/lib/bounties";
 
@@ -59,65 +57,20 @@ type ListingSurfaceData = {
   title: string;
   badgeLabel: string;
   badgeClassName: string;
-  metaLabel: string;
   priceLabel: string;
-  secondaryLabel?: string | null;
   activityLabel: string;
   sellerLabel: string;
   saveInactiveLabel: string;
   saveActiveLabel: string;
   hasImage: boolean;
+  statsLabelLeft?: string | null;
+  statsLabelRight?: string | null;
 };
 
 function compactName(value: string) {
   const trimmed = value.trim();
   if (trimmed.length <= 22) return trimmed;
   return `${trimmed.slice(0, 19)}...`;
-}
-
-function cleanText(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function shortenCert(value: string) {
-  const cert = value.trim();
-  if (!cert) return "";
-  if (cert.length <= 8) return cert;
-  if (cert.length <= 12) return `${cert.slice(0, 4)}…${cert.slice(-4)}`;
-  return cert.slice(-8);
-}
-
-function compactSummary(parts: Array<string | null | undefined>) {
-  return parts
-    .map((entry) => (typeof entry === "string" ? entry.trim() : ""))
-    .filter(Boolean)
-    .slice(0, 3)
-    .join(" • ");
-}
-
-function compactMarketMetadata(listing: MarketListing) {
-  const attributes = listing.item?.attributes;
-  const company = cleanText(attributes?.gradingCompany);
-  const grade = cleanText(attributes?.grade);
-  const label = cleanText(attributes?.gradingLabel);
-  const cert = cleanText(attributes?.certNumber);
-  const setName = cleanText(attributes?.set) || cleanText(attributes?.brand);
-  const player = cleanText(attributes?.player) || cleanText(attributes?.subject);
-  const gradeSummary = compactSummary([[company, label || grade].filter(Boolean).join(" ").trim()]);
-  const certSummary = cert ? `Cert ${shortenCert(cert)}` : "";
-  const cardSummary = compactSummary([[setName, player].filter(Boolean).join(" • ").trim()]);
-
-  return compactSummary([gradeSummary, certSummary, cardSummary])
-    || listing.category?.name
-    || "Verified listing";
-}
-
-function compactTradeMetadata(trade: TradePostListItem) {
-  const gradeSummary = [trade.gradeCompany, trade.gradeLabel].filter(Boolean).join(" ").trim();
-  const cardSummary = [trade.cardSet, trade.cardNumber ? `#${trade.cardNumber}` : null].filter(Boolean).join(" ").trim();
-  return compactSummary([gradeSummary, cardSummary, trade.category])
-    || trade.category
-    || "Trade board";
 }
 
 function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData {
@@ -130,33 +83,32 @@ function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData 
   const badgeLabel = listing.listingType === "BOTH"
     ? "Auction"
     : listing.listingType.replace("_", " ");
-  const meta = compactMarketMetadata(listing);
   const timeMeta = listing.listingType === "BUY_NOW"
     ? "Buy now"
     : formatSeconds(getTimeLeftSeconds(listing));
   const activity = listing.listingType === "BUY_NOW"
     ? `${listing.watchersCount} watching`
-    : `${timeMeta} · ${listing.watchersCount} watching`;
+    : `${timeMeta} left`;
   return {
     href: `/auctions/${listing.id}`,
     imageUrl,
     title: listing.title,
     badgeLabel,
     badgeClassName: "market-v2-listing-badge",
-    metaLabel: meta,
     priceLabel: price,
     activityLabel: activity,
     sellerLabel: listing.seller?.user?.displayName ?? "Verified seller",
     saveInactiveLabel: "Add listing to watchlist",
     saveActiveLabel: "Remove listing from watchlist",
     hasImage: true,
+    statsLabelLeft: null,
+    statsLabelRight: null,
   };
 }
 
 function tradeListingToSurfaceData(trade: TradePostListItem): ListingSurfaceData {
   const fallbackImage = "/placeholders/pokemon-generic.svg";
   const imageUrl = resolveDisplayMediaUrl(trade.images[0]?.url ?? null, fallbackImage);
-  const meta = compactTradeMetadata(trade);
   const statusClass = trade.status === "OPEN"
     ? "trade-status-chip is-open"
     : trade.status === "MATCHED"
@@ -171,13 +123,14 @@ function tradeListingToSurfaceData(trade: TradePostListItem): ListingSurfaceData
     title: trade.title,
     badgeLabel: trade.status,
     badgeClassName: statusClass,
-    metaLabel: meta,
     priceLabel: tradeValueLabel(trade.valueMin, trade.valueMax),
     activityLabel: `${trade._count.offers} offer${trade._count.offers === 1 ? "" : "s"}`,
     sellerLabel: trade.owner.displayName ?? trade.owner.username ?? "Collector",
     saveInactiveLabel: "Save trade",
     saveActiveLabel: "Remove saved trade",
     hasImage: true,
+    statsLabelLeft: null,
+    statsLabelRight: null,
   };
 }
 
@@ -199,13 +152,14 @@ function liveListingToSurfaceData(stream: LiveStreamItem): ListingSurfaceData {
     title: stream.title,
     badgeLabel,
     badgeClassName,
-    metaLabel: compactMarketMetadata(stream),
     priceLabel: streamPriceLabel(stream),
     activityLabel,
     sellerLabel: seller,
     saveInactiveLabel: stream.streamState === "upcoming" ? "Set reminder" : "Save stream",
     saveActiveLabel: stream.streamState === "upcoming" ? "Remove reminder" : "Remove saved stream",
     hasImage: true,
+    statsLabelLeft: null,
+    statsLabelRight: null,
   };
 }
 
@@ -225,14 +179,16 @@ function bountyListingToSurfaceData(bounty: BountyRequestListItem): ListingSurfa
     title: bounty.title,
     badgeLabel: bounty.status === "OPEN" ? "Bounty" : bounty.status,
     badgeClassName: statusClass,
-    metaLabel: compactBountyMeta(bounty),
     priceLabel: bountyBudgetLabel(bounty.priceMin, bounty.priceMax),
-    secondaryLabel: bountyAmountLabel(bounty.bountyAmount),
-    activityLabel: compactBountyActivity(bounty.notes),
+    activityLabel: typeof bounty.bountyAmount === "number" && bounty.bountyAmount > 0
+      ? bountyAmountLabel(bounty.bountyAmount)
+      : "Open bounty",
     sellerLabel: bounty.user.displayName ?? bounty.user.username ?? "Collector",
     saveInactiveLabel: "Save bounty",
     saveActiveLabel: "Remove saved bounty",
     hasImage: Boolean(imageUrl),
+    statsLabelLeft: null,
+    statsLabelRight: null,
   };
 }
 
@@ -317,13 +273,11 @@ export function ListingCard(props: ListingCardProps) {
           </div>
           <div className="listing-card-stats">
             <div className="listing-card-stat">
-              <p className="listing-card-stat-label">Price</p>
+              {surface.statsLabelLeft ? <p className="listing-card-stat-label">{surface.statsLabelLeft}</p> : null}
               <p className="listing-card-stat-value">{surface.priceLabel}</p>
             </div>
             <div className="listing-card-stat is-right">
-              <p className="listing-card-stat-label">
-                {surfaceKind === "trade" ? "Offers" : surfaceKind === "bounty" ? "Budget" : "Activity"}
-              </p>
+              {surface.statsLabelRight ? <p className="listing-card-stat-label">{surface.statsLabelRight}</p> : null}
               <p className="listing-card-stat-value">{surface.activityLabel}</p>
             </div>
           </div>
