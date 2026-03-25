@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { formatCurrency } from "@/lib/format";
 
 type AuctionImage = {
@@ -37,99 +39,115 @@ type AuctionDetailLike = {
 type Props = {
   auction: AuctionDetailLike;
   initialIsMobile?: boolean;
+  stripeEnabled?: boolean;
 };
 
 function statusLabel(status: string) {
   switch (status.toUpperCase()) {
-    case "LIVE":
-      return "Live";
-    case "DRAFT":
-      return "Draft";
-    case "SCHEDULED":
-      return "Scheduled";
-    case "ENDED":
-      return "Ended";
-    case "CANCELED":
-      return "Cancelled";
-    default:
-      return status;
+    case "LIVE": return "Live";
+    case "DRAFT": return "Draft";
+    case "SCHEDULED": return "Scheduled";
+    case "ENDED": return "Ended";
+    case "CANCELED": return "Cancelled";
+    default: return status;
   }
 }
 
 function statusClass(status: string) {
   switch (status.toUpperCase()) {
-    case "LIVE":
-      return "auction-detail-status is-live";
-    case "DRAFT":
-      return "auction-detail-status is-draft";
-    case "SCHEDULED":
-      return "auction-detail-status is-scheduled";
+    case "LIVE": return "auction-detail-status is-live";
+    case "DRAFT": return "auction-detail-status is-draft";
+    case "SCHEDULED": return "auction-detail-status is-scheduled";
     case "ENDED":
-    case "CANCELED":
-      return "auction-detail-status is-ended";
-    default:
-      return "auction-detail-status";
+    case "CANCELED": return "auction-detail-status is-ended";
+    default: return "auction-detail-status";
   }
 }
 
-export function AuctionDetailClient({ auction }: Props) {
+function SlabImage({ url, alt }: { url: string; alt: string }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <div className="auction-slab-face">
+      {!failed ? (
+        <Image
+          src={url}
+          alt={alt}
+          fill
+          sizes="(max-width: 768px) 45vw, 280px"
+          className="auction-slab-img"
+          style={{ objectFit: "contain" }}
+          unoptimized
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <div className="auction-slab-empty"><span>No image</span></div>
+      )}
+    </div>
+  );
+}
+
+export function AuctionDetailClient({ auction, stripeEnabled = true }: Props) {
+  const { data: session } = useSession();
+  const [buying, setBuying] = useState(false);
+  const [buyError, setBuyError] = useState("");
+
   const images = auction.item?.images ?? [];
-  const primaryImage = images.find((img) => img.isPrimary) ?? images[0] ?? null;
+  const front = images.find((img) => img.isPrimary) ?? images[0] ?? null;
+  const back = images.find((img) => !img.isPrimary && img !== front) ?? images[1] ?? null;
 
   const currency = auction.currency?.toUpperCase() ?? "USD";
   const currentBid = auction.currentBid ?? 0;
   const startingBid = auction.startingBid ?? 0;
   const displayBid = currentBid > startingBid ? currentBid : startingBid;
   const hasBuyNow = typeof auction.buyNowPrice === "number" && auction.buyNowPrice > 0;
-  const isAuction =
-    auction.listingType === "AUCTION" || auction.listingType === "BOTH";
-
-  const sellerName =
-    auction.seller?.user?.displayName ?? "Seller";
-
+  const isAuction = auction.listingType === "AUCTION" || auction.listingType === "BOTH";
+  const isLive = auction.status === "LIVE";
+  const sellerName = auction.seller?.user?.displayName ?? "Seller";
   const description = auction.description ?? auction.item?.description ?? null;
-
   const endDate = auction.extendedTime ?? auction.endTime;
+
+  const handleBuyNow = async () => {
+    setBuyError("");
+    if (!session?.user?.id) {
+      await signIn();
+      return;
+    }
+    setBuying(true);
+    try {
+      const response = await fetch(`/api/auctions/${auction.id}/buy`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const payload = await response.json() as { error?: string; checkoutUrl?: string | null };
+      if (!response.ok) {
+        setBuyError(payload.error ?? "Unable to start checkout.");
+        return;
+      }
+      if (payload.checkoutUrl && /^https?:\/\//i.test(payload.checkoutUrl)) {
+        window.location.assign(payload.checkoutUrl);
+        return;
+      }
+      setBuyError("Checkout unavailable right now.");
+    } catch {
+      setBuyError("Something went wrong. Try again.");
+    } finally {
+      setBuying(false);
+    }
+  };
 
   return (
     <div className="auction-detail-page">
       <div className="auction-detail-layout">
-        {/* Media */}
-        <div className="auction-detail-media">
-          {primaryImage ? (
-            <div className="auction-detail-img-wrap">
-              <Image
-                src={primaryImage.url}
-                alt={auction.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="auction-detail-img"
-                style={{ objectFit: "contain" }}
-              />
-            </div>
-          ) : (
-            <div className="auction-detail-img-placeholder">
+        {/* PSA slab front + back */}
+        <div className="auction-slab-display">
+          {front ? <SlabImage url={front.url} alt={`${auction.title} — front`} /> : null}
+          {back ? <SlabImage url={back.url} alt={`${auction.title} — back`} /> : null}
+          {!front && !back ? (
+            <div className="auction-slab-face auction-slab-empty">
               <span>No image</span>
             </div>
-          )}
-
-          {/* Additional images */}
-          {images.length > 1 && (
-            <div className="auction-detail-thumbnails">
-              {images.slice(0, 6).map((img, idx) => (
-                <div key={idx} className="auction-detail-thumb-wrap">
-                  <Image
-                    src={img.url}
-                    alt={`${auction.title} image ${idx + 1}`}
-                    fill
-                    sizes="80px"
-                    className="auction-detail-thumb"
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+          ) : null}
         </div>
 
         {/* Info panel */}
@@ -148,7 +166,6 @@ export function AuctionDetailClient({ auction }: Props) {
             Listed by <strong>{sellerName}</strong>
           </p>
 
-          {/* Pricing */}
           <div className="auction-detail-price">
             {isAuction ? (
               <div className="auction-detail-price-row">
@@ -175,37 +192,39 @@ export function AuctionDetailClient({ auction }: Props) {
             </p>
           ) : null}
 
-          {/* CTAs */}
           <div className="auction-detail-cta">
-            {isAuction && auction.status === "LIVE" ? (
-              <Link
-                href={`/streams/${auction.id}`}
-                className="app-button app-button-primary"
-              >
+            {isAuction && isLive ? (
+              <Link href={`/streams/${auction.id}`} className="app-button app-button-primary">
                 Join auction room
               </Link>
             ) : null}
 
-            {hasBuyNow && auction.status === "LIVE" ? (
-              <Link
-                href={`/streams/${auction.id}`}
-                className="app-button app-button-secondary"
+            {hasBuyNow && isLive && stripeEnabled ? (
+              <button
+                type="button"
+                className="app-button app-button-primary auction-buy-now-btn"
+                onClick={() => void handleBuyNow()}
+                disabled={buying}
               >
-                Buy now — {formatCurrency(auction.buyNowPrice!, currency)}
-              </Link>
+                {buying ? "Starting checkout…" : `Buy now — ${formatCurrency(auction.buyNowPrice!, currency)}`}
+              </button>
             ) : null}
 
-            {auction.status !== "LIVE" ? (
-              <Link
-                href={`/streams/${auction.id}`}
-                className="app-button app-button-secondary"
-              >
+            {hasBuyNow && isLive && !stripeEnabled ? (
+              <p className="auction-detail-note">Payments not configured for this listing.</p>
+            ) : null}
+
+            {buyError ? (
+              <p className="auction-detail-note is-error">{buyError}</p>
+            ) : null}
+
+            {!isLive ? (
+              <Link href={`/streams/${auction.id}`} className="app-button app-button-secondary">
                 View listing room
               </Link>
             ) : null}
           </div>
 
-          {/* Description */}
           {description ? (
             <div className="auction-detail-description">
               <h2 className="auction-detail-description-heading">Description</h2>
