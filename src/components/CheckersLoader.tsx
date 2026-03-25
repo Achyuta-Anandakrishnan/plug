@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 type CheckersLoaderProps = {
   title?: string;
   compact?: boolean;
@@ -10,10 +12,21 @@ export function CheckersLoader({
   className,
 }: CheckersLoaderProps) {
   const checker = (
-    <div className="dalow-loader-board" aria-hidden="true">
-      {Array.from({ length: 16 }).map((_, index) => (
-        <span key={index} className={index % 2 === 0 ? "is-dark" : "is-light"} />
-      ))}
+    <div className="dalow-loader-board-shell" aria-hidden="true">
+      <div className="dalow-loader-board">
+        {Array.from({ length: 16 }).map((_, index) => {
+          const row = Math.floor(index / 4);
+          const column = index % 4;
+          const isDark = (row + column) % 2 === 0;
+          return (
+            <span
+              key={index}
+              className={isDark ? "is-dark" : "is-light"}
+              style={{ "--loader-delay": `${(row + column) * 0.08}s` } as CSSProperties}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 
@@ -29,7 +42,6 @@ export function CheckersLoader({
   return (
     <div className={`dalow-loader dalow-loader-full${className ? ` ${className}` : ""}`} role="status" aria-label={title}>
       {checker}
-      <p className="dalow-loader-label">{title}</p>
     </div>
   );
 }
