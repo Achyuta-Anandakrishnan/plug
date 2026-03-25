@@ -60,23 +60,6 @@ export function AuthButtons() {
 
   return (
     <div className="auth-buttons-stack">
-      <div className="auth-username-field">
-        <label className="app-eyebrow">Username</label>
-        <input
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-          placeholder="Optional username"
-          className="app-form-input"
-        />
-        <p className="app-form-hint">
-          Optional. Set it now or finish profile setup after sign-in.
-        </p>
-        {username.trim() && !usernameValid ? (
-          <p className="app-form-hint is-warning">
-            We&apos;ll ignore this until it matches 3-24 lowercase letters, numbers, or underscores.
-          </p>
-        ) : null}
-      </div>
       <button
         type="button"
         onClick={() => signIn("google", { callbackUrl })}
@@ -93,6 +76,20 @@ export function AuthButtons() {
       >
         {!appleAvailable ? "Apple not configured" : "Continue with Apple"}
       </button>
+      <div className="auth-username-field">
+        <label className="app-eyebrow">Username (optional)</label>
+        <input
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          placeholder="Pick a username now, or set it later"
+          className="app-form-input"
+        />
+        {username.trim() && !usernameValid ? (
+          <p className="app-form-hint is-warning">
+            We&apos;ll ignore this until it matches 3-24 lowercase letters, numbers, or underscores.
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }

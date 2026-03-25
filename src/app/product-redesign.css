@@ -10277,3 +10277,91 @@ html[data-theme="dark"] .site-account-popover {
     padding: 5px 7px;
   }
 }
+
+/* ─── Duel: Chess pieces ─────────────────────────────────────────── */
+.trade-duel-chess-piece {
+  font-size: 28px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+}
+
+.trade-duel-chess-piece.is-challenger {
+  color: #f0d9b5;
+  text-shadow: 0 0 3px rgba(0,0,0,0.8), 0 1px 0 rgba(0,0,0,0.6);
+}
+
+.trade-duel-chess-piece.is-defender {
+  color: #1a1a2e;
+  text-shadow: 0 0 3px rgba(255,255,255,0.4), 0 1px 0 rgba(0,0,0,0.8);
+}
+
+/* ─── Duel: Poker hands ──────────────────────────────────────────── */
+.trade-duel-hand {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.trade-duel-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 44px;
+  height: 60px;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  padding: 4px 5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  color: #1a1a2e;
+  font-weight: 700;
+}
+
+.trade-duel-card.is-red {
+  color: #c0392b;
+}
+
+.trade-duel-card-rank {
+  font-size: 14px;
+  line-height: 1;
+  align-self: flex-start;
+}
+
+.trade-duel-card-suit {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.trade-duel-hand-score {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--product-accent, #1d3d80);
+  margin-top: 4px;
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 640px) {
+  .trade-duel-card {
+    width: 36px;
+    height: 50px;
+    padding: 3px 4px;
+  }
+
+  .trade-duel-card-rank {
+    font-size: 12px;
+  }
+
+  .trade-duel-card-suit {
+    font-size: 15px;
+  }
+
+  .trade-duel-chess-piece {
+    font-size: 22px;
+  }
+}

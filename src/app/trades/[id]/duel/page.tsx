@@ -265,7 +265,9 @@ export default function TradeDuelPage() {
               >
                 {piece ? (
                   <span className={`trade-duel-chess-piece ${piece.color === "w" ? "is-challenger" : "is-defender"}`}>
-                    {piece.type.toUpperCase()}
+                    {piece.color === "w"
+                      ? { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" }[piece.type] ?? piece.type.toUpperCase()
+                      : { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" }[piece.type] ?? piece.type}
                   </span>
                 ) : null}
               </button>
@@ -293,19 +295,50 @@ export default function TradeDuelPage() {
     </section>
   );
 
+  const suitSymbol = (suit: string) => {
+    if (suit === "H") return "♥";
+    if (suit === "D") return "♦";
+    if (suit === "S") return "♠";
+    if (suit === "C") return "♣";
+    return suit;
+  };
+  const isRedSuit = (suit: string) => suit === "H" || suit === "D";
+
   const renderPoker = (state: PokerDuelState) => (
     <section className="product-card trade-duel-panel">
       <SectionHeader title="Poker" subtitle={state.note} />
       <div className="trade-duel-poker-grid">
         <article>
           <p className="trade-duel-eyebrow">Challenger</p>
-          <p className="trade-duel-poker-hand">{state.challengerHand.map((card) => `${card.label}${card.suit}`).join(" ") || "Undealt"}</p>
-          {state.challengerScore ? <p className="trade-duel-footnote">{state.challengerScore}</p> : null}
+          {state.challengerHand.length > 0 ? (
+            <div className="trade-duel-hand">
+              {state.challengerHand.map((card, i) => (
+                <div key={i} className={`trade-duel-card${isRedSuit(card.suit) ? " is-red" : ""}`}>
+                  <span className="trade-duel-card-rank">{card.label}</span>
+                  <span className="trade-duel-card-suit">{suitSymbol(card.suit)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="trade-duel-footnote">Undealt</p>
+          )}
+          {state.challengerScore ? <p className="trade-duel-hand-score">{state.challengerScore}</p> : null}
         </article>
         <article>
           <p className="trade-duel-eyebrow">Defender</p>
-          <p className="trade-duel-poker-hand">{state.defenderHand.map((card) => `${card.label}${card.suit}`).join(" ") || "Undealt"}</p>
-          {state.defenderScore ? <p className="trade-duel-footnote">{state.defenderScore}</p> : null}
+          {state.defenderHand.length > 0 ? (
+            <div className="trade-duel-hand">
+              {state.defenderHand.map((card, i) => (
+                <div key={i} className={`trade-duel-card${isRedSuit(card.suit) ? " is-red" : ""}`}>
+                  <span className="trade-duel-card-rank">{card.label}</span>
+                  <span className="trade-duel-card-suit">{suitSymbol(card.suit)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="trade-duel-footnote">Undealt</p>
+          )}
+          {state.defenderScore ? <p className="trade-duel-hand-score">{state.defenderScore}</p> : null}
         </article>
       </div>
       {state.winner ? null : (
