@@ -48,8 +48,6 @@ export async function DELETE(
     where: { id },
     include: {
       seller: true,
-      bids: { where: { status: "ACTIVE" }, take: 1 },
-      orders: { where: { status: { notIn: ["CANCELED", "REFUNDED"] } }, take: 1 },
     },
   });
 
@@ -61,11 +59,46 @@ export async function DELETE(
     return jsonError("Not authorized.", 403);
   }
 
-  if (auction.bids.length > 0 || auction.orders.length > 0) {
-    return jsonError("Cannot cancel auction with active bids or orders.", 409);
-  }
+  await prisma.$transaction(async (tx) => {
+    await tx.auction.update({ where: { id }, data: { status: "CANCELED" } });
 
-  await prisma.auction.update({ where: { id }, data: { status: "CANCELED" } });
+    await tx.bid.updateMany({
+      where: {
+        auctionId: id,
+        status: "ACTIVE",
+      },
+      data: {
+        status: "RETRACTED",
+      },
+    });
+
+    const cancellableOrders = await tx.order.findMany({
+      where: {
+        auctionId: id,
+        status: { in: ["PENDING_PAYMENT", "PAID", "FULFILLING", "DISPUTED"] },
+      },
+      select: { id: true },
+    });
+
+    if (cancellableOrders.length > 0) {
+      const orderIds = cancellableOrders.map((order) => order.id);
+
+      await tx.order.updateMany({
+        where: { id: { in: orderIds } },
+        data: { status: "CANCELED" },
+      });
+
+      await tx.payment.updateMany({
+        where: {
+          orderId: { in: orderIds },
+          status: {
+            in: ["REQUIRES_PAYMENT_METHOD", "REQUIRES_CONFIRMATION", "PROCESSING"],
+          },
+        },
+        data: { status: "CANCELED" },
+      });
+    }
+  });
 
   return jsonOk({ cancelled: true });
 }

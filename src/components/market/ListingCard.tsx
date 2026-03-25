@@ -6,8 +6,7 @@ import { useMemo, useState } from "react";
 import type { LiveStreamItem } from "@/components/live/types";
 import { streamPriceLabel, streamTimeLabel } from "@/components/live/utils";
 import type { MarketListing } from "@/components/market/types";
-import { getPrimaryImageUrl, getTimeLeftSeconds } from "@/lib/auctions";
-import { formatCurrency, formatSeconds } from "@/lib/format";
+import { getPrimaryImageUrl } from "@/lib/auctions";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import { tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
 import {
@@ -73,22 +72,25 @@ function compactName(value: string) {
   return `${trimmed.slice(0, 19)}...`;
 }
 
+function compactCurrency(amountCents: number, currency = "USD", locale = "en-US") {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amountCents / 100);
+}
+
 function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData {
   const currency = listing.currency?.toUpperCase() || "USD";
   const fallbackImage = "/placeholders/pokemon-generic.svg";
   const imageUrl = resolveDisplayMediaUrl(getPrimaryImageUrl(listing), fallbackImage);
   const price = listing.listingType === "AUCTION"
-    ? formatCurrency(listing.currentBid, currency)
-    : formatCurrency(listing.buyNowPrice ?? listing.currentBid, currency);
+    ? compactCurrency(listing.currentBid, currency)
+    : compactCurrency(listing.buyNowPrice ?? listing.currentBid, currency);
   const badgeLabel = listing.listingType === "BOTH"
     ? "Auction"
     : listing.listingType.replace("_", " ");
-  const timeMeta = listing.listingType === "BUY_NOW"
-    ? "Buy now"
-    : formatSeconds(getTimeLeftSeconds(listing));
-  const activity = listing.listingType === "BUY_NOW"
-    ? `${listing.watchersCount} watching`
-    : `${timeMeta} left`;
+  const activity = `${listing.watchersCount} like${listing.watchersCount === 1 ? "" : "s"}`;
   return {
     href: `/auctions/${listing.id}`,
     imageUrl,
@@ -101,8 +103,8 @@ function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData 
     saveInactiveLabel: "Add listing to watchlist",
     saveActiveLabel: "Remove listing from watchlist",
     hasImage: true,
-    statsLabelLeft: null,
-    statsLabelRight: null,
+    statsLabelLeft: "Price",
+    statsLabelRight: "Likes",
   };
 }
 

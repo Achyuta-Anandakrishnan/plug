@@ -10516,6 +10516,10 @@ html[data-theme="dark"] .site-account-popover {
   gap: 7px;
 }
 
+.listing-card.is-market-card .listing-card-stats {
+  grid-template-columns: minmax(0, 1.2fr) minmax(78px, 0.8fr);
+}
+
 .listing-card .listing-card-stat {
   padding: 7px 9px;
   border-radius: 11px;
@@ -10551,8 +10555,20 @@ html[data-theme="dark"] .site-account-popover {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.listing-card .listing-card-stat-label {
+
+.listing-card.is-trade-card .listing-card-stat-label,
+.listing-card.is-live-card .listing-card-stat-label,
+.listing-card.is-bounty-card .listing-card-stat-label {
   display: none;
+}
+
+.listing-card.is-market-card .listing-card-stat-label {
+  display: block;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.listing-card.is-market-card .listing-card-stat-value {
+  font-size: 11px;
 }
 
 /* ── Save/watch button ──────────────────────────────────────────── */

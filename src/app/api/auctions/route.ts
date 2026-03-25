@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
+import { getLiveKitRoomService, livekitEnabled } from "@/lib/livekit";
 import { nextThursdayNinePmEst } from "@/lib/auction-time";
 
 const allowedStatuses = new Set<string>([
@@ -157,6 +158,7 @@ export async function GET(request: Request) {
       seller: {
         select: {
           id: true,
+          userId: true,
           status: true,
           user: { select: { displayName: true, id: true } },
         },
@@ -166,6 +168,7 @@ export async function GET(request: Request) {
         take: 1,
         select: {
           id: true,
+          roomName: true,
           status: true,
           createdAt: true,
           updatedAt: true,
@@ -175,6 +178,35 @@ export async function GET(request: Request) {
     orderBy: { createdAt: "desc" },
     take: Number.isFinite(limitParam) ? Math.min(limitParam, 100) : 30,
   });
+
+  if (view === "streams" && where.status === "LIVE" && livekitEnabled() && auctions.length > 0) {
+    const roomService = getLiveKitRoomService();
+    if (roomService) {
+      const activeAuctions = await Promise.all(
+        auctions.map(async (auction) => {
+          const session = auction.streamSessions[0];
+          const roomName = session?.roomName;
+          const sellerUserId = auction.seller.userId;
+
+          if (!roomName || !sellerUserId) {
+            return null;
+          }
+
+          try {
+            const participants = await roomService.listParticipants(roomName);
+            const hasActiveHost = participants.some(
+              (participant) => participant.identity === sellerUserId,
+            );
+            return hasActiveHost ? auction : null;
+          } catch {
+            return null;
+          }
+        }),
+      );
+
+      return jsonOk(activeAuctions.filter((auction): auction is (typeof auctions)[number] => Boolean(auction)));
+    }
+  }
 
   return jsonOk(auctions);
 }
