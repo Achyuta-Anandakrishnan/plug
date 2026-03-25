@@ -240,6 +240,67 @@ export function ListingCard(props: ListingCardProps) {
     setLocalSaved((prev) => !prev);
   };
 
+  if (surfaceKind === "market") {
+    return (
+      <article className="listing-card is-market-card">
+        <div className="listing-card-media-shell">
+          <Link href={surface.href} className="listing-card-link is-market-link">
+            {surface.hasImage ? (
+              <Image
+                src={imageSrc}
+                alt={surface.title}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 220px"
+                className="listing-card-img"
+                unoptimized
+                onError={() => { if (failedSrc !== surface.imageUrl) setFailedSrc(surface.imageUrl); }}
+              />
+            ) : (
+              <div className="listing-card-fallback">
+                <span>{surface.badgeLabel}</span>
+              </div>
+            )}
+
+            <div className="listing-card-gradient-top" aria-hidden="true" />
+
+            <div className="listing-card-top">
+              <span className={`listing-card-badge ${surface.badgeClassName}`}>
+                {surface.badgeLabel}
+              </span>
+            </div>
+          </Link>
+
+          <button
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              toggleSave();
+            }}
+            className={`listing-card-watch${saved ? " is-active" : ""}`}
+            aria-label={saved ? surface.saveActiveLabel : surface.saveInactiveLabel}
+          >
+            {saved ? "♥" : "♡"}
+          </button>
+        </div>
+
+        <Link href={surface.href} className="listing-card-market-meta">
+          <div className="listing-card-market-stats">
+            <div className="listing-card-market-stat">
+              <p className="listing-card-market-stat-label">{surface.statsLabelLeft ?? "Price"}</p>
+              <p className="listing-card-market-stat-value">{surface.priceLabel}</p>
+            </div>
+            <div className="listing-card-market-stat is-right">
+              <p className="listing-card-market-stat-label">{surface.statsLabelRight ?? "Likes"}</p>
+              <p className="listing-card-market-stat-value">{surface.activityLabel}</p>
+            </div>
+          </div>
+          <p className="listing-card-market-seller">{compactName(surface.sellerLabel)}</p>
+        </Link>
+      </article>
+    );
+  }
+
   return (
     <article className={`listing-card is-${surfaceKind}-card`}>
       <Link href={surface.href} className="listing-card-link">
