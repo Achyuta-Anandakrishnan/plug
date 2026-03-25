@@ -7,7 +7,6 @@ import { useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import {
   PageContainer,
-  PageHeader,
   PrimaryButton,
   SecondaryButton,
   SectionHeader,
@@ -461,16 +460,17 @@ export default function TradeDuelPage() {
   return (
     <PageContainer className="trade-duel-page app-page--trade-duel">
       <section className="app-section trade-duel-screen">
-        <PageHeader
-          eyebrow="Trade duel"
-          title={offer.post.title}
-          subtitle={`${statusLabel(duelStatus)} · ${formatTradeDateTime(offer.createdAt)}`}
-          actions={(
-            <div className="trade-detail-head-actions">
-              <SecondaryButton href={`/trades/${encodeURIComponent(tradeId)}`}>Back to trade</SecondaryButton>
-            </div>
-          )}
-        />
+        <section className="trade-duel-toolbar">
+          <div className="trade-duel-toolbar-copy">
+            <p className="app-eyebrow">Trade duel</p>
+            <p className="trade-duel-toolbar-meta">
+              {statusLabel(duelStatus)} · {formatTradeDateTime(offer.createdAt)}
+            </p>
+          </div>
+          <div className="trade-detail-head-actions">
+            <SecondaryButton href={`/trades/${encodeURIComponent(tradeId)}`}>Back to trade</SecondaryButton>
+          </div>
+        </section>
 
         {error ? <p className="app-status-note is-error">{error}</p> : null}
 

@@ -5462,30 +5462,29 @@ html[data-theme="dark"] .streams-scheduled-item {
   margin-inline: auto;
 }
 
-.app-page--trade-duel .app-page-header {
-  align-items: start;
+.trade-duel-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
 }
 
-.app-page--trade-duel .app-page-header-copy {
-  max-width: min(100%, 920px);
+.trade-duel-toolbar-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
 }
 
-.app-page--trade-duel .app-page-title {
-  max-width: 22ch;
-  font-size: clamp(2rem, 3vw, 3rem);
-  line-height: 0.94;
-  letter-spacing: -0.055em;
-  text-wrap: balance;
-}
-
-.app-page--trade-duel .app-page-subtitle {
+.trade-duel-toolbar-meta {
+  margin: 0;
+  color: var(--product-text-soft);
   font-size: 14px;
   line-height: 1.4;
 }
 
 .trade-duel-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 336px;
+  grid-template-columns: minmax(0, 1fr) 328px;
   gap: 16px;
   align-items: start;
 }
@@ -5494,6 +5493,7 @@ html[data-theme="dark"] .streams-scheduled-item {
   display: grid;
   gap: 10px;
   padding: 14px 15px;
+  min-width: 0;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.8);
@@ -5579,11 +5579,13 @@ html[data-theme="dark"] .streams-scheduled-item {
   line-height: 1.15;
   letter-spacing: -0.03em;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .trade-duel-board {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
   width: 100%;
   overflow: hidden;
   aspect-ratio: 1;
@@ -5595,6 +5597,9 @@ html[data-theme="dark"] .streams-scheduled-item {
 .trade-duel-square {
   display: grid;
   place-items: center;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
   padding: 0;
   border: 0;
   background: transparent;
@@ -5841,6 +5846,7 @@ html[data-theme="dark"] .streams-scheduled-item {
   display: grid;
   gap: 5px;
   padding: 12px 13px;
+  min-width: 0;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 16px;
   background: rgba(248, 250, 252, 0.72);
@@ -5850,12 +5856,16 @@ html[data-theme="dark"] .streams-scheduled-item {
   color: var(--product-text);
   font-size: 13px;
   line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .trade-duel-participant span {
   color: var(--product-text-soft);
   font-size: 12px;
   line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .trade-duel-poker-hand {
