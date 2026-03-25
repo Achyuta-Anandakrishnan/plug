@@ -3,33 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import {
-  DiscoveryBar,
   EmptyStateCard,
-  FilterChip,
   PageContainer,
   PageHeader,
   PrimaryButton,
-  SearchIcon,
 } from "@/components/product/ProductUI";
 import { useMobileUi } from "@/hooks/useMobileUi";
 
 import { fetchClientApi, normalizeClientError } from "@/lib/client-api";
 import { tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
-
-type TradeScope = "OPEN" | "PAUSED" | "MATCHED" | "CLOSED" | "ALL" | "MINE";
-
-const scopes: Array<{ key: TradeScope; label: string }> = [
-  { key: "OPEN", label: "Open" },
-  { key: "PAUSED", label: "Paused" },
-  { key: "MATCHED", label: "Matched" },
-  { key: "CLOSED", label: "Closed" },
-  { key: "ALL", label: "All" },
-  { key: "MINE", label: "Mine" },
-];
 
 function statusChipClass(status: string) {
   switch (status) {
@@ -105,31 +90,20 @@ type TradesPageClientProps = {
 
 export function TradesPageClient({ initialIsMobile }: TradesPageClientProps) {
   const isMobileUi = useMobileUi(initialIsMobile);
-  const { data: session } = useSession();
   const [query, setQuery] = useState("");
-  const [scope, setScope] = useState<TradeScope>("OPEN");
   const [posts, setPosts] = useState<TradePostListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
-      if (!session?.user?.id && scope === "MINE") {
-        setPosts([]);
-        setLoading(false);
-        return;
-      }
-
       setLoading(true);
       setError("");
       try {
         const params = new URLSearchParams();
         params.set("limit", "80");
         if (query.trim()) params.set("q", query.trim());
-        if (scope === "MINE") params.set("mine", "1");
-        else if (scope !== "ALL") params.set("status", scope);
         const response = await fetchClientApi(`/api/trades?${params.toString()}`, { cache: "no-store" });
         const payload = (await response.json()) as TradePostListItem[] & { error?: string };
         if (!response.ok) {
@@ -149,31 +123,35 @@ export function TradesPageClient({ initialIsMobile }: TradesPageClientProps) {
 
     void run();
     return () => { cancelled = true; };
-  }, [query, scope, session?.user?.id]);
+  }, [query]);
 
-  const filterBar = (
-    <DiscoveryBar className="app-control-bar listing-system-toolbar trades-toolbar">
-      <div className="listing-system-toolbar-main trades-toolbar-main">
-        <div className="app-search">
-          <SearchIcon />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by title, card, grade…"
-          />
-        </div>
-        <div className="app-chip-row">
-          {scopes.map((s) => (
-            <FilterChip
-              key={s.key}
-              label={s.label}
-              active={scope === s.key}
-              onClick={() => setScope(s.key)}
-            />
-          ))}
-        </div>
-      </div>
-    </DiscoveryBar>
+  const searchBar = (
+    <div className="trades-search-bar">
+      <svg className="trades-search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+      <input
+        className="trades-search-input"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search by title, card, grade, player…"
+        autoComplete="off"
+        spellCheck={false}
+      />
+      {query ? (
+        <button
+          type="button"
+          className="trades-search-clear"
+          onClick={() => setQuery("")}
+          aria-label="Clear search"
+        >
+          <svg viewBox="0 0 16 16" fill="none">
+            <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+        </button>
+      ) : null}
+    </div>
   );
 
   if (isMobileUi) {
@@ -185,33 +163,8 @@ export function TradesPageClient({ initialIsMobile }: TradesPageClientProps) {
               <div className="app-control-title">Trades</div>
               <PrimaryButton href="/trades/new" className="trades-mobile-create">New trade</PrimaryButton>
             </div>
-            <div className="app-search">
-              <SearchIcon />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search trade posts"
-              />
-            </div>
-            <div className="mobile-page-toolbar-scroll trades-mobile-chiprail">
-              {scopes.map((s) => (
-                <FilterChip
-                  key={s.key}
-                  label={s.label}
-                  active={scope === s.key}
-                  onClick={() => setScope(s.key)}
-                />
-              ))}
-            </div>
+            {searchBar}
           </section>
-
-          {!session?.user?.id && scope === "MINE" ? (
-            <EmptyStateCard
-              title="Sign in to view your trade posts."
-              description="Your own trade activity stays separate from the public board."
-              action={<PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>}
-            />
-          ) : null}
 
           {error ? <EmptyStateCard title="Trade board unavailable" description={error} /> : null}
           {loading ? <CheckersLoader title="Loading trades…" compact /> : null}
@@ -223,7 +176,7 @@ export function TradesPageClient({ initialIsMobile }: TradesPageClientProps) {
                 <span>{posts.length}</span>
               </div>
               {posts.length === 0 ? (
-                <EmptyStateCard title="No active trade posts right now." description="Try another status filter or check back soon." />
+                <EmptyStateCard title="No open trade posts right now." description="Try a different search or check back soon." />
               ) : (
                 <div className="trades-compact-list">
                   {posts.map((post) => (
@@ -247,15 +200,7 @@ export function TradesPageClient({ initialIsMobile }: TradesPageClientProps) {
       />
 
       <section className="app-section">
-        {filterBar}
-
-        {!session?.user?.id && scope === "MINE" ? (
-          <EmptyStateCard
-            title="Sign in to view your trade posts."
-            description="Your own trade activity stays separate from the public board."
-            action={<PrimaryButton onClick={() => signIn()}>Sign in</PrimaryButton>}
-          />
-        ) : null}
+        {searchBar}
 
         {error ? <EmptyStateCard title="Trade board unavailable" description={error} /> : null}
         {loading ? <CheckersLoader title="Loading trades…" compact /> : null}
@@ -263,13 +208,13 @@ export function TradesPageClient({ initialIsMobile }: TradesPageClientProps) {
         {!loading && !error ? (
           <section className="trades-feed">
             <div className="trades-feed-header">
-              <span className="trades-feed-count">{posts.length} {scope === "ALL" ? "total" : scope.toLowerCase()}</span>
+              <span className="trades-feed-count">{posts.length} open</span>
             </div>
 
             {posts.length === 0 ? (
               <EmptyStateCard
                 title="No trade posts match."
-                description="Try a different status filter or search term."
+                description="Try a different search term."
               />
             ) : (
               <div className="trades-compact-list">

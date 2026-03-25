@@ -49,7 +49,7 @@ export async function DELETE(
     include: {
       seller: true,
       bids: { where: { status: "ACTIVE" }, take: 1 },
-      orders: { take: 1 },
+      orders: { where: { status: { notIn: ["CANCELED", "REFUNDED"] } }, take: 1 },
     },
   });
 

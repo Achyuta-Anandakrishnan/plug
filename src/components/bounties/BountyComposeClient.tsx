@@ -244,6 +244,11 @@ export function BountyComposeClient() {
       setStep(1);
       return;
     }
+    if (!imageUrl.trim()) {
+      setError("Add an image of the card you are looking for.");
+      setStep(1);
+      return;
+    }
     if (desiredMin === null && desiredMax === null) {
       setError("Add a budget or budget range.");
       setStep(3);
@@ -395,7 +400,7 @@ export function BountyComposeClient() {
                 </div>
 
                 <label className="app-form-field">
-                  <span>Image URL</span>
+                  <span>Image URL <span className="app-form-required">*</span></span>
                   <input
                     value={imageUrl}
                     onChange={(event) => setImageUrl(event.target.value)}

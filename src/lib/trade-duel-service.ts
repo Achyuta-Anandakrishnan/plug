@@ -142,6 +142,10 @@ type DuelActionBody =
   | {
       action: "RESOLVE_POKER";
       stateVersion?: number;
+    }
+  | {
+      action: "FORFEIT";
+      stateVersion?: number;
     };
 
 type BaselineSnapshot = {
@@ -501,6 +505,21 @@ export async function applyTradeDuelAction(
 
   if (body.action === "START") {
     return startTradeDuel(tx, offer, userId);
+  }
+
+  if (body.action === "FORFEIT") {
+    const duelStatus = deriveTradeDuelStatus(offer.duel);
+    if (duelStatus !== "ACTIVE") {
+      throw new Error("Forfeit is only available during an active duel.");
+    }
+    const opponent = role === "CHALLENGER" ? "DEFENDER" : "CHALLENGER";
+    const forfeiterLabel = duelPartyLabel(role);
+    return settleTradeOfferByDuel(
+      tx,
+      offer,
+      opponent,
+      `${forfeiterLabel} forfeited.`,
+    );
   }
 
   const reconciled = await reconcileTradeDuelTimeout(tx, offer);

@@ -26,7 +26,8 @@ type DuelActionBody =
   | { action: "MOVE_CHECKERS"; stateVersion?: number; from: { r: number; c: number }; to: { r: number; c: number } }
   | { action: "MOVE_CHESS"; stateVersion?: number; from: string; to: string }
   | { action: "RESOLVE_COIN"; stateVersion?: number }
-  | { action: "RESOLVE_POKER"; stateVersion?: number };
+  | { action: "RESOLVE_POKER"; stateVersion?: number }
+  | { action: "FORFEIT"; stateVersion?: number };
 
 async function loadOfferForViewer(offerId: string, userId: string) {
   return prisma.$transaction(async (tx): Promise<TradeOfferWithDuel | null> => {

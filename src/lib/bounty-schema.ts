@@ -63,6 +63,33 @@ ADD COLUMN IF NOT EXISTS "bountyAmount" INTEGER;
   `CREATE INDEX IF NOT EXISTS "WantRequest_createdAt_idx" ON "WantRequest"("createdAt");`,
   `CREATE INDEX IF NOT EXISTS "WantRequest_category_idx" ON "WantRequest"("category");`,
   `CREATE INDEX IF NOT EXISTS "WantRequest_bountyAmount_idx" ON "WantRequest"("bountyAmount");`,
+  `ALTER TABLE "UserSave" ADD COLUMN IF NOT EXISTS "wantRequestId" TEXT;`,
+  `CREATE INDEX IF NOT EXISTS "UserSave_wantRequestId_idx" ON "UserSave"("wantRequestId");`,
+  `
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'UserSave_userId_wantRequestId_key'
+  ) THEN
+    ALTER TABLE "UserSave"
+    ADD CONSTRAINT "UserSave_userId_wantRequestId_key"
+    UNIQUE ("userId", "wantRequestId");
+  END IF;
+END $$;
+`,
+  `
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'UserSave_wantRequestId_fkey'
+  ) THEN
+    ALTER TABLE "UserSave"
+    ADD CONSTRAINT "UserSave_wantRequestId_fkey"
+    FOREIGN KEY ("wantRequestId") REFERENCES "WantRequest"("id")
+    ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+`,
   `
 DO $$
 BEGIN

@@ -71,6 +71,36 @@ function statusLabel(status: TradeDuelItem["status"]) {
   return status.toLowerCase();
 }
 
+function ForfeitButton({ acting, onForfeit }: { acting: boolean; onForfeit: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        className="trade-duel-forfeit-trigger"
+        onClick={() => setConfirming(true)}
+      >
+        Forfeit duel
+      </button>
+    );
+  }
+
+  return (
+    <div className="trade-duel-forfeit-confirm">
+      <p className="trade-duel-forfeit-warning">Forfeiting hands the duel — and the trade — to your opponent. This cannot be undone.</p>
+      <div className="trade-duel-forfeit-actions">
+        <button type="button" className="trade-duel-forfeit-cancel" onClick={() => setConfirming(false)} disabled={acting}>
+          Cancel
+        </button>
+        <button type="button" className="trade-duel-forfeit-btn" onClick={onForfeit} disabled={acting}>
+          {acting ? "Forfeiting..." : "Yes, forfeit"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function TradeDuelPage() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
@@ -279,21 +309,67 @@ export default function TradeDuelPage() {
     );
   };
 
-  const renderCoin = (state: CoinDuelState) => (
-    <section className="product-card trade-duel-panel">
-      <SectionHeader title="Coin flip" subtitle={state.note} />
-      <div className="trade-duel-instant">
-        <div className="trade-duel-result-mark">{state.result ?? "?"}</div>
-        {state.result ? (
-          <p className="trade-duel-footnote">{state.note}</p>
-        ) : (
+  const renderCoin = (state: CoinDuelState) => {
+    const result = state.result as "HEADS" | "TAILS" | null;
+    const challengerWon = result === "HEADS";
+    const defenderWon = result === "TAILS";
+    const coinClass = acting ? "is-flipping" : result === "HEADS" ? "is-heads" : result === "TAILS" ? "is-tails" : "";
+
+    return (
+      <section className="product-card trade-duel-panel">
+        <SectionHeader
+          title="Coin flip"
+          subtitle={result ? (state.note ?? "Duel resolved.") : "One flip decides the trade."}
+        />
+        <div className="duel-coin-table">
+          <div className={`duel-coin-player${challengerWon ? " is-winner" : ""}`}>
+            <span className="duel-coin-player-name">{duel.challenger.displayName ?? duel.challenger.username ?? "Challenger"}</span>
+            <span className="duel-coin-player-role">Challenger · Heads</span>
+            {challengerWon ? <span className="duel-coin-winner-badge">Winner</span> : null}
+          </div>
+
+          <div className="duel-coin-center">
+            <div className="duel-coin-wrap">
+              <div className={`duel-coin-inner${coinClass ? ` ${coinClass}` : ""}`}>
+                <div className="duel-coin-face">
+                  <svg viewBox="0 0 80 80" fill="none" className="duel-coin-svg">
+                    <circle cx="40" cy="40" r="34" stroke="rgba(255,215,60,0.3)" strokeWidth="1.5" />
+                    <circle cx="40" cy="40" r="29" stroke="rgba(255,215,60,0.12)" strokeWidth="1" />
+                    <text x="40" y="51" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="700" fontSize="34" fill="rgba(255,220,70,0.95)">D</text>
+                  </svg>
+                </div>
+                <div className="duel-coin-back">
+                  <svg viewBox="0 0 80 80" fill="none" className="duel-coin-svg">
+                    <circle cx="40" cy="40" r="34" stroke="rgba(180,130,20,0.4)" strokeWidth="1.5" />
+                    <circle cx="40" cy="40" r="29" stroke="rgba(180,130,20,0.2)" strokeWidth="1" />
+                    <path d="M22 32 Q40 23 58 32" stroke="rgba(180,130,20,0.88)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                    <path d="M58 48 Q40 57 22 48" stroke="rgba(180,130,20,0.88)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                    <polyline points="52,27 58,32 52,37" stroke="rgba(180,130,20,0.88)" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    <polyline points="28,43 22,48 28,53" stroke="rgba(180,130,20,0.88)" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            {result ? (
+              <p className="duel-coin-result-label">{result === "HEADS" ? "Heads" : "Tails"}</p>
+            ) : null}
+          </div>
+
+          <div className={`duel-coin-player${defenderWon ? " is-winner" : ""}`}>
+            <span className="duel-coin-player-name">{duel.defender.displayName ?? duel.defender.username ?? "Defender"}</span>
+            <span className="duel-coin-player-role">Defender · Tails</span>
+            {defenderWon ? <span className="duel-coin-winner-badge">Winner</span> : null}
+          </div>
+        </div>
+
+        {!result ? (
           <PrimaryButton onClick={() => void performAction({ action: "RESOLVE_COIN", stateVersion: duel.stateVersion })} disabled={!canAct || acting}>
-            {acting ? "Flipping..." : "Flip coin"}
+            {acting ? "Flipping…" : "Flip coin"}
           </PrimaryButton>
-        )}
-      </div>
-    </section>
-  );
+        ) : null}
+      </section>
+    );
+  };
 
   const suitSymbol = (suit: string) => {
     if (suit === "H") return "♥";
@@ -401,6 +477,9 @@ export default function TradeDuelPage() {
               ) : null}
               {!canApprove && !canStart && duelStatus !== "ACTIVE" && duelStatus !== "COMPLETED" ? (
                 <p className="trade-duel-footnote">Waiting for both collectors to approve and enter the duel room.</p>
+              ) : null}
+              {canAct ? (
+                <ForfeitButton acting={acting} onForfeit={() => void performAction({ action: "FORFEIT", stateVersion: duel.stateVersion })} />
               ) : null}
             </section>
 

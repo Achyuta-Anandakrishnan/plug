@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SkeletonRail } from "@/components/SkeletonCard";
 import { ListingCard } from "@/components/market/ListingCard";
@@ -66,6 +66,8 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
+  const [swipeDir, setSwipeDir] = useState<"left" | "right">("right");
+  const prevModeIdx = useRef(0);
 
   const { data: categories } = useCategories();
   const { auctionIds: savedAuctionIds, toggleAuctionSave } = useSavedListings();
@@ -179,6 +181,9 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
   );
 
   const setMode = (mode: MarketMode) => {
+    const nextIdx = MODE_OPTIONS.findIndex((o) => o.value === mode);
+    setSwipeDir(nextIdx > prevModeIdx.current ? "right" : "left");
+    prevModeIdx.current = nextIdx;
     const params = new URLSearchParams(searchParams.toString());
     if (mode === "all") {
       params.delete("mode");
@@ -270,7 +275,7 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
                 </section>
               ))}
 
-              <section className="mobile-feed-section market-mobile-feed-section">
+              <section key={modeFromUrl} className={`mobile-feed-section market-mobile-feed-section tab-swipe-${swipeDir}`}>
                 <div className="mobile-feed-section-head">
                   <h2>Inventory</h2>
                   <span>{sortedListings.length}</span>
@@ -443,7 +448,7 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
         )}
       </section>
 
-      <section className="app-section listing-system-feed market-inventory-section">
+      <section key={modeFromUrl} className={`app-section listing-system-feed market-inventory-section tab-swipe-${swipeDir}`}>
         <SectionHeader
           title="Inventory"
           subtitle={isMobileUi ? undefined : "Browse active listings and compare them fast."}

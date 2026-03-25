@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import { ListingCard } from "@/components/market/ListingCard";
 import {
@@ -74,7 +74,16 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
   const [budget, setBudget] = useState<BudgetFilter>("all");
   const [sort, setSort] = useState<SortMode>("newest");
   const [status, setStatus] = useState<StatusFilter>("OPEN");
+  const [swipeDir, setSwipeDir] = useState<"left" | "right">("right");
+  const prevStatusIdx = useRef(0);
   const [mineOnly, setMineOnly] = useState(false);
+
+  const handleStatusChange = (next: StatusFilter) => {
+    const nextIdx = STATUS_OPTIONS.findIndex((o) => o.value === next);
+    setSwipeDir(nextIdx > prevStatusIdx.current ? "right" : "left");
+    prevStatusIdx.current = nextIdx;
+    setStatus(next);
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [bounties, setBounties] = useState<BountyRequestListItem[]>([]);
@@ -220,7 +229,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
                   key={option.value}
                   label={option.label}
                   active={status === option.value}
-                  onClick={() => setStatus(option.value)}
+                  onClick={() => handleStatusChange(option.value)}
                 />
               ))}
               <FilterChip
@@ -270,6 +279,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
           {error ? <EmptyStateCard title="Bounty unavailable" description={error} /> : null}
           {loading ? <CheckersLoader title="Loading bounties..." compact /> : null}
 
+          <div key={status} className={`tab-swipe-${swipeDir}`} style={{ display: "contents" }}>
           {!loading && featuredBounties.length > 0 ? (
             <section className="mobile-feed-section bounty-mobile-featured-section">
               <div className="mobile-feed-section-head">
@@ -295,7 +305,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
           ) : null}
 
           {!loading ? (
-            <section className="mobile-feed-section bounty-mobile-feed-section">
+            <section className="mobile-feed-section bounty-mobile-feed-section" >
               <div className="mobile-feed-section-head">
                 <h2>Open bounties</h2>
                 <span>{bounties.length}</span>
@@ -315,6 +325,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
               )}
             </section>
           ) : null}
+          </div>
         </section>
       </PageContainer>
     );
@@ -344,7 +355,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
                 key={option.value}
                 label={option.label}
                 active={status === option.value}
-                onClick={() => setStatus(option.value)}
+                onClick={() => handleStatusChange(option.value)}
               />
             ))}
             <FilterChip label="Mine" active={mineOnly} onClick={() => setMineOnly((prev) => !prev)} />
@@ -390,6 +401,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
         {error ? <EmptyStateCard title="Bounty unavailable" description={error} /> : null}
         {loading ? <CheckersLoader title="Loading bounties..." compact /> : null}
 
+        <div key={status} className={`tab-swipe-${swipeDir}`} style={{ display: "contents" }}>
         {!loading && featuredBounties.length > 0 ? (
           <section className="listing-system-feed bounty-featured-section">
             <SectionHeader
@@ -451,6 +463,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
 
         <div className="bounty-board-cta">
           <PrimaryButton href="/bounties/new">Post bounty</PrimaryButton>
+        </div>
         </div>
       </section>
     </PageContainer>
