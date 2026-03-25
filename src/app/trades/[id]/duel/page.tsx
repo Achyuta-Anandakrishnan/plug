@@ -2,7 +2,7 @@
 
 import { Chess } from "chess.js";
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import {
@@ -203,13 +203,40 @@ export default function TradeDuelPage() {
   const canApprove = Boolean(currentRole) && !viewerAgreed && duelStatus !== "COMPLETED";
   const canStart = Boolean(currentRole) && (duelStatus === "READY" || (duelStatus === "SCHEDULED" && duel.scheduledFor && new Date(duel.scheduledFor).getTime() <= Date.now()));
   const canAct = duelStatus === "ACTIVE" && currentRole !== null && duel.completedAt === null;
-
-  const boardRows = currentRole === "DEFENDER"
-    ? Array.from({ length: 8 }, (_, index) => index)
-    : Array.from({ length: 8 }, (_, index) => 7 - index);
-  const boardCols = currentRole === "DEFENDER"
+  const boardBottomParty = currentRole ?? "CHALLENGER";
+  const boardTopParty = boardBottomParty === "CHALLENGER" ? "DEFENDER" : "CHALLENGER";
+  const boardRows = boardBottomParty === "DEFENDER"
     ? Array.from({ length: 8 }, (_, index) => 7 - index)
     : Array.from({ length: 8 }, (_, index) => index);
+  const boardCols = boardBottomParty === "DEFENDER"
+    ? Array.from({ length: 8 }, (_, index) => 7 - index)
+    : Array.from({ length: 8 }, (_, index) => index);
+
+  const duelPartyName = (party: "CHALLENGER" | "DEFENDER") =>
+    party === "CHALLENGER"
+      ? (duel.challenger.displayName ?? duel.challenger.username ?? "Challenger")
+      : (duel.defender.displayName ?? duel.defender.username ?? "Defender");
+
+  const renderBoardChrome = (board: ReactNode, activeTurn: DuelParty) => (
+    <div className="trade-duel-board-frame">
+      <div className="trade-duel-board-player trade-duel-board-player--top">
+        <span className="trade-duel-board-player-name">{duelPartyName(boardTopParty)}</span>
+        <span className="trade-duel-board-player-meta">
+          {partyLabel(boardTopParty)}
+          {activeTurn === boardTopParty ? " · To move" : ""}
+        </span>
+      </div>
+      {board}
+      <div className="trade-duel-board-player trade-duel-board-player--bottom">
+        <span className="trade-duel-board-player-name">{duelPartyName(boardBottomParty)}</span>
+        <span className="trade-duel-board-player-meta">
+          {partyLabel(boardBottomParty)}
+          {currentRole === boardBottomParty ? " · You" : ""}
+          {activeTurn === boardBottomParty ? " · To move" : ""}
+        </span>
+      </div>
+    </div>
+  );
 
   const renderCheckers = (state: CheckersDuelState) => (
     <section className="product-card trade-duel-panel">
@@ -218,39 +245,42 @@ export default function TradeDuelPage() {
         subtitle={state.note}
         action={<span className="market-count">{partyLabel(state.turn)} to move</span>}
       />
-      <div className="trade-duel-board trade-duel-board--checkers">
-        {boardRows.map((r) => boardCols.map((c) => {
-          const cell = state.board[r]?.[c] ?? null;
-          const selected = selectedCheckers?.r === r && selectedCheckers?.c === c;
-          return (
-            <button
-              key={`${r}-${c}`}
-              type="button"
-              disabled={!canAct}
-              onClick={() => {
-                if (!canAct || currentRole === null) return;
-                if (selectedCheckers) {
-                  void performAction({
-                    action: "MOVE_CHECKERS",
-                    stateVersion: duel.stateVersion,
-                    from: selectedCheckers,
-                    to: { r, c },
-                  });
-                  return;
-                }
-                if (cell && cell.party === currentRole) {
-                  setSelectedCheckers({ r, c });
-                }
-              }}
-              className={`trade-duel-square ${(r + c) % 2 === 0 ? "is-light" : "is-dark"} ${selected ? "is-selected" : ""}`}
-            >
-              {cell ? (
-                <span className={`trade-duel-piece ${cell.party === "CHALLENGER" ? "is-challenger" : "is-defender"} ${cell.king ? "is-king" : ""}`} />
-              ) : null}
-            </button>
-          );
-        }))}
-      </div>
+      {renderBoardChrome(
+        <div className="trade-duel-board trade-duel-board--checkers">
+          {boardRows.map((r) => boardCols.map((c) => {
+            const cell = state.board[r]?.[c] ?? null;
+            const selected = selectedCheckers?.r === r && selectedCheckers?.c === c;
+            return (
+              <button
+                key={`${r}-${c}`}
+                type="button"
+                disabled={!canAct}
+                onClick={() => {
+                  if (!canAct || currentRole === null) return;
+                  if (selectedCheckers) {
+                    void performAction({
+                      action: "MOVE_CHECKERS",
+                      stateVersion: duel.stateVersion,
+                      from: selectedCheckers,
+                      to: { r, c },
+                    });
+                    return;
+                  }
+                  if (cell && cell.party === currentRole) {
+                    setSelectedCheckers({ r, c });
+                  }
+                }}
+                className={`trade-duel-square ${(r + c) % 2 === 0 ? "is-light" : "is-dark"} ${selected ? "is-selected" : ""}`}
+              >
+                {cell ? (
+                  <span className={`trade-duel-piece ${cell.party === "CHALLENGER" ? "is-challenger" : "is-defender"} ${cell.king ? "is-king" : ""}`} />
+                ) : null}
+              </button>
+            );
+          }))}
+        </div>,
+        state.turn,
+      )}
       {selectedCheckers ? (
         <button type="button" className="trade-duel-clear" onClick={() => setSelectedCheckers(null)}>
           Clear selection
@@ -270,40 +300,43 @@ export default function TradeDuelPage() {
           subtitle={state.note}
           action={<span className="market-count">{partyLabel(state.turn)} to move</span>}
         />
-        <div className="trade-duel-board trade-duel-board--chess">
-          {boardRows.map((r) => boardCols.map((c) => {
-            const piece = board[r]?.[c];
-            const square = `${String.fromCharCode(97 + c)}${8 - r}`;
-            const selected = selectedChess === square;
-            return (
-              <button
-                key={square}
-                type="button"
-                disabled={!canAct}
-                onClick={() => {
-                  if (!canAct) return;
-                  if (selectedChess) {
-                    void performAction({ action: "MOVE_CHESS", stateVersion: duel.stateVersion, from: selectedChess, to: square });
-                    return;
-                  }
-                  const pieceParty = piece?.color === "w" ? "CHALLENGER" : piece?.color === "b" ? "DEFENDER" : null;
-                  if (piece && pieceParty === currentRole) {
-                    setSelectedChess(square);
-                  }
-                }}
-                className={`trade-duel-square ${(r + c) % 2 === 0 ? "is-light" : "is-dark"} ${selected ? "is-selected" : ""}`}
-              >
-                {piece ? (
-                  <span className={`trade-duel-chess-piece ${piece.color === "w" ? "is-challenger" : "is-defender"}`}>
-                    {piece.color === "w"
-                      ? { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" }[piece.type] ?? piece.type.toUpperCase()
-                      : { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" }[piece.type] ?? piece.type}
-                  </span>
-                ) : null}
-              </button>
-            );
-          }))}
-        </div>
+        {renderBoardChrome(
+          <div className="trade-duel-board trade-duel-board--chess">
+            {boardRows.map((r) => boardCols.map((c) => {
+              const piece = board[r]?.[c];
+              const square = `${String.fromCharCode(97 + c)}${8 - r}`;
+              const selected = selectedChess === square;
+              return (
+                <button
+                  key={square}
+                  type="button"
+                  disabled={!canAct}
+                  onClick={() => {
+                    if (!canAct) return;
+                    if (selectedChess) {
+                      void performAction({ action: "MOVE_CHESS", stateVersion: duel.stateVersion, from: selectedChess, to: square });
+                      return;
+                    }
+                    const pieceParty = piece?.color === "w" ? "CHALLENGER" : piece?.color === "b" ? "DEFENDER" : null;
+                    if (piece && pieceParty === currentRole) {
+                      setSelectedChess(square);
+                    }
+                  }}
+                  className={`trade-duel-square ${(r + c) % 2 === 0 ? "is-light" : "is-dark"} ${selected ? "is-selected" : ""}`}
+                >
+                  {piece ? (
+                    <span className={`trade-duel-chess-piece ${piece.color === "w" ? "is-challenger" : "is-defender"}`}>
+                      {piece.color === "w"
+                        ? { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" }[piece.type] ?? piece.type.toUpperCase()
+                        : { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" }[piece.type] ?? piece.type}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            }))}
+          </div>,
+          state.turn,
+        )}
         {state.lastMove ? <p className="trade-duel-footnote">Last move: {state.lastMove}</p> : null}
       </section>
     );
