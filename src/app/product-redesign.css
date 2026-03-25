@@ -110,16 +110,13 @@ html[data-theme="dark"] {
 }
 
 /* ── Loader ── */
-@keyframes loader-spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes loader-dot-bounce {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-  40% { transform: scale(1); opacity: 1; }
+@keyframes loader-checker-pulse {
+  0%, 100% { opacity: 0.38; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1); }
 }
 
 .dalow-loader {
+  --loader-checker-ink: rgba(19, 34, 56, 0.025);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -135,45 +132,74 @@ html[data-theme="dark"] {
   padding: 14px 16px;
   border: 1px solid var(--product-border);
   border-radius: var(--product-radius);
-  background: var(--product-surface);
+  background-color: var(--product-surface);
+  background-image:
+    linear-gradient(45deg, var(--loader-checker-ink) 25%, transparent 25%, transparent 75%, var(--loader-checker-ink) 75%, var(--loader-checker-ink)),
+    linear-gradient(45deg, var(--loader-checker-ink) 25%, transparent 25%, transparent 75%, var(--loader-checker-ink) 75%, var(--loader-checker-ink));
+  background-position: 0 0, 9px 9px;
+  background-size: 18px 18px;
 }
 
 .dalow-loader-full {
   min-height: 80px;
+  border: 1px solid var(--product-border);
+  border-radius: var(--product-radius);
+  background-color: rgba(255, 255, 255, 0.66);
+  background-image:
+    linear-gradient(45deg, var(--loader-checker-ink) 25%, transparent 25%, transparent 75%, var(--loader-checker-ink) 75%, var(--loader-checker-ink)),
+    linear-gradient(45deg, var(--loader-checker-ink) 25%, transparent 25%, transparent 75%, var(--loader-checker-ink) 75%, var(--loader-checker-ink));
+  background-position: 0 0, 9px 9px;
+  background-size: 18px 18px;
 }
 
-.dalow-loader-ring {
-  width: 20px;
-  height: 20px;
+.dalow-loader-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgba(19, 34, 56, 0.04);
 }
 
-.dalow-loader-ring span {
+.dalow-loader-board span {
   display: block;
   width: 100%;
   height: 100%;
-  border: 2.5px solid var(--product-border-strong);
-  border-top-color: var(--product-accent);
-  border-radius: 50%;
-  animation: loader-spin 0.7s linear infinite;
+  border-radius: 3px;
+  animation: loader-checker-pulse 0.95s ease-in-out infinite;
 }
 
-.dalow-loader-dots {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.dalow-loader-board .is-dark {
+  background: rgba(19, 34, 56, 0.88);
 }
 
-.dalow-loader-dots span {
-  display: block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--product-accent);
-  animation: loader-dot-bounce 1.2s ease-in-out infinite;
+.dalow-loader-board .is-light {
+  background: rgba(148, 163, 184, 0.42);
 }
 
-.dalow-loader-dots span:nth-child(2) { animation-delay: 0.2s; }
-.dalow-loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+.dalow-loader-board span:nth-child(2),
+.dalow-loader-board span:nth-child(6),
+.dalow-loader-board span:nth-child(10),
+.dalow-loader-board span:nth-child(14) { animation-delay: 0.08s; }
+
+.dalow-loader-board span:nth-child(3),
+.dalow-loader-board span:nth-child(7),
+.dalow-loader-board span:nth-child(11),
+.dalow-loader-board span:nth-child(15) { animation-delay: 0.16s; }
+
+.dalow-loader-board span:nth-child(4),
+.dalow-loader-board span:nth-child(8),
+.dalow-loader-board span:nth-child(12),
+.dalow-loader-board span:nth-child(16) { animation-delay: 0.24s; }
+
+.dalow-loader-compact .dalow-loader-board {
+  width: 24px;
+  height: 24px;
+  gap: 2px;
+  border-radius: 7px;
+}
 
 .dalow-loader-label {
   margin: 0;
@@ -213,8 +239,16 @@ html[data-theme="dark"] .product-card {
 }
 
 html[data-theme="dark"] .dalow-loader-compact {
-  background: var(--product-surface);
+  background-color: var(--product-surface);
   border-color: var(--product-border);
+}
+
+html[data-theme="dark"] .dalow-loader {
+  --loader-checker-ink: rgba(255, 255, 255, 0.038);
+}
+
+html[data-theme="dark"] .dalow-loader-full {
+  background-color: rgba(20, 23, 32, 0.76);
 }
 
 html,

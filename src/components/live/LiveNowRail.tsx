@@ -1,4 +1,5 @@
 import type { LiveStreamItem } from "@/components/live/types";
+import { CheckersLoader } from "@/components/CheckersLoader";
 import { ListingCard } from "@/components/market/ListingCard";
 import { EmptyStateCard, SectionHeader } from "@/components/product/ProductUI";
 
@@ -35,7 +36,7 @@ export function LiveNowRail({
         />
       )}
       {loading ? (
-        <EmptyStateCard title="Loading live streams" description="Active rooms will appear here in a moment." />
+        <CheckersLoader title="Loading live streams..." compact />
       ) : visibleStreams.length === 0 ? (
         <EmptyStateCard
           title="No active streams right now."

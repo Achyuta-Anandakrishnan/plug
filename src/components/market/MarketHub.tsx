@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SkeletonRail } from "@/components/SkeletonCard";
-import { ListingCard } from "@/components/market/ListingCard";
+import { CheckersLoader } from "@/components/CheckersLoader";
 import { ListingGrid } from "@/components/market/ListingGrid";
 import type { MarketListing, SortMode } from "@/components/market/types";
 import {
@@ -154,7 +153,7 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
           </section>
 
           {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
-          {listingsLoading ? <SkeletonRail count={4} /> : null}
+          {listingsLoading ? <CheckersLoader title="Loading inventory..." compact /> : null}
 
           {!listingsLoading ? (
             <section className="mobile-feed-section market-mobile-feed-section">
@@ -238,7 +237,7 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
         />
 
         {listingsLoading ? (
-          <SkeletonRail count={8} />
+          <CheckersLoader title="Loading inventory..." compact />
         ) : sortedListings.length === 0 ? (
           <EmptyStateCard
             title="No listings match these filters."
