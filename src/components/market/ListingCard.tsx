@@ -7,7 +7,7 @@ import { signIn, useSession } from "next-auth/react";
 import type { LiveStreamItem } from "@/components/live/types";
 import { streamPriceLabel, streamTimeLabel } from "@/components/live/utils";
 import type { MarketListing } from "@/components/market/types";
-import { getTimeLeftSeconds } from "@/lib/auctions";
+import { getPrimaryImageUrl, getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import { tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
