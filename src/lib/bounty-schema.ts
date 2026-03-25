@@ -50,6 +50,16 @@ CREATE TABLE IF NOT EXISTS "WantRequest" (
 );
 `,
   `
+CREATE TABLE IF NOT EXISTS "WantRequestComment" (
+  "id" TEXT NOT NULL,
+  "wantRequestId" TEXT NOT NULL,
+  "authorId" TEXT NOT NULL,
+  "body" TEXT NOT NULL,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "WantRequestComment_pkey" PRIMARY KEY ("id")
+);
+`,
+  `
 ALTER TABLE "WantRequest"
 ADD COLUMN IF NOT EXISTS "player" TEXT,
 ADD COLUMN IF NOT EXISTS "setName" TEXT,
@@ -63,6 +73,8 @@ ADD COLUMN IF NOT EXISTS "bountyAmount" INTEGER;
   `CREATE INDEX IF NOT EXISTS "WantRequest_createdAt_idx" ON "WantRequest"("createdAt");`,
   `CREATE INDEX IF NOT EXISTS "WantRequest_category_idx" ON "WantRequest"("category");`,
   `CREATE INDEX IF NOT EXISTS "WantRequest_bountyAmount_idx" ON "WantRequest"("bountyAmount");`,
+  `CREATE INDEX IF NOT EXISTS "WantRequestComment_wantRequestId_createdAt_idx" ON "WantRequestComment"("wantRequestId", "createdAt");`,
+  `CREATE INDEX IF NOT EXISTS "WantRequestComment_authorId_idx" ON "WantRequestComment"("authorId");`,
   `
 CREATE TABLE IF NOT EXISTS "UserSave" (
   "id" TEXT NOT NULL,
@@ -118,6 +130,32 @@ BEGIN
   END IF;
 END $$;
 `,
+  `
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'WantRequestComment_wantRequestId_fkey'
+  ) THEN
+    ALTER TABLE "WantRequestComment"
+    ADD CONSTRAINT "WantRequestComment_wantRequestId_fkey"
+    FOREIGN KEY ("wantRequestId") REFERENCES "WantRequest"("id")
+    ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+`,
+  `
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'WantRequestComment_authorId_fkey'
+  ) THEN
+    ALTER TABLE "WantRequestComment"
+    ADD CONSTRAINT "WantRequestComment_authorId_fkey"
+    FOREIGN KEY ("authorId") REFERENCES "User"("id")
+    ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
+`,
 ];
 
 export async function ensureBountySchema() {
@@ -137,5 +175,5 @@ export async function ensureBountySchema() {
 
 export function isBountySchemaMissing(error?: unknown) {
   const message = error instanceof Error ? error.message : String(error ?? "");
-  return /WantRequest|WantRequestStatus|UserSave|column .* does not exist|relation .* does not exist/i.test(message);
+  return /WantRequest|WantRequestComment|WantRequestStatus|UserSave|column .* does not exist|relation .* does not exist/i.test(message);
 }

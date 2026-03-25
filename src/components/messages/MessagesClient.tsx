@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
@@ -437,18 +436,6 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                     </p>
                   </div>
                   <div className="messages-chat-head-actions">
-                    {!activeConversation.isSupport && activeConversation.participants
-                      .filter((p) => p.userId !== sessionUserId)
-                      .slice(0, 2)
-                      .map((p) => (
-                        <Link
-                          key={p.userId}
-                          href={p.user.username ? `/u/${p.user.username}` : `/profiles/${p.user.id}`}
-                          className="messages-chat-link"
-                        >
-                          {p.user.displayName ?? p.user.username ?? "Member"}
-                        </Link>
-                      ))}
                     <SecondaryButton
                       onClick={() => void handleDeleteConversation(activeConversation.id)}
                       disabled={deletingConversationId === activeConversation.id}

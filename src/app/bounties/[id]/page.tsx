@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
-import Image from "next/image";
 import { notFound } from "next/navigation";
+import { BountyCommentsClient } from "@/components/bounties/BountyCommentsClient";
+import { BountyDetailMedia } from "@/components/bounties/BountyDetailMedia";
 import { ListingCard } from "@/components/market/ListingCard";
 import { MessageUserButton } from "@/components/profiles/MessageUserButton";
 import {
@@ -66,6 +67,19 @@ type BountyDetailRecord = Prisma.WantRequestGetPayload<{
     _count: {
       select: {
         saves: true;
+      };
+    };
+  };
+}>;
+
+type BountyCommentRecord = Prisma.WantRequestCommentGetPayload<{
+  include: {
+    author: {
+      select: {
+        id: true;
+        username: true;
+        displayName: true;
+        image: true;
       };
     };
   };
@@ -169,6 +183,15 @@ function asTradeSearchBlob(trade: TradePostListItem) {
     .join(" ");
 }
 
+function safeBountyMediaUrl(value: string | null | undefined) {
+  const raw = value?.trim() ?? "";
+  if (!raw) return "";
+  if (raw.startsWith("/") || raw.startsWith("http://") || raw.startsWith("https://")) {
+    return resolveDisplayMediaUrl(raw, "");
+  }
+  return "";
+}
+
 export default async function BountyDetailPage({
   params,
 }: {
@@ -244,9 +267,9 @@ export default async function BountyDetailPage({
     ...((bounty.priceMax ?? bounty.priceMin) ? { price: String(((bounty.priceMax ?? bounty.priceMin) ?? 0) / 100) } : {}),
   });
   const terms = searchTermsForBounty(bounty);
-  const normalizedImageUrl = resolveDisplayMediaUrl(bounty.imageUrl, "");
+  const normalizedImageUrl = safeBountyMediaUrl(bounty.imageUrl);
 
-  const [candidateListingsResult, candidateTradesResult] = await Promise.allSettled([
+  const [candidateListingsResult, candidateTradesResult, commentsResult] = await Promise.allSettled([
     prisma.auction.findMany({
       where: {
         status: { in: ["SCHEDULED", "LIVE"] },
@@ -314,6 +337,21 @@ export default async function BountyDetailPage({
       orderBy: { updatedAt: "desc" },
       take: 48,
     }),
+    prisma.wantRequestComment.findMany({
+      where: { wantRequestId: id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            displayName: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+      take: 80,
+    }),
   ]);
 
   if (candidateListingsResult.status === "rejected") {
@@ -324,8 +362,30 @@ export default async function BountyDetailPage({
     console.error("Bounty trade match query failed", { id, error: candidateTradesResult.reason });
   }
 
+  if (commentsResult.status === "rejected") {
+    console.error("Bounty comments query failed", { id, error: commentsResult.reason });
+  }
+
   const candidateListings = candidateListingsResult.status === "fulfilled" ? candidateListingsResult.value : [];
   const candidateTrades = candidateTradesResult.status === "fulfilled" ? candidateTradesResult.value : [];
+  const comments: Array<{
+    id: string;
+    body: string;
+    createdAt: string;
+    author: {
+      id: string;
+      username: string | null;
+      displayName: string | null;
+      image: string | null;
+    };
+  }> = commentsResult.status === "fulfilled"
+    ? commentsResult.value.map((comment: BountyCommentRecord) => ({
+        id: comment.id,
+        body: comment.body,
+        createdAt: comment.createdAt.toISOString(),
+        author: comment.author,
+      }))
+    : [];
   const listingMatchesUnavailable = candidateListingsResult.status === "rejected";
   const tradeMatchesUnavailable = candidateTradesResult.status === "rejected";
 
@@ -371,23 +431,11 @@ export default async function BountyDetailPage({
 
         <section className="bounty-detail-layout">
           <article className="product-card bounty-detail-media-card">
-            <div className="bounty-detail-media">
-              {normalizedImageUrl ? (
-                <Image
-                  src={normalizedImageUrl}
-                  alt={bounty.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="bounty-detail-media-fallback">
-                  <span className="listing-card-badge trade-status-chip is-open">Bounty</span>
-                  <strong>{bounty.itemName}</strong>
-                </div>
-              )}
-            </div>
+            <BountyDetailMedia
+              title={bounty.title}
+              itemName={bounty.itemName}
+              imageUrl={normalizedImageUrl}
+            />
           </article>
 
           <article className="product-card bounty-detail-summary">
@@ -447,6 +495,8 @@ export default async function BountyDetailPage({
             </div>
           </article>
         </section>
+
+        <BountyCommentsClient bountyId={bounty.id} initialComments={comments} />
 
         <section className="listing-system-feed bounty-detail-matches">
           <SectionHeader

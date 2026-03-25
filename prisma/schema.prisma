@@ -216,6 +216,7 @@ model User {
   forumPostVotes ForumPostVote[]
   tradePosts     TradePost[]           @relation("TradePostOwner")
   wantRequests   WantRequest[]         @relation("WantRequestOwner")
+  wantRequestComments WantRequestComment[]
   tradeOffers    TradeOffer[]          @relation("TradeOfferProposer")
   tradeDuelsChallenging TradeDuel[]    @relation("TradeDuelChallenger")
   tradeDuelsDefending   TradeDuel[]    @relation("TradeDuelDefender")
@@ -542,12 +543,27 @@ model WantRequest {
 
   user         User              @relation("WantRequestOwner", fields: [userId], references: [id], onDelete: Cascade)
   saves        UserSave[]
+  comments     WantRequestComment[]
 
   @@index([userId])
   @@index([status])
   @@index([createdAt])
   @@index([category])
   @@index([bountyAmount])
+}
+
+model WantRequestComment {
+  id            String      @id @default(cuid())
+  wantRequestId String
+  authorId      String
+  body          String
+  createdAt     DateTime    @default(now())
+
+  wantRequest   WantRequest @relation(fields: [wantRequestId], references: [id], onDelete: Cascade)
+  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([wantRequestId, createdAt])
+  @@index([authorId])
 }
 
 model TradePostImage {
