@@ -1,6 +1,6 @@
 import type { LiveStreamItem } from "@/components/live/types";
 import { ListingCard } from "@/components/market/ListingCard";
-import { EmptyStateCard, SectionHeader } from "@/components/product/ProductUI";
+import { EmptyStateCard } from "@/components/product/ProductUI";
 
 type UpcomingStreamsSectionProps = {
   streams: LiveStreamItem[];
@@ -21,18 +21,6 @@ export function UpcomingStreamsSection({
 
   return (
     <section id="upcoming" className={`live-v3-upcoming ${compact ? "is-mobile" : ""}`}>
-      {compact ? (
-        <div className="mobile-feed-section-head">
-          <h2>Upcoming</h2>
-          <span>{visibleStreams.length}</span>
-        </div>
-      ) : (
-        <SectionHeader
-          title="Upcoming"
-          action={<span className="market-count">{visibleStreams.length} scheduled</span>}
-        />
-      )}
-
       {visibleStreams.length === 0 ? (
         <EmptyStateCard
           title={compact ? "No upcoming sessions." : "No upcoming streams scheduled yet."}

@@ -21,7 +21,6 @@ import {
   toTagArray,
   tradeValueLabel,
   type TradeDuelItem,
-  type TradeDuelMode,
   type TradeOfferItem,
   type TradePostDetail,
 } from "@/lib/trade-client";
@@ -41,19 +40,7 @@ type CounterDraft = {
   open: boolean;
   message: string;
   cashAdjustment: string;
-  resolution: "STANDARD" | "DUEL";
-  duelMode: TradeDuelMode;
-  duelTerms: string;
-  duelScheduledFor: string;
-  duelDurationMinutes: string;
 };
-
-const DUEL_OPTIONS: Array<{ value: TradeDuelMode; label: string }> = [
-  { value: "checkers", label: "Checkers" },
-  { value: "chess", label: "Chess" },
-  { value: "coin", label: "Flip coin" },
-  { value: "poker", label: "Hand of poker" },
-];
 
 const emptyOfferCard: OfferDraftCard = {
   title: "",
@@ -97,17 +84,6 @@ function settlementStatusClass(status: NonNullable<TradeOfferItem["settlement"]>
   return "is-paused";
 }
 
-function formatDatetimeInput(value: string | null | undefined) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
 
 function duelStatusClass(status: NonNullable<TradeDuelItem["status"]>) {
   if (status === "ACTIVE") return "is-open";
@@ -218,11 +194,6 @@ export default function TradeDetailPage() {
       status?: TradeOfferItem["status"];
       message?: string;
       cashAdjustment?: number;
-      counterMode?: "STANDARD" | "DUEL";
-      duelMode?: TradeDuelMode;
-      duelTerms?: string;
-      duelScheduledFor?: string | null;
-      duelDurationMinutes?: number | string | null;
       gameAction?: "AGREE_TERMS" | "START_GAME";
     },
   ) => {
@@ -251,7 +222,6 @@ export default function TradeDetailPage() {
   const agreeToDuelTerms = async (offerId: string) => {
     await updateOfferStatus(offerId, { gameAction: "AGREE_TERMS" });
   };
-
   const startCheckout = async (offerId: string) => {
     setStartingCheckoutOfferId(offerId);
     setError("");
@@ -345,65 +315,25 @@ export default function TradeDetailPage() {
         open: true,
         message: offer.message ?? "",
         cashAdjustment: String(offer.cashAdjustment ?? 0),
-        resolution: offer.duel || offer.gameType ? "DUEL" : "STANDARD",
-        duelMode: offer.duel?.mode ?? offer.gameType ?? "checkers",
-        duelTerms: offer.duel?.terms ?? offer.gameTerms ?? "If I win the duel, my counter terms become the accepted trade.",
-        duelScheduledFor: formatDatetimeInput(offer.duel?.scheduledFor),
-        duelDurationMinutes: offer.duel?.durationSeconds ? String(Math.round(offer.duel.durationSeconds / 60)) : "15",
       },
     }));
   };
 
-  const setCounterField = (
-    offerId: string,
-    field: "message" | "cashAdjustment" | "resolution" | "duelMode" | "duelTerms" | "duelScheduledFor" | "duelDurationMinutes",
-    value: string,
-  ) => {
+  const setCounterField = (offerId: string, field: "message" | "cashAdjustment", value: string) => {
     setCounterDrafts((prev) => ({
       ...prev,
-      [offerId]: (() => {
-        const base: CounterDraft = {
-          open: true,
-          message: prev[offerId]?.message ?? "",
-          cashAdjustment: prev[offerId]?.cashAdjustment ?? "0",
-          resolution: prev[offerId]?.resolution ?? "STANDARD",
-          duelMode: prev[offerId]?.duelMode ?? "checkers",
-          duelTerms: prev[offerId]?.duelTerms ?? "If I win the duel, my counter terms become the accepted trade.",
-          duelScheduledFor: prev[offerId]?.duelScheduledFor ?? "",
-          duelDurationMinutes: prev[offerId]?.duelDurationMinutes ?? "15",
-        };
-
-        if (field === "message") return { ...base, message: value };
-        if (field === "cashAdjustment") return { ...base, cashAdjustment: value };
-        if (field === "resolution") {
-          return { ...base, resolution: value === "DUEL" ? "DUEL" : "STANDARD" };
-        }
-        if (field === "duelMode") {
-          const nextMode = DUEL_OPTIONS.some((entry) => entry.value === value)
-            ? (value as TradeDuelMode)
-            : base.duelMode;
-          return { ...base, duelMode: nextMode };
-        }
-        if (field === "duelScheduledFor") return { ...base, duelScheduledFor: value };
-        if (field === "duelDurationMinutes") return { ...base, duelDurationMinutes: value };
-        return { ...base, duelTerms: value };
-      })(),
+      [offerId]: {
+        open: true,
+        message: field === "message" ? value : (prev[offerId]?.message ?? ""),
+        cashAdjustment: field === "cashAdjustment" ? value : (prev[offerId]?.cashAdjustment ?? "0"),
+      },
     }));
   };
 
   const closeCounterDraft = (offerId: string) => {
     setCounterDrafts((prev) => ({
       ...prev,
-      [offerId]: {
-        open: false,
-        message: prev[offerId]?.message ?? "",
-        cashAdjustment: prev[offerId]?.cashAdjustment ?? "0",
-        resolution: prev[offerId]?.resolution ?? "STANDARD",
-        duelMode: prev[offerId]?.duelMode ?? "checkers",
-        duelTerms: prev[offerId]?.duelTerms ?? "If I win the duel, my counter terms become the accepted trade.",
-        duelScheduledFor: prev[offerId]?.duelScheduledFor ?? "",
-        duelDurationMinutes: prev[offerId]?.duelDurationMinutes ?? "15",
-      },
+      [offerId]: { open: false, message: prev[offerId]?.message ?? "", cashAdjustment: prev[offerId]?.cashAdjustment ?? "0" },
     }));
   };
 
@@ -414,24 +344,11 @@ export default function TradeDetailPage() {
       setError("Counter cash adjustment must be a number in cents.");
       return;
     }
-    if (draft?.resolution === "DUEL") {
-      if (!draft.duelTerms.trim() || draft.duelTerms.trim().length < 12) {
-        setError("Duel terms must be at least 12 characters.");
-        return;
-      }
-    }
-
     await updateOfferStatus(offerId, {
       status: "COUNTERED",
       message: draft?.message?.trim() || "",
       cashAdjustment: Math.trunc(cash),
-      counterMode: draft?.resolution ?? "STANDARD",
-      duelMode: draft?.duelMode,
-      duelTerms: draft?.duelTerms?.trim(),
-      duelScheduledFor: draft?.duelScheduledFor?.trim() || null,
-      duelDurationMinutes: draft?.duelDurationMinutes?.trim() || null,
     });
-
     closeCounterDraft(offerId);
   };
 
@@ -597,89 +514,46 @@ export default function TradeDetailPage() {
 
             {post.viewer.canOffer ? (
               <section className="product-card trade-detail-offer-panel">
-                <SectionHeader title="Send offer" subtitle="Pitch the deal and add matching cards." />
+                <SectionHeader title="Send offer" />
                 <textarea
                   value={offerMessage}
                   onChange={(event) => setOfferMessage(event.target.value)}
                   className="trade-detail-textarea"
-                  placeholder="Trade pitch"
+                  placeholder="Pitch your trade…"
+                  rows={3}
                 />
                 <input
                   value={cashAdjustment}
                   onChange={(event) => setCashAdjustment(event.target.value)}
                   className="app-form-input"
                   inputMode="numeric"
-                  placeholder="Cash adjustment in cents (+/-)"
+                  placeholder="Cash sweetener (cents, +/-)"
                 />
-                <div className="trade-detail-offer-cards">
-                  {offerCards.map((card, index) => (
-                    <div key={`${card.title}-${index}`} className="trade-detail-offer-card">
+                {offerCards.map((card, index) => (
+                  <div key={`${card.title}-${index}`} className="trade-detail-offer-card">
+                    <div className="trade-detail-offer-card-row">
                       <input
                         value={card.title}
                         onChange={(event) => replaceOfferCard(index, "title", event.target.value)}
                         className="app-form-input"
-                        placeholder="Offered card title"
-                      />
-                      <div className="trade-detail-offer-grid">
-                        <input
-                          value={card.cardSet}
-                          onChange={(event) => replaceOfferCard(index, "cardSet", event.target.value)}
-                          className="app-form-input"
-                          placeholder="Set"
-                        />
-                        <input
-                          value={card.cardNumber}
-                          onChange={(event) => replaceOfferCard(index, "cardNumber", event.target.value)}
-                          className="app-form-input"
-                          placeholder="Number"
-                        />
-                        <input
-                          value={card.condition}
-                          onChange={(event) => replaceOfferCard(index, "condition", event.target.value)}
-                          className="app-form-input"
-                          placeholder="Condition"
-                        />
-                        <input
-                          value={card.estimatedValue}
-                          onChange={(event) => replaceOfferCard(index, "estimatedValue", event.target.value)}
-                          className="app-form-input"
-                          placeholder="Estimated value (cents)"
-                        />
-                        <input
-                          value={card.gradeCompany}
-                          onChange={(event) => replaceOfferCard(index, "gradeCompany", event.target.value)}
-                          className="app-form-input"
-                          placeholder="Grade co"
-                        />
-                        <input
-                          value={card.gradeLabel}
-                          onChange={(event) => replaceOfferCard(index, "gradeLabel", event.target.value)}
-                          className="app-form-input"
-                          placeholder="Grade"
-                        />
-                      </div>
-                      <input
-                        value={card.notes}
-                        onChange={(event) => replaceOfferCard(index, "notes", event.target.value)}
-                        className="app-form-input"
-                        placeholder="Notes"
+                        placeholder="Card title"
                       />
                       {offerCards.length > 1 ? (
-                        <button
-                          type="button"
-                          onClick={() => removeOfferCard(index)}
-                          className="trade-detail-remove"
-                        >
-                          Remove card
-                        </button>
+                        <button type="button" onClick={() => removeOfferCard(index)} className="trade-detail-remove">✕</button>
                       ) : null}
                     </div>
-                  ))}
-                </div>
+                    <div className="trade-detail-offer-grid">
+                      <input value={card.cardSet} onChange={(event) => replaceOfferCard(index, "cardSet", event.target.value)} className="app-form-input" placeholder="Set" />
+                      <input value={card.condition} onChange={(event) => replaceOfferCard(index, "condition", event.target.value)} className="app-form-input" placeholder="Condition" />
+                      <input value={card.estimatedValue} onChange={(event) => replaceOfferCard(index, "estimatedValue", event.target.value)} className="app-form-input" inputMode="decimal" placeholder="Value (¢)" />
+                      <input value={card.gradeLabel} onChange={(event) => replaceOfferCard(index, "gradeLabel", event.target.value)} className="app-form-input" placeholder="Grade" />
+                    </div>
+                  </div>
+                ))}
                 <div className="trade-detail-offer-actions">
-                  <SecondaryButton onClick={addOfferCard}>Add card</SecondaryButton>
+                  <SecondaryButton onClick={addOfferCard}>+ Card</SecondaryButton>
                   <PrimaryButton onClick={() => void submitOffer()} disabled={submittingOffer}>
-                    {submittingOffer ? "Sending..." : "Submit offer"}
+                    {submittingOffer ? "Sending…" : "Send offer"}
                   </PrimaryButton>
                 </div>
               </section>
@@ -770,7 +644,7 @@ export default function TradeDetailPage() {
                         <div>
                           <p className="trade-offer-duel-eyebrow">Duel terms</p>
                           <p className="trade-offer-duel-title">
-                            {DUEL_OPTIONS.find((entry) => entry.value === (duel?.mode ?? offer.gameType))?.label ?? duel?.mode ?? offer.gameType}
+                            {duel?.mode ?? offer.gameType}
                           </p>
                         </div>
                         <span className={`trade-status-chip ${duelStatusClass(duelStatus)}`}>
@@ -928,61 +802,16 @@ export default function TradeDetailPage() {
                         value={counterDraft.message}
                         onChange={(event) => setCounterField(offer.id, "message", event.target.value)}
                         className="app-form-textarea"
-                        placeholder="Counter message"
+                        placeholder="Counter message…"
+                        rows={2}
                       />
                       <input
                         value={counterDraft.cashAdjustment}
                         onChange={(event) => setCounterField(offer.id, "cashAdjustment", event.target.value)}
                         className="app-form-input"
                         inputMode="numeric"
-                        placeholder="Counter cash adjustment (cents)"
+                        placeholder="Cash adjustment (cents)"
                       />
-                      <div className="trade-counter-grid">
-                        <select
-                          value={counterDraft.resolution}
-                          onChange={(event) => setCounterField(offer.id, "resolution", event.target.value)}
-                          className="app-form-input"
-                        >
-                          <option value="STANDARD">Standard counter</option>
-                          <option value="DUEL">Counter + duel</option>
-                        </select>
-                        {counterDraft.resolution === "DUEL" ? (
-                          <select
-                            value={counterDraft.duelMode}
-                            onChange={(event) => setCounterField(offer.id, "duelMode", event.target.value)}
-                            className="app-form-input"
-                          >
-                            {DUEL_OPTIONS.map((entry) => (
-                              <option key={entry.value} value={entry.value}>{entry.label}</option>
-                            ))}
-                          </select>
-                        ) : null}
-                      </div>
-                      {counterDraft.resolution === "DUEL" ? (
-                        <>
-                          <textarea
-                            value={counterDraft.duelTerms}
-                            onChange={(event) => setCounterField(offer.id, "duelTerms", event.target.value)}
-                            className="app-form-textarea"
-                            placeholder="Duel terms (what happens if the challenger wins)"
-                          />
-                          <div className="trade-counter-grid">
-                            <input
-                              type="datetime-local"
-                              value={counterDraft.duelScheduledFor}
-                              onChange={(event) => setCounterField(offer.id, "duelScheduledFor", event.target.value)}
-                              className="app-form-input"
-                            />
-                            <input
-                              value={counterDraft.duelDurationMinutes}
-                              onChange={(event) => setCounterField(offer.id, "duelDurationMinutes", event.target.value)}
-                              className="app-form-input"
-                              inputMode="numeric"
-                              placeholder="Clock (minutes)"
-                            />
-                          </div>
-                        </>
-                      ) : null}
                       <div className="trade-counter-actions">
                         <button
                           type="button"

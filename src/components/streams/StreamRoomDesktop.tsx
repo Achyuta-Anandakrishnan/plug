@@ -9,7 +9,6 @@ import { getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import { LiveKitStream } from "@/components/streams/LiveKitStream";
-import { ListingImageStrip } from "@/components/streams/ListingImageStrip";
 
 type StreamRoomDesktopProps = {
   auctionId: string;
@@ -23,7 +22,7 @@ export function StreamRoomDesktop({
   stripeEnabled = true,
 }: StreamRoomDesktopProps) {
   const router = useRouter();
-  const streamFrameRef = useRef<HTMLDivElement | null>(null);
+  const chatRef = useRef<HTMLDivElement | null>(null);
   const { data, loading, error, refresh } = useAuction(auctionId, 4000, initialData);
   const { data: session } = useSession();
   const sessionUserId = session?.user?.id ?? "";
@@ -32,23 +31,17 @@ export function StreamRoomDesktop({
   const [actionStatus, setActionStatus] = useState("");
   const [participantCount, setParticipantCount] = useState<number | null>(null);
   const [streamStatus, setStreamStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
 
   useEffect(() => {
-    const onFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
-    };
-
-    document.addEventListener("fullscreenchange", onFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
-  }, []);
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [data?.chatMessages]);
 
   const timeLeft = useMemo(() => (data ? getTimeLeftSeconds(data) : 0), [data]);
-
   const nextBid = data ? data.currentBid + data.minBidIncrement : 0;
   const currency = data?.currency?.toUpperCase() ?? "USD";
-  const effectiveBuyerId = sessionUserId;
   const isAdmin = session?.user?.role === "ADMIN";
   const isHost = Boolean(
     sessionUserId
@@ -73,67 +66,34 @@ export function StreamRoomDesktop({
 
   const handleMessageSeller = async () => {
     if (!data) return;
-    if (!sessionUserId) {
-      await signIn();
-      return;
-    }
-
+    if (!sessionUserId) { await signIn(); return; }
     const sellerUserId = data.seller?.user?.id ?? "";
     if (!sellerUserId || sellerUserId === sessionUserId) return;
-
     const response = await fetch("/api/conversations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        subject: `auction:${data.id}`,
-        participantIds: [sessionUserId, sellerUserId],
-      }),
+      body: JSON.stringify({ subject: `auction:${data.id}`, participantIds: [sessionUserId, sellerUserId] }),
     });
     const payload = (await response.json()) as { id?: string; error?: string };
-    if (!response.ok || !payload?.id) {
-      setActionStatus(payload.error || "Unable to start a conversation.");
-      return;
-    }
-
+    if (!response.ok || !payload?.id) { setActionStatus(payload.error || "Unable to start a conversation."); return; }
     router.push(`/messages?c=${encodeURIComponent(payload.id)}`);
   };
 
   const handleBid = async (amountOverride?: number) => {
     if (!data) return;
-    if (!canUseStripe) {
-      setActionStatus("Connect Stripe to place offers.");
-      return;
-    }
-    if (!effectiveBuyerId) {
-      setActionStatus("Sign in to place bids.");
-      await signIn();
-      return;
-    }
-    if (isListingSeller) {
-      setActionStatus("Sellers cannot bid on their own listings.");
-      return;
-    }
-    if (!roomLive) {
-      setActionStatus("Bidding opens once the seller is live.");
-      return;
-    }
+    if (!canUseStripe) { setActionStatus("Connect Stripe to place offers."); return; }
+    if (!sessionUserId) { setActionStatus("Sign in to place bids."); await signIn(); return; }
+    if (isListingSeller) { setActionStatus("Sellers cannot bid on their own listings."); return; }
+    if (!roomLive) { setActionStatus("Bidding opens once the seller is live."); return; }
     const amount = amountOverride ?? validBidAmount;
-    if (amount < minimumBid) {
-      setActionStatus(`Enter at least ${formatCurrency(minimumBid, currency)}.`);
-      return;
-    }
-
+    if (amount < minimumBid) { setActionStatus(`Enter at least ${formatCurrency(minimumBid, currency)}.`); return; }
     const response = await fetch(`/api/auctions/${data.id}/bids`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount }),
     });
     const payload = await response.json();
-    if (!response.ok) {
-      setActionStatus(payload.error || "Unable to place bid.");
-      return;
-    }
-
+    if (!response.ok) { setActionStatus(payload.error || "Unable to place bid."); return; }
     setActionStatus(`Bid placed at ${formatCurrency(amount, currency)}.`);
     setBidAmount(((amount + data.minBidIncrement) / 100).toFixed(2));
     void refresh({ poll: true });
@@ -141,74 +101,37 @@ export function StreamRoomDesktop({
 
   const handleBuyNow = async () => {
     if (!data) return;
-    if (!canUseStripe) {
-      setActionStatus("Connect Stripe to buy now.");
-      return;
-    }
-    if (!effectiveBuyerId) {
-      setActionStatus("Sign in to buy now.");
-      await signIn();
-      return;
-    }
-    if (isListingSeller) {
-      setActionStatus("Sellers cannot buy their own listings.");
-      return;
-    }
-
-    const confirmBuy = window.confirm(
-      `Confirm buy now for ${formatCurrency(data.buyNowPrice ?? 0, currency)}?`,
-    );
+    if (!canUseStripe) { setActionStatus("Connect Stripe to buy now."); return; }
+    if (!sessionUserId) { setActionStatus("Sign in to buy now."); await signIn(); return; }
+    if (isListingSeller) { setActionStatus("Sellers cannot buy their own listings."); return; }
+    const confirmBuy = window.confirm(`Confirm buy now for ${formatCurrency(data.buyNowPrice ?? 0, currency)}?`);
     if (!confirmBuy) return;
-
     const response = await fetch(`/api/auctions/${data.id}/buy`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
-    const payload = await response.json() as { error?: string; checkoutUrl?: string | null };
-    if (!response.ok) {
-      setActionStatus(payload.error || "Unable to buy now.");
-      return;
-    }
-
+    const payload = (await response.json()) as { error?: string; checkoutUrl?: string | null };
+    if (!response.ok) { setActionStatus(payload.error || "Unable to buy now."); return; }
     if (payload.checkoutUrl && /^https?:\/\/[^\s]+$/i.test(payload.checkoutUrl)) {
       window.location.assign(payload.checkoutUrl);
       return;
     }
-
     setActionStatus("Buy now initiated.");
   };
 
   const handleSend = async () => {
     if (!data || !message.trim()) return;
-    if (!effectiveBuyerId) {
-      setActionStatus("Sign in to chat.");
-      await signIn();
-      return;
-    }
-
+    if (!sessionUserId) { setActionStatus("Sign in to chat."); await signIn(); return; }
     const response = await fetch(`/api/auctions/${data.id}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ body: message }),
     });
     const payload = await response.json();
-    if (!response.ok) {
-      setActionStatus(payload.error || "Unable to send message.");
-      return;
-    }
-
+    if (!response.ok) { setActionStatus(payload.error || "Unable to send message."); return; }
     setMessage("");
     refresh();
-  };
-
-  const handleFullscreenToggle = async () => {
-    if (!streamFrameRef.current) return;
-    if (!document.fullscreenElement) {
-      await streamFrameRef.current.requestFullscreen();
-      return;
-    }
-    await document.exitFullscreen();
   };
 
   if (loading) {
@@ -226,11 +149,9 @@ export function StreamRoomDesktop({
   const imageUrl = data.item?.images?.find((img) => img.isPrimary)?.url ?? data.item?.images?.[0]?.url ?? null;
 
   return (
-    <section className="stream-room-shell">
-      <div
-        ref={streamFrameRef}
-        className="stream-room-video"
-      >
+    <section className="stream-room-wn-shell">
+      {/* ── Video ─────────────────────────────────────────────── */}
+      <div className="stream-room-wn-video">
         <LiveKitStream
           auctionId={data.id}
           isHost={isHost}
@@ -240,202 +161,142 @@ export function StreamRoomDesktop({
           onStatusChange={setStreamStatus}
         />
 
-        <div className="stream-room-video-overlay-gradient" aria-hidden="true" />
+        <div className="stream-room-wn-grad-top" aria-hidden />
+        <div className="stream-room-wn-grad-bottom" aria-hidden />
 
-        <div className="stream-room-video-top">
-          <div className="stream-room-video-top-left">
+        {/* Top bar: badges + watchers */}
+        <div className="stream-room-wn-video-top">
+          <div className="stream-room-wn-video-top-left">
             {!isHost && (
               <span className={`stream-room-badge${streamStatus === "live" ? " is-live" : ""}`}>
                 {streamStatus === "live" ? "Live" : "Offline"}
               </span>
             )}
-            <span className="stream-room-badge">{formatSeconds(timeLeft)} left</span>
+            <span className="stream-room-wn-timer">{formatSeconds(timeLeft)}</span>
           </div>
-          <button
-            type="button"
-            onClick={handleFullscreenToggle}
-            className="stream-room-video-fullscreen-btn"
-          >
-            {isFullscreen ? "Exit full" : "Full screen"}
+          <span className="stream-room-wn-watchers">
+            {(participantCount ?? data.watchersCount).toLocaleString()} watching
+          </span>
+        </div>
+
+        {/* Bottom: seller + title */}
+        <div className="stream-room-wn-video-footer">
+          <p className="stream-room-wn-video-seller">{data.seller?.user?.displayName ?? "Verified seller"}</p>
+          <p className="stream-room-wn-video-title">{data.title}</p>
+        </div>
+      </div>
+
+      {/* ── Sidebar ───────────────────────────────────────────── */}
+      <div className="stream-room-wn-sidebar">
+        {/* Price summary */}
+        <div className="stream-room-wn-price-bar">
+          <div>
+            <span className="stream-room-wn-price-label">Current bid</span>
+            <span className="stream-room-wn-price-value">{formatCurrency(data.currentBid, currency)}</span>
+          </div>
+          <div>
+            <span className="stream-room-wn-price-label">Minimum</span>
+            <span className="stream-room-wn-price-value">{formatCurrency(minimumBid, currency)}</span>
+          </div>
+          <div>
+            <span className="stream-room-wn-price-label">Closes in</span>
+            <span className="stream-room-wn-price-value">{roomLive ? formatSeconds(timeLeft) : "—"}</span>
+          </div>
+        </div>
+
+        {/* Chat feed */}
+        <div ref={chatRef} className="stream-room-wn-chat">
+          {data.chatMessages.length === 0 ? (
+            <p className="stream-room-empty">No messages yet.</p>
+          ) : (
+            data.chatMessages.slice(-60).map((entry) => (
+              <div
+                key={entry.id}
+                className={`stream-room-wn-msg${entry.senderId === sessionUserId ? " is-own" : ""}`}
+              >
+                <span className="stream-room-wn-msg-name">{entry.sender.displayName ?? "Guest"}</span>
+                <span className="stream-room-wn-msg-body">{entry.body}</span>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Chat compose */}
+        <div className="stream-room-wn-compose">
+          <input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") void handleSend(); }}
+            placeholder="Say something..."
+            className="stream-room-wn-compose-input"
+          />
+          <button onClick={() => void handleSend()} className="stream-room-wn-send-btn" aria-label="Send">
+            ↑
           </button>
         </div>
 
-        <div className="stream-room-video-bottom">
-          <div>
-            <p className="stream-room-video-title">{data.title}</p>
-            <p className="stream-room-video-meta">
-              {data.seller?.user?.displayName ?? "Verified seller"} · {(participantCount ?? data.watchersCount)} watching
-            </p>
-          </div>
-          <div className="stream-room-video-price">
-            <p className="stream-room-video-price-label">Current</p>
-            <p className="stream-room-video-price-value">{formatCurrency(data.currentBid, currency)}</p>
-          </div>
-        </div>
-
-        {isFullscreen && (
-          <div className="stream-room-fullscreen-panels">
-            <div className="stream-room-fullscreen-panel">
-              <p className="stream-room-panel-eyebrow">Quick bids</p>
-              <div className="stream-room-panel-list">
-                {data.bids.slice(0, 10).map((bid) => (
-                  <div key={bid.id} className="stream-room-panel-row">
-                    <span>{bid.bidderId.slice(0, 6)}...</span>
-                    <span>{formatCurrency(bid.amount, currency)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="stream-room-fullscreen-panel">
-              <p className="stream-room-panel-eyebrow">Chat</p>
-              <div className="stream-room-panel-list">
-                {data.chatMessages.slice(-20).map((entry) => (
-                  <div key={entry.id} className="stream-room-panel-bubble">
-                    <span className="stream-room-panel-sender">{entry.sender.displayName ?? "Guest"}</span>
-                    {entry.body}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <aside className="stream-room-rail">
-        <section className="stream-room-rail-panel stream-room-bid-summary-panel">
-          <div className="stream-bid-summary">
-            <div>
-              <p>Current</p>
-              <strong>{formatCurrency(data.currentBid, currency)}</strong>
-            </div>
-            <div>
-              <p>Minimum</p>
-              <strong>{formatCurrency(minimumBid, currency)}</strong>
-            </div>
-            <div>
-              <p>Closes in</p>
-              <strong>{roomLive ? formatSeconds(timeLeft) : "Pending"}</strong>
-            </div>
-          </div>
-
+        {/* Bid area */}
+        <div className="stream-room-wn-bid-area">
           {data.listingType !== "BUY_NOW" && (
-            <div className="stream-bid-panel">
-              <label className="stream-bid-field">
-                <span>Your bid</span>
-                <input
-                  value={bidAmount}
-                  onChange={(event) => setBidAmount(event.target.value.replace(/[^\d.]/g, ""))}
-                  inputMode="decimal"
-                  placeholder={(minimumBid / 100).toFixed(2)}
-                />
-              </label>
-              <div className="stream-bid-quick">
+            <>
+              <div className="stream-room-wn-chips">
                 {quickBidOptions.map((amount) => (
                   <button
                     key={amount}
                     type="button"
-                    onClick={() => {
-                      setBidAmount((amount / 100).toFixed(2));
-                      void handleBid(amount);
-                    }}
-                    className="stream-bid-quick-btn"
+                    onClick={() => { setBidAmount((amount / 100).toFixed(2)); void handleBid(amount); }}
+                    className="stream-room-wn-chip"
                   >
                     {formatCurrency(amount, currency)}
                   </button>
                 ))}
               </div>
-            </div>
+              <div className="stream-room-wn-bid-row">
+                <input
+                  value={bidAmount}
+                  onChange={(e) => setBidAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                  onKeyDown={(e) => { if (e.key === "Enter") void handleBid(); }}
+                  inputMode="decimal"
+                  placeholder={(minimumBid / 100).toFixed(2)}
+                  className="stream-room-wn-bid-input"
+                />
+                <button
+                  onClick={() => void handleBid()}
+                  disabled={isListingSeller || !canUseStripe || !roomLive}
+                  className="stream-room-wn-bid-btn"
+                >
+                  BID
+                </button>
+              </div>
+            </>
           )}
 
-          <div className="stream-room-action-stack">
-            {data.listingType !== "BUY_NOW" && (
-              <button
-                onClick={() => void handleBid()}
-                disabled={isListingSeller || !canUseStripe || !roomLive}
-                className="app-button app-button-primary"
-              >
-                Place bid {formatCurrency(validBidAmount, currency)}
-              </button>
-            )}
-            {data.listingType !== "AUCTION" && data.buyNowPrice && (
-              <button
-                onClick={handleBuyNow}
-                disabled={isListingSeller || !canUseStripe}
-                className="app-button app-button-secondary"
-              >
-                Buy now {formatCurrency(data.buyNowPrice, currency)}
-              </button>
-            )}
+          {data.listingType !== "AUCTION" && data.buyNowPrice ? (
             <button
-              onClick={handleMessageSeller}
+              onClick={() => void handleBuyNow()}
+              disabled={isListingSeller || !canUseStripe}
+              className="stream-room-wn-buy-btn"
+            >
+              Buy now — {formatCurrency(data.buyNowPrice, currency)}
+            </button>
+          ) : null}
+
+          <div className="stream-room-wn-secondary-actions">
+            <button
+              onClick={() => void handleMessageSeller()}
               disabled={isListingSeller}
-              className="app-button app-button-secondary"
+              className="stream-room-wn-msg-seller-btn"
             >
               Message seller
             </button>
           </div>
 
           {!canUseStripe && (
-            <p className="app-form-hint is-warning">Stripe checkout is disabled. Connect Stripe to place offers.</p>
+            <p className="app-form-hint is-warning">Connect Stripe to place bids.</p>
           )}
-          {actionStatus && <p className="app-form-hint">{actionStatus}</p>}
-        </section>
-
-        <ListingImageStrip images={data.item?.images ?? []} />
-
-        <section className="stream-room-rail-panel stream-room-chat-panel">
-          <div className="stream-room-rail-head">
-            <h3 className="stream-room-panel-title">Chat</h3>
-            <span className="app-eyebrow">Live room</span>
-          </div>
-
-          <div className="stream-room-chat-feed">
-            {data.chatMessages.length === 0 && (
-              <p className="stream-room-empty">No chat yet. Be first to comment.</p>
-            )}
-            {data.chatMessages.map((entry) => (
-              <div
-                key={entry.id}
-                className={`stream-room-chat-bubble${entry.senderId === sessionUserId ? " is-own" : ""}`}
-              >
-                <span className="stream-room-chat-sender">{entry.sender.displayName ?? "Guest"}</span>
-                <span>{entry.body}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="stream-room-chat-compose">
-            <input
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              placeholder="Message the room"
-              className="app-form-input"
-            />
-            <button onClick={handleSend} className="app-button app-button-primary">
-              Send
-            </button>
-          </div>
-        </section>
-
-        <section className="stream-room-rail-panel stream-room-bids-panel">
-          <div className="stream-room-rail-head">
-            <h3 className="stream-room-panel-title">Recent bids</h3>
-            <span className="app-eyebrow">Activity</span>
-          </div>
-          <div className="stream-room-bids-feed">
-            {data.bids.length === 0 && (
-              <p className="stream-room-empty">No bids yet.</p>
-            )}
-            {data.bids.map((bid) => (
-              <div key={bid.id} className="stream-room-bid-row">
-                <span className="stream-room-bid-bidder">{bid.bidderId.slice(0, 6)}...</span>
-                <span className="stream-room-bid-amount">{formatCurrency(bid.amount, currency)}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      </aside>
+          {actionStatus ? <p className="stream-room-wn-status">{actionStatus}</p> : null}
+        </div>
+      </div>
     </section>
   );
 }

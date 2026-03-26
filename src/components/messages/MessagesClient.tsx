@@ -565,13 +565,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                       const isStarting = startingConversationId === profile.id;
 
                       return (
-                        <button
-                          key={profile.id}
-                          type="button"
-                          onClick={() => void handleStartConversation(profile.id)}
-                          className="messages-profile-result"
-                          disabled={isStarting}
-                        >
+                        <div key={profile.id} className="messages-profile-result">
                           <div className="messages-thread-item-avatar" aria-hidden="true">
                             {getInitials(profileName)}
                           </div>
@@ -579,10 +573,23 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                             <p>{profileName}</p>
                             <span>{profileMeta}</span>
                           </div>
-                          <span className="messages-profile-result-action">
-                            {isStarting ? "Opening..." : "Message"}
-                          </span>
-                        </button>
+                          <div className="messages-profile-result-actions">
+                            <button
+                              type="button"
+                              onClick={() => void handleStartConversation(profile.id)}
+                              className="messages-profile-result-action"
+                              disabled={isStarting}
+                            >
+                              {isStarting ? "Opening…" : "Message"}
+                            </button>
+                            <a
+                              href={`/trades/new?duel=1&opponent=${encodeURIComponent(profile.id)}`}
+                              className="messages-profile-result-duel"
+                            >
+                              Duel
+                            </a>
+                          </div>
+                        </div>
                       );
                     })
                   )}

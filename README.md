@@ -135,6 +135,16 @@ Notes:
   social sign-in may not work against a raw LAN URL.
 - This machine needs full Xcode installed before native iOS builds can complete.
 
+## Duel System
+
+A full game-based trade resolution system is built into the app but **intentionally hidden from the main UI**. Files: `src/lib/duels.ts`, `src/lib/trade-duel-service.ts`, and the page at `src/app/trades/[id]/duel/page.tsx`.
+
+**Supported game modes:** checkers, chess, coin flip, hand of poker.
+
+**How to trigger from the UI:** In the Messages page, searching for a user profile shows a **Duel** button that links to `/trades/new?duel=1&opponent=[userId]`. Existing trade offers with a duel counter-offer still display the duel panel and link through to the duel page.
+
+**Status flow:** `PENDING → READY → SCHEDULED → ACTIVE → COMPLETED`. The winner's counter-offer terms are automatically applied as trade settlement.
+
 ## Deployment notes
 
 - Set the production branch to `main` in Vercel project settings.

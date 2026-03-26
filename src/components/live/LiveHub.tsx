@@ -4,22 +4,17 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import { LiveFilters } from "@/components/live/LiveFilters";
 import { LiveNowRail } from "@/components/live/LiveNowRail";
-import type { LiveCategoryFilter, LiveSortMode, LiveStreamItem, LiveTimingFilter } from "@/components/live/types";
+import type { LiveSortMode, LiveStreamItem, LiveTimingFilter } from "@/components/live/types";
 import { UpcomingStreamsSection } from "@/components/live/UpcomingStreamsSection";
 import { EmptyStateCard, PageContainer, PageHeader } from "@/components/product/ProductUI";
 import { useMobileUi } from "@/hooks/useMobileUi";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { useStreamReminders } from "@/hooks/useStreamReminders";
-import { categoryMatches, isVisibleLiveStream, isVisibleUpcomingStream, searchMatches, sortLiveStreams, sortUpcomingStreams, withStreamState } from "@/components/live/utils";
+import { isVisibleLiveStream, isVisibleUpcomingStream, searchMatches, sortLiveStreams, sortUpcomingStreams, withStreamState } from "@/components/live/utils";
 import { useAuctions } from "@/hooks/useAuctions";
 
-function applyStreamFilters(
-  items: LiveStreamItem[],
-  query: string,
-  category: LiveCategoryFilter,
-) {
-  const queryFiltered = items.filter((stream) => searchMatches(stream, query));
-  return queryFiltered.filter((stream) => categoryMatches(stream, category));
+function applyStreamFilters(items: LiveStreamItem[], query: string) {
+  return items.filter((stream) => searchMatches(stream, query));
 }
 
 type LiveHubProps = {
@@ -29,7 +24,6 @@ type LiveHubProps = {
 export function LiveHub({ initialIsMobile }: LiveHubProps) {
   const isMobileUi = useMobileUi(initialIsMobile);
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<LiveCategoryFilter>("all");
   const [sort, setSort] = useState<LiveSortMode>("viewers");
   const [timing, setTiming] = useState<LiveTimingFilter>("live");
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -76,13 +70,13 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
   );
 
   const filteredLive = useMemo(
-    () => sortLiveStreams(applyStreamFilters(visibleLiveStreams, query, category), sort),
-    [visibleLiveStreams, query, category, sort],
+    () => sortLiveStreams(applyStreamFilters(visibleLiveStreams, query), sort),
+    [visibleLiveStreams, query, sort],
   );
 
   const filteredUpcoming = useMemo(
-    () => sortUpcomingStreams(applyStreamFilters(upcomingStreams, query, category), sort),
-    [upcomingStreams, query, category, sort],
+    () => sortUpcomingStreams(applyStreamFilters(upcomingStreams, query), sort),
+    [upcomingStreams, query, sort],
   );
 
   const hasError = liveError || upcomingError;
@@ -98,8 +92,6 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
           title="Live"
           query={query}
           onQueryChange={setQuery}
-          category={category}
-          onCategoryChange={setCategory}
           sort={sort}
           onSortChange={setSort}
           timing={timing}
@@ -110,22 +102,24 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
           <CheckersLoader title="Loading live sessions..." compact className="live-v3-empty" />
         ) : (
           <div className="live-mobile-feed">
-            <LiveNowRail
-              streams={filteredLive}
-              loading={liveLoading}
-              limit={liveLimit}
-              compact
-              savedStreamIds={savedAuctionIds}
-              onToggleSave={toggleAuctionSave}
-            />
-
-            <UpcomingStreamsSection
-              streams={filteredUpcoming}
-              reminders={reminderIds}
-              onToggleReminder={toggleReminder}
-              limit={upcomingLimit}
-              compact
-            />
+            {timing === "live" ? (
+              <LiveNowRail
+                streams={filteredLive}
+                loading={liveLoading}
+                limit={liveLimit}
+                compact
+                savedStreamIds={savedAuctionIds}
+                onToggleSave={toggleAuctionSave}
+              />
+            ) : (
+              <UpcomingStreamsSection
+                streams={filteredUpcoming}
+                reminders={reminderIds}
+                onToggleReminder={toggleReminder}
+                limit={upcomingLimit}
+                compact
+              />
+            )}
           </div>
         )}
 
@@ -144,8 +138,6 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
         title="Live"
         query={query}
         onQueryChange={setQuery}
-        category={category}
-        onCategoryChange={setCategory}
         sort={sort}
         onSortChange={setSort}
         timing={timing}
@@ -153,31 +145,27 @@ export function LiveHub({ initialIsMobile }: LiveHubProps) {
       />
 
       {loading ? (
-        <CheckersLoader title="Loading live sessions..." compact className="live-v3-empty" />
+        <CheckersLoader title="Loading..." compact className="live-v3-empty" />
       ) : (
         <div className="listing-system-feed">
-          <LiveNowRail
-            streams={filteredLive}
-            loading={liveLoading}
-            limit={liveLimit}
-            compact={isMobileUi}
-            savedStreamIds={savedAuctionIds}
-            onToggleSave={toggleAuctionSave}
-          />
-        </div>
-      )}
-
-      {loading ? (
-        <CheckersLoader title="Loading upcoming sessions..." compact className="live-v3-empty" />
-      ) : (
-        <div className="listing-system-feed">
-          <UpcomingStreamsSection
-            streams={filteredUpcoming}
-            reminders={reminderIds}
-            onToggleReminder={toggleReminder}
-            limit={upcomingLimit}
-            compact={isMobileUi}
-          />
+          {timing === "live" ? (
+            <LiveNowRail
+              streams={filteredLive}
+              loading={liveLoading}
+              limit={liveLimit}
+              compact={isMobileUi}
+              savedStreamIds={savedAuctionIds}
+              onToggleSave={toggleAuctionSave}
+            />
+          ) : (
+            <UpcomingStreamsSection
+              streams={filteredUpcoming}
+              reminders={reminderIds}
+              onToggleReminder={toggleReminder}
+              limit={upcomingLimit}
+              compact={isMobileUi}
+            />
+          )}
         </div>
       )}
 

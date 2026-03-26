@@ -6,7 +6,6 @@ import {
   EmptyStateCard,
   PageContainer,
   PrimaryButton,
-  SecondaryButton,
 } from "@/components/product/ProductUI";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { getGradeLabel, getTimeLeftSeconds } from "@/lib/auctions";
@@ -348,19 +347,16 @@ function HomeActionColumn({
   eyebrow,
   title,
   copy,
-  detail,
 }: {
   eyebrow: string;
   title: string;
   copy: string;
-  detail: string;
 }) {
   return (
     <article className="landing-action-column">
       <span className="landing-section-kicker">{eyebrow}</span>
       <h3>{title}</h3>
       <p>{copy}</p>
-      <strong>{detail}</strong>
     </article>
   );
 }
@@ -421,8 +417,7 @@ export default async function Home() {
               One premium collectibles platform for real-time streams, live bidding, and structured collector deals.
             </p>
             <div className="landing-hero-actions">
-              <PrimaryButton href="/listings">Explore marketplace</PrimaryButton>
-              <SecondaryButton href="/live">Watch live</SecondaryButton>
+              <PrimaryButton href="/listings">Get started</PrimaryButton>
             </div>
             <p className="landing-hero-note">Browse active inventory. Join live rooms. Negotiate collector deals.</p>
           </div>
@@ -478,19 +473,16 @@ export default async function Home() {
               eyebrow="Live"
               title="Run live streams with nonstop auctions."
               copy="Watch real-time deals from trusted sellers."
-              detail="Fast, loud, always moving."
             />
             <HomeActionColumn
               eyebrow="Auctions"
               title="Jump into weekly auctions that actually move."
               copy="List your slabs. Get paid."
-              detail="No dead listings."
             />
             <HomeActionColumn
               eyebrow="Trades"
               title="Negotiate directly with other collectors."
               copy="Trades verified by real collectors."
-              detail="Can't agree? Settle it with checkers or poker."
             />
           </div>
         </section>
@@ -579,12 +571,8 @@ export default async function Home() {
         </section>
 
         <section className="landing-section landing-final">
-          <p className="landing-section-kicker">Next step</p>
-          <h2>Start listing, bidding, or trading.</h2>
-          <p>Built for collectors who want more than static listings.</p>
           <div className="landing-final-actions">
-            <PrimaryButton href="/listings">Open marketplace</PrimaryButton>
-            <SecondaryButton href="/live">Watch live</SecondaryButton>
+            <PrimaryButton href="/listings">Start exploring</PrimaryButton>
           </div>
         </section>
       </div>
@@ -598,8 +586,7 @@ export default async function Home() {
             A premium platform for real-time streams, timed bidding, and structured collector deals.
           </p>
           <div className="landing-mobile-actions">
-            <PrimaryButton href="/listings">Explore marketplace</PrimaryButton>
-            <SecondaryButton href="/live">Watch live</SecondaryButton>
+            <PrimaryButton href="/listings">Get started</PrimaryButton>
           </div>
           <p className="landing-mobile-note">Browse active inventory. Join live rooms. Negotiate collector deals.</p>
         </section>
@@ -646,19 +633,16 @@ export default async function Home() {
               eyebrow="Live"
               title="Run live streams with nonstop auctions."
               copy="Watch real-time deals from trusted sellers."
-              detail="Fast, loud, always moving."
             />
             <HomeActionColumn
               eyebrow="Auctions"
               title="Jump into weekly auctions that actually move."
               copy="List your slabs. Get paid."
-              detail="No dead listings."
             />
             <HomeActionColumn
               eyebrow="Trades"
               title="Negotiate directly with other collectors."
               copy="Trades verified by real collectors."
-              detail="Can't agree? Settle it with checkers or poker."
             />
           </div>
         </section>
@@ -694,12 +678,8 @@ export default async function Home() {
         </section>
 
         <section className="landing-mobile-section landing-mobile-final">
-          <p className="landing-section-kicker">Next step</p>
-          <h2>Start listing, bidding, or trading.</h2>
-          <p>Built for collectors who want more than static listings.</p>
           <div className="landing-mobile-actions">
-            <PrimaryButton href="/listings">Explore marketplace</PrimaryButton>
-            <SecondaryButton href="/live">Watch live</SecondaryButton>
+            <PrimaryButton href="/listings">Start exploring</PrimaryButton>
           </div>
         </section>
       </div>
