@@ -56,6 +56,21 @@ type TradeApiItem = {
   };
 };
 
+type BountyApiItem = {
+  id: string;
+  title: string;
+  itemName: string;
+  priceMin: number | null;
+  priceMax: number | null;
+  bountyAmount: number | null;
+  category: string | null;
+  player: string | null;
+  setName: string | null;
+  year: string | null;
+  gradeCompany: string | null;
+  grade: string | null;
+};
+
 type HomeLiveStreamPreview = {
   id: string;
   href: string;
@@ -90,10 +105,20 @@ type HomeTradePreview = {
   imageUrl: string;
 };
 
+type HomeBountyPreview = {
+  id: string;
+  href: string;
+  itemName: string;
+  budgetLabel: string;
+  bountyLabel: string | null;
+  meta: string;
+};
+
 type HomePageData = {
   streams: HomeLiveStreamPreview[];
   auctions: HomeAuctionPreview[];
   trades: HomeTradePreview[];
+  bounties: HomeBountyPreview[];
 };
 
 const FALLBACK_STREAMS: HomeLiveStreamPreview[] = [
@@ -127,7 +152,7 @@ const FALLBACK_TRADES: HomeTradePreview[] = [
     owner: "Collector One",
     lookingFor: "Looking for vintage holos or sealed product.",
     offersCount: 3,
-    valueLabel: "$1,200-$1,600",
+    valueLabel: "$1,200–$1,600",
     imageUrl: "/placeholders/pokemon-generic.svg",
   },
   {
@@ -140,15 +165,24 @@ const FALLBACK_TRADES: HomeTradePreview[] = [
     valueLabel: "From $850",
     imageUrl: "/placeholders/pokemon-generic.svg",
   },
+];
+
+const FALLBACK_BOUNTIES: HomeBountyPreview[] = [
   {
-    id: "demo-trade-3",
-    href: "/trades",
-    title: "Modern chase bundle",
-    owner: "Vault Room",
-    lookingFor: "Mainly high-end sports rookies.",
-    offersCount: 5,
-    valueLabel: "Up to $1,100",
-    imageUrl: "/placeholders/pokemon-generic.svg",
+    id: "demo-bounty-1",
+    href: "/bounties",
+    itemName: "PSA 10 1999 Base Charizard",
+    budgetLabel: "$8,000–$12,000",
+    bountyLabel: "$500",
+    meta: "Pokemon · Graded",
+  },
+  {
+    id: "demo-bounty-2",
+    href: "/bounties",
+    itemName: "BGS 9.5 Mike Trout Rookie",
+    budgetLabel: "Up to $4,200",
+    bountyLabel: "$200",
+    meta: "Sports · BGS",
   },
 ];
 
@@ -221,6 +255,30 @@ function mapTrades(items: TradeApiItem[] | null): HomeTradePreview[] {
   }));
 }
 
+function mapBounties(items: BountyApiItem[] | null): HomeBountyPreview[] {
+  if (!items?.length) return [];
+  return items.slice(0, 4).map((b) => {
+    const budget = b.priceMin != null && b.priceMax != null
+      ? `${formatCurrency(b.priceMin)} – ${formatCurrency(b.priceMax)}`
+      : b.priceMax != null
+      ? `Up to ${formatCurrency(b.priceMax)}`
+      : b.priceMin != null
+      ? `From ${formatCurrency(b.priceMin)}`
+      : "Open budget";
+    const metaParts = [b.category, b.player, b.setName, b.year, b.gradeCompany && b.grade ? `${b.gradeCompany} ${b.grade}` : null]
+      .filter(Boolean)
+      .slice(0, 3);
+    return {
+      id: b.id,
+      href: `/bounties/${b.id}`,
+      itemName: b.itemName || b.title,
+      budgetLabel: budget,
+      bountyLabel: b.bountyAmount ? formatCurrency(b.bountyAmount) : null,
+      meta: metaParts.join(" · ") || "Collector request",
+    };
+  });
+}
+
 function mapFallbackAuctions(): HomeAuctionPreview[] {
   return mockAuctions.slice(0, 6).map((auction) => ({
     id: auction.id,
@@ -240,7 +298,7 @@ function classNames(...parts: Array<string | null | undefined | false>) {
 }
 
 async function getHomePageData(): Promise<HomePageData> {
-  const [liveStreamsData, listingsData, tradesData] = await Promise.all([
+  const [liveStreamsData, listingsData, tradesData, bountiesData] = await Promise.all([
     prisma.auction.findMany({
       where: {
         status: "LIVE",
@@ -256,7 +314,7 @@ async function getHomePageData(): Promise<HomePageData> {
           },
         },
       },
-      orderBy: [{ watchersCount: "desc" }, { createdAt: "desc" }],
+      orderBy: [{ watchersCount: "desc" }, { currentBid: "desc" }, { createdAt: "desc" }],
       take: 6,
     }),
     prisma.auction.findMany({
@@ -274,7 +332,7 @@ async function getHomePageData(): Promise<HomePageData> {
           },
         },
       },
-      orderBy: [{ watchersCount: "desc" }, { createdAt: "desc" }],
+      orderBy: [{ watchersCount: "desc" }, { currentBid: "desc" }, { createdAt: "desc" }],
       take: 6,
     }),
     prisma.tradePost.findMany({
@@ -293,19 +351,40 @@ async function getHomePageData(): Promise<HomePageData> {
           select: { offers: true },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ offers: { _count: "desc" } }, { createdAt: "desc" }],
       take: 6,
+    }),
+    prisma.wantRequest.findMany({
+      where: { status: "OPEN" },
+      select: {
+        id: true,
+        title: true,
+        itemName: true,
+        priceMin: true,
+        priceMax: true,
+        bountyAmount: true,
+        category: true,
+        player: true,
+        setName: true,
+        year: true,
+        gradeCompany: true,
+        grade: true,
+      },
+      orderBy: [{ bountyAmount: "desc" }, { updatedAt: "desc" }],
+      take: 4,
     }),
   ]);
 
   const streams = mapStreams(liveStreamsData);
   const auctions = mapAuctions(listingsData);
   const trades = mapTrades(tradesData);
+  const bounties = mapBounties(bountiesData);
 
   return {
     streams: streams.length ? streams : FALLBACK_STREAMS,
     auctions: auctions.length ? auctions : mapFallbackAuctions(),
     trades: trades.length ? trades : FALLBACK_TRADES,
+    bounties: bounties.length ? bounties : FALLBACK_BOUNTIES,
   };
 }
 
@@ -343,34 +422,68 @@ function SurfacePreview({
   );
 }
 
+function BountyHeroCard({
+  bounty,
+  className,
+}: {
+  bounty: HomeBountyPreview;
+  className?: string;
+}) {
+  return (
+    <Link href={bounty.href} className={classNames("landing-bounty-hero-card", className)}>
+      <span className="landing-visual-badge">Bounty</span>
+      <div className="landing-bounty-hero-body">
+        <p className="landing-bounty-hero-name">{bounty.itemName}</p>
+        <p className="landing-bounty-hero-meta">{bounty.meta}</p>
+      </div>
+      <div className="landing-bounty-hero-pricing">
+        <div>
+          <span className="landing-bounty-hero-label">Budget</span>
+          <strong className="landing-bounty-hero-value">{bounty.budgetLabel}</strong>
+        </div>
+        {bounty.bountyLabel && (
+          <div>
+            <span className="landing-bounty-hero-label">Finder&rsquo;s fee</span>
+            <strong className="landing-bounty-hero-value landing-bounty-hero-fee">{bounty.bountyLabel}</strong>
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+}
+
 function HomeActionColumn({
   eyebrow,
   title,
   copy,
+  href,
 }: {
   eyebrow: string;
   title: string;
   copy: string;
+  href: string;
 }) {
   return (
-    <article className="landing-action-column">
+    <Link href={href} className="landing-action-column">
       <span className="landing-section-kicker">{eyebrow}</span>
       <h3>{title}</h3>
       <p>{copy}</p>
-    </article>
+    </Link>
   );
 }
 
-function HomeStoryPoint({
+function HomeStoryStep({
+  index,
   title,
   copy,
 }: {
+  index: string;
   title: string;
   copy: string;
 }) {
   return (
     <li className="landing-story-point">
-      <span className="landing-story-marker" aria-hidden="true" />
+      <span className="landing-story-marker" aria-hidden="true">{index}</span>
       <div>
         <strong>{title}</strong>
         <p>{copy}</p>
@@ -400,8 +513,8 @@ export default async function Home() {
   const heroStream = data.streams[0];
   const heroAuction = data.auctions[0];
   const heroTrade = data.trades[0];
-  const heroStreamSecondary = data.streams[1] ?? heroStream;
-  const heroTradeSecondary = data.trades[1] ?? heroTrade;
+  const heroBounty = data.bounties[0];
+  const heroAuctionSecondary = data.auctions[1] ?? heroAuction;
 
   return (
     <PageContainer className="landing-page">
@@ -409,280 +522,280 @@ export default async function Home() {
         initialIsMobile={initialIsMobile}
         desktop={(
           <div className="landing-desktop-layout">
-        <section className="landing-section landing-hero">
-          <div className="landing-hero-copy">
-            <p className="landing-eyebrow">For collectors, by collectors</p>
-            <h1>Live. Auctions. Trades.</h1>
-            <p>
-              One premium collectibles platform for real-time streams, live bidding, and structured collector deals.
-            </p>
-            <div className="landing-hero-actions">
-              <PrimaryButton href="/listings">Get started</PrimaryButton>
-            </div>
-            <p className="landing-hero-note">Browse active inventory. Join live rooms. Negotiate collector deals.</p>
-          </div>
 
-          <div className="landing-hero-showcase">
-            <div className="landing-hero-showcase-shell" aria-hidden="true" />
-            <SurfacePreview
-              title={heroStream.title}
-              subtitle={`${heroStream.host} · ${heroStream.category}`}
-              meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
-              imageUrl={heroStream.imageUrl}
-              href={heroStream.href}
-              accent="Live now"
-              className="landing-showcase-card is-hero-featured"
-            />
-            <SurfacePreview
-              title={heroAuction.title}
-              subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
-              meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
-              imageUrl={heroAuction.imageUrl}
-              href={heroAuction.href}
-              accent="Auction"
-              className="landing-showcase-card is-hero-auction"
-            />
-            <SurfacePreview
-              title={heroTrade.title}
-              subtitle={heroTrade.owner}
-              meta={`${heroTrade.valueLabel} · ${heroTrade.offersCount} offers`}
-              imageUrl={heroTrade.imageUrl}
-              href={heroTrade.href}
-              accent="Trade"
-              className="landing-showcase-card is-hero-trade"
-            />
-            <SurfacePreview
-              title={heroStreamSecondary.title}
-              subtitle={`${heroStreamSecondary.host} · ${heroStreamSecondary.category}`}
-              meta={`${heroStreamSecondary.watchers.toLocaleString()} watching · ${heroStreamSecondary.priceLabel}`}
-              imageUrl={heroStreamSecondary.imageUrl}
-              href={heroStreamSecondary.href}
-              accent="Room"
-              className="landing-showcase-card is-hero-room"
-            />
-          </div>
-        </section>
+            {/* ── Hero ──────────────────────────────────────────────────── */}
+            <section className="landing-section landing-hero">
+              <div className="landing-hero-copy">
+                <p className="landing-eyebrow">For collectors, by collectors</p>
+                <h1>Live. Auctions.<br />Trades. Bounties.</h1>
+                <p>
+                  One premium collectibles platform for real-time streams, live bidding, structured deals, and demand-led buying.
+                </p>
+                <div className="landing-hero-actions">
+                  <PrimaryButton href="/listings">Get started</PrimaryButton>
+                </div>
+                <p className="landing-hero-note">Browse active inventory. Join live rooms. Negotiate collector deals.</p>
+              </div>
 
-        <section className="landing-section landing-actions-section">
-          <div className="landing-section-head">
-            <p className="landing-section-kicker">Core actions</p>
-            <h2>Three ways collectors move inventory</h2>
-          </div>
-          <div className="landing-actions-strip">
-            <HomeActionColumn
-              eyebrow="Live"
-              title="Run live streams with nonstop auctions."
-              copy="Watch real-time deals from trusted sellers."
-            />
-            <HomeActionColumn
-              eyebrow="Auctions"
-              title="Jump into weekly auctions that actually move."
-              copy="List your slabs. Get paid."
-            />
-            <HomeActionColumn
-              eyebrow="Trades"
-              title="Negotiate directly with other collectors."
-              copy="Trades verified by real collectors."
-            />
-          </div>
-        </section>
+              <div className="landing-hero-showcase">
+                <div className="landing-hero-showcase-shell" aria-hidden="true" />
+                <SurfacePreview
+                  title={heroStream.title}
+                  subtitle={`${heroStream.host} · ${heroStream.category}`}
+                  meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
+                  imageUrl={heroStream.imageUrl}
+                  href={heroStream.href}
+                  accent="Live now"
+                  className="landing-showcase-card is-hero-featured"
+                />
+                <SurfacePreview
+                  title={heroAuction.title}
+                  subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
+                  meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
+                  imageUrl={heroAuction.imageUrl}
+                  href={heroAuction.href}
+                  accent="Auction"
+                  className="landing-showcase-card is-hero-auction"
+                />
+                <SurfacePreview
+                  title={heroTrade.title}
+                  subtitle={heroTrade.owner}
+                  meta={`${heroTrade.valueLabel} · ${heroTrade.offersCount} offers`}
+                  imageUrl={heroTrade.imageUrl}
+                  href={heroTrade.href}
+                  accent="Trade"
+                  className="landing-showcase-card is-hero-trade"
+                />
+                <BountyHeroCard
+                  bounty={heroBounty}
+                  className="landing-showcase-card is-hero-bounty"
+                />
+              </div>
+            </section>
 
-        <section className="landing-section landing-story">
-          <div className="landing-story-visual">
-            <SurfacePreview
-              title={heroAuction.title}
-              subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
-              meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
-              imageUrl={heroAuction.imageUrl}
-              href={heroAuction.href}
-              accent="Auction momentum"
-              className="landing-story-card is-story-primary"
-            />
-            <div className="landing-story-stack">
-              <SurfacePreview
-                title={heroStream.title}
-                subtitle={`${heroStream.host} · ${heroStream.category}`}
-                meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
-                imageUrl={heroStream.imageUrl}
-                href={heroStream.href}
-                accent="Live floor"
-                className="landing-story-card is-story-secondary"
-              />
-              <SurfacePreview
-                title={heroTradeSecondary.title}
-                subtitle={heroTradeSecondary.owner}
-                meta={`${heroTradeSecondary.valueLabel} · ${heroTradeSecondary.offersCount} offers`}
-                imageUrl={heroTradeSecondary.imageUrl}
-                href={heroTradeSecondary.href}
-                accent="Trade follow-through"
-                className="landing-story-card is-story-secondary"
-              />
-            </div>
-          </div>
-          <div className="landing-story-copy">
-            <p className="landing-section-kicker">Connected workflow</p>
-            <h2>One connected collector workflow</h2>
-            <p>
-              Market discovery, live commerce, and negotiation all happen in one place.
-            </p>
-            <ul className="landing-story-points">
-              <HomeStoryPoint
-                title="Discover inventory fast"
-                copy="Listings, cert context, and active rooms sit in one feed instead of separate product silos."
-              />
-              <HomeStoryPoint
-                title="Turn momentum into bids"
-                copy="A live stream can move attention directly into an auction without losing collector context."
-              />
-              <HomeStoryPoint
-                title="Move serious deals into trades"
-                copy="The same inventory graph can keep moving through offers and negotiation when bids are not the answer."
-              />
-            </ul>
-          </div>
-        </section>
+            {/* ── Core actions ──────────────────────────────────────────── */}
+            <section className="landing-section landing-actions-section">
+              <div className="landing-actions-strip">
+                <HomeActionColumn
+                  eyebrow="Live"
+                  title="Sell in real time."
+                  copy="Run stream rooms with live auctions. Collectors bid as you present."
+                  href="/live"
+                />
+                <HomeActionColumn
+                  eyebrow="Auctions"
+                  title="Bid. Win."
+                  copy="Timed auctions on graded singles, lots, and sealed product."
+                  href="/listings"
+                />
+                <HomeActionColumn
+                  eyebrow="Trades"
+                  title="Deal direct."
+                  copy="Post what you have. Browse what collectors want. Make offers."
+                  href="/trades"
+                />
+                <HomeActionColumn
+                  eyebrow="Bounty"
+                  title="Name your price."
+                  copy="Post exactly what you want. Put a finder's fee on it. Sellers bring it to you."
+                  href="/bounties"
+                />
+              </div>
+            </section>
 
-        <section className="landing-section landing-trust">
-          <div className="landing-section-head">
-            <p className="landing-section-kicker">Why it works</p>
-            <h2>Built around how the hobby actually works</h2>
-            <p>
-              dalow is designed around the signals collectors actually use when they decide to buy, bid, or trade.
-            </p>
-          </div>
-          <div className="landing-trust-grid">
-            <HomeTrustPoint
-              title="Image-first inventory"
-              copy="Listings stay visual, with the details layered in only where they help the decision."
-            />
-            <HomeTrustPoint
-              title="Real-time selling and bidding"
-              copy="Rooms, watchers, and active bids create momentum that feels native to the hobby."
-            />
-            <HomeTrustPoint
-              title="Structured collector negotiation"
-              copy="Trades keep value ranges, offers, and conversation tied to the item itself."
-            />
-            <HomeTrustPoint
-              title="Shared identity across the platform"
-              copy="Hosts, sellers, and collectors carry context with them instead of starting from zero every time."
-            />
-          </div>
-        </section>
+            {/* ── Workflow story ────────────────────────────────────────── */}
+            <section className="landing-section landing-story">
+              <div className="landing-story-visual">
+                <SurfacePreview
+                  title={heroAuction.title}
+                  subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
+                  meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
+                  imageUrl={heroAuction.imageUrl}
+                  href={heroAuction.href}
+                  accent="Active auction"
+                  className="landing-story-card is-story-primary"
+                />
+                <div className="landing-story-stack">
+                  <SurfacePreview
+                    title={heroStream.title}
+                    subtitle={`${heroStream.host} · ${heroStream.category}`}
+                    meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
+                    imageUrl={heroStream.imageUrl}
+                    href={heroStream.href}
+                    accent="Live floor"
+                    className="landing-story-card is-story-secondary"
+                  />
+                  <SurfacePreview
+                    title={heroAuctionSecondary.title}
+                    subtitle={`${heroAuctionSecondary.category} · ${heroAuctionSecondary.seller}`}
+                    meta={`${heroAuctionSecondary.currentBidLabel} · ${heroAuctionSecondary.timeLeftLabel}`}
+                    imageUrl={heroAuctionSecondary.imageUrl}
+                    href={heroAuctionSecondary.href}
+                    accent="Ending soon"
+                    className="landing-story-card is-story-secondary"
+                  />
+                </div>
+              </div>
+              <div className="landing-story-copy">
+                <p className="landing-section-kicker">How it works</p>
+                <h2>Discover. Bid. Trade. Pull supply.</h2>
+                <p>
+                  Every mode connects. Move inventory through the workflow that fits — sell live, run auctions, negotiate trades, or let bounties bring supply to you.
+                </p>
+                <ul className="landing-story-points">
+                  <HomeStoryStep
+                    index="01"
+                    title="Discover"
+                    copy="Browse active listings, live rooms, and open trades in a single feed."
+                  />
+                  <HomeStoryStep
+                    index="02"
+                    title="Bid"
+                    copy="Jump into live auctions or timed listings. Prices move in real time."
+                  />
+                  <HomeStoryStep
+                    index="03"
+                    title="Trade"
+                    copy="Make or receive structured offers. No guesswork, no DMs."
+                  />
+                  <HomeStoryStep
+                    index="04"
+                    title="Pull supply"
+                    copy="Post a bounty with a finder's fee. Sellers bring the card to you."
+                  />
+                </ul>
+              </div>
+            </section>
 
-        <section className="landing-section landing-final">
-          <div className="landing-final-actions">
-            <PrimaryButton href="/listings">Start exploring</PrimaryButton>
+            {/* ── Why it works ─────────────────────────────────────────── */}
+            <section className="landing-section landing-trust">
+              <div className="landing-section-head">
+                <p className="landing-section-kicker">Why it works</p>
+                <h2>Built for how the hobby moves.</h2>
+              </div>
+              <div className="landing-trust-grid">
+                <HomeTrustPoint
+                  title="Visual-first"
+                  copy="See it fast. Listings are image-led with grade, cert, and condition surfaced up front."
+                />
+                <HomeTrustPoint
+                  title="Real-time"
+                  copy="Prices move live. Rooms, watchers, and bids create momentum you can feel."
+                />
+                <HomeTrustPoint
+                  title="Structured"
+                  copy="No messy DMs. Offers, trades, and deals are tied to the item with a clear record."
+                />
+                <HomeTrustPoint
+                  title="Demand-led"
+                  copy="Bounties pull inventory. Post what you want, set a finder's fee, and let the market come to you."
+                />
+                <HomeTrustPoint
+                  title="Reputation"
+                  copy="Your identity as a seller, buyer, and trader carries across every surface."
+                />
+              </div>
+            </section>
+
+            {/* ── Final CTA ────────────────────────────────────────────── */}
+            <section className="landing-section landing-final">
+              <div className="landing-final-actions">
+                <PrimaryButton href="/listings">Start exploring</PrimaryButton>
+              </div>
+            </section>
+
           </div>
-        </section>
-      </div>
         )}
         mobile={(
           <div className="landing-mobile-layout">
-        <section className="landing-mobile-section landing-mobile-hero">
-          <p className="landing-eyebrow">For collectors, by collectors</p>
-          <h1>Live. Auctions. Trades.</h1>
-          <p className="landing-mobile-copy">
-            A premium platform for real-time streams, timed bidding, and structured collector deals.
-          </p>
-          <div className="landing-mobile-actions">
-            <PrimaryButton href="/listings">Get started</PrimaryButton>
-          </div>
-          <p className="landing-mobile-note">Browse active inventory. Join live rooms. Negotiate collector deals.</p>
-        </section>
 
-        <section className="landing-mobile-section landing-mobile-preview">
-          <div className="landing-mobile-preview-stack">
-            <SurfacePreview
-              title={heroStream.title}
-              subtitle={`${heroStream.host} · ${heroStream.category}`}
-              meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
-              imageUrl={heroStream.imageUrl}
-              href={heroStream.href}
-              accent="Live"
-              className="landing-mobile-preview-card is-live"
-            />
-            <SurfacePreview
-              title={heroAuction.title}
-              subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
-              meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
-              imageUrl={heroAuction.imageUrl}
-              href={heroAuction.href}
-              accent="Auction"
-              className="landing-mobile-preview-card is-auction"
-            />
-            <SurfacePreview
-              title={heroTrade.title}
-              subtitle={heroTrade.owner}
-              meta={`${heroTrade.valueLabel} · ${heroTrade.offersCount} offers`}
-              imageUrl={heroTrade.imageUrl}
-              href={heroTrade.href}
-              accent="Trade"
-              className="landing-mobile-preview-card is-trade"
-            />
-          </div>
-        </section>
+            {/* ── Mobile hero ──────────────────────────────────────────── */}
+            <section className="landing-mobile-section landing-mobile-hero">
+              <p className="landing-eyebrow">For collectors, by collectors</p>
+              <h1>Live. Auctions.<br />Trades. Bounties.</h1>
+              <p className="landing-mobile-copy">
+                One premium platform for real-time streams, live bidding, structured deals, and demand-led buying.
+              </p>
+              <div className="landing-mobile-actions">
+                <PrimaryButton href="/listings">Get started</PrimaryButton>
+              </div>
+              <p className="landing-mobile-note">Browse active inventory. Join live rooms. Negotiate deals.</p>
+            </section>
 
-        <section className="landing-mobile-section landing-mobile-actions-section">
-          <div className="landing-mobile-head">
-            <p className="landing-section-kicker">Core actions</p>
-            <h2>Three ways collectors move inventory</h2>
-          </div>
-          <div className="landing-mobile-action-rail">
-            <HomeActionColumn
-              eyebrow="Live"
-              title="Run live streams with nonstop auctions."
-              copy="Watch real-time deals from trusted sellers."
-            />
-            <HomeActionColumn
-              eyebrow="Auctions"
-              title="Jump into weekly auctions that actually move."
-              copy="List your slabs. Get paid."
-            />
-            <HomeActionColumn
-              eyebrow="Trades"
-              title="Negotiate directly with other collectors."
-              copy="Trades verified by real collectors."
-            />
-          </div>
-        </section>
+            {/* ── Mobile preview cards ─────────────────────────────────── */}
+            <section className="landing-mobile-section landing-mobile-preview">
+              <div className="landing-mobile-preview-stack">
+                <SurfacePreview
+                  title={heroStream.title}
+                  subtitle={`${heroStream.host} · ${heroStream.category}`}
+                  meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
+                  imageUrl={heroStream.imageUrl}
+                  href={heroStream.href}
+                  accent="Live"
+                  className="landing-mobile-preview-card is-live"
+                />
+                <SurfacePreview
+                  title={heroAuction.title}
+                  subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
+                  meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
+                  imageUrl={heroAuction.imageUrl}
+                  href={heroAuction.href}
+                  accent="Auction"
+                  className="landing-mobile-preview-card is-auction"
+                />
+                <SurfacePreview
+                  title={heroTrade.title}
+                  subtitle={heroTrade.owner}
+                  meta={`${heroTrade.valueLabel} · ${heroTrade.offersCount} offers`}
+                  imageUrl={heroTrade.imageUrl}
+                  href={heroTrade.href}
+                  accent="Trade"
+                  className="landing-mobile-preview-card is-trade"
+                />
+              </div>
+            </section>
 
-        <section className="landing-mobile-section landing-mobile-story">
-          <div className="landing-mobile-head">
-            <p className="landing-section-kicker">Connected workflow</p>
-            <h2>One connected collector workflow</h2>
-          </div>
-          <SurfacePreview
-            title={heroAuction.title}
-            subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
-            meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
-            imageUrl={heroAuction.imageUrl}
-            href={heroAuction.href}
-            accent="Flow"
-            className="landing-mobile-story-card"
-          />
-          <ul className="landing-mobile-story-points">
-            <HomeStoryPoint
-              title="Discover inventory fast"
-              copy="See live rooms, listings, and collector context in one flow."
-            />
-            <HomeStoryPoint
-              title="Turn momentum into bids"
-              copy="Live attention can move directly into active auctions."
-            />
-            <HomeStoryPoint
-              title="Move serious deals into trades"
-              copy="When bidding is not the answer, offers pick up where the room left off."
-            />
-          </ul>
-        </section>
+            {/* ── Mobile core actions ──────────────────────────────────── */}
+            <section className="landing-mobile-section landing-mobile-actions-section">
+              <div className="landing-mobile-action-grid">
+                <HomeActionColumn eyebrow="Live" title="Sell in real time." copy="Stream rooms with live auctions." href="/live" />
+                <HomeActionColumn eyebrow="Auctions" title="Bid. Win." copy="Timed listings on graded cards." href="/listings" />
+                <HomeActionColumn eyebrow="Trades" title="Deal direct." copy="Post, offer, negotiate." href="/trades" />
+                <HomeActionColumn eyebrow="Bounty" title="Name your price." copy="Post demand. Get supply." href="/bounties" />
+              </div>
+            </section>
 
-        <section className="landing-mobile-section landing-mobile-final">
-          <div className="landing-mobile-actions">
-            <PrimaryButton href="/listings">Start exploring</PrimaryButton>
+            {/* ── Mobile workflow ──────────────────────────────────────── */}
+            <section className="landing-mobile-section landing-mobile-story">
+              <div className="landing-mobile-head">
+                <p className="landing-section-kicker">How it works</p>
+                <h2>Discover. Bid. Trade. Pull supply.</h2>
+              </div>
+              <SurfacePreview
+                title={heroAuction.title}
+                subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
+                meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
+                imageUrl={heroAuction.imageUrl}
+                href={heroAuction.href}
+                accent="Active"
+                className="landing-mobile-story-card"
+              />
+              <ul className="landing-mobile-story-points">
+                <HomeStoryStep index="01" title="Discover" copy="Browse listings, live rooms, and trades in one place." />
+                <HomeStoryStep index="02" title="Bid" copy="Jump in. Prices move live." />
+                <HomeStoryStep index="03" title="Trade" copy="Structured offers. No guesswork." />
+                <HomeStoryStep index="04" title="Pull supply" copy="Bounties bring cards to you." />
+              </ul>
+            </section>
+
+            {/* ── Mobile final ─────────────────────────────────────────── */}
+            <section className="landing-mobile-section landing-mobile-final">
+              <div className="landing-mobile-actions">
+                <PrimaryButton href="/listings">Start exploring</PrimaryButton>
+              </div>
+            </section>
+
           </div>
-        </section>
-      </div>
         )}
       />
 

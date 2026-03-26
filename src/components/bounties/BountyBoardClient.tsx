@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import {
@@ -44,6 +46,13 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
+function validImage(url: string | null | undefined): string {
+  if (!url) return "/placeholders/pokemon-generic.svg";
+  if (url.startsWith("/")) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  return "/placeholders/pokemon-generic.svg";
+}
+
 function BountyCard({
   bounty,
   saved,
@@ -53,16 +62,21 @@ function BountyCard({
   saved: boolean;
   onToggleSave: (id: string) => void;
 }) {
-  const budgetParts: string[] = [];
-  if (bounty.priceMin != null && bounty.priceMax != null) {
-    budgetParts.push(`${formatCurrency(bounty.priceMin)} – ${formatCurrency(bounty.priceMax)}`);
-  } else if (bounty.priceMax != null) {
-    budgetParts.push(`Up to ${formatCurrency(bounty.priceMax)}`);
-  } else if (bounty.priceMin != null) {
-    budgetParts.push(`From ${formatCurrency(bounty.priceMin)}`);
-  }
+  const href = `/bounties/${bounty.id}`;
+  const imageUrl = validImage(bounty.imageUrl);
+
+  const budgetLabel = bounty.priceMin != null && bounty.priceMax != null
+    ? bounty.priceMin === bounty.priceMax
+      ? formatCurrency(bounty.priceMin)
+      : `${formatCurrency(bounty.priceMin)} – ${formatCurrency(bounty.priceMax)}`
+    : bounty.priceMax != null
+    ? `Up to ${formatCurrency(bounty.priceMax)}`
+    : bounty.priceMin != null
+    ? `From ${formatCurrency(bounty.priceMin)}`
+    : null;
 
   const specs: string[] = [];
+  if (bounty.category) specs.push(bounty.category);
   if (bounty.player) specs.push(bounty.player);
   if (bounty.setName) specs.push(bounty.setName);
   if (bounty.year) specs.push(bounty.year);
@@ -73,49 +87,81 @@ function BountyCard({
   const poster = bounty.user.displayName || bounty.user.username || "Anonymous";
 
   return (
-    <article className={`bounty-text-card status-${bounty.status.toLowerCase()}`}>
-      <div className="bounty-text-card-top">
-        <div className="bounty-text-card-title-row">
-          <h3 className="bounty-text-card-title">{bounty.itemName || bounty.title}</h3>
-          <span className={`bounty-text-card-status bounty-status-${bounty.status.toLowerCase()}`}>
+    <article className={`bounty-row-card status-${bounty.status.toLowerCase()}`}>
+      {/* Full-card link overlay — sits behind interactive elements */}
+      <Link href={href} className="bounty-row-card-overlay" tabIndex={-1} aria-hidden="true" />
+
+      <div className="bounty-row-image">
+        <Image
+          src={imageUrl}
+          alt={bounty.itemName || bounty.title}
+          fill
+          sizes="80px"
+          className="object-cover"
+          unoptimized
+        />
+      </div>
+
+      <div className="bounty-row-body">
+        <div className="bounty-row-header">
+          <h3 className="bounty-row-title">
+            <Link href={href} className="bounty-row-title-link">
+              {bounty.itemName || bounty.title}
+            </Link>
+          </h3>
+          <span className={`bounty-row-status-badge bounty-status-${bounty.status.toLowerCase()}`}>
             {STATUS_LABELS[bounty.status] ?? bounty.status}
           </span>
         </div>
+
         {specs.length > 0 && (
-          <p className="bounty-text-card-specs">{specs.join(" · ")}</p>
+          <p className="bounty-row-meta">{specs.join(" · ")}</p>
         )}
+
+        {bounty.notes && (
+          <p className="bounty-row-notes">{bounty.notes}</p>
+        )}
+
+        <div className="bounty-row-foot">
+          <div className="bounty-row-byline">
+            <span className="bounty-row-poster">@{poster}</span>
+            <span className="bounty-row-time">{timeAgo(bounty.createdAt)}</span>
+          </div>
+          <div className="bounty-row-actions">
+            <Link
+              href={href}
+              className="bounty-row-fulfill-btn"
+            >
+              Fulfill bounty
+            </Link>
+            <button
+              className={`bounty-row-save-btn ${saved ? "is-saved" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleSave(bounty.id);
+              }}
+              type="button"
+              aria-label={saved ? "Remove from saved" : "Save bounty"}
+            >
+              {saved ? "Saved" : "Save"}
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="bounty-text-card-pricing">
-        {budgetParts.length > 0 && (
-          <div className="bounty-text-card-price-item">
-            <span className="bounty-text-card-price-label">Budget</span>
-            <strong className="bounty-text-card-price-value">{budgetParts[0]}</strong>
+      <div className="bounty-row-pricing">
+        {budgetLabel && (
+          <div className="bounty-row-price-block">
+            <span className="bounty-row-price-label">Budget</span>
+            <strong className="bounty-row-price-value">{budgetLabel}</strong>
           </div>
         )}
-        {bounty.bountyAmount != null && (
-          <div className="bounty-text-card-price-item bounty-text-card-bounty">
-            <span className="bounty-text-card-price-label">Finder&rsquo;s fee</span>
-            <strong className="bounty-text-card-price-value">{formatCurrency(bounty.bountyAmount)}</strong>
+        {bounty.bountyAmount != null && bounty.bountyAmount > 0 && (
+          <div className="bounty-row-price-block">
+            <span className="bounty-row-price-label">Finder&rsquo;s fee</span>
+            <strong className="bounty-row-price-value is-fee">{formatCurrency(bounty.bountyAmount)}</strong>
           </div>
         )}
-      </div>
-
-      {bounty.notes && (
-        <p className="bounty-text-card-notes">{bounty.notes}</p>
-      )}
-
-      <div className="bounty-text-card-foot">
-        <span className="bounty-text-card-poster">@{poster}</span>
-        <span className="bounty-text-card-time">{timeAgo(bounty.createdAt)}</span>
-        <button
-          className={`bounty-text-card-save ${saved ? "is-saved" : ""}`}
-          onClick={() => onToggleSave(bounty.id)}
-          aria-label={saved ? "Remove from saved" : "Save bounty"}
-          type="button"
-        >
-          {saved ? "Saved" : "Save"}
-        </button>
       </div>
     </article>
   );
@@ -229,7 +275,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
                   description="Try another card or a broader category."
                 />
               ) : (
-                <div className="bounty-text-list">
+                <div className="bounty-row-list">
                   {renderCards(bounties)}
                 </div>
               )}
@@ -276,12 +322,12 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
         {!loading && bounties.length === 0 ? (
           <EmptyStateCard
             title="No bounties match these filters."
-            description="Try a broader search or another category."
+            description="Try a broader search."
           />
         ) : null}
 
         {!loading && bounties.length > 0 ? (
-          <div className="bounty-text-list">
+          <div className="bounty-row-list">
             {renderCards(bounties)}
           </div>
         ) : null}
