@@ -12703,6 +12703,237 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
   justify-content: center;
 }
 
+/* ── Bounty text list — glassmorphism cards ── */
+.bounty-text-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 20px;
+  width: 100%;
+}
+
+.bounty-text-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.bounty-text-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.10);
+  transform: translateY(-1px);
+}
+
+.bounty-text-card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bounty-text-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bounty-text-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--product-text);
+  margin: 0;
+  line-height: 1.3;
+  flex: 1;
+}
+
+.bounty-text-card-specs {
+  font-size: 12px;
+  color: var(--product-text-faint);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.bounty-text-card-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bounty-status-open {
+  background: rgba(16, 160, 80, 0.12);
+  color: #0d8c50;
+  border: 1px solid rgba(16, 160, 80, 0.22);
+}
+
+.bounty-status-matched {
+  background: rgba(59, 105, 230, 0.12);
+  color: #2a52b8;
+  border: 1px solid rgba(59, 105, 230, 0.22);
+}
+
+.bounty-status-fulfilled {
+  background: rgba(130, 130, 140, 0.12);
+  color: var(--product-text-faint);
+  border: 1px solid rgba(130, 130, 140, 0.22);
+}
+
+.bounty-status-expired,
+.bounty-status-paused {
+  background: rgba(200, 100, 30, 0.10);
+  color: #a0521a;
+  border: 1px solid rgba(200, 100, 30, 0.20);
+}
+
+.bounty-text-card-pricing {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.bounty-text-card-price-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.bounty-text-card-price-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--product-text-faint);
+}
+
+.bounty-text-card-price-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--product-text);
+  letter-spacing: -0.02em;
+}
+
+.bounty-text-card-bounty .bounty-text-card-price-value {
+  color: #0d8c50;
+}
+
+.bounty-text-card-notes {
+  font-size: 13px;
+  color: var(--product-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bounty-text-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.bounty-text-card-poster {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--product-text-secondary);
+}
+
+.bounty-text-card-time {
+  font-size: 12px;
+  color: var(--product-text-faint);
+  margin-right: auto;
+}
+
+.bounty-text-card-save {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: transparent;
+  color: var(--product-text-secondary);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.bounty-text-card-save:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.bounty-text-card-save.is-saved {
+  background: rgba(16, 160, 80, 0.10);
+  border-color: rgba(16, 160, 80, 0.3);
+  color: #0d8c50;
+}
+
+/* dark mode */
+@media (prefers-color-scheme: dark) {
+  .bounty-text-card {
+    background: rgba(30, 30, 35, 0.65);
+    border-color: rgba(255, 255, 255, 0.10);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  .bounty-text-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .bounty-text-card-foot {
+    border-top-color: rgba(255, 255, 255, 0.07);
+  }
+
+  .bounty-text-card-save {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+
+  .bounty-text-card-save:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .bounty-status-open {
+    background: rgba(16, 160, 80, 0.18);
+    color: #3dd68c;
+    border-color: rgba(16, 160, 80, 0.3);
+  }
+
+  .bounty-status-matched {
+    background: rgba(100, 140, 255, 0.15);
+    color: #8aaeff;
+    border-color: rgba(100, 140, 255, 0.28);
+  }
+}
+
+/* mobile adjustments */
+@media (max-width: 768px) {
+  .bounty-text-card {
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+
+  .bounty-text-card-price-value {
+    font-size: 15px;
+  }
+
+  .bounty-mobile-feed-section .bounty-text-list {
+    padding-top: 12px;
+  }
+}
+
 /* ── Tab swipe animations ── */
 @keyframes tab-swipe-in-right {
   from { transform: translateX(28px); opacity: 0; }

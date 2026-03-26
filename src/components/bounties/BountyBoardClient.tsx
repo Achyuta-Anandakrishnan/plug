@@ -1,24 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckersLoader } from "@/components/CheckersLoader";
-import { ListingCard } from "@/components/market/ListingCard";
 import {
   DiscoveryBar,
   EmptyStateCard,
-  FilterChip,
   PageContainer,
   PageHeader,
   PrimaryButton,
   SearchIcon,
-  SectionHeader,
 } from "@/components/product/ProductUI";
-import { useCategories } from "@/hooks/useCategories";
 import { useMobileUi } from "@/hooks/useMobileUi";
 import { useSavedListings } from "@/hooks/useSavedListings";
-import {
-  type BountyRequestListItem,
-} from "@/lib/bounties";
+import { type BountyRequestListItem } from "@/lib/bounties";
+import { formatCurrency } from "@/lib/format";
 
 type SortMode = "newest" | "highest-bounty" | "highest-budget" | "most-specific" | "recently-active";
 
@@ -30,43 +25,115 @@ const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
   { value: "recently-active", label: "Recently active" },
 ];
 
+const STATUS_LABELS: Record<string, string> = {
+  OPEN: "Open",
+  MATCHED: "Matched",
+  FULFILLED: "Fulfilled",
+  EXPIRED: "Expired",
+  PAUSED: "Paused",
+};
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
+
+function BountyCard({
+  bounty,
+  saved,
+  onToggleSave,
+}: {
+  bounty: BountyRequestListItem;
+  saved: boolean;
+  onToggleSave: (id: string) => void;
+}) {
+  const budgetParts: string[] = [];
+  if (bounty.priceMin != null && bounty.priceMax != null) {
+    budgetParts.push(`${formatCurrency(bounty.priceMin)} – ${formatCurrency(bounty.priceMax)}`);
+  } else if (bounty.priceMax != null) {
+    budgetParts.push(`Up to ${formatCurrency(bounty.priceMax)}`);
+  } else if (bounty.priceMin != null) {
+    budgetParts.push(`From ${formatCurrency(bounty.priceMin)}`);
+  }
+
+  const specs: string[] = [];
+  if (bounty.player) specs.push(bounty.player);
+  if (bounty.setName) specs.push(bounty.setName);
+  if (bounty.year) specs.push(bounty.year);
+  if (bounty.gradeCompany && bounty.grade) specs.push(`${bounty.gradeCompany} ${bounty.grade}`);
+  else if (bounty.grade) specs.push(`Grade ${bounty.grade}`);
+  if (bounty.certNumber) specs.push(`#${bounty.certNumber}`);
+
+  const poster = bounty.user.displayName || bounty.user.username || "Anonymous";
+
+  return (
+    <article className={`bounty-text-card status-${bounty.status.toLowerCase()}`}>
+      <div className="bounty-text-card-top">
+        <div className="bounty-text-card-title-row">
+          <h3 className="bounty-text-card-title">{bounty.itemName || bounty.title}</h3>
+          <span className={`bounty-text-card-status bounty-status-${bounty.status.toLowerCase()}`}>
+            {STATUS_LABELS[bounty.status] ?? bounty.status}
+          </span>
+        </div>
+        {specs.length > 0 && (
+          <p className="bounty-text-card-specs">{specs.join(" · ")}</p>
+        )}
+      </div>
+
+      <div className="bounty-text-card-pricing">
+        {budgetParts.length > 0 && (
+          <div className="bounty-text-card-price-item">
+            <span className="bounty-text-card-price-label">Budget</span>
+            <strong className="bounty-text-card-price-value">{budgetParts[0]}</strong>
+          </div>
+        )}
+        {bounty.bountyAmount != null && (
+          <div className="bounty-text-card-price-item bounty-text-card-bounty">
+            <span className="bounty-text-card-price-label">Finder&rsquo;s fee</span>
+            <strong className="bounty-text-card-price-value">{formatCurrency(bounty.bountyAmount)}</strong>
+          </div>
+        )}
+      </div>
+
+      {bounty.notes && (
+        <p className="bounty-text-card-notes">{bounty.notes}</p>
+      )}
+
+      <div className="bounty-text-card-foot">
+        <span className="bounty-text-card-poster">@{poster}</span>
+        <span className="bounty-text-card-time">{timeAgo(bounty.createdAt)}</span>
+        <button
+          className={`bounty-text-card-save ${saved ? "is-saved" : ""}`}
+          onClick={() => onToggleSave(bounty.id)}
+          aria-label={saved ? "Remove from saved" : "Save bounty"}
+          type="button"
+        >
+          {saved ? "Saved" : "Save"}
+        </button>
+      </div>
+    </article>
+  );
+}
+
 type BountyBoardClientProps = {
   initialIsMobile?: boolean;
 };
 
 export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
   const isMobileUi = useMobileUi(initialIsMobile);
-  const { data: categories } = useCategories();
   const { bountyRequestIds, toggleBountySave } = useSavedListings();
 
   const [query, setQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [sort, setSort] = useState<SortMode>("newest");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [bounties, setBounties] = useState<BountyRequestListItem[]>([]);
-
-  const categoryFilters = useMemo(() => {
-    const base = [
-      { id: "all", label: "All", slug: "" },
-      { id: "pokemon", label: "Pokemon", slug: "Pokemon" },
-      { id: "sports", label: "Sports", slug: "Sports" },
-      { id: "anime", label: "Anime", slug: "Anime" },
-      { id: "vintage", label: "Vintage", slug: "Vintage" },
-    ];
-    const seen = new Set(base.map((entry) => entry.slug.toLowerCase()).filter(Boolean));
-    const extras = categories
-      .filter((category) => {
-        const slug = category.name.toLowerCase();
-        if (seen.has(slug)) return false;
-        seen.add(slug);
-        return true;
-      })
-      .slice(0, 4)
-      .map((category) => ({ id: category.id, label: category.name, slug: category.name }));
-
-    return [...base, ...extras];
-  }, [categories]);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,7 +146,6 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
         params.set("limit", "120");
         params.set("sort", sort);
         if (query.trim()) params.set("q", query.trim());
-        if (selectedCategory) params.set("category", selectedCategory);
         const response = await fetch(`/api/bounties?${params.toString()}`, { cache: "no-store" });
         const payload = (await response.json()) as BountyRequestListItem[] & { error?: string };
         if (!response.ok) {
@@ -104,17 +170,17 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
       cancelled = true;
       window.clearTimeout(timeout);
     };
-  }, [query, selectedCategory, sort]);
+  }, [query, sort]);
 
-  const renderCards = (items: BountyRequestListItem[]) => items.map((bounty) => (
-    <ListingCard
-      key={bounty.id}
-      kind="bounty"
-      bounty={bounty}
-      saved={bountyRequestIds.has(bounty.id)}
-      onToggleSave={toggleBountySave}
-    />
-  ));
+  const renderCards = (items: BountyRequestListItem[]) =>
+    items.map((bounty) => (
+      <BountyCard
+        key={bounty.id}
+        bounty={bounty}
+        saved={bountyRequestIds.has(bounty.id)}
+        onToggleSave={toggleBountySave}
+      />
+    ));
 
   if (isMobileUi) {
     return (
@@ -136,16 +202,6 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
                 placeholder="Search cards, players, sets, certs"
               />
             </div>
-            <div className="mobile-page-toolbar-scroll bounty-mobile-chiprail">
-              {categoryFilters.map((category) => (
-                <FilterChip
-                  key={category.id}
-                  label={category.label}
-                  active={selectedCategory === category.slug}
-                  onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
-                />
-              ))}
-            </div>
             <div className="bounty-mobile-selects">
               <label className="app-select-wrap app-select-inline">
                 <span>Sort</span>
@@ -162,7 +218,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
           {loading ? <CheckersLoader title="Loading bounties..." compact /> : null}
 
           {!loading ? (
-            <section className="mobile-feed-section bounty-mobile-feed-section" >
+            <section className="mobile-feed-section bounty-mobile-feed-section">
               <div className="mobile-feed-section-head">
                 <h2>Bounty feed</h2>
                 <span>{bounties.length}</span>
@@ -173,7 +229,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
                   description="Try another card or a broader category."
                 />
               ) : (
-                <div className={`market-v2-grid bounty-board-grid ${bounties.length > 0 && bounties.length < 3 ? "is-sparse" : ""}`}>
+                <div className="bounty-text-list">
                   {renderCards(bounties)}
                 </div>
               )}
@@ -202,16 +258,6 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
               placeholder="Search cards, players, sets, cert numbers"
             />
           </div>
-          <div className="app-chip-row bounty-toolbar-categories">
-            {categoryFilters.map((category) => (
-              <FilterChip
-                key={category.id}
-                label={category.label}
-                active={selectedCategory === category.slug}
-                onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
-              />
-            ))}
-          </div>
           <div className="listing-system-toolbar-meta bounty-toolbar-meta">
             <label className="app-select-wrap app-select-inline">
               <span>Sort</span>
@@ -227,22 +273,18 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
         {error ? <EmptyStateCard title="Bounty unavailable" description={error} /> : null}
         {loading ? <CheckersLoader title="Loading bounties..." compact /> : null}
 
-        <section className="listing-system-feed bounty-feed-section">
-          <SectionHeader
-            title="Bounty"
-            subtitle="Live buyer demand ready for sellers, finders, and matching inventory."
-            action={<span className="market-count">{bounties.length} open</span>}
+        {!loading && bounties.length === 0 ? (
+          <EmptyStateCard
+            title="No bounties match these filters."
+            description="Try a broader search or another category."
           />
-          {!loading && bounties.length === 0 ? (
-            <EmptyStateCard
-              title="No bounties match these filters."
-              description="Try a broader search or another category."
-            />
-          ) : null}
-          <div className={`market-v2-grid bounty-board-grid ${bounties.length > 0 && bounties.length < 3 ? "is-sparse" : ""}`}>
+        ) : null}
+
+        {!loading && bounties.length > 0 ? (
+          <div className="bounty-text-list">
             {renderCards(bounties)}
           </div>
-        </section>
+        ) : null}
       </section>
     </PageContainer>
   );
