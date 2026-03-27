@@ -64,13 +64,23 @@ export function PopScoreBadge({ auctionId, itemName, className = "" }: Props) {
 
   const t     = tier(result.popScore);
   const flame = result.popScore >= 80 ? "🔥\u00A0" : "";
+  const marketSummary = result.marketData
+    ? [
+        result.marketData.price != null ? `JustTCG $${result.marketData.price.toFixed(2)}` : null,
+        result.marketData.priceChange7d != null ? `${result.marketData.priceChange7d >= 0 ? "+" : ""}${result.marketData.priceChange7d.toFixed(2)}% 7d` : null,
+        result.marketData.setName ? result.marketData.setName : null,
+      ]
+        .filter(Boolean)
+        .join(" • ")
+    : "";
+  const title = marketSummary ? `${result.explanation} • ${marketSummary}` : result.explanation;
 
   return (
     <span
       ref={ref}
       className={`pop-score-badge pop-score-${t} ${className}`}
-      title={result.explanation}
-      aria-label={`POP Score ${result.popScore} — ${result.label}`}
+      title={title}
+      aria-label={`POP Score ${result.popScore} — ${result.label}${marketSummary ? ` — ${marketSummary}` : ""}`}
     >
       {flame}POP {result.popScore}
       <span className="pop-score-label-text">{result.label}</span>

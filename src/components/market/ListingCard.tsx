@@ -63,6 +63,7 @@ type ListingSurfaceData = {
   saveInactiveLabel: string;
   saveActiveLabel: string;
   hasImage: boolean;
+  sellerHref: string | null;
   statsLabelLeft?: string | null;
   statsLabelRight?: string | null;
 };
@@ -79,6 +80,11 @@ function compactCurrency(amountCents: number, currency = "USD", locale = "en-US"
     currency,
     maximumFractionDigits: 0,
   }).format(amountCents / 100);
+}
+
+function profileHrefForUser(user?: { id?: string | null; username?: string | null } | null) {
+  if (!user?.id && !user?.username) return null;
+  return user.username ? `/u/${encodeURIComponent(user.username)}` : `/profiles/${encodeURIComponent(user.id!)}`;
 }
 
 function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData {
@@ -101,6 +107,7 @@ function marketListingToSurfaceData(listing: MarketListing): ListingSurfaceData 
     priceLabel: price,
     activityLabel: activity,
     sellerLabel: listing.seller?.user?.displayName ?? "Verified seller",
+    sellerHref: profileHrefForUser(listing.seller?.user),
     saveInactiveLabel: "Add listing to watchlist",
     saveActiveLabel: "Remove listing from watchlist",
     hasImage: true,
@@ -129,6 +136,7 @@ function tradeListingToSurfaceData(trade: TradePostListItem): ListingSurfaceData
     priceLabel: tradeValueLabel(trade.valueMin, trade.valueMax),
     activityLabel: `${trade._count.offers} offer${trade._count.offers === 1 ? "" : "s"}`,
     sellerLabel: trade.owner.displayName ?? trade.owner.username ?? "Collector",
+    sellerHref: profileHrefForUser(trade.owner),
     saveInactiveLabel: "Save trade",
     saveActiveLabel: "Remove saved trade",
     hasImage: true,
@@ -158,6 +166,7 @@ function liveListingToSurfaceData(stream: LiveStreamItem): ListingSurfaceData {
     priceLabel: streamPriceLabel(stream),
     activityLabel,
     sellerLabel: seller,
+    sellerHref: profileHrefForUser(stream.seller?.user),
     saveInactiveLabel: stream.streamState === "upcoming" ? "Set reminder" : "Save stream",
     saveActiveLabel: stream.streamState === "upcoming" ? "Remove reminder" : "Remove saved stream",
     hasImage: true,
@@ -187,6 +196,7 @@ function bountyListingToSurfaceData(bounty: BountyRequestListItem): ListingSurfa
       ? bountyAmountLabel(bounty.bountyAmount)
       : "Open bounty",
     sellerLabel: bounty.user.displayName ?? bounty.user.username ?? "Collector",
+    sellerHref: profileHrefForUser(bounty.user),
     saveInactiveLabel: "Save bounty",
     saveActiveLabel: "Remove saved bounty",
     hasImage: Boolean(imageUrl),
@@ -288,7 +298,8 @@ export function ListingCard(props: ListingCardProps) {
           </button>
         </div>
 
-        <Link href={surface.href} className="listing-card-market-meta">
+        <div className="listing-card-market-meta">
+          <Link href={surface.href} className="listing-card-market-meta-link">
           <div className="listing-card-market-stats">
             <div className="listing-card-market-stat">
               <p className="listing-card-market-stat-label">{surface.statsLabelLeft ?? "Price"}</p>
@@ -303,14 +314,26 @@ export function ListingCard(props: ListingCardProps) {
               </p>
             </div>
           </div>
-          <p className="listing-card-market-seller">{compactName(surface.sellerLabel)}</p>
-        </Link>
+          </Link>
+          {surface.sellerHref ? (
+            <Link
+              href={surface.sellerHref}
+              className="listing-card-market-seller listing-card-seller-link"
+              onClick={(event) => event.stopPropagation()}
+            >
+              {compactName(surface.sellerLabel)}
+            </Link>
+          ) : (
+            <p className="listing-card-market-seller">{compactName(surface.sellerLabel)}</p>
+          )}
+        </div>
       </article>
     );
   }
 
   return (
     <article className={`listing-card is-${surfaceKind}-card`}>
+      <div className="listing-card-shell">
       <Link href={surface.href} className="listing-card-link">
         {surface.hasImage ? (
           <Image
@@ -340,7 +363,6 @@ export function ListingCard(props: ListingCardProps) {
         <div className="listing-card-body">
           <div className="listing-card-copy">
             <h3 className="listing-card-title">{surface.title}</h3>
-            <p className="listing-card-seller">{compactName(surface.sellerLabel)}</p>
           </div>
           <div className="listing-card-stats">
             <div className="listing-card-stat">
@@ -354,6 +376,15 @@ export function ListingCard(props: ListingCardProps) {
           </div>
         </div>
       </Link>
+      </div>
+
+      {surface.sellerHref ? (
+        <Link href={surface.sellerHref} className="listing-card-seller listing-card-seller-link">
+          {compactName(surface.sellerLabel)}
+        </Link>
+      ) : (
+        <p className="listing-card-seller">{compactName(surface.sellerLabel)}</p>
+      )}
 
       <button
         type="button"

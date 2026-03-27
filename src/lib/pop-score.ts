@@ -48,6 +48,10 @@ export type PopSignals = {
   // Velocity
   recentSales_7d: number;
   recentSales_30d: number;
+
+  // External market signal
+  externalMomentum?: number;
+  externalLiquidity?: number;
 };
 
 export type PopScoreLabel = "Common" | "Active" | "Scarce" | "Hot" | "Elite";
@@ -58,6 +62,38 @@ export type PopScoreResult = {
   explanation: string;
   demand: number;
   supply: number;
+  marketData?: {
+    source: "justtcg";
+    query: string;
+    matchedOn: "query" | "keyword";
+    game: string;
+    name: string;
+    setName: string | null;
+    number: string | null;
+    rarity: string | null;
+    tcgplayerId: string | null;
+    variantCount: number;
+    condition: string | null;
+    printing: string | null;
+    language: string | null;
+    price: number | null;
+    priceChange24hr: number | null;
+    priceChange7d: number | null;
+    priceChange30d: number | null;
+    priceChange90d: number | null;
+    avgPrice7d: number | null;
+    avgPrice30d: number | null;
+    avgPrice90d: number | null;
+    trendSlope7d: number | null;
+    trendSlope30d: number | null;
+    trendSlope90d: number | null;
+    priceChangesCount7d: number | null;
+    priceChangesCount30d: number | null;
+    priceChangesCount90d: number | null;
+    priceRelativeTo30dRange: number | null;
+    priceRelativeTo90dRange: number | null;
+    lastUpdated: string | null;
+  } | null;
 };
 
 // ─── Internal helpers ────────────────────────────────────────────────────────
@@ -68,7 +104,8 @@ function totalSignalCount(s: PopSignals): number {
     s.watchersCount  + s.savesCount + s.tradeOffers +
     s.bounties_24h   + s.bounties_7d + s.bounties_older +
     s.bids_24h       + s.bids_7d +
-    s.recentSales_7d + s.recentSales_30d
+    s.recentSales_7d + s.recentSales_30d +
+    (s.externalMomentum ?? 0) + (s.externalLiquidity ?? 0)
   );
 }
 
@@ -85,7 +122,7 @@ function weightedDemand(s: PopSignals): number {
     s.savesCount    * W_SAVES    +
     s.tradeOffers   * W_OFFERS;
 
-  return bountySignal + bidSignal + staticSignal;
+  return bountySignal + bidSignal + staticSignal + (s.externalMomentum ?? 0);
 }
 
 function weightedSupply(s: PopSignals): number {
@@ -96,7 +133,7 @@ function weightedSupply(s: PopSignals): number {
 function velocityMultiplier(s: PopSignals): number {
   const bidEngagement   = s.bids_24h * DECAY_24H + s.bids_7d * DECAY_7D;
   const salesEngagement = s.recentSales_7d + s.recentSales_30d * DECAY_OLD;
-  const total = bidEngagement + salesEngagement * 2;
+  const total = bidEngagement + salesEngagement * 2 + (s.externalLiquidity ?? 0);
 
   if (total >= 10) return 1.5;
   if (total >=  5) return 1.3;
@@ -182,6 +219,7 @@ export function computePopScore(signals: PopSignals): PopScoreResult {
       explanation: "Not enough market data yet",
       demand: 0,
       supply: 0,
+      marketData: null,
     };
   }
 
@@ -205,5 +243,6 @@ export function computePopScore(signals: PopSignals): PopScoreResult {
     explanation: buildExplanation(signals, demand, supply, popScore),
     demand: Math.round(demand * 100) / 100,
     supply: Math.round(supply * 100) / 100,
+    marketData: null,
   };
 }

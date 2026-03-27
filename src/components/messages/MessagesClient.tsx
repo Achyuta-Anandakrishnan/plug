@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
@@ -96,7 +97,6 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
-  const [profileQuery, setProfileQuery] = useState("");
   const [profileResults, setProfileResults] = useState<ProfileSearchResult[]>([]);
   const [profilesLoading, setProfilesLoading] = useState(false);
   const [startingConversationId, setStartingConversationId] = useState<string | null>(null);
@@ -135,7 +135,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
     let cancelled = false;
 
     async function loadProfiles() {
-      const nextQuery = profileQuery.trim();
+      const nextQuery = query.trim();
       if (!nextQuery || !session?.user?.id) {
         setProfileResults([]);
         setProfilesLoading(false);
@@ -167,13 +167,13 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
 
     const timeout = window.setTimeout(() => {
       void loadProfiles();
-    }, profileQuery.trim() ? 180 : 0);
+    }, query.trim() ? 180 : 0);
 
     return () => {
       cancelled = true;
       window.clearTimeout(timeout);
     };
-  }, [profileQuery, session?.user?.id, sessionUserId]);
+  }, [query, session?.user?.id, sessionUserId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -386,6 +386,10 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
     return "No messages yet.";
   }
 
+  function getProfileHref(profile: ProfileSearchResult) {
+    return profile.username ? `/u/${encodeURIComponent(profile.username)}` : `/profiles/${profile.id}`;
+  }
+
   async function handleDeleteConversation(conversationId: string) {
     if (!conversationId) return;
     const confirmed = window.confirm(
@@ -428,7 +432,6 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
 
     if (existingDirect) {
       setActiveId(existingDirect.id);
-      setProfileQuery("");
       setProfileResults([]);
       if (!isDesktop) setMobilePane("chat");
       return;
@@ -465,7 +468,6 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
       setDraft("");
       setAttachedImageUrl(null);
       setAttachedImageName("");
-      setProfileQuery("");
       setProfileResults([]);
       if (!isDesktop) setMobilePane("chat");
     } catch (e) {
@@ -512,7 +514,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search conversations"
+                  placeholder="Search conversations or profiles"
                 />
               </div>
               <div className="app-toolbar-spacer" aria-hidden="true" />
@@ -527,7 +529,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search conversations"
+                  placeholder="Search conversations or profiles"
                 />
               </div>
             </section>
@@ -539,20 +541,12 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
         <section className="messages-layout">
         {showThreadsPane ? (
           <aside className="messages-sidebar messages-panel">
-            <div className="messages-profile-search">
-              <div className="messages-profile-search-head">
-                <strong>Start a conversation</strong>
-                <span>Find collectors by name or username.</span>
-              </div>
-              <div className="app-search messages-profile-search-input">
-                <SearchIcon />
-                <input
-                  value={profileQuery}
-                  onChange={(e) => setProfileQuery(e.target.value)}
-                  placeholder="Search profiles"
-                />
-              </div>
-              {profileQuery.trim() ? (
+            {query.trim() ? (
+              <div className="messages-profile-search">
+                <div className="messages-profile-search-head">
+                  <strong>Profiles</strong>
+                  <span>Open their profile or start a chat</span>
+                </div>
                 <div className="messages-profile-results">
                   {profilesLoading ? (
                     <p className="messages-profile-search-status">Searching collectors...</p>
@@ -561,7 +555,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                   ) : (
                     profileResults.map((profile) => {
                       const profileName = profile.displayName ?? profile.username ?? "Collector";
-                      const profileMeta = profile.username ? `@${profile.username}` : (profile.bio ?? "Collector profile");
+                      const profileMeta = profile.username ? `@${profile.username}` : "Collector profile";
                       const isStarting = startingConversationId === profile.id;
 
                       return (
@@ -570,32 +564,29 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                             {getInitials(profileName)}
                           </div>
                           <div className="messages-profile-result-copy">
-                            <p>{profileName}</p>
+                            <Link href={getProfileHref(profile)} className="messages-profile-result-link">
+                              {profileName}
+                            </Link>
                             <span>{profileMeta}</span>
+                            {profile.bio ? (
+                              <span className="messages-profile-result-bio">{profile.bio}</span>
+                            ) : null}
                           </div>
-                          <div className="messages-profile-result-actions">
-                            <button
-                              type="button"
-                              onClick={() => void handleStartConversation(profile.id)}
-                              className="messages-profile-result-action"
-                              disabled={isStarting}
-                            >
-                              {isStarting ? "Opening…" : "Message"}
-                            </button>
-                            <a
-                              href={`/trades/new?duel=1&opponent=${encodeURIComponent(profile.id)}`}
-                              className="messages-profile-result-duel"
-                            >
-                              Duel
-                            </a>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void handleStartConversation(profile.id)}
+                            className="messages-profile-result-action"
+                            disabled={isStarting}
+                          >
+                            {isStarting ? "Opening..." : "Message"}
+                          </button>
                         </div>
                       );
                     })
                   )}
                 </div>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
 
             {loading ? (
               <CheckersLoader title="Loading conversations..." compact />

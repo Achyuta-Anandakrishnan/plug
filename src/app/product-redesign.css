@@ -7785,21 +7785,23 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 /* Messages: final split-pane inbox overrides */
 .messages-page {
-  max-width: 1060px;
+  max-width: 980px;
   min-height: 0;
-  height: 100%;
+  height: calc(var(--app-frame-height) - 8px);
+  max-height: calc(var(--app-frame-height) - 8px);
   margin-inline: auto;
   overflow: hidden;
   gap: 8px;
-  padding-block: 4px 0;
+  padding-block: 4px 4px;
+  align-content: stretch;
 }
 
 .messages-page .app-screen-section--messages {
   width: 100%;
-  max-width: 920px;
+  max-width: 100%;
   margin-inline: auto;
   min-height: 0;
-  height: calc(var(--app-frame-height) - 4px);
+  height: 100%;
   overflow: hidden;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
@@ -7808,8 +7810,8 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-layout {
   display: grid;
-  grid-template-columns: 208px minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: 204px minmax(0, 1fr);
+  gap: 8px;
   min-height: 0;
   height: 100%;
   overflow: hidden;
@@ -7900,6 +7902,25 @@ html[data-theme="dark"] .streams-scheduled-item {
   line-height: 1.25;
 }
 
+.messages-profile-result-link {
+  color: var(--product-text);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
+}
+
+.messages-profile-result-link:hover {
+  color: var(--product-accent);
+}
+
+.messages-profile-result-bio {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .messages-profile-result-copy span,
 .messages-profile-result-action {
   color: var(--product-text-soft);
@@ -7908,7 +7929,12 @@ html[data-theme="dark"] .streams-scheduled-item {
 }
 
 .messages-profile-result-action {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  padding: 7px 10px;
   font-weight: 600;
+  cursor: pointer;
 }
 
 .messages-thread-list {
@@ -7918,6 +7944,7 @@ html[data-theme="dark"] .streams-scheduled-item {
   align-content: start;
   min-height: 0;
   height: 100%;
+  max-height: 100%;
   overflow-y: auto;
   padding-right: 2px;
   scrollbar-width: thin;
@@ -8085,8 +8112,9 @@ html[data-theme="dark"] .streams-scheduled-item {
 .messages-feed {
   min-height: 0;
   height: 100%;
+  max-height: 100%;
   overflow-y: auto;
-  padding: 0 8px;
+  padding: 0 6px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -8096,9 +8124,9 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-feed-inner {
   width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 8px 0 6px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 6px 0 4px;
   min-height: 100%;
 }
 
@@ -8116,11 +8144,11 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-bubble {
   display: grid;
-  gap: 2px;
+  gap: 1px;
   justify-self: start;
   width: fit-content;
-  max-width: min(78%, 520px);
-  padding: 6px 8px;
+  max-width: min(82%, 560px);
+  padding: 4px 6px;
   border-radius: 12px;
 }
 
@@ -8159,6 +8187,7 @@ html[data-theme="dark"] .streams-scheduled-item {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.01em;
+  line-height: 1.15;
 }
 
 .messages-bubble-time {
@@ -8166,13 +8195,13 @@ html[data-theme="dark"] .streams-scheduled-item {
 }
 
 .messages-bubble-body {
-  margin: 2px 0 0;
+  margin: 1px 0 0;
   width: 100%;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: break-word;
   font-size: 12px;
-  line-height: 1.3;
+  line-height: 1.22;
 }
 
 .messages-bubble-image-link {
@@ -8195,7 +8224,7 @@ html[data-theme="dark"] .streams-scheduled-item {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px 8px;
+  padding: 6px 8px 6px;
   border-top: 1px solid rgba(15, 23, 42, 0.07);
   background: rgba(247, 248, 250, 0.9);
   backdrop-filter: blur(10px);
@@ -8276,11 +8305,11 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 @media (min-width: 1280px) {
   .messages-page .app-screen-section--messages {
-    max-width: 920px;
+    max-width: 100%;
   }
 
   .messages-layout {
-    grid-template-columns: 208px minmax(0, 1fr);
+    grid-template-columns: 204px minmax(0, 1fr);
   }
 }
 
@@ -11819,6 +11848,13 @@ html[data-theme="dark"] .site-account-popover {
   color: inherit;
 }
 
+.listing-card-market-meta-link {
+  display: grid;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
 .listing-card-market-stats {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(72px, 0.8fr);
@@ -11867,6 +11903,21 @@ html[data-theme="dark"] .site-account-popover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.listing-card-seller-link {
+  text-decoration: none;
+}
+
+.listing-card-seller-link:hover {
+  color: var(--product-text);
+}
+
+.listing-card.is-trade-card > .listing-card-seller,
+.listing-card.is-live-card > .listing-card-seller,
+.listing-card.is-bounty-card > .listing-card-seller {
+  margin-top: -6px;
+  padding-inline: 14px;
 }
 
 /* ── Save/watch button ──────────────────────────────────────────── */
