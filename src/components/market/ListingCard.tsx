@@ -14,6 +14,7 @@ import {
   bountyBudgetLabel,
   type BountyRequestListItem,
 } from "@/lib/bounties";
+import { PopScoreBadge } from "@/components/PopScoreBadge";
 
 type MarketListingCardProps = {
   listing: MarketListing;
@@ -205,6 +206,7 @@ export function ListingCard(props: ListingCardProps) {
         : "market";
   const controlledSaved = isLiveCard ? props.saved : undefined;
   const [localSaved, setLocalSaved] = useState(false);
+  const [likesAdjust, setLikesAdjust] = useState(0);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const trade = "trade" in props ? props.trade : undefined;
   const bounty = "bounty" in props ? props.bounty : undefined;
@@ -234,6 +236,7 @@ export function ListingCard(props: ListingCardProps) {
       return;
     }
     if ("listing" in props && props.onToggleSave) {
+      setLikesAdjust((prev) => prev + (saved ? -1 : 1));
       void props.onToggleSave(props.listing.id);
       return;
     }
@@ -267,6 +270,7 @@ export function ListingCard(props: ListingCardProps) {
               <span className={`listing-card-badge ${surface.badgeClassName}`}>
                 {surface.badgeLabel}
               </span>
+              <PopScoreBadge auctionId={listing!.id} />
             </div>
           </Link>
 
@@ -292,7 +296,11 @@ export function ListingCard(props: ListingCardProps) {
             </div>
             <div className="listing-card-market-stat is-right">
               <p className="listing-card-market-stat-label">{surface.statsLabelRight ?? "Likes"}</p>
-              <p className="listing-card-market-stat-value">{surface.activityLabel}</p>
+              <p className="listing-card-market-stat-value">
+                {listing
+                  ? (() => { const n = listing.watchersCount + likesAdjust; return `${n} like${n === 1 ? "" : "s"}`; })()
+                  : surface.activityLabel}
+              </p>
             </div>
           </div>
           <p className="listing-card-market-seller">{compactName(surface.sellerLabel)}</p>

@@ -285,10 +285,10 @@ html,
 body {
   background-color: var(--product-bg);
   background-image:
-    linear-gradient(45deg, var(--site-checker-ink) 25%, transparent 25%, transparent 75%, var(--site-checker-ink) 75%, var(--site-checker-ink)),
-    linear-gradient(45deg, var(--site-checker-ink) 25%, transparent 25%, transparent 75%, var(--site-checker-ink) 75%, var(--site-checker-ink));
-  background-position: 0 0, 14px 14px;
-  background-size: 28px 28px;
+    radial-gradient(ellipse 72% 72% at 50% 50%, var(--site-checker-ink) 60%, transparent 100%),
+    radial-gradient(ellipse 72% 72% at 50% 50%, var(--site-checker-ink) 60%, transparent 100%);
+  background-position: 0 0, 28px 28px;
+  background-size: 56px 56px;
   color: var(--product-text);
 }
 
@@ -13883,4 +13883,120 @@ html[data-theme="dark"] .waitlist-trust-chip {
   .waitlist-shell {
     padding: 32px 16px 48px;
   }
+}
+
+/* ─── POP Score Badge ────────────────────────────────────────────────────── */
+
+.pop-score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  line-height: 1.6;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.pop-score-skeleton {
+  width: 54px;
+  height: 18px;
+  background: rgba(128, 128, 128, 0.15);
+  border-color: rgba(128, 128, 128, 0.12);
+  animation: pop-score-pulse 1.4s ease-in-out infinite;
+  border-radius: 999px;
+}
+
+@keyframes pop-score-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.9; }
+}
+
+.pop-score-label-text {
+  opacity: 0.75;
+  font-weight: 600;
+}
+
+/* Green — Common (0–20) */
+.pop-score-common {
+  background: rgba(34, 197, 94, 0.18);
+  color: #16a34a;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+html[data-theme="dark"] .pop-score-common {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.14);
+}
+
+/* Lime — Active (20–40) */
+.pop-score-active {
+  background: rgba(132, 204, 22, 0.18);
+  color: #65a30d;
+  border-color: rgba(132, 204, 22, 0.3);
+}
+html[data-theme="dark"] .pop-score-active {
+  color: #a3e635;
+  background: rgba(132, 204, 22, 0.14);
+}
+
+/* Amber — Scarce (40–60) */
+.pop-score-scarce {
+  background: rgba(234, 179, 8, 0.18);
+  color: #b45309;
+  border-color: rgba(234, 179, 8, 0.3);
+}
+html[data-theme="dark"] .pop-score-scarce {
+  color: #fbbf24;
+  background: rgba(234, 179, 8, 0.15);
+}
+
+/* Orange — Hot (60–80) */
+.pop-score-hot {
+  background: rgba(249, 115, 22, 0.18);
+  color: #c2410c;
+  border-color: rgba(249, 115, 22, 0.3);
+}
+html[data-theme="dark"] .pop-score-hot {
+  color: #fb923c;
+  background: rgba(249, 115, 22, 0.15);
+}
+
+/* Red — Elite (80–100) */
+.pop-score-elite {
+  background: rgba(239, 68, 68, 0.18);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+html[data-theme="dark"] .pop-score-elite {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+/* On dark photo overlays (inside listing-card-top) force legible light text */
+.listing-card-top .pop-score-badge {
+  background: rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.listing-card-top .pop-score-common  { color: #86efac; }
+.listing-card-top .pop-score-active  { color: #bef264; }
+.listing-card-top .pop-score-scarce  { color: #fde047; }
+.listing-card-top .pop-score-hot     { color: #fdba74; }
+.listing-card-top .pop-score-elite   { color: #fca5a5; }
+
+/* Allow pointer events on bounty card badges so title tooltip is reachable */
+.bounty-row-header .pop-score-badge {
+  pointer-events: auto;
+}
+
+.bounty-row-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
 }

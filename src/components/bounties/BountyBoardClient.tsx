@@ -15,6 +15,7 @@ import { useMobileUi } from "@/hooks/useMobileUi";
 import { useSavedListings } from "@/hooks/useSavedListings";
 import { type BountyRequestListItem } from "@/lib/bounties";
 import { formatCurrency } from "@/lib/format";
+import { PopScoreBadge } from "@/components/PopScoreBadge";
 
 type SortMode = "newest" | "highest-bounty" | "highest-budget" | "most-specific" | "recently-active";
 
@@ -89,9 +90,12 @@ function BountyCard({
               {bounty.itemName || bounty.title}
             </Link>
           </h3>
-          <span className={`bounty-row-status-badge bounty-status-${bounty.status.toLowerCase()}`}>
-            {STATUS_LABELS[bounty.status] ?? bounty.status}
-          </span>
+          <div className="bounty-row-header-badges">
+            <span className={`bounty-row-status-badge bounty-status-${bounty.status.toLowerCase()}`}>
+              {STATUS_LABELS[bounty.status] ?? bounty.status}
+            </span>
+            <PopScoreBadge itemName={bounty.itemName ?? bounty.title} />
+          </div>
         </div>
 
         {specs.length > 0 && (
