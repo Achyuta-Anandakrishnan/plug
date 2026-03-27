@@ -492,21 +492,6 @@ function HomeStoryStep({
   );
 }
 
-function HomeTrustPoint({
-  title,
-  copy,
-}: {
-  title: string;
-  copy: string;
-}) {
-  return (
-    <article className="landing-trust-point">
-      <h3>{title}</h3>
-      <p>{copy}</p>
-    </article>
-  );
-}
-
 export default async function Home() {
   const initialIsMobile = isProbablyMobileUserAgent((await headers()).get("user-agent"));
   const data = await getHomePageData();
@@ -526,8 +511,10 @@ export default async function Home() {
             {/* ── Hero ──────────────────────────────────────────────────── */}
             <section className="landing-section landing-hero">
               <div className="landing-hero-copy">
-                <p className="landing-eyebrow">For collectors, by collectors</p>
-                <LandingSearchBar />
+                <div className="landing-hero-topline">
+                  <p className="landing-eyebrow">For collectors, by collectors</p>
+                  <LandingSearchBar />
+                </div>
                 <h1>Live. Auctions.<br />Trades. Bounties.</h1>
                 <p>
                   One premium collectibles platform for real-time streams, live bidding, structured deals, and demand-led buying.
@@ -668,36 +655,6 @@ export default async function Home() {
               </div>
             </section>
 
-            {/* ── Why it works ─────────────────────────────────────────── */}
-            <section className="landing-section landing-trust">
-              <div className="landing-section-head">
-                <p className="landing-section-kicker">Why it works</p>
-                <h2>Built for how the hobby moves.</h2>
-              </div>
-              <div className="landing-trust-grid">
-                <HomeTrustPoint
-                  title="Visual-first"
-                  copy="See it fast. Listings are image-led with grade, cert, and condition surfaced up front."
-                />
-                <HomeTrustPoint
-                  title="Real-time"
-                  copy="Prices move live. Rooms, watchers, and bids create momentum you can feel."
-                />
-                <HomeTrustPoint
-                  title="Structured"
-                  copy="No messy DMs. Offers, trades, and deals are tied to the item with a clear record."
-                />
-                <HomeTrustPoint
-                  title="Demand-led"
-                  copy="Bounties pull inventory. Post what you want, set a finder's fee, and let the market come to you."
-                />
-                <HomeTrustPoint
-                  title="Reputation"
-                  copy="Your identity as a seller, buyer, and trader carries across every surface."
-                />
-              </div>
-            </section>
-
             {/* ── Final CTA ────────────────────────────────────────────── */}
             <section className="landing-section landing-final">
               <div className="landing-final-actions">
@@ -712,8 +669,10 @@ export default async function Home() {
 
             {/* ── Mobile hero ──────────────────────────────────────────── */}
             <section className="landing-mobile-section landing-mobile-hero">
-              <p className="landing-eyebrow">For collectors, by collectors</p>
-              <LandingSearchBar />
+              <div className="landing-hero-topline">
+                <p className="landing-eyebrow">For collectors, by collectors</p>
+                <LandingSearchBar />
+              </div>
               <h1>Live. Auctions.<br />Trades. Bounties.</h1>
               <p className="landing-mobile-copy">
                 One premium platform for real-time streams, live bidding, structured deals, and demand-led buying.
