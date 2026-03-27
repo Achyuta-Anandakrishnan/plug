@@ -12,6 +12,7 @@ type AdminProfile = {
   bio: string | null;
   image: string | null;
   role: string;
+  accountStatus: string;
   createdAt: string;
   sellerProfile: {
     status: string;
@@ -19,8 +20,18 @@ type AdminProfile = {
   } | null;
 };
 
+type ProfileDraft = {
+  role: string;
+  accountStatus: string;
+};
+
+const ROLE_OPTIONS = ["BUYER", "SELLER", "ADMIN"] as const;
+const ACCOUNT_STATUS_OPTIONS = ["ACTIVE", "SUSPENDED", "DISABLED"] as const;
+
 export default function AdminProfilesPage() {
   const [profiles, setProfiles] = useState<AdminProfile[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, ProfileDraft>>({});
+  const [savingById, setSavingById] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -38,6 +49,17 @@ export default function AdminProfilesPage() {
         throw new Error(data.error || "Unable to load profiles.");
       }
       setProfiles(data);
+      setDrafts(
+        Object.fromEntries(
+          data.map((profile) => [
+            profile.id,
+            {
+              role: profile.role,
+              accountStatus: profile.accountStatus,
+            },
+          ]),
+        ),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load profiles.");
     } finally {
@@ -49,12 +71,62 @@ export default function AdminProfilesPage() {
     void fetchProfiles();
   }, []);
 
+  const handleDraftChange = (
+    profileId: string,
+    field: keyof ProfileDraft,
+    value: string,
+  ) => {
+    setDrafts((prev) => ({
+      ...prev,
+      [profileId]: {
+        role: prev[profileId]?.role ?? "BUYER",
+        accountStatus: prev[profileId]?.accountStatus ?? "ACTIVE",
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleProfileSave = async (profile: AdminProfile) => {
+    const draft = drafts[profile.id];
+    if (!draft) return;
+
+    setError("");
+    setSavingById((prev) => ({ ...prev, [profile.id]: true }));
+    try {
+      const response = await fetch(`/api/admin/profiles/${profile.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: draft.role,
+          accountStatus: draft.accountStatus,
+        }),
+      });
+      const data = (await response.json()) as AdminProfile & { error?: string };
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to update profile.");
+      }
+
+      setProfiles((prev) => prev.map((entry) => (entry.id === profile.id ? data : entry)));
+      setDrafts((prev) => ({
+        ...prev,
+        [profile.id]: {
+          role: data.role,
+          accountStatus: data.accountStatus,
+        },
+      }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to update profile.");
+    } finally {
+      setSavingById((prev) => ({ ...prev, [profile.id]: false }));
+    }
+  };
+
   return (
     <div className="admin-page">
       <div className="admin-page-head">
         <p className="app-eyebrow">Admin desk</p>
         <h1 className="admin-page-title">All profiles</h1>
-        <p className="admin-page-subtitle">View and search every account profile.</p>
+        <p className="admin-page-subtitle">View every account, update status, and grant admin access.</p>
       </div>
 
       <div className="admin-panel">
@@ -98,11 +170,58 @@ export default function AdminProfilesPage() {
                   </p>
                   <p className="admin-card-meta-text">{profile.email ?? "No email"}</p>
                 </div>
-                <span className="admin-badge">{profile.role}</span>
+                <div className="admin-card-statuses">
+                  <span className="admin-badge">{profile.role}</span>
+                  <span className="admin-badge">{profile.accountStatus}</span>
+                </div>
               </div>
               <div className="admin-card-tags">
                 <span className="admin-tag">Seller: {profile.sellerProfile?.status ?? "N/A"}</span>
                 <span className="admin-tag">Trust tier: {profile.sellerProfile?.trustTier ?? "-"}</span>
+              </div>
+              <div className="admin-card-management">
+                <label className="admin-select-field">
+                  <span className="admin-select-label">Role</span>
+                  <select
+                    value={drafts[profile.id]?.role ?? profile.role}
+                    onChange={(event) => handleDraftChange(profile.id, "role", event.target.value)}
+                    className="admin-select-input"
+                  >
+                    {ROLE_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="admin-select-field">
+                  <span className="admin-select-label">Account status</span>
+                  <select
+                    value={drafts[profile.id]?.accountStatus ?? profile.accountStatus}
+                    onChange={(event) => handleDraftChange(profile.id, "accountStatus", event.target.value)}
+                    className="admin-select-input"
+                  >
+                    {ACCOUNT_STATUS_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => void handleProfileSave(profile)}
+                  className="app-button app-button-primary"
+                  disabled={
+                    savingById[profile.id]
+                    || (
+                      (drafts[profile.id]?.role ?? profile.role) === profile.role
+                      && (drafts[profile.id]?.accountStatus ?? profile.accountStatus) === profile.accountStatus
+                    )
+                  }
+                >
+                  {savingById[profile.id] ? "Saving..." : "Save access"}
+                </button>
               </div>
               {profile.bio ? <p className="admin-card-bio">{profile.bio}</p> : null}
               <div className="admin-card-links">

@@ -37,6 +37,7 @@ export async function GET(request: Request) {
       bio: true,
       image: true,
       role: true,
+      accountStatus: true,
       createdAt: true,
       sellerProfile: {
         select: {

@@ -7,6 +7,7 @@ import AppleProvider from "next-auth/providers/apple";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { getConfiguredAdminEmails, isConfiguredAdminEmail } from "@/lib/admin-email";
+import { isBlockedAccountStatus, normalizeAccountStatus } from "@/lib/account-status";
 import { ensureProfileSchema } from "@/lib/profile-schema";
 import { generateUniqueUsername } from "@/lib/username";
 import { verifyNativeAuthToken } from "@/lib/native-auth";
@@ -47,6 +48,18 @@ export const authOptions: NextAuthOptions = {
       const userId = (user as { id?: string }).id;
       if (!userId || !account) return true;
 
+      await ensureProfileSchema().catch(() => null);
+
+      const dbUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          accountStatus: true,
+        },
+      });
+      if (isBlockedAccountStatus(dbUser?.accountStatus)) {
+        return false;
+      }
+
       if (account.provider === "google" || account.provider === "apple") {
         await prisma.user.update({
           where: { id: userId },
@@ -64,6 +77,10 @@ export const authOptions: NextAuthOptions = {
           token.sub;
         token.role = (user as { role?: string }).role ?? (token.role as string | undefined);
         token.email = (user as { email?: string }).email ?? (token.email as string | undefined);
+        token.accountStatus =
+          (user as { accountStatus?: string | null }).accountStatus
+          ?? (token.accountStatus as string | undefined)
+          ?? "ACTIVE";
         token.displayName =
           (user as { displayName?: string; name?: string }).displayName
           ?? (user as { displayName?: string; name?: string }).name
@@ -91,6 +108,7 @@ export const authOptions: NextAuthOptions = {
           select: {
             id: true,
             role: true,
+            accountStatus: true,
             email: true,
             username: true,
             displayName: true,
@@ -125,6 +143,7 @@ export const authOptions: NextAuthOptions = {
 
         token.role = shouldBeAdmin ? "ADMIN" : dbUser?.role ?? (token.role as string | undefined);
         token.email = resolvedEmail;
+        token.accountStatus = normalizeAccountStatus(dbUser?.accountStatus ?? (token.accountStatus as string | undefined));
         token.username = resolvedUsername ?? (token.username as string | undefined);
         token.displayName = dbUser?.displayName ?? dbUser?.name ?? (token.displayName as string | undefined);
         token.image = dbUser?.image ?? (token.image as string | undefined);
@@ -146,6 +165,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as { role?: string; id?: string }).role = token.role as string;
         (session.user as { role?: string; id?: string }).id =
           (token.userId as string) ?? token.sub ?? "";
+        (session.user as { accountStatus?: string | null }).accountStatus =
+          normalizeAccountStatus(token.accountStatus as string | undefined);
         (session.user as { username?: string | null }).username = (token.username as string | undefined) ?? null;
         (session.user as { displayName?: string | null }).displayName = (token.displayName as string | undefined) ?? null;
         session.user.email = (token.email as string) ?? session.user.email ?? null;
@@ -176,17 +197,20 @@ async function getNativeBearerSessionUser() {
       select: {
         id: true,
         role: true,
+        accountStatus: true,
         email: true,
         username: true,
       },
     });
     if (!user) return null;
+    if (isBlockedAccountStatus(user.accountStatus)) return null;
 
     return {
       id: user.id,
       role: user.role ?? null,
       email: user.email ?? null,
       username: user.username ?? null,
+      accountStatus: normalizeAccountStatus(user.accountStatus),
     };
   } catch {
     return null;
@@ -202,10 +226,14 @@ export async function getSessionUser() {
   const session = await getServerSession(authOptions);
   const user = session?.user as { id?: string; role?: string; username?: string } | undefined;
   if (!user?.id) return null;
+  if (isBlockedAccountStatus((user as { accountStatus?: string | null }).accountStatus)) {
+    return null;
+  }
   return {
     id: user.id,
     role: user.role ?? null,
     email: session?.user?.email ?? null,
     username: user.username ?? null,
+    accountStatus: normalizeAccountStatus((user as { accountStatus?: string | null }).accountStatus),
   };
 }

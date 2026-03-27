@@ -131,7 +131,7 @@ const FALLBACK_STREAMS: HomeLiveStreamPreview[] = [
     category: "Pokemon",
     watchers: 124,
     priceLabel: "Bid $420",
-    imageUrl: "/placeholders/pokemon-generic.svg",
+    imageUrl: "https://images.pokemontcg.io/base1/4_hires.png",
   },
   {
     id: "demo-live-2",
@@ -141,7 +141,7 @@ const FALLBACK_STREAMS: HomeLiveStreamPreview[] = [
     category: "Sports",
     watchers: 88,
     priceLabel: "Bid $185",
-    imageUrl: "/placeholders/pokemon-generic.svg",
+    imageUrl: "https://images.pokemontcg.io/base1/2_hires.png",
   },
 ];
 
@@ -154,7 +154,7 @@ const FALLBACK_TRADES: HomeTradePreview[] = [
     lookingFor: "Looking for vintage holos or sealed product.",
     offersCount: 3,
     valueLabel: "$1,200–$1,600",
-    imageUrl: "/placeholders/pokemon-generic.svg",
+    imageUrl: "https://images.pokemontcg.io/base1/58_hires.png",
   },
   {
     id: "demo-trade-2",
@@ -164,7 +164,7 @@ const FALLBACK_TRADES: HomeTradePreview[] = [
     lookingFor: "Open to graded trades and partial cash.",
     offersCount: 2,
     valueLabel: "From $850",
-    imageUrl: "/placeholders/pokemon-generic.svg",
+    imageUrl: "https://images.pokemontcg.io/jungle/1_hires.png",
   },
 ];
 
@@ -187,11 +187,35 @@ const FALLBACK_BOUNTIES: HomeBountyPreview[] = [
   },
 ];
 
-function validImage(url: string | null | undefined) {
-  if (!url) return "/placeholders/pokemon-generic.svg";
-  if (url.startsWith("/")) return url;
+const LANDING_REAL_IMAGE_POOL = [
+  "https://images.pokemontcg.io/base1/4_hires.png",
+  "https://images.pokemontcg.io/base1/2_hires.png",
+  "https://images.pokemontcg.io/base1/15_hires.png",
+  "https://images.pokemontcg.io/base1/16_hires.png",
+  "https://images.pokemontcg.io/base1/58_hires.png",
+  "https://images.pokemontcg.io/jungle/1_hires.png",
+  "https://images.pokemontcg.io/fossil/2_hires.png",
+  "https://images.pokemontcg.io/teamrocket/4_hires.png",
+];
+
+function landingFallbackImage(index = 0) {
+  return LANDING_REAL_IMAGE_POOL[index % LANDING_REAL_IMAGE_POOL.length];
+}
+
+function isLandingPlaceholderImage(url: string) {
+  const normalized = url.toLowerCase();
+  return (
+    normalized.includes("/placeholders/") ||
+    normalized.includes("/streams/stream-") ||
+    normalized.endsWith(".svg")
+  );
+}
+
+function validImage(url: string | null | undefined, fallbackIndex = 0) {
+  if (!url) return landingFallbackImage(fallbackIndex);
   if (/^https?:\/\//i.test(url)) return url;
-  return "/placeholders/pokemon-generic.svg";
+  if (url.startsWith("/") && !isLandingPlaceholderImage(url)) return url;
+  return landingFallbackImage(fallbackIndex);
 }
 
 function primaryAuctionImage(item: AuctionApiItem) {
@@ -200,7 +224,7 @@ function primaryAuctionImage(item: AuctionApiItem) {
 
 function mapStreams(items: AuctionApiItem[] | null): HomeLiveStreamPreview[] {
   if (!items?.length) return [];
-  return items.slice(0, 6).map((stream) => {
+  return items.slice(0, 6).map((stream, index) => {
     const currency = stream.currency?.toUpperCase() || "USD";
     const priceLabel = stream.buyNowPrice && stream.buyNowPrice > 0
       ? `Buy ${formatCurrency(stream.buyNowPrice, currency)}`
@@ -213,7 +237,7 @@ function mapStreams(items: AuctionApiItem[] | null): HomeLiveStreamPreview[] {
       category: stream.category?.name ?? "Collectibles",
       watchers: stream.watchersCount,
       priceLabel,
-      imageUrl: validImage(resolveDisplayMediaUrl(primaryAuctionImage(stream))),
+      imageUrl: validImage(resolveDisplayMediaUrl(primaryAuctionImage(stream)), index),
     };
   });
 }
@@ -223,7 +247,7 @@ function mapAuctions(items: AuctionApiItem[] | null): HomeAuctionPreview[] {
   return source
     .filter((entry) => entry.listingType !== "BUY_NOW")
     .slice(0, 6)
-    .map((auction) => {
+    .map((auction, index) => {
       const currency = auction.currency?.toUpperCase() || "USD";
       const gradeLabel = getGradeLabel(
         (auction.item?.attributes ?? null) as Record<string, unknown> | null,
@@ -236,7 +260,7 @@ function mapAuctions(items: AuctionApiItem[] | null): HomeAuctionPreview[] {
         category: auction.category?.name ?? "Collectibles",
         currentBidLabel: formatCurrency(auction.currentBid, currency),
         timeLeftLabel: formatSeconds(getTimeLeftSeconds(auction)),
-        imageUrl: validImage(resolveDisplayMediaUrl(primaryAuctionImage(auction))),
+        imageUrl: validImage(resolveDisplayMediaUrl(primaryAuctionImage(auction)), index + 2),
         gradeLabel,
       };
     });
@@ -244,7 +268,7 @@ function mapAuctions(items: AuctionApiItem[] | null): HomeAuctionPreview[] {
 
 function mapTrades(items: TradeApiItem[] | null): HomeTradePreview[] {
   if (!items?.length) return [];
-  return items.slice(0, 6).map((trade) => ({
+  return items.slice(0, 6).map((trade, index) => ({
     id: trade.id,
     href: `/trades/${trade.id}`,
     title: trade.title,
@@ -252,7 +276,7 @@ function mapTrades(items: TradeApiItem[] | null): HomeTradePreview[] {
     lookingFor: trade.lookingFor,
     offersCount: trade._count.offers,
     valueLabel: tradeValueLabel(trade.valueMin, trade.valueMax),
-    imageUrl: validImage(trade.images.find((entry) => entry.isPrimary)?.url ?? trade.images[0]?.url),
+    imageUrl: validImage(trade.images.find((entry) => entry.isPrimary)?.url ?? trade.images[0]?.url, index + 4),
   }));
 }
 
@@ -281,7 +305,7 @@ function mapBounties(items: BountyApiItem[] | null): HomeBountyPreview[] {
 }
 
 function mapFallbackAuctions(): HomeAuctionPreview[] {
-  return mockAuctions.slice(0, 6).map((auction) => ({
+  return mockAuctions.slice(0, 6).map((auction, index) => ({
     id: auction.id,
     href: "/listings?mode=auctions",
     title: auction.title,
@@ -289,7 +313,7 @@ function mapFallbackAuctions(): HomeAuctionPreview[] {
     category: auction.category,
     currentBidLabel: formatCurrency(auction.currentBid, auction.currency),
     timeLeftLabel: formatSeconds(auction.timeLeft),
-    imageUrl: validImage(resolveDisplayMediaUrl(auction.imageUrl)),
+    imageUrl: validImage(resolveDisplayMediaUrl(auction.imageUrl), index),
     gradeLabel: null,
   }));
 }

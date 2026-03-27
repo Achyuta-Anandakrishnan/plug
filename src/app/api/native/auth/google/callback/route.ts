@@ -1,6 +1,7 @@
 import { UserRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isBlockedAccountStatus } from "@/lib/account-status";
 import { ensureProfileSchema } from "@/lib/profile-schema";
 import { generateUniqueUsername } from "@/lib/username";
 import { signNativeAuthToken } from "@/lib/native-auth";
@@ -127,9 +128,16 @@ export async function GET(request: Request) {
         id: true,
         email: true,
         role: true,
+        accountStatus: true,
         username: true,
       },
     });
+
+    if (isBlockedAccountStatus(user.accountStatus)) {
+      return buildNativeRedirect(nativeRedirect, {
+        error: "This account is not active.",
+      });
+    }
 
     let username = user.username;
     if (!username) {
@@ -150,6 +158,7 @@ export async function GET(request: Request) {
       id: user.id,
       email: user.email,
       role: user.role,
+      accountStatus: user.accountStatus,
     });
 
     return buildNativeRedirect(nativeRedirect, {

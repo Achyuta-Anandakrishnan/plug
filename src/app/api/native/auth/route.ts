@@ -1,6 +1,7 @@
 import { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { EMAIL_REGEX, jsonError, jsonOk, parseJson } from "@/lib/api";
+import { isBlockedAccountStatus, normalizeAccountStatus } from "@/lib/account-status";
 import { ensureProfileSchema } from "@/lib/profile-schema";
 import { sendVerificationEmailForUser } from "@/lib/email-verification";
 import { generateUniqueUsername } from "@/lib/username";
@@ -43,11 +44,16 @@ export async function POST(request: Request) {
       email: true,
       emailVerified: true,
       role: true,
+      accountStatus: true,
       username: true,
       displayName: true,
       image: true,
     },
   });
+
+  if (isBlockedAccountStatus(user.accountStatus)) {
+    return jsonError("This account is not active.", 403);
+  }
 
   if (!user.emailVerified) {
     await sendVerificationEmailForUser({
@@ -80,6 +86,7 @@ export async function POST(request: Request) {
     id: user.id,
     email: user.email,
     role: user.role,
+    accountStatus: user.accountStatus,
   });
 
   return jsonOk({
@@ -88,6 +95,7 @@ export async function POST(request: Request) {
       id: user.id,
       email: user.email,
       role: user.role,
+      accountStatus: normalizeAccountStatus(user.accountStatus),
       username: username ?? null,
       displayName: user.displayName ?? null,
       image: user.image ?? null,

@@ -5,6 +5,7 @@ type NativeAuthPayload = {
   sub: string;
   email: string | null;
   role: string | null;
+  accountStatus: string | null;
   exp: number;
   iat: number;
 };
@@ -13,6 +14,7 @@ type NativeUserLike = {
   id: string;
   email?: string | null;
   role?: string | null;
+  accountStatus?: string | null;
 };
 
 const DEFAULT_TTL_SECONDS = 60 * 60 * 24 * 30;
@@ -53,6 +55,7 @@ export function signNativeAuthToken(user: NativeUserLike, ttlSeconds = DEFAULT_T
     sub: user.id,
     email: user.email ?? null,
     role: user.role ?? null,
+    accountStatus: user.accountStatus ?? null,
     iat: now,
     exp: now + Math.max(60, ttlSeconds),
   };
@@ -82,6 +85,7 @@ export function verifyNativeAuthToken(token: string | null | undefined): NativeA
       sub: parsed.sub,
       email: typeof parsed.email === "string" ? parsed.email : null,
       role: typeof parsed.role === "string" ? parsed.role : null,
+      accountStatus: typeof parsed.accountStatus === "string" ? parsed.accountStatus : null,
       exp: parsed.exp,
       iat: typeof parsed.iat === "number" ? parsed.iat : 0,
     };

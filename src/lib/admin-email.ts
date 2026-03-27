@@ -1,4 +1,5 @@
 export const PRIMARY_ADMIN_EMAIL = "achyuta.2006@gmail.com";
+const DEFAULT_ADMIN_EMAILS = [PRIMARY_ADMIN_EMAIL, "thebluedog555@gmail.com"];
 
 function normalizeGmail(email: string) {
   const [local, domain] = email.split("@");
@@ -25,8 +26,7 @@ export function getConfiguredAdminEmails() {
     .map((email) => normalizeAdminEmail(email))
     .filter(Boolean);
 
-  const fallback = normalizeAdminEmail(PRIMARY_ADMIN_EMAIL);
-  return Array.from(new Set([fallback, ...fromEnv]));
+  return Array.from(new Set([...DEFAULT_ADMIN_EMAILS.map((email) => normalizeAdminEmail(email)), ...fromEnv]));
 }
 
 export function isConfiguredAdminEmail(
