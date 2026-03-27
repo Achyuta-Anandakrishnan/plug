@@ -1,21 +1,22 @@
 import type { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { BountyCommentsClient } from "@/components/bounties/BountyCommentsClient";
-import { ListingCard } from "@/components/market/ListingCard";
 import { MessageUserButton } from "@/components/profiles/MessageUserButton";
 import {
   EmptyStateCard,
   PageContainer,
   PrimaryButton,
   SecondaryButton,
-  SectionHeader,
 } from "@/components/product/ProductUI";
 import { bountyAmountLabel, bountyBudgetLabel } from "@/lib/bounties";
 import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
 import type { AuctionListItem } from "@/hooks/useAuctions";
+import { getPrimaryImageUrl } from "@/lib/auctions";
+import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import { prisma } from "@/lib/prisma";
-import type { TradePostListItem } from "@/lib/trade-client";
+import { tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
 
 type MatchingAuctionCandidate = Prisma.AuctionGetPayload<{
   include: {
@@ -82,11 +83,6 @@ type BountyCommentRecord = Prisma.WantRequestCommentGetPayload<{
     };
   };
 }>;
-
-function detailValue(value: string | null | undefined, fallback = "—") {
-  const trimmed = typeof value === "string" ? value.trim() : "";
-  return trimmed || fallback;
-}
 
 function normalizeText(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -157,13 +153,51 @@ function asTradeSearchBlob(trade: TradePostListItem) {
     .join(" ");
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  OPEN: "bounty-status-open",
-  MATCHED: "bounty-status-matched",
-  FULFILLED: "bounty-status-fulfilled",
-  EXPIRED: "bounty-status-expired",
-  PAUSED: "bounty-status-paused",
-};
+function CompactListingMatchCard({ listing }: { listing: AuctionListItem }) {
+  const imageUrl = resolveDisplayMediaUrl(getPrimaryImageUrl(listing), "/placeholders/pokemon-generic.svg");
+  const seller = listing.seller?.user?.displayName ?? "Verified seller";
+  const price =
+    listing.listingType === "AUCTION"
+      ? new Intl.NumberFormat("en-US", { style: "currency", currency: listing.currency || "USD", maximumFractionDigits: 0 }).format((listing.currentBid ?? 0) / 100)
+      : new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: listing.currency || "USD",
+          maximumFractionDigits: 0,
+        }).format(((listing.buyNowPrice ?? listing.currentBid) ?? 0) / 100);
+
+  return (
+    <Link href={`/auctions/${listing.id}`} className="bounty-match-compact-card">
+      <div className="bounty-match-compact-media">
+        <Image src={imageUrl} alt={listing.title} fill sizes="84px" className="bounty-match-compact-image" unoptimized />
+      </div>
+      <div className="bounty-match-compact-copy">
+        <span className="bounty-match-compact-kicker">{listing.listingType === "AUCTION" ? "Listing" : "Buy now"}</span>
+        <strong>{listing.title}</strong>
+        <span>{price}</span>
+        <em>{seller}</em>
+      </div>
+    </Link>
+  );
+}
+
+function CompactTradeMatchCard({ trade }: { trade: TradePostListItem }) {
+  const imageUrl = resolveDisplayMediaUrl(trade.images[0]?.url ?? null, "/placeholders/pokemon-generic.svg");
+  const owner = trade.owner.displayName ?? trade.owner.username ?? "Collector";
+
+  return (
+    <Link href={`/trades/${encodeURIComponent(trade.id)}`} className="bounty-match-compact-card">
+      <div className="bounty-match-compact-media">
+        <Image src={imageUrl} alt={trade.title} fill sizes="84px" className="bounty-match-compact-image" unoptimized />
+      </div>
+      <div className="bounty-match-compact-copy">
+        <span className="bounty-match-compact-kicker">{trade.status}</span>
+        <strong>{trade.title}</strong>
+        <span>{tradeValueLabel(trade.valueMin, trade.valueMax)}</span>
+        <em>{owner}</em>
+      </div>
+    </Link>
+  );
+}
 
 export default async function BountyDetailPage({
   params,
@@ -288,7 +322,7 @@ export default async function BountyDetailPage({
       const haystack = asAuctionSearchBlob(serializeAuctionListItem(listing));
       return terms.some((term) => haystack.includes(term));
     })
-    .slice(0, 6)
+    .slice(0, 3)
     .map((listing) => serializeAuctionListItem(listing));
 
   const matchingTrades: TradePostListItem[] = candidateTrades
@@ -300,7 +334,7 @@ export default async function BountyDetailPage({
       });
       return terms.some((term) => haystack.includes(term));
     })
-    .slice(0, 6)
+    .slice(0, 3)
     .map((trade) => ({
       ...trade,
       createdAt: trade.createdAt.toISOString(),
@@ -371,6 +405,8 @@ export default async function BountyDetailPage({
               </div>
             )}
 
+            <BountyCommentsClient bountyId={bounty.id} initialComments={comments} />
+
           </div>
 
           {/* ── Right: pricing + actions ── */}
@@ -407,65 +443,44 @@ export default async function BountyDetailPage({
               />
             </div>
 
+            <div className="bounty-detail-v2-card bounty-detail-v2-match-card">
+              <div className="bounty-detail-v2-match-head">
+                <p className="bounty-detail-v2-card-label">Matching listings</p>
+                <span className="market-count">{matchingListings.length}</span>
+              </div>
+              {matchingListings.length > 0 ? (
+                <div className="bounty-match-compact-list">
+                  {matchingListings.map((listing) => (
+                    <CompactListingMatchCard key={listing.id} listing={listing} />
+                  ))}
+                </div>
+              ) : listingMatchesUnavailable ? (
+                <p className="bounty-detail-v2-match-empty">Listings are temporarily unavailable.</p>
+              ) : (
+                <p className="bounty-detail-v2-match-empty">No listing matches yet.</p>
+              )}
+            </div>
+
+            <div className="bounty-detail-v2-card bounty-detail-v2-match-card">
+              <div className="bounty-detail-v2-match-head">
+                <p className="bounty-detail-v2-card-label">Matching trades</p>
+                <span className="market-count">{matchingTrades.length}</span>
+              </div>
+              {matchingTrades.length > 0 ? (
+                <div className="bounty-match-compact-list">
+                  {matchingTrades.map((trade) => (
+                    <CompactTradeMatchCard key={trade.id} trade={trade} />
+                  ))}
+                </div>
+              ) : tradeMatchesUnavailable ? (
+                <p className="bounty-detail-v2-match-empty">Trades are temporarily unavailable.</p>
+              ) : (
+                <p className="bounty-detail-v2-match-empty">No trade matches yet.</p>
+              )}
+            </div>
+
           </aside>
         </div>
-
-        {/* ── Comments ── */}
-        <BountyCommentsClient bountyId={bounty.id} initialComments={comments} />
-
-        {/* ── Matching listings ── */}
-        <section className="listing-system-feed bounty-detail-matches">
-          <SectionHeader
-            title="Matching listings"
-            subtitle="Inventory already on the platform that may satisfy this bounty."
-            action={<span className="market-count">{matchingListings.length}</span>}
-          />
-          {matchingListings.length > 0 ? (
-            <div className={`market-v2-grid bounty-board-grid ${matchingListings.length < 3 ? "is-sparse" : ""}`}>
-              {matchingListings.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
-              ))}
-            </div>
-          ) : listingMatchesUnavailable ? (
-            <EmptyStateCard
-              title="Matching listings are temporarily unavailable."
-              description="The bounty loaded, but the related listing search failed."
-              action={<SecondaryButton href={`/bounties/${encodeURIComponent(id)}`}>Refresh</SecondaryButton>}
-            />
-          ) : (
-            <EmptyStateCard
-              title="No direct listing matches yet."
-              description="Create a listing to respond to this bounty, or check back as inventory moves."
-              action={<PrimaryButton href={`/sell?${fulfillParams.toString()}`}>Create listing</PrimaryButton>}
-            />
-          )}
-        </section>
-
-        {/* ── Matching trades ── */}
-        <section className="listing-system-feed bounty-detail-matches">
-          <SectionHeader
-            title="Matching trades"
-            subtitle="Related collector inventory that could turn into a direct deal."
-            action={<span className="market-count">{matchingTrades.length}</span>}
-          />
-          {matchingTrades.length > 0 ? (
-            <div className={`market-v2-grid bounty-board-grid ${matchingTrades.length < 3 ? "is-sparse" : ""}`}>
-              {matchingTrades.map((trade) => (
-                <ListingCard key={trade.id} kind="trade" trade={trade} />
-              ))}
-            </div>
-          ) : tradeMatchesUnavailable ? (
-            <EmptyStateCard
-              title="Matching trades are temporarily unavailable."
-              action={<SecondaryButton href={`/bounties/${encodeURIComponent(id)}`}>Refresh</SecondaryButton>}
-            />
-          ) : (
-            <EmptyStateCard
-              title="No trade inventory matches yet."
-              action={<SecondaryButton href={`/trades?q=${searchQuery}`}>Browse trades</SecondaryButton>}
-            />
-          )}
-        </section>
 
       </section>
     </PageContainer>
