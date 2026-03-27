@@ -2858,10 +2858,10 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 }
 
 .bounty-toolbar {
-  padding: 10px 12px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.76);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .bounty-board-grid {
@@ -7788,7 +7788,8 @@ html[data-theme="dark"] .streams-scheduled-item {
   max-width: 1060px;
   min-height: 0;
   margin-inline: auto;
-  padding-block: 8px 10px;
+  gap: 10px;
+  padding-block: 4px 6px;
 }
 
 .messages-page .app-screen-section--messages {
@@ -7796,7 +7797,7 @@ html[data-theme="dark"] .streams-scheduled-item {
   max-width: 920px;
   margin-inline: auto;
   min-height: 0;
-  height: min(calc(var(--app-frame-height) - 18px), 720px);
+  height: min(calc(var(--app-frame-height) - 10px), 690px);
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 8px;
@@ -8065,7 +8066,7 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-feed-inner {
   width: 100%;
-  max-width: 380px;
+  max-width: 440px;
   margin: 0 auto;
   padding: 10px 0 8px;
   min-height: 100%;
@@ -8084,24 +8085,35 @@ html[data-theme="dark"] .streams-scheduled-item {
 }
 
 .messages-bubble {
+  display: grid;
+  gap: 4px;
   justify-self: start;
   width: fit-content;
-  max-width: min(100%, 300px);
-  padding: 8px 10px;
+  max-width: min(100%, 360px);
+  padding: 9px 12px;
   border-radius: 12px;
 }
 
 .messages-bubble.incoming {
+  justify-items: start;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(15, 23, 42, 0.08);
+  text-align: left;
 }
 
 .messages-bubble.outgoing {
   justify-self: end;
   margin-left: auto;
+  justify-items: end;
   background: var(--product-accent);
   color: white;
   text-align: right;
+}
+
+.messages-bubble.incoming .messages-bubble-author,
+.messages-bubble.incoming .messages-bubble-time,
+.messages-bubble.incoming .messages-bubble-body {
+  text-align: left;
 }
 
 .messages-bubble.outgoing .messages-bubble-author,
@@ -8113,6 +8125,7 @@ html[data-theme="dark"] .streams-scheduled-item {
 .messages-bubble-author,
 .messages-bubble-time {
   margin: 0;
+  width: 100%;
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -8124,6 +8137,7 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-bubble-body {
   margin: 4px 0 0;
+  width: 100%;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -12827,14 +12841,14 @@ html[data-theme="dark"] .auction-detail-cta-secondary:hover { background: rgba(2
 .app-page--trades .app-page-header,
 .app-page--bounties .app-page-header,
 .app-page--live .app-page-header {
-  padding: 11px 16px;
+  padding: 12px 16px;
   margin-bottom: 0;
   border: 1px solid var(--product-border);
-  border-radius: var(--r-xl);
+  border-radius: 22px;
   background: rgba(244, 245, 248, 0.9);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  box-shadow: 0 1px 0 var(--product-border), 0 4px 16px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 1px 0 var(--product-border), 0 6px 18px rgba(15, 23, 42, 0.05);
 }
 
 html[data-theme="dark"] .app-page--market .app-page-header,
@@ -12871,13 +12885,13 @@ html[data-theme="dark"] .app-page--live .app-page-header {
   position: sticky;
   top: var(--app-header-height);
   z-index: 38;
-  padding: 6px 0 4px;
+  padding: 8px 12px;
   background: rgba(244, 245, 248, 0.94);
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
   border: 1px solid var(--product-border);
-  border-radius: var(--r-xl);
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  border-radius: 22px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
 }
 
 html[data-theme="dark"] .app-page--market .app-discovery-bar,
@@ -12919,9 +12933,10 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 }
 
 .app-page--market .market-discovery-section,
+.app-page--bounties .bounty-board-page,
 .app-page--live .listing-system-feed {
-  gap: 16px;
-  padding-top: 12px;
+  gap: 10px;
+  padding-top: 8px;
 }
 
 .app-page--market .market-inventory-section,
@@ -12930,7 +12945,7 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 .app-page--bounties .bounty-featured-section,
 .app-page--bounties .bounty-feed-section,
 .app-page--live .listing-system-feed {
-  padding-top: 12px;
+  padding-top: 8px;
 }
 
 .app-page--market .market-rail-section {
@@ -12944,8 +12959,8 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 .app-page--bounties .app-section-header,
 .app-page--live .app-section-header {
   border-bottom: 1px solid var(--product-border);
-  padding-bottom: 8px;
-  margin-bottom: 10px;
+  padding-bottom: 7px;
+  margin-bottom: 8px;
 }
 
 /* ── Market count: elegant count pill ── */

@@ -472,26 +472,6 @@ function HomeActionColumn({
   );
 }
 
-function HomeStoryStep({
-  index,
-  title,
-  copy,
-}: {
-  index: string;
-  title: string;
-  copy: string;
-}) {
-  return (
-    <li className="landing-story-point">
-      <span className="landing-story-marker" aria-hidden="true">{index}</span>
-      <div>
-        <strong>{title}</strong>
-        <p>{copy}</p>
-      </div>
-    </li>
-  );
-}
-
 export default async function Home() {
   const initialIsMobile = isProbablyMobileUserAgent((await headers()).get("user-agent"));
   const data = await getHomePageData();
@@ -499,7 +479,6 @@ export default async function Home() {
   const heroAuction = data.auctions[0];
   const heroTrade = data.trades[0];
   const heroBounty = data.bounties[0];
-  const heroAuctionSecondary = data.auctions[1] ?? heroAuction;
 
   return (
     <PageContainer className="landing-page">
@@ -515,14 +494,14 @@ export default async function Home() {
                   <p className="landing-eyebrow">For collectors, by collectors</p>
                   <LandingSearchBar />
                 </div>
-                <h1>Live. Auctions.<br />Trades. Bounties.</h1>
+                <h1>Live Auctions<br />Trades Bounties</h1>
                 <p>
-                  One premium collectibles platform for real-time streams, live bidding, structured deals, and demand-led buying.
+                  One premium collectibles platform for real-time streams, live bidding, structured deals, and demand-led buying
                 </p>
                 <div className="landing-hero-actions">
                   <PrimaryButton href="/waitlist">Join Waitlist</PrimaryButton>
                 </div>
-                <p className="landing-hero-note">Browse active inventory. Join live rooms. Negotiate collector deals.</p>
+                <p className="landing-hero-note">browse inventory. live rooms. negotiate deals</p>
               </div>
 
               <div className="landing-hero-showcase">
@@ -565,93 +544,29 @@ export default async function Home() {
             <section className="landing-section landing-actions-section">
               <div className="landing-actions-strip">
                 <HomeActionColumn
-                  eyebrow="Live"
-                  title="Sell in real time."
-                  copy="Run stream rooms with live auctions. Collectors bid as you present."
+                  eyebrow="LIVE STREAM"
+                  title="Fast deals"
+                  copy="Verified sellers doing fast auctions live on dalow"
                   href="/live"
                 />
                 <HomeActionColumn
-                  eyebrow="Auctions"
-                  title="Bid. Win."
-                  copy="Timed auctions on graded singles, lots, and sealed product."
+                  eyebrow="AUCTIONS"
+                  title="Bids"
+                  copy="Timed auctions on graded singles"
                   href="/listings"
                 />
                 <HomeActionColumn
-                  eyebrow="Trades"
-                  title="Deal direct."
-                  copy="Post what you have. Browse what collectors want. Make offers."
+                  eyebrow="TRADES"
+                  title="Get what you want"
+                  copy="Post what you have. Browse what collectors want. Make offers"
                   href="/trades"
                 />
                 <HomeActionColumn
-                  eyebrow="Bounty"
-                  title="Name your price."
-                  copy="Post exactly what you want. Put a finder's fee on it. Sellers bring it to you."
+                  eyebrow="BOUNTY"
+                  title="Name your price"
+                  copy="Post exactly what you want. Put a finder's fee on it. Sellers bring it to you"
                   href="/bounties"
                 />
-              </div>
-            </section>
-
-            {/* ── Workflow story ────────────────────────────────────────── */}
-            <section className="landing-section landing-story">
-              <div className="landing-story-visual">
-                <SurfacePreview
-                  title={heroAuction.title}
-                  subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
-                  meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
-                  imageUrl={heroAuction.imageUrl}
-                  href={heroAuction.href}
-                  accent="Active auction"
-                  className="landing-story-card is-story-primary"
-                />
-                <div className="landing-story-stack">
-                  <SurfacePreview
-                    title={heroStream.title}
-                    subtitle={`${heroStream.host} · ${heroStream.category}`}
-                    meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
-                    imageUrl={heroStream.imageUrl}
-                    href={heroStream.href}
-                    accent="Live floor"
-                    className="landing-story-card is-story-secondary"
-                  />
-                  <SurfacePreview
-                    title={heroAuctionSecondary.title}
-                    subtitle={`${heroAuctionSecondary.category} · ${heroAuctionSecondary.seller}`}
-                    meta={`${heroAuctionSecondary.currentBidLabel} · ${heroAuctionSecondary.timeLeftLabel}`}
-                    imageUrl={heroAuctionSecondary.imageUrl}
-                    href={heroAuctionSecondary.href}
-                    accent="Ending soon"
-                    className="landing-story-card is-story-secondary"
-                  />
-                </div>
-              </div>
-              <div className="landing-story-copy">
-                <p className="landing-section-kicker">How it works</p>
-                <h2>Discover. Bid. Trade. Pull supply.</h2>
-                <p>
-                  Every mode connects. Move inventory through the workflow that fits — sell live, run auctions, negotiate trades, or let bounties bring supply to you.
-                </p>
-                <ul className="landing-story-points">
-                  <HomeStoryStep
-                    index="01"
-                    title="Discover"
-                    copy="Browse active listings, live rooms, and open trades in a single feed."
-                  />
-                  <HomeStoryStep
-                    index="02"
-                    title="Bid"
-                    copy="Jump into live auctions or timed listings. Prices move in real time."
-                  />
-                  <HomeStoryStep
-                    index="03"
-                    title="Trade"
-                    copy="Make or receive structured offers. No guesswork, no DMs."
-                  />
-                  <HomeStoryStep
-                    index="04"
-                    title="Pull supply"
-                    copy="Post a bounty with a finder's fee. Sellers bring the card to you."
-                  />
-                </ul>
               </div>
             </section>
 
@@ -673,14 +588,14 @@ export default async function Home() {
                 <p className="landing-eyebrow">For collectors, by collectors</p>
                 <LandingSearchBar />
               </div>
-              <h1>Live. Auctions.<br />Trades. Bounties.</h1>
+              <h1>Live Auctions<br />Trades Bounties</h1>
               <p className="landing-mobile-copy">
-                One premium platform for real-time streams, live bidding, structured deals, and demand-led buying.
+                One premium platform for real-time streams, live bidding, structured deals, and demand-led buying
               </p>
               <div className="landing-mobile-actions">
                 <PrimaryButton href="/waitlist">Join Waitlist</PrimaryButton>
               </div>
-              <p className="landing-mobile-note">Browse active inventory. Join live rooms. Negotiate deals.</p>
+              <p className="landing-mobile-note">browse inventory. live rooms. negotiate deals</p>
             </section>
 
             {/* ── Mobile preview cards ─────────────────────────────────── */}
@@ -719,34 +634,11 @@ export default async function Home() {
             {/* ── Mobile core actions ──────────────────────────────────── */}
             <section className="landing-mobile-section landing-mobile-actions-section">
               <div className="landing-mobile-action-grid">
-                <HomeActionColumn eyebrow="Live" title="Sell in real time." copy="Stream rooms with live auctions." href="/live" />
-                <HomeActionColumn eyebrow="Auctions" title="Bid. Win." copy="Timed listings on graded cards." href="/listings" />
-                <HomeActionColumn eyebrow="Trades" title="Deal direct." copy="Post, offer, negotiate." href="/trades" />
-                <HomeActionColumn eyebrow="Bounty" title="Name your price." copy="Post demand. Get supply." href="/bounties" />
+                <HomeActionColumn eyebrow="LIVE STREAM" title="Fast deals" copy="Verified sellers doing fast auctions live on dalow" href="/live" />
+                <HomeActionColumn eyebrow="AUCTIONS" title="Bids" copy="Timed auctions on graded singles" href="/listings" />
+                <HomeActionColumn eyebrow="TRADES" title="Get what you want" copy="Post what you have. Browse what collectors want. Make offers" href="/trades" />
+                <HomeActionColumn eyebrow="BOUNTY" title="Name your price" copy="Post exactly what you want. Put a finder's fee on it. Sellers bring it to you" href="/bounties" />
               </div>
-            </section>
-
-            {/* ── Mobile workflow ──────────────────────────────────────── */}
-            <section className="landing-mobile-section landing-mobile-story">
-              <div className="landing-mobile-head">
-                <p className="landing-section-kicker">How it works</p>
-                <h2>Discover. Bid. Trade. Pull supply.</h2>
-              </div>
-              <SurfacePreview
-                title={heroAuction.title}
-                subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
-                meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
-                imageUrl={heroAuction.imageUrl}
-                href={heroAuction.href}
-                accent="Active"
-                className="landing-mobile-story-card"
-              />
-              <ul className="landing-mobile-story-points">
-                <HomeStoryStep index="01" title="Discover" copy="Browse listings, live rooms, and trades in one place." />
-                <HomeStoryStep index="02" title="Bid" copy="Jump in. Prices move live." />
-                <HomeStoryStep index="03" title="Trade" copy="Structured offers. No guesswork." />
-                <HomeStoryStep index="04" title="Pull supply" copy="Bounties bring cards to you." />
-              </ul>
             </section>
 
             {/* ── Mobile final ─────────────────────────────────────────── */}
