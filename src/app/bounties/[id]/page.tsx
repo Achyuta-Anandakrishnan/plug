@@ -1,13 +1,12 @@
 import type { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { BountyCommentsClient } from "@/components/bounties/BountyCommentsClient";
-import { BountyDetailMedia } from "@/components/bounties/BountyDetailMedia";
 import { ListingCard } from "@/components/market/ListingCard";
 import { MessageUserButton } from "@/components/profiles/MessageUserButton";
 import {
   EmptyStateCard,
   PageContainer,
-  PageHeader,
   PrimaryButton,
   SecondaryButton,
   SectionHeader,
@@ -15,7 +14,6 @@ import {
 import { bountyAmountLabel, bountyBudgetLabel } from "@/lib/bounties";
 import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
 import type { AuctionListItem } from "@/hooks/useAuctions";
-import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
 import { prisma } from "@/lib/prisma";
 import type { TradePostListItem } from "@/lib/trade-client";
 
@@ -85,7 +83,7 @@ type BountyCommentRecord = Prisma.WantRequestCommentGetPayload<{
   };
 }>;
 
-function detailValue(value: string | null | undefined, fallback = "Not specified") {
+function detailValue(value: string | null | undefined, fallback = "—") {
   const trimmed = typeof value === "string" ? value.trim() : "";
   return trimmed || fallback;
 }
@@ -95,9 +93,7 @@ function normalizeText(value: unknown) {
 }
 
 function normalizeAttributes(value: Prisma.JsonValue | null | undefined): Record<string, unknown> | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return null;
-  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   return value as Record<string, unknown>;
 }
 
@@ -110,15 +106,7 @@ function searchTermsForBounty(bounty: {
   certNumber: string | null;
   category: string | null;
 }) {
-  return [
-    bounty.itemName,
-    bounty.title,
-    bounty.player,
-    bounty.setName,
-    bounty.year,
-    bounty.certNumber,
-    bounty.category,
-  ]
+  return [bounty.itemName, bounty.title, bounty.player, bounty.setName, bounty.year, bounty.certNumber, bounty.category]
     .map((entry) => normalizeText(entry))
     .filter(Boolean)
     .filter((entry, index, entries) => entries.indexOf(entry) === index);
@@ -144,9 +132,7 @@ function asAuctionSearchBlob(listing: AuctionListItem) {
     .join(" ");
 }
 
-function serializeAuctionListItem(
-  listing: MatchingAuctionCandidate,
-): AuctionListItem {
+function serializeAuctionListItem(listing: MatchingAuctionCandidate): AuctionListItem {
   return {
     ...listing,
     createdAt: listing.createdAt.toISOString(),
@@ -159,38 +145,25 @@ function serializeAuctionListItem(
       updatedAt: session.updatedAt.toISOString(),
     })),
     item: listing.item
-      ? {
-          ...listing.item,
-          attributes: normalizeAttributes(listing.item.attributes),
-        }
+      ? { ...listing.item, attributes: normalizeAttributes(listing.item.attributes) }
       : null,
   };
 }
 
 function asTradeSearchBlob(trade: TradePostListItem) {
-  return [
-    trade.title,
-    trade.category,
-    trade.cardSet,
-    trade.cardNumber,
-    trade.gradeCompany,
-    trade.gradeLabel,
-    trade.condition,
-    trade.lookingFor,
-  ]
+  return [trade.title, trade.category, trade.cardSet, trade.cardNumber, trade.gradeCompany, trade.gradeLabel, trade.condition, trade.lookingFor]
     .map((entry) => normalizeText(entry))
     .filter(Boolean)
     .join(" ");
 }
 
-function safeBountyMediaUrl(value: string | null | undefined) {
-  const raw = value?.trim() ?? "";
-  if (!raw) return "";
-  if (raw.startsWith("/") || raw.startsWith("http://") || raw.startsWith("https://")) {
-    return resolveDisplayMediaUrl(raw, "");
-  }
-  return "";
-}
+const STATUS_COLORS: Record<string, string> = {
+  OPEN: "bounty-status-open",
+  MATCHED: "bounty-status-matched",
+  FULFILLED: "bounty-status-fulfilled",
+  EXPIRED: "bounty-status-expired",
+  PAUSED: "bounty-status-paused",
+};
 
 export default async function BountyDetailPage({
   params,
@@ -207,17 +180,8 @@ export default async function BountyDetailPage({
     bounty = await prisma.wantRequest.findUnique({
       where: { id },
       include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true,
-            image: true,
-          },
-        },
-        _count: {
-          select: { saves: true },
-        },
+        user: { select: { id: true, username: true, displayName: true, image: true } },
+        _count: { select: { saves: true } },
       },
     });
   } catch (error) {
@@ -233,19 +197,8 @@ export default async function BountyDetailPage({
   if (!bounty) {
     if (bountyLoadError) {
       return (
-        <PageContainer className="bounty-detail-page app-page--bounty-detail">
+        <PageContainer className="app-page--bounty-detail">
           <section className="app-section">
-            <PageHeader
-              eyebrow="Bounty"
-              title="Bounty unavailable"
-              subtitle={bountyLoadError}
-              actions={
-                <div className="bounty-detail-header-actions">
-                  <PrimaryButton href={`/bounties/${encodeURIComponent(id)}`}>Try again</PrimaryButton>
-                  <SecondaryButton href="/bounties">Back to board</SecondaryButton>
-                </div>
-              }
-            />
             <EmptyStateCard
               title="This bounty could not be loaded."
               description={bountyLoadError}
@@ -259,50 +212,35 @@ export default async function BountyDetailPage({
   }
 
   const collectorName = bounty.user.displayName ?? bounty.user.username ?? "Collector";
+  const collectorHandle = bounty.user.username ? `@${bounty.user.username}` : collectorName;
   const searchQuery = encodeURIComponent(bounty.itemName || bounty.title);
   const fulfillParams = new URLSearchParams({
     mode: "BUY_NOW",
     ...(bounty.certNumber ? { cert: bounty.certNumber } : {}),
     ...(bounty.gradeCompany ? { grader: bounty.gradeCompany } : {}),
-    ...((bounty.priceMax ?? bounty.priceMin) ? { price: String(((bounty.priceMax ?? bounty.priceMin) ?? 0) / 100) } : {}),
+    ...((bounty.priceMax ?? bounty.priceMin)
+      ? { price: String(((bounty.priceMax ?? bounty.priceMin) ?? 0) / 100) }
+      : {}),
   });
   const terms = searchTermsForBounty(bounty);
-  const normalizedImageUrl = safeBountyMediaUrl(bounty.imageUrl);
+
+  const budgetDisplay = bountyBudgetLabel(bounty.priceMin, bounty.priceMax).replace(/^Budget\s*/i, "") || "Open";
+  const feeDisplay = bountyAmountLabel(bounty.bountyAmount).replace(/^Bounty\s*/i, "");
+  const hasFee = bounty.bountyAmount != null && bounty.bountyAmount > 0;
 
   const [candidateListingsResult, candidateTradesResult, commentsResult] = await Promise.allSettled([
     prisma.auction.findMany({
-      where: {
-        status: { in: ["SCHEDULED", "LIVE"] },
-      },
+      where: { status: { in: ["SCHEDULED", "LIVE"] } },
       include: {
         category: { select: { name: true } },
-        seller: {
-          select: {
-            user: {
-              select: {
-                id: true,
-                displayName: true,
-              },
-            },
-          },
-        },
-        streamSessions: {
-          select: {
-            id: true,
-            status: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
+        seller: { select: { user: { select: { id: true, displayName: true } } } },
+        streamSessions: { select: { id: true, status: true, createdAt: true, updatedAt: true } },
         item: {
           select: {
             attributes: true,
             images: {
               orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
-              select: {
-                url: true,
-                isPrimary: true,
-              },
+              select: { url: true, isPrimary: true },
             },
           },
         },
@@ -311,81 +249,37 @@ export default async function BountyDetailPage({
       take: 48,
     }),
     prisma.tradePost.findMany({
-      where: {
-        status: { in: ["OPEN", "MATCHED", "PAUSED"] },
-      },
+      where: { status: { in: ["OPEN", "MATCHED", "PAUSED"] } },
       include: {
-        owner: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true,
-          },
-        },
+        owner: { select: { id: true, username: true, displayName: true } },
         images: {
           orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
-          select: {
-            id: true,
-            url: true,
-            isPrimary: true,
-          },
+          select: { id: true, url: true, isPrimary: true },
         },
-        _count: {
-          select: { offers: true },
-        },
+        _count: { select: { offers: true } },
       },
       orderBy: { updatedAt: "desc" },
       take: 48,
     }),
     prisma.wantRequestComment.findMany({
       where: { wantRequestId: id },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true,
-            image: true,
-          },
-        },
-      },
+      include: { author: { select: { id: true, username: true, displayName: true, image: true } } },
       orderBy: { createdAt: "asc" },
       take: 80,
     }),
   ]);
 
-  if (candidateListingsResult.status === "rejected") {
-    console.error("Bounty listing match query failed", { id, error: candidateListingsResult.reason });
-  }
-
-  if (candidateTradesResult.status === "rejected") {
-    console.error("Bounty trade match query failed", { id, error: candidateTradesResult.reason });
-  }
-
-  if (commentsResult.status === "rejected") {
-    console.error("Bounty comments query failed", { id, error: commentsResult.reason });
-  }
-
   const candidateListings = candidateListingsResult.status === "fulfilled" ? candidateListingsResult.value : [];
   const candidateTrades = candidateTradesResult.status === "fulfilled" ? candidateTradesResult.value : [];
-  const comments: Array<{
-    id: string;
-    body: string;
-    createdAt: string;
-    author: {
-      id: string;
-      username: string | null;
-      displayName: string | null;
-      image: string | null;
-    };
-  }> = commentsResult.status === "fulfilled"
-    ? commentsResult.value.map((comment: BountyCommentRecord) => ({
-        id: comment.id,
-        body: comment.body,
-        createdAt: comment.createdAt.toISOString(),
-        author: comment.author,
+  const comments = commentsResult.status === "fulfilled"
+    ? commentsResult.value.map((c: BountyCommentRecord) => ({
+        id: c.id,
+        body: c.body,
+        createdAt: c.createdAt.toISOString(),
+        author: c.author,
       }))
     : [];
+
   const listingMatchesUnavailable = candidateListingsResult.status === "rejected";
   const tradeMatchesUnavailable = candidateTradesResult.status === "rejected";
 
@@ -413,91 +307,113 @@ export default async function BountyDetailPage({
       updatedAt: trade.updatedAt.toISOString(),
     }));
 
+  const specFields: Array<{ label: string; value: string | null }> = [
+    { label: "Player / Subject", value: bounty.player },
+    { label: "Set", value: bounty.setName },
+    { label: "Year", value: bounty.year },
+    { label: "Grade", value: [bounty.gradeCompany, bounty.gradeTarget || bounty.grade].filter(Boolean).join(" ") || null },
+    { label: "Condition", value: bounty.condition },
+    { label: "Cert #", value: bounty.certNumber },
+    { label: "Category", value: bounty.category },
+  ].filter((f) => f.value && f.value.trim());
+
   return (
-    <PageContainer className="bounty-detail-page app-page--bounty-detail">
-      <section className="app-section">
-        <PageHeader
-          eyebrow="Bounty"
-          title={bounty.title}
-          subtitle={`Posted by ${collectorName}`}
-          actions={
-            <div className="bounty-detail-header-actions">
-              <PrimaryButton href={`/sell?${fulfillParams.toString()}`}>Fulfill bounty</PrimaryButton>
-              <SecondaryButton href={`/listings?q=${searchQuery}`}>Match listing</SecondaryButton>
-              <MessageUserButton targetUserId={bounty.user.id} className="app-button app-button-secondary" />
-            </div>
-          }
-        />
+    <PageContainer className="app-page--bounty-detail bounty-detail-v2-page">
+      <section className="app-section bounty-detail-v2-section">
 
-        <section className="bounty-detail-layout">
-          <article className="product-card bounty-detail-media-card">
-            <BountyDetailMedia
-              title={bounty.title}
-              itemName={bounty.itemName}
-              imageUrl={normalizedImageUrl}
-            />
-          </article>
+        {/* ── Back nav ── */}
+        <nav className="bounty-detail-v2-nav">
+          <Link href="/bounties" className="bounty-detail-v2-back">← Bounty board</Link>
+          <span className={`bounty-row-status-badge bounty-status-${bounty.status.toLowerCase()}`}>
+            {bounty.status}
+          </span>
+        </nav>
 
-          <article className="product-card bounty-detail-summary">
-            <div className="bounty-detail-summary-head">
-              <span className="listing-card-badge trade-status-chip is-open">
-                {bounty.status === "OPEN" ? "Bounty" : bounty.status}
-              </span>
-              <span className="market-count">{bounty._count.saves} saves</span>
-            </div>
-            <h2>{bounty.itemName}</h2>
+        {/* ── Main layout ── */}
+        <div className="bounty-detail-v2-layout">
 
-            <div className="bounty-detail-price-stack">
-              <div>
-                <span>Budget</span>
-                <strong>{bountyBudgetLabel(bounty.priceMin, bounty.priceMax).replace(/^Budget\s*/, "")}</strong>
-              </div>
-              <div>
-                <span>Bounty</span>
-                <strong>{bountyAmountLabel(bounty.bountyAmount).replace(/^Bounty\s*/, "")}</strong>
+          {/* ── Left: item info ── */}
+          <div className="bounty-detail-v2-main">
+
+            {/* Title card */}
+            <div className="bounty-detail-v2-card bounty-detail-v2-title-card">
+              <p className="bounty-detail-v2-eyebrow">Looking for</p>
+              <h1 className="bounty-detail-v2-title">{bounty.itemName || bounty.title}</h1>
+              {bounty.title && bounty.itemName && bounty.title !== bounty.itemName && (
+                <p className="bounty-detail-v2-subtitle">{bounty.title}</p>
+              )}
+              <div className="bounty-detail-v2-byline">
+                <span>Posted by</span>
+                <strong>{collectorHandle}</strong>
               </div>
             </div>
 
-            <div className="bounty-detail-meta-grid">
-              <div>
-                <span>Player</span>
-                <strong>{detailValue(bounty.player)}</strong>
+            {/* Specs grid */}
+            {specFields.length > 0 && (
+              <div className="bounty-detail-v2-card">
+                <p className="bounty-detail-v2-card-label">Specifications</p>
+                <dl className="bounty-detail-v2-specs">
+                  {specFields.map((field) => (
+                    <div key={field.label} className="bounty-detail-v2-spec-row">
+                      <dt>{field.label}</dt>
+                      <dd>{field.value}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
-              <div>
-                <span>Set</span>
-                <strong>{detailValue(bounty.setName)}</strong>
+            )}
+
+            {/* Notes */}
+            {bounty.notes?.trim() && (
+              <div className="bounty-detail-v2-card">
+                <p className="bounty-detail-v2-card-label">Notes from buyer</p>
+                <p className="bounty-detail-v2-notes">{bounty.notes.trim()}</p>
               </div>
-              <div>
-                <span>Year</span>
-                <strong>{detailValue(bounty.year)}</strong>
+            )}
+
+          </div>
+
+          {/* ── Right: pricing + actions ── */}
+          <aside className="bounty-detail-v2-aside">
+
+            {/* Price card */}
+            <div className="bounty-detail-v2-card bounty-detail-v2-price-card">
+              <div className="bounty-detail-v2-price-block">
+                <span className="bounty-detail-v2-price-label">Budget</span>
+                <strong className="bounty-detail-v2-price-value">{budgetDisplay}</strong>
               </div>
-              <div>
-                <span>Grade</span>
-                <strong>{detailValue([bounty.gradeCompany, bounty.gradeTarget || bounty.grade].filter(Boolean).join(" "))}</strong>
-              </div>
-              <div>
-                <span>Condition</span>
-                <strong>{detailValue(bounty.condition)}</strong>
-              </div>
-              <div>
-                <span>Cert #</span>
-                <strong>{detailValue(bounty.certNumber)}</strong>
-              </div>
-              <div>
-                <span>Category</span>
-                <strong>{detailValue(bounty.category)}</strong>
+              {hasFee && (
+                <div className="bounty-detail-v2-price-block">
+                  <span className="bounty-detail-v2-price-label">Finder&rsquo;s fee</span>
+                  <strong className="bounty-detail-v2-price-value is-fee">{feeDisplay}</strong>
+                </div>
+              )}
+              <div className="bounty-detail-v2-saves">
+                <span>{bounty._count.saves} {bounty._count.saves === 1 ? "save" : "saves"}</span>
               </div>
             </div>
 
-            <div className="bounty-detail-notes">
-              <SectionHeader title="Notes" />
-              <p>{bounty.notes?.trim() || "No extra notes attached to this bounty yet."}</p>
+            {/* Actions */}
+            <div className="bounty-detail-v2-card bounty-detail-v2-actions-card">
+              <PrimaryButton href={`/sell?${fulfillParams.toString()}`} className="bounty-detail-v2-cta">
+                Fulfill bounty
+              </PrimaryButton>
+              <SecondaryButton href={`/listings?q=${searchQuery}`} className="bounty-detail-v2-secondary-action">
+                Browse matching listings
+              </SecondaryButton>
+              <MessageUserButton
+                targetUserId={bounty.user.id}
+                className="app-button app-button-secondary bounty-detail-v2-secondary-action"
+              />
             </div>
-          </article>
-        </section>
 
+          </aside>
+        </div>
+
+        {/* ── Comments ── */}
         <BountyCommentsClient bountyId={bounty.id} initialComments={comments} />
 
+        {/* ── Matching listings ── */}
         <section className="listing-system-feed bounty-detail-matches">
           <SectionHeader
             title="Matching listings"
@@ -513,22 +429,23 @@ export default async function BountyDetailPage({
           ) : listingMatchesUnavailable ? (
             <EmptyStateCard
               title="Matching listings are temporarily unavailable."
-              description="The bounty loaded, but the related listing search failed. Retry in a moment."
-              action={<SecondaryButton href={`/bounties/${encodeURIComponent(id)}`}>Refresh matches</SecondaryButton>}
+              description="The bounty loaded, but the related listing search failed."
+              action={<SecondaryButton href={`/bounties/${encodeURIComponent(id)}`}>Refresh</SecondaryButton>}
             />
           ) : (
             <EmptyStateCard
               title="No direct listing matches yet."
-              description="Use the card details above to create a matching listing or watch for new inventory."
+              description="Create a listing to respond to this bounty, or check back as inventory moves."
               action={<PrimaryButton href={`/sell?${fulfillParams.toString()}`}>Create listing</PrimaryButton>}
             />
           )}
         </section>
 
+        {/* ── Matching trades ── */}
         <section className="listing-system-feed bounty-detail-matches">
           <SectionHeader
             title="Matching trades"
-            subtitle="Related collector inventory that could be turned into a direct outreach or deal."
+            subtitle="Related collector inventory that could turn into a direct deal."
             action={<span className="market-count">{matchingTrades.length}</span>}
           />
           {matchingTrades.length > 0 ? (
@@ -540,17 +457,16 @@ export default async function BountyDetailPage({
           ) : tradeMatchesUnavailable ? (
             <EmptyStateCard
               title="Matching trades are temporarily unavailable."
-              description="The bounty loaded, but the trade match search failed. Retry in a moment."
-              action={<SecondaryButton href={`/bounties/${encodeURIComponent(id)}`}>Refresh matches</SecondaryButton>}
+              action={<SecondaryButton href={`/bounties/${encodeURIComponent(id)}`}>Refresh</SecondaryButton>}
             />
           ) : (
             <EmptyStateCard
               title="No trade inventory matches yet."
-              description="Try the market or create a listing to respond directly to this bounty."
               action={<SecondaryButton href={`/trades?q=${searchQuery}`}>Browse trades</SecondaryButton>}
             />
           )}
         </section>
+
       </section>
     </PageContainer>
   );

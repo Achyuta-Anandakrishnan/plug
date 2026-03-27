@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { LandingLayoutSwitch } from "@/components/home/LandingLayoutSwitch";
+import { LandingSearchBar } from "@/components/home/LandingSearchBar";
 import {
   EmptyStateCard,
   PageContainer,
@@ -456,19 +457,18 @@ function HomeActionColumn({
   eyebrow,
   title,
   copy,
-  href,
 }: {
   eyebrow: string;
   title: string;
   copy: string;
-  href: string;
+  href?: string;
 }) {
   return (
-    <Link href={href} className="landing-action-column">
+    <div className="landing-action-column">
       <span className="landing-section-kicker">{eyebrow}</span>
       <h3>{title}</h3>
       <p>{copy}</p>
-    </Link>
+    </div>
   );
 }
 
@@ -527,12 +527,13 @@ export default async function Home() {
             <section className="landing-section landing-hero">
               <div className="landing-hero-copy">
                 <p className="landing-eyebrow">For collectors, by collectors</p>
+                <LandingSearchBar />
                 <h1>Live. Auctions.<br />Trades. Bounties.</h1>
                 <p>
                   One premium collectibles platform for real-time streams, live bidding, structured deals, and demand-led buying.
                 </p>
                 <div className="landing-hero-actions">
-                  <PrimaryButton href="/listings">Get started</PrimaryButton>
+                  <PrimaryButton href="/waitlist">Join Waitlist</PrimaryButton>
                 </div>
                 <p className="landing-hero-note">Browse active inventory. Join live rooms. Negotiate collector deals.</p>
               </div>
@@ -717,7 +718,7 @@ export default async function Home() {
                 One premium platform for real-time streams, live bidding, structured deals, and demand-led buying.
               </p>
               <div className="landing-mobile-actions">
-                <PrimaryButton href="/listings">Get started</PrimaryButton>
+                <PrimaryButton href="/waitlist">Join Waitlist</PrimaryButton>
               </div>
               <p className="landing-mobile-note">Browse active inventory. Join live rooms. Negotiate deals.</p>
             </section>

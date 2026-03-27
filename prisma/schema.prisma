@@ -918,3 +918,14 @@ model VerifiedCardCache {
   @@id([grader, certNumber])
   @@index([expiresAt])
 }
+
+
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  source    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

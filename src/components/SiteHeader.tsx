@@ -278,14 +278,14 @@ export function SiteDesktopHeader() {
 
           <nav className="site-nav" aria-label="Primary">
             {navItems.map(({ key, href, label, Icon }) => (
-              <Link
+              <span
                 key={href}
-                href={href}
-                className={`site-nav-link${isNavActive({ key, href, label, Icon }) ? " is-active" : ""}`}
+                className="site-nav-link site-nav-link-disabled"
+                aria-disabled="true"
               >
                 <Icon size={13} strokeWidth={1.9} aria-hidden="true" />
                 {label}
-              </Link>
+              </span>
             ))}
             {isAdmin ? (
               <Link href="/admin/sellers" className="site-admin-link">
@@ -296,11 +296,8 @@ export function SiteDesktopHeader() {
           </nav>
 
           <div className="site-header-actions">
-            <Link
-              href={isVerifiedSeller ? "/sell" : "/seller/verification"}
-              className="app-button app-button-primary"
-            >
-              + List item
+            <Link href="/waitlist" className="app-button app-button-primary">
+              Join Waitlist
             </Link>
             <AccountButton signedIn={signedIn} isAdmin={isAdmin} />
           </div>

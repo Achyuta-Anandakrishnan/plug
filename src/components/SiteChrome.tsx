@@ -15,6 +15,10 @@ function isMarketingPath(pathname: string | null) {
   return pathname === "/";
 }
 
+function isFullscreenPath(pathname: string | null) {
+  return pathname === "/waitlist";
+}
+
 export function MarketingLayout({ children }: SiteChromeProps) {
   return (
     <div className="site-layout marketing-layout">
@@ -57,6 +61,8 @@ export function AppLayout({ children }: SiteChromeProps) {
 export function SiteChrome({ children }: SiteChromeProps) {
   const pathname = usePathname();
   const marketing = isMarketingPath(pathname);
+  const fullscreen = isFullscreenPath(pathname);
 
+  if (fullscreen) return <>{children}</>;
   return marketing ? <MarketingLayout>{children}</MarketingLayout> : <AppLayout>{children}</AppLayout>;
 }

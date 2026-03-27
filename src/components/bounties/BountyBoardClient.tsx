@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckersLoader } from "@/components/CheckersLoader";
@@ -46,13 +45,6 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
-function validImage(url: string | null | undefined): string {
-  if (!url) return "/placeholders/pokemon-generic.svg";
-  if (url.startsWith("/")) return url;
-  if (/^https?:\/\//i.test(url)) return url;
-  return "/placeholders/pokemon-generic.svg";
-}
-
 function BountyCard({
   bounty,
   saved,
@@ -63,17 +55,17 @@ function BountyCard({
   onToggleSave: (id: string) => void;
 }) {
   const href = `/bounties/${bounty.id}`;
-  const imageUrl = validImage(bounty.imageUrl);
 
-  const budgetLabel = bounty.priceMin != null && bounty.priceMax != null
-    ? bounty.priceMin === bounty.priceMax
-      ? formatCurrency(bounty.priceMin)
-      : `${formatCurrency(bounty.priceMin)} – ${formatCurrency(bounty.priceMax)}`
-    : bounty.priceMax != null
-    ? `Up to ${formatCurrency(bounty.priceMax)}`
-    : bounty.priceMin != null
-    ? `From ${formatCurrency(bounty.priceMin)}`
-    : null;
+  const budgetLabel =
+    bounty.priceMin != null && bounty.priceMax != null
+      ? bounty.priceMin === bounty.priceMax
+        ? formatCurrency(bounty.priceMin)
+        : `${formatCurrency(bounty.priceMin)} – ${formatCurrency(bounty.priceMax)}`
+      : bounty.priceMax != null
+      ? `Up to ${formatCurrency(bounty.priceMax)}`
+      : bounty.priceMin != null
+      ? `From ${formatCurrency(bounty.priceMin)}`
+      : null;
 
   const specs: string[] = [];
   if (bounty.category) specs.push(bounty.category);
@@ -88,19 +80,7 @@ function BountyCard({
 
   return (
     <article className={`bounty-row-card status-${bounty.status.toLowerCase()}`}>
-      {/* Full-card link overlay — sits behind interactive elements */}
       <Link href={href} className="bounty-row-card-overlay" tabIndex={-1} aria-hidden="true" />
-
-      <div className="bounty-row-image">
-        <Image
-          src={imageUrl}
-          alt={bounty.itemName || bounty.title}
-          fill
-          sizes="80px"
-          className="object-cover"
-          unoptimized
-        />
-      </div>
 
       <div className="bounty-row-body">
         <div className="bounty-row-header">
@@ -128,18 +108,12 @@ function BountyCard({
             <span className="bounty-row-time">{timeAgo(bounty.createdAt)}</span>
           </div>
           <div className="bounty-row-actions">
-            <Link
-              href={href}
-              className="bounty-row-fulfill-btn"
-            >
+            <Link href={href} className="bounty-row-fulfill-btn">
               Fulfill bounty
             </Link>
             <button
               className={`bounty-row-save-btn ${saved ? "is-saved" : ""}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleSave(bounty.id);
-              }}
+              onClick={(e) => { e.stopPropagation(); onToggleSave(bounty.id); }}
               type="button"
               aria-label={saved ? "Remove from saved" : "Save bounty"}
             >
@@ -183,7 +157,6 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
 
   useEffect(() => {
     let cancelled = false;
-
     const load = async () => {
       setLoading(true);
       setError("");
@@ -194,28 +167,16 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
         if (query.trim()) params.set("q", query.trim());
         const response = await fetch(`/api/bounties?${params.toString()}`, { cache: "no-store" });
         const payload = (await response.json()) as BountyRequestListItem[] & { error?: string };
-        if (!response.ok) {
-          throw new Error(payload.error || "Unable to load bounties.");
-        }
-        if (!cancelled) {
-          setBounties(payload);
-          setLoading(false);
-        }
+        if (!response.ok) throw new Error(payload.error || "Unable to load bounties.");
+        if (!cancelled) { setBounties(payload); setLoading(false); }
       } catch (loadError) {
         if (cancelled) return;
         setError(loadError instanceof Error ? loadError.message : "Unable to load bounties.");
         setLoading(false);
       }
     };
-
-    const timeout = window.setTimeout(() => {
-      void load();
-    }, query.trim() ? 180 : 0);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeout);
-    };
+    const timeout = window.setTimeout(() => { void load(); }, query.trim() ? 180 : 0);
+    return () => { cancelled = true; window.clearTimeout(timeout); };
   }, [query, sort]);
 
   const renderCards = (items: BountyRequestListItem[]) =>
@@ -227,6 +188,25 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
         onToggleSave={toggleBountySave}
       />
     ));
+
+  const toolbar = (
+    <div className="bounty-inline-toolbar">
+      <div className="app-search">
+        <SearchIcon />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search cards, players, sets, cert numbers"
+        />
+      </div>
+      <label className="app-select-wrap app-select-inline">
+        <span>Sort</span>
+        <select value={sort} onChange={(e) => setSort(e.target.value as SortMode)} className="app-select">
+          {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      </label>
+    </div>
+  );
 
   if (isMobileUi) {
     return (
@@ -240,44 +220,18 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
               </div>
               <PrimaryButton href="/bounties/new" className="bounty-mobile-create">Post bounty</PrimaryButton>
             </div>
-            <div className="app-search">
-              <SearchIcon />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search cards, players, sets, certs"
-              />
-            </div>
-            <div className="bounty-mobile-selects">
-              <label className="app-select-wrap app-select-inline">
-                <span>Sort</span>
-                <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)} className="app-select">
-                  {SORT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
+            {toolbar}
           </section>
 
           {error ? <EmptyStateCard title="Bounty unavailable" description={error} /> : null}
           {loading ? <CheckersLoader title="Loading bounties..." compact /> : null}
 
           {!loading ? (
-            <section className="mobile-feed-section bounty-mobile-feed-section">
-              <div className="mobile-feed-section-head">
-                <h2>Bounty feed</h2>
-                <span>{bounties.length}</span>
-              </div>
+            <section className="bounty-mobile-feed-section">
               {bounties.length === 0 ? (
-                <EmptyStateCard
-                  title="No bounties match this search."
-                  description="Try another card or a broader category."
-                />
+                <EmptyStateCard title="No bounties match this search." description="Try another card or a broader category." />
               ) : (
-                <div className="bounty-row-list">
-                  {renderCards(bounties)}
-                </div>
+                <div className="bounty-row-list">{renderCards(bounties)}</div>
               )}
             </section>
           ) : null}
@@ -300,17 +254,15 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
             <SearchIcon />
             <input
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(e) => setQuery(e.target.value)}
               placeholder="Search cards, players, sets, cert numbers"
             />
           </div>
           <div className="listing-system-toolbar-meta bounty-toolbar-meta">
             <label className="app-select-wrap app-select-inline">
               <span>Sort</span>
-              <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)} className="app-select">
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
+              <select value={sort} onChange={(e) => setSort(e.target.value as SortMode)} className="app-select">
+                {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </label>
           </div>
@@ -319,18 +271,13 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
         {error ? <EmptyStateCard title="Bounty unavailable" description={error} /> : null}
         {loading ? <CheckersLoader title="Loading bounties..." compact /> : null}
 
-        {!loading && bounties.length === 0 ? (
-          <EmptyStateCard
-            title="No bounties match these filters."
-            description="Try a broader search."
-          />
-        ) : null}
+        {!loading && bounties.length === 0 && (
+          <EmptyStateCard title="No bounties match these filters." description="Try a broader search." />
+        )}
 
-        {!loading && bounties.length > 0 ? (
-          <div className="bounty-row-list">
-            {renderCards(bounties)}
-          </div>
-        ) : null}
+        {!loading && bounties.length > 0 && (
+          <div className="bounty-row-list">{renderCards(bounties)}</div>
+        )}
       </section>
     </PageContainer>
   );
