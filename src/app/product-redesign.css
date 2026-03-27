@@ -322,6 +322,12 @@ input[type="radio"] {
   min-height: 100svh;
 }
 
+.app-layout {
+  box-sizing: border-box;
+  min-height: 100svh;
+  padding-top: var(--app-header-height);
+}
+
 .site-main {
   width: 100%;
 }
@@ -333,7 +339,7 @@ input[type="radio"] {
 
 .app-layout .site-main {
   min-height: var(--app-frame-height);
-  margin-top: var(--app-header-height);
+  margin-top: 0;
   overflow-x: hidden;
   overflow-y: visible;
   scroll-behavior: smooth;
@@ -7778,11 +7784,11 @@ html[data-theme="dark"] .streams-scheduled-item {
 }
 
 .messages-page .app-screen-section--messages {
-  width: min(100%, 1120px);
+  width: min(100%, 980px);
   margin-inline: auto;
   min-height: 0;
-  height: 100%;
-  max-height: 600px;
+  height: auto;
+  min-height: 640px;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 10px;
@@ -7790,8 +7796,8 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 238px) minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 12px;
   min-height: 0;
   height: 100%;
 }
@@ -8050,8 +8056,8 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-feed-inner {
   width: 100%;
-  max-width: 640px;
-  margin: 0 auto 0 0;
+  max-width: 540px;
+  margin: 0 auto;
   padding: 14px 0 10px;
   min-height: 100%;
 }
@@ -8085,6 +8091,13 @@ html[data-theme="dark"] .streams-scheduled-item {
   justify-self: end;
   background: var(--product-accent);
   color: white;
+  text-align: right;
+}
+
+.messages-bubble.outgoing .messages-bubble-author,
+.messages-bubble.outgoing .messages-bubble-time,
+.messages-bubble.outgoing .messages-bubble-body {
+  text-align: right;
 }
 
 .messages-bubble-author,
@@ -8318,7 +8331,7 @@ html[data-theme="dark"] .streams-scheduled-item {
     overflow-x: hidden;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
-    margin-top: var(--app-header-height);
+    margin-top: 0;
   }
 
   .app-layout-mobile .site-main--app {
