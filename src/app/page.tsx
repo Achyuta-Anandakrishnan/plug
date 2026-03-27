@@ -713,6 +713,7 @@ export default async function Home() {
             {/* ── Mobile hero ──────────────────────────────────────────── */}
             <section className="landing-mobile-section landing-mobile-hero">
               <p className="landing-eyebrow">For collectors, by collectors</p>
+              <LandingSearchBar />
               <h1>Live. Auctions.<br />Trades. Bounties.</h1>
               <p className="landing-mobile-copy">
                 One premium platform for real-time streams, live bidding, structured deals, and demand-led buying.

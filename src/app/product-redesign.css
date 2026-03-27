@@ -1337,6 +1337,19 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
   display: none;
 }
 
+@media (max-width: 640px) {
+  .landing-search-bar {
+    min-width: 180px;
+    max-width: 180px;
+  }
+
+  .landing-search-bar:hover,
+  .landing-search-bar:focus-within {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
 /* ── End landing search bar ───────────────────────────────────────────── */
 
 .landing-hero-copy h1 {
@@ -2691,7 +2704,7 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 .live-v3-stream-card.is-featured .live-v3-stream-media,
 .live-v3-stream-card.is-grid .live-v3-stream-media,
 .live-v3-stream-card.is-compact .live-v3-stream-media {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 5 / 2;
 }
 
 .live-v3-stream-top {
@@ -7739,7 +7752,9 @@ html[data-theme="dark"] .streams-scheduled-item {
 }
 
 .messages-page .app-screen-section--messages {
-  min-height: 100%;
+  min-height: 0;
+  height: 100%;
+  max-height: 600px;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 10px;
@@ -7747,8 +7762,8 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-layout {
   display: grid;
-  grid-template-columns: minmax(248px, 280px) minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: minmax(220px, 250px) minmax(0, 1fr);
+  gap: 8px;
   min-height: 0;
   height: 100%;
 }
@@ -12573,13 +12588,18 @@ html[data-theme="dark"] .trade-row-status.is-paused { color: #fbbf24; }
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  background: rgba(255,255,255,0.08);
-  color: #94a3b8;
+  background: var(--product-surface);
+  color: var(--product-text-soft);
+  border: 1px solid var(--product-border);
 }
 
-.auction-detail-status.is-live { background: rgba(239,68,68,0.15); color: #f87171; }
-.auction-detail-status.is-scheduled { background: rgba(251,191,36,0.12); color: #fbbf24; }
-.auction-detail-status.is-ended { background: rgba(148,163,184,0.08); color: #64748b; }
+.auction-detail-status.is-live { background: rgba(239,68,68,0.12); color: #dc2626; border-color: rgba(239,68,68,0.2); }
+.auction-detail-status.is-scheduled { background: rgba(217,119,6,0.1); color: #b45309; border-color: rgba(217,119,6,0.15); }
+.auction-detail-status.is-ended { background: var(--product-surface); color: var(--product-text-soft); }
+
+html[data-theme="dark"] .auction-detail-status.is-live { background: rgba(239,68,68,0.15); color: #f87171; }
+html[data-theme="dark"] .auction-detail-status.is-scheduled { background: rgba(251,191,36,0.12); color: #fbbf24; }
+html[data-theme="dark"] .auction-detail-status { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.08); }
 
 .auction-detail-category {
   font-size: 12px;
@@ -12592,18 +12612,18 @@ html[data-theme="dark"] .trade-row-status.is-paused { color: #fbbf24; }
 .auction-detail-title {
   font-size: 26px;
   font-weight: 800;
-  color: #e2e8f0;
+  color: var(--product-text);
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
 .auction-detail-seller {
   font-size: 13px;
-  color: var(--product-muted, #64748b);
+  color: var(--product-text-soft);
 }
 
 .auction-detail-seller strong {
-  color: #94a3b8;
+  color: var(--product-text);
 }
 
 .auction-detail-price-block {
@@ -12613,8 +12633,8 @@ html[data-theme="dark"] .trade-row-status.is-paused { color: #fbbf24; }
 }
 
 .auction-detail-price-cell {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: var(--product-surface);
+  border: 1px solid var(--product-border);
   border-radius: 12px;
   padding: 14px 16px;
 }
@@ -12631,7 +12651,7 @@ html[data-theme="dark"] .trade-row-status.is-paused { color: #fbbf24; }
 .auction-detail-price-value {
   font-size: 22px;
   font-weight: 800;
-  color: #e2e8f0;
+  color: var(--product-text);
   letter-spacing: -0.02em;
 }
 
@@ -12673,15 +12693,16 @@ html[data-theme="dark"] .trade-row-status.is-paused { color: #fbbf24; }
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  background: rgba(255,255,255,0.07);
-  color: #e2e8f0;
+  background: var(--product-surface);
+  color: var(--product-text);
   text-decoration: none;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid var(--product-border);
   cursor: pointer;
   transition: background 160ms;
 }
 
-.auction-detail-cta-secondary:hover { background: rgba(255,255,255,0.11); }
+.auction-detail-cta-secondary:hover { background: var(--product-surface-raised, rgba(0,0,0,0.04)); }
+html[data-theme="dark"] .auction-detail-cta-secondary:hover { background: rgba(255,255,255,0.1); }
 
 .auction-detail-note {
   margin: 0;
@@ -12700,8 +12721,8 @@ html[data-theme="dark"] .trade-row-status.is-paused { color: #fbbf24; }
 .auction-detail-description {
   font-size: 14px;
   line-height: 1.7;
-  color: #94a3b8;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  color: var(--product-text-soft);
+  border-top: 1px solid var(--product-border);
   padding-top: 20px;
 }
 
@@ -12914,10 +12935,18 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 
 /* ── Bounty row cards — premium demand marketplace ── */
 .bounty-row-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  padding-top: 16px;
+}
+
+@media (max-width: 1100px) {
+  .bounty-row-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 860px) {
+  .bounty-row-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* ── Status badge colors (shared across board + detail) ── */
@@ -12962,10 +12991,9 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 /* ── Row card ── */
 .bounty-row-card {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr 180px;
-  gap: 0;
-  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  min-height: 190px;
   background: var(--product-surface);
   border: 1px solid var(--product-border);
   border-radius: 12px;
@@ -12992,8 +13020,9 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 14px 18px;
+  flex: 1;
+  gap: 4px;
+  padding: 12px 13px 10px;
   min-width: 0;
 }
 
@@ -13006,13 +13035,17 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 
 .bounty-row-title {
   margin: 0;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
   color: var(--product-text);
   flex: 1;
   min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .bounty-row-title-link {
@@ -13029,7 +13062,7 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 
 .bounty-row-meta {
   margin: 0;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--product-text-faint);
   line-height: 1.4;
   white-space: nowrap;
@@ -13039,9 +13072,9 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 
 .bounty-row-notes {
   margin: 0;
-  font-size: 13px;
+  font-size: 11px;
   color: var(--product-text-secondary);
-  line-height: 1.45;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
@@ -13051,9 +13084,9 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 .bounty-row-foot {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   margin-top: auto;
-  padding-top: 8px;
+  padding-top: 6px;
 }
 
 .bounty-row-byline {
@@ -13065,14 +13098,19 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 }
 
 .bounty-row-poster {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--product-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .bounty-row-time {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--product-text-faint);
+  flex-shrink: 0;
 }
 
 /* ── Row actions (higher z-index than card overlay) ── */
@@ -13087,16 +13125,17 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 .bounty-row-fulfill-btn {
   display: inline-flex;
   align-items: center;
-  height: 30px;
-  padding: 0 13px;
-  border-radius: 8px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 7px;
   background: var(--product-accent);
   color: white;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: -0.01em;
   text-decoration: none;
   transition: opacity var(--dur-fast) var(--ease-out);
+  white-space: nowrap;
 }
 
 .bounty-row-fulfill-btn:hover {
@@ -13104,18 +13143,7 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 }
 
 .bounty-row-save-btn {
-  display: inline-flex;
-  align-items: center;
-  height: 30px;
-  padding: 0 12px;
-  border-radius: 8px;
-  border: 1px solid var(--product-border);
-  background: transparent;
-  color: var(--product-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  display: none;
 }
 
 .bounty-row-save-btn:hover {
@@ -13128,17 +13156,18 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
   color: #0d8c50;
 }
 
-/* ── Pricing column ── */
+/* ── Pricing row (bottom of card) ── */
 .bounty-row-pricing {
   position: relative;
   z-index: 1;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 10px;
-  padding: 14px 20px;
-  border-left: 1px solid var(--product-border);
-  text-align: right;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 7px 13px 9px;
+  border-top: 1px solid var(--product-border);
+  text-align: left;
 }
 
 .bounty-row-price-block {
@@ -13156,57 +13185,30 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 }
 
 .bounty-row-price-value {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   color: var(--product-text);
 }
 
 .bounty-row-price-value.is-fee {
-  font-size: 16px;
+  font-size: 13px;
   color: #0d8c50;
 }
 
-/* ── Mobile: stack pricing below body ── */
+/* ── Mobile: 2 columns ── */
 @media (max-width: 640px) {
+  .bounty-row-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
   .bounty-row-card {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-  }
-
-  .bounty-row-pricing {
-    grid-column: 1;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 20px;
-    padding: 10px 14px 12px;
-    border-left: none;
-    border-top: 1px solid var(--product-border);
-    text-align: left;
-  }
-
-  .bounty-row-body {
-    padding: 12px 14px 10px;
-  }
-
-  .bounty-row-price-value {
-    font-size: 15px;
-  }
-
-  .bounty-row-price-value.is-fee {
-    font-size: 14px;
+    min-height: 160px;
   }
 
   .bounty-mobile-feed-section .bounty-row-list {
     padding-top: 12px;
-  }
-
-  .bounty-row-fulfill-btn,
-  .bounty-row-save-btn {
-    font-size: 11px;
-    height: 28px;
-    padding: 0 10px;
   }
 }
 
@@ -13219,13 +13221,13 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 
 /* ── Bounty detail v2 — text-only premium layout ── */
 .bounty-detail-v2-page {
-  padding-top: 28px;
+  padding-top: 14px;
 }
 
 .bounty-detail-v2-section {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 12px;
   max-width: 900px;
 }
 
@@ -13251,30 +13253,30 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 /* ── Main 2-col layout ── */
 .bounty-detail-v2-layout {
   display: grid;
-  grid-template-columns: 1fr 260px;
-  gap: 16px;
+  grid-template-columns: 1fr 220px;
+  gap: 12px;
   align-items: start;
 }
 
 .bounty-detail-v2-main {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .bounty-detail-v2-aside {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   position: sticky;
-  top: 80px;
+  top: 60px;
 }
 
 /* ── Shared card box ── */
 .bounty-detail-v2-card {
-  padding: 20px 22px;
+  padding: 14px 16px;
   border: 1px solid var(--product-border);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--product-surface);
 }
 
@@ -13290,10 +13292,10 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 
 .bounty-detail-v2-title {
   margin: 0;
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
   font-weight: 800;
   line-height: 1.1;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   color: var(--product-text);
 }
 
@@ -13307,10 +13309,10 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 1px solid var(--product-border);
-  font-size: 13px;
+  font-size: 12px;
   color: var(--product-text-secondary);
 }
 
@@ -13321,7 +13323,7 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 
 /* ── Card label ── */
 .bounty-detail-v2-card-label {
-  margin: 0 0 14px;
+  margin: 0 0 8px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -13341,7 +13343,7 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 10px 0;
+  padding: 7px 0;
   border-bottom: 1px solid var(--product-border);
 }
 
@@ -13390,7 +13392,7 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 .bounty-detail-v2-price-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
 }
 
 .bounty-detail-v2-price-block {
@@ -13408,15 +13410,15 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 }
 
 .bounty-detail-v2-price-value {
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 900;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   color: var(--product-text);
   line-height: 1;
 }
 
 .bounty-detail-v2-price-value.is-fee {
-  font-size: 22px;
+  font-size: 17px;
   color: #0d8c50;
 }
 
@@ -13535,6 +13537,12 @@ html[data-theme="dark"] .app-chip.is-active {
 
 .site-nav-link-disabled {
   opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+.site-mobile-tab-disabled {
+  opacity: 0.35;
   cursor: default;
   pointer-events: none;
 }
