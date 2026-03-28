@@ -4,7 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { signIn, useSession } from "next-auth/react";
+import { CardSpecSheet } from "@/components/product/CardSpecSheet";
 import { formatCurrency } from "@/lib/format";
+import type { PsaCertificateSnapshot } from "@/lib/psa-cert";
 
 type AuctionImage = {
   url: string;
@@ -40,6 +42,7 @@ type Props = {
   auction: AuctionDetailLike;
   initialIsMobile?: boolean;
   stripeEnabled?: boolean;
+  certSnapshot?: PsaCertificateSnapshot | null;
 };
 
 function statusLabel(status: string) {
@@ -86,7 +89,7 @@ function SlabImage({ url, alt }: { url: string; alt: string }) {
   );
 }
 
-export function AuctionDetailClient({ auction, stripeEnabled = true }: Props) {
+export function AuctionDetailClient({ auction, stripeEnabled = true, certSnapshot = null }: Props) {
   const { data: session } = useSession();
   const [buying, setBuying] = useState(false);
   const [buyError, setBuyError] = useState("");
@@ -105,6 +108,38 @@ export function AuctionDetailClient({ auction, stripeEnabled = true }: Props) {
   const sellerName = auction.seller?.user?.displayName ?? "Seller";
   const description = auction.description ?? auction.item?.description ?? null;
   const endDate = auction.extendedTime ?? auction.endTime;
+  const specSections = certSnapshot?.found
+    ? [
+        {
+          title: "Grading Info",
+          rows: [
+            { label: "Grading Company", value: [certSnapshot.grader, certSnapshot.grade].filter(Boolean).join(" ") || "PSA" },
+            { label: "Cert No.", value: certSnapshot.certNumber },
+            { label: "PSA Population", value: certSnapshot.population != null ? certSnapshot.population.toLocaleString("en-US") : null },
+            { label: "Pop Higher", value: certSnapshot.popHigher != null ? certSnapshot.popHigher.toLocaleString("en-US") : null },
+          ],
+        },
+        {
+          title: "Details",
+          rows: [
+            { label: "Year", value: certSnapshot.year },
+            { label: "Language", value: certSnapshot.language },
+            { label: "Player", value: certSnapshot.player },
+            { label: "Category", value: certSnapshot.category },
+            { label: "Series", value: certSnapshot.setName ?? certSnapshot.brand },
+            { label: "Rarity", value: certSnapshot.rarity },
+            { label: "Card Number", value: certSnapshot.cardNumber ? `#${certSnapshot.cardNumber}` : null },
+            { label: "Attributes", value: certSnapshot.attributes ?? certSnapshot.variety },
+          ],
+        },
+        {
+          title: "Item Description",
+          rows: [
+            { label: "Notes", value: certSnapshot.itemDescription },
+          ],
+        },
+      ]
+    : [];
 
   const handleBuyNow = async () => {
     setBuyError("");
@@ -229,6 +264,12 @@ export function AuctionDetailClient({ auction, stripeEnabled = true }: Props) {
             <div className="auction-detail-description">
               <h2 className="auction-detail-description-heading">Description</h2>
               <p>{description}</p>
+            </div>
+          ) : null}
+
+          {specSections.length > 0 ? (
+            <div className="auction-detail-spec-sheet">
+              <CardSpecSheet sections={specSections} />
             </div>
           ) : null}
         </div>

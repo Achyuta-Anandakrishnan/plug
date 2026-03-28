@@ -35,7 +35,7 @@ type VerifyCardPayload = {
   imageUrls?: string[];
   images?: { front?: string | null; back?: string | null } | string[];
   note?: string;
-  source?: "PSA_PUBLIC_API" | "LOOKUP_FALLBACK";
+  source?: "PSA_PUBLIC_API" | "PSA_CERT_PAGE" | "LOOKUP_FALLBACK";
   cached?: boolean;
   error?: string;
 };

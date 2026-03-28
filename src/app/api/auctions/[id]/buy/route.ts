@@ -10,6 +10,62 @@ type BuyNowBody = {
   shippingAddress?: Record<string, unknown>;
 };
 
+const ORDER_EXPIRY_MS = 30 * 1000;
+
+function isExpiredPendingOrder(order: { status: string; createdAt: Date }) {
+  return order.status === "PENDING_PAYMENT" && (Date.now() - order.createdAt.getTime()) >= ORDER_EXPIRY_MS;
+}
+
+async function expireStaleOrder(order: {
+  id: string;
+  status: string;
+  createdAt: Date;
+  payment: {
+    id: string;
+    providerPaymentIntent: string | null;
+    status: string;
+  } | null;
+}) {
+  if (!isExpiredPendingOrder(order)) return false;
+
+  const stripe = getStripeClient();
+  const paymentIntentId = order.payment?.providerPaymentIntent;
+  if (stripe && paymentIntentId) {
+    try {
+      await stripe.paymentIntents.cancel(paymentIntentId);
+    } catch (error) {
+      console.error("Failed to cancel expired payment intent", {
+        orderId: order.id,
+        paymentIntentId,
+        error,
+      });
+    }
+  }
+
+  await prisma.$transaction([
+    prisma.payment.updateMany({
+      where: {
+        orderId: order.id,
+        status: { notIn: ["SUCCEEDED", "REFUNDED", "CANCELED"] },
+      },
+      data: {
+        status: "CANCELED",
+      },
+    }),
+    prisma.order.updateMany({
+      where: {
+        id: order.id,
+        status: "PENDING_PAYMENT",
+      },
+      data: {
+        status: "CANCELED",
+      },
+    }),
+  ]);
+
+  return true;
+}
+
 export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> },
@@ -62,10 +118,23 @@ export async function POST(
       auctionId: auction.id,
       status: { notIn: ["CANCELED", "REFUNDED"] },
     },
+    include: {
+      payment: {
+        select: {
+          id: true,
+          providerPaymentIntent: true,
+          status: true,
+        },
+      },
+    },
   });
 
   if (existingOrder) {
-    return jsonError("Order already created for this listing.", 409);
+    if (await expireStaleOrder(existingOrder)) {
+      // Stale checkout was canceled. Continue and create a fresh order below.
+    } else {
+      return jsonError("Order already created for this listing.", 409);
+    }
   }
 
   const { platformFee, processingFee } = computeFees(auction.buyNowPrice);

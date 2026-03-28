@@ -12921,6 +12921,58 @@ html[data-theme="dark"] .auction-detail-cta-secondary:hover { background: rgba(2
   padding-top: 20px;
 }
 
+.auction-detail-spec-sheet {
+  border-top: 1px solid var(--product-border);
+  padding-top: 18px;
+}
+
+.card-spec-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card-spec-sheet-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.card-spec-sheet-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--product-text);
+}
+
+.card-spec-sheet-rows {
+  margin: 0;
+  border-top: 1px solid rgba(38, 99, 235, 0.35);
+}
+
+.card-spec-sheet-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);
+  gap: 18px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(38, 99, 235, 0.18);
+}
+
+.card-spec-sheet-row dt {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--product-text);
+}
+
+.card-spec-sheet-row dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--product-text-soft);
+}
+
 @media (max-width: 768px) {
   .auction-detail-layout {
     grid-template-columns: 1fr;
@@ -12934,6 +12986,12 @@ html[data-theme="dark"] .auction-detail-cta-secondary:hover { background: rgba(2
 
   .auction-detail-title {
     font-size: 20px;
+  }
+
+  .card-spec-sheet-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 10px 0;
   }
 
   .auction-detail-price-value {

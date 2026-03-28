@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
+import { fetchPsaCertificateSnapshot } from "@/lib/psa-cert";
 import { ensureVerifyCardSchema } from "@/lib/verify-card-schema";
 
 type VerifyCardBody = {
@@ -32,54 +33,21 @@ type NormalizedCard = {
   subject: string | null;
   category: string | null;
   variety: string | null;
+  population?: number | null;
+  popHigher?: number | null;
+  language?: string | null;
+  rarity?: string | null;
+  attributes?: string | null;
+  itemDescription?: string | null;
   note: string;
-  source: "PSA_PUBLIC_API" | "LOOKUP_FALLBACK";
+  source: "PSA_PUBLIC_API" | "PSA_CERT_PAGE" | "LOOKUP_FALLBACK";
   cached?: boolean;
-};
-
-type PsaCertApiResponse = {
-  PSACert?: {
-    LabelType?: string | null;
-    Year?: string | number | null;
-    Brand?: string | null;
-    Category?: string | null;
-    CardNumber?: string | null;
-    Subject?: string | null;
-    Variety?: string | null;
-    GradeDescription?: string | null;
-    CardGrade?: string | null;
-  } | null;
-};
-
-type PsaCertImageResponseItem = {
-  IsFrontImage?: boolean;
-  ImageURL?: string | null;
 };
 
 function asText(value: unknown) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
-}
-
-function getPsaApiToken() {
-  return (
-    process.env.PSA_PUBLIC_API_KEY?.trim()
-    || process.env.PSA_API_KEY?.trim()
-    || process.env.PSA_PUBLIC_API_TOKEN?.trim()
-    || process.env.PSA_ACCESS_TOKEN?.trim()
-    || ""
-  );
-}
-
-function normalizePsaLabel(labelType: string | null) {
-  if (!labelType) return null;
-  const normalized = labelType.trim();
-  if (!normalized) return null;
-  if (normalized.toLowerCase() === "lighthouselabel") {
-    return "w/ Fugitive Ink Technology";
-  }
-  return normalized;
 }
 
 function normalizeImageUrl(value: string | null | undefined) {
@@ -194,137 +162,46 @@ function normalizeCard(input: Partial<NormalizedCard> & {
     subject,
     category: asText(input.category ?? null),
     variety: asText(input.variety ?? null),
+    population: typeof input.population === "number" ? input.population : null,
+    popHigher: typeof input.popHigher === "number" ? input.popHigher : null,
+    language: asText(input.language ?? null),
+    rarity: asText(input.rarity ?? null),
+    attributes: asText(input.attributes ?? null),
+    itemDescription: asText(input.itemDescription ?? null),
     note: input.note,
-    source: input.source,
+      source: input.source,
     cached: input.cached,
   };
 
   return normalized;
 }
 
-function emptyCard(grader: string, certNumber: string, note: string, source: NormalizedCard["source"]): NormalizedCard {
-  return normalizeCard({
-    found: false,
-    grader,
-    certNumber,
-    note,
-    source,
-  });
-}
-
-async function fetchPsaCertImages(certNumber: string, token: string): Promise<string[]> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
-  try {
-    const response = await fetch(
-      `https://api.psacard.com/publicapi/cert/GetImagesByCertNumber/${encodeURIComponent(certNumber)}`,
-      {
-        signal: controller.signal,
-        headers: {
-          accept: "application/json",
-          authorization: `bearer ${token}`,
-          "user-agent": "DalowVerifyCard/1.0",
-        },
-        cache: "no-store",
-      },
-    );
-
-    if (!response.ok) return [];
-    const payload = (await response.json()) as PsaCertImageResponseItem[] | null;
-    if (!Array.isArray(payload) || payload.length === 0) return [];
-
-    const front = payload.find((entry) => entry.IsFrontImage)?.ImageURL ?? null;
-    const back = payload.find((entry) => entry.IsFrontImage === false)?.ImageURL ?? null;
-    const ordered = [
-      front,
-      back,
-      ...payload.map((entry) => entry.ImageURL ?? null),
-    ];
-    return uniqueImageUrls(ordered);
-  } catch {
-    return [];
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 async function lookupViaPsaApi(certNumber: string): Promise<NormalizedCard> {
-  const token = getPsaApiToken();
-  if (!token) {
-    return emptyCard("PSA", certNumber, "PSA API token missing.", "PSA_PUBLIC_API");
-  }
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
-  try {
-    const response = await fetch(
-      `https://api.psacard.com/publicapi/cert/GetByCertNumber/${encodeURIComponent(certNumber)}`,
-      {
-        signal: controller.signal,
-        headers: {
-          accept: "application/json",
-          authorization: `bearer ${token}`,
-          "user-agent": "DalowVerifyCard/1.0",
-        },
-        cache: "no-store",
-      },
-    );
-
-    if (response.status === 404) {
-      return emptyCard("PSA", certNumber, "No PSA certificate match found.", "PSA_PUBLIC_API");
-    }
-
-    if (response.status === 401 || response.status === 403) {
-      return emptyCard("PSA", certNumber, "PSA API token is invalid or expired.", "PSA_PUBLIC_API");
-    }
-
-    if (response.status === 429) {
-      return emptyCard("PSA", certNumber, "PSA API daily quota reached.", "PSA_PUBLIC_API");
-    }
-
-    if (!response.ok) {
-      return emptyCard("PSA", certNumber, "PSA API lookup unavailable right now.", "PSA_PUBLIC_API");
-    }
-
-    const payload = (await response.json()) as PsaCertApiResponse;
-    const card = payload.PSACert;
-    if (!card) {
-      return emptyCard("PSA", certNumber, "No PSA certificate match found.", "PSA_PUBLIC_API");
-    }
-
-    const year = card.Year !== undefined && card.Year !== null ? String(card.Year) : null;
-    const brand = asText(card.Brand);
-    const subject = asText(card.Subject);
-    const cardNumber = asText(card.CardNumber);
-    const category = asText(card.Category);
-    const variety = asText(card.Variety);
-    const grade = asText(card.CardGrade) ?? asText(card.GradeDescription);
-    const label = normalizePsaLabel(asText(card.LabelType));
-    const imageUrls = grade ? await fetchPsaCertImages(certNumber, token) : [];
-
-    return normalizeCard({
-      found: Boolean(grade),
-      grader: "PSA",
-      certNumber,
-      year,
-      brand,
-      set: brand,
-      subject,
-      player: subject,
-      cardNumber,
-      category,
-      variety,
-      grade,
-      label,
-      imageUrls,
-      note: grade ? "Certificate matched via official PSA API." : "No PSA certificate match found.",
-      source: "PSA_PUBLIC_API",
-    });
-  } catch {
-    return emptyCard("PSA", certNumber, "PSA API lookup unavailable right now.", "PSA_PUBLIC_API");
-  } finally {
-    clearTimeout(timer);
-  }
+  const snapshot = await fetchPsaCertificateSnapshot({ certNumber });
+  return normalizeCard({
+    found: snapshot.found,
+    grader: snapshot.grader,
+    certNumber: snapshot.certNumber,
+    year: snapshot.year,
+    brand: snapshot.brand,
+    set: snapshot.setName,
+    subject: snapshot.player,
+    player: snapshot.player,
+    cardNumber: snapshot.cardNumber,
+    category: snapshot.category,
+    variety: snapshot.variety,
+    grade: snapshot.grade,
+    label: snapshot.label,
+    imageUrls: snapshot.imageUrls,
+    population: snapshot.population,
+    popHigher: snapshot.popHigher,
+    language: snapshot.language,
+    rarity: snapshot.rarity,
+    attributes: snapshot.attributes,
+    itemDescription: snapshot.itemDescription,
+    note: snapshot.note,
+    source: snapshot.source,
+  });
 }
 
 async function lookupViaFallback(grader: string, certNumber: string, origin: string): Promise<NormalizedCard> {
@@ -429,13 +306,24 @@ function hydrateCachedCard(raw: unknown, grader: string, certNumber: string): No
     cardNumber: asText(value.cardNumber),
     category: asText(value.category),
     variety: asText(value.variety),
+    population: typeof value.population === "number" ? value.population : null,
+    popHigher: typeof value.popHigher === "number" ? value.popHigher : null,
+    language: asText(value.language),
+    rarity: asText(value.rarity),
+    attributes: asText(value.attributes),
+    itemDescription: asText(value.itemDescription),
     images: value.images,
     imageUrls: Array.isArray(value.imageUrls)
       ? value.imageUrls.filter((entry): entry is string => typeof entry === "string")
       : undefined,
     imageUrl: asText(value.imageUrl),
     note: asText(value.note) ?? "Lookup unavailable right now.",
-    source: value.source === "PSA_PUBLIC_API" ? "PSA_PUBLIC_API" : "LOOKUP_FALLBACK",
+    source:
+      value.source === "PSA_PUBLIC_API"
+        ? "PSA_PUBLIC_API"
+        : value.source === "PSA_CERT_PAGE"
+          ? "PSA_CERT_PAGE"
+          : "LOOKUP_FALLBACK",
     cached: Boolean(value.cached),
   });
 }

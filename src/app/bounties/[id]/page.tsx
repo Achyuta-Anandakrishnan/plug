@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BountyCommentsClient } from "@/components/bounties/BountyCommentsClient";
 import { MessageUserButton } from "@/components/profiles/MessageUserButton";
+import { CardSpecSheet } from "@/components/product/CardSpecSheet";
 import {
   EmptyStateCard,
   PageContainer,
@@ -15,6 +16,7 @@ import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
 import type { AuctionListItem } from "@/hooks/useAuctions";
 import { getPrimaryImageUrl } from "@/lib/auctions";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
+import { fetchPsaCertificateSnapshot } from "@/lib/psa-cert";
 import { prisma } from "@/lib/prisma";
 import { tradeValueLabel, type TradePostListItem } from "@/lib/trade-client";
 
@@ -261,6 +263,13 @@ export default async function BountyDetailPage({
   const budgetDisplay = bountyBudgetLabel(bounty.priceMin, bounty.priceMax).replace(/^Budget\s*/i, "") || "Open";
   const feeDisplay = bountyAmountLabel(bounty.bountyAmount).replace(/^Bounty\s*/i, "");
   const hasFee = bounty.bountyAmount != null && bounty.bountyAmount > 0;
+  const psaSnapshot = bounty.certNumber && (!bounty.gradeCompany || bounty.gradeCompany.toUpperCase() === "PSA")
+    ? await fetchPsaCertificateSnapshot({
+        certNumber: bounty.certNumber,
+        itemName: bounty.itemName || bounty.title,
+        category: bounty.category,
+      }).catch(() => null)
+    : null;
 
   const [candidateListingsResult, candidateTradesResult, commentsResult] = await Promise.allSettled([
     prisma.auction.findMany({
@@ -351,6 +360,39 @@ export default async function BountyDetailPage({
     { label: "Category", value: bounty.category },
   ].filter((f) => f.value && f.value.trim());
 
+  const certSections = psaSnapshot?.found
+    ? [
+        {
+          title: "Grading Info",
+          rows: [
+            { label: "Grading Company", value: [psaSnapshot.grader, psaSnapshot.grade].filter(Boolean).join(" ") || "PSA" },
+            { label: "Cert No.", value: psaSnapshot.certNumber },
+            { label: "PSA Population", value: psaSnapshot.population != null ? psaSnapshot.population.toLocaleString("en-US") : null },
+            { label: "Pop Higher", value: psaSnapshot.popHigher != null ? psaSnapshot.popHigher.toLocaleString("en-US") : null },
+          ],
+        },
+        {
+          title: "Details",
+          rows: [
+            { label: "Year", value: psaSnapshot.year },
+            { label: "Language", value: psaSnapshot.language },
+            { label: "Player", value: psaSnapshot.player },
+            { label: "Category", value: psaSnapshot.category },
+            { label: "Series", value: psaSnapshot.setName ?? psaSnapshot.brand },
+            { label: "Rarity", value: psaSnapshot.rarity },
+            { label: "Card Number", value: psaSnapshot.cardNumber ? `#${psaSnapshot.cardNumber}` : null },
+            { label: "Attributes", value: psaSnapshot.attributes ?? psaSnapshot.variety },
+          ],
+        },
+        {
+          title: "Item Description",
+          rows: [
+            { label: "Notes", value: psaSnapshot.itemDescription },
+          ],
+        },
+      ]
+    : [];
+
   return (
     <PageContainer className="app-page--bounty-detail bounty-detail-v2-page">
       <section className="app-section bounty-detail-v2-section">
@@ -383,7 +425,11 @@ export default async function BountyDetailPage({
             </div>
 
             {/* Specs grid */}
-            {specFields.length > 0 && (
+            {certSections.length > 0 ? (
+              <div className="bounty-detail-v2-card">
+                <CardSpecSheet sections={certSections} />
+              </div>
+            ) : specFields.length > 0 ? (
               <div className="bounty-detail-v2-card">
                 <p className="bounty-detail-v2-card-label">Specifications</p>
                 <dl className="bounty-detail-v2-specs">
@@ -395,7 +441,7 @@ export default async function BountyDetailPage({
                   ))}
                 </dl>
               </div>
-            )}
+            ) : null}
 
             {/* Notes */}
             {bounty.notes?.trim() && (

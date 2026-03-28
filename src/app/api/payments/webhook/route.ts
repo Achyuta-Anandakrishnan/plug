@@ -28,11 +28,18 @@ export async function POST(request: Request) {
     case "payment_intent.succeeded": {
       const intent = event.data.object;
       await prisma.payment.updateMany({
-        where: { providerPaymentIntent: intent.id, status: { not: "SUCCEEDED" } },
+        where: {
+          providerPaymentIntent: intent.id,
+          status: { notIn: ["SUCCEEDED", "CANCELED", "REFUNDED"] },
+          order: { status: { not: "CANCELED" } },
+        },
         data: { status: "SUCCEEDED" },
       });
       await prisma.order.updateMany({
-        where: { payment: { providerPaymentIntent: intent.id }, status: { not: "PAID" } },
+        where: {
+          payment: { providerPaymentIntent: intent.id },
+          status: { notIn: ["PAID", "CANCELED"] },
+        },
         data: { status: "PAID" },
       });
       const tradeSettlementId = intent.metadata?.tradeSettlementId;
@@ -97,14 +104,21 @@ export async function POST(request: Request) {
         const paymentIntentId =
           typeof session.payment_intent === "string" ? session.payment_intent : null;
         await prisma.payment.updateMany({
-          where: { orderId },
+          where: {
+            orderId,
+            status: { notIn: ["CANCELED", "REFUNDED"] },
+            order: { status: { not: "CANCELED" } },
+          },
           data: {
             providerPaymentIntent: paymentIntentId,
             status: session.payment_status === "paid" ? "SUCCEEDED" : "PROCESSING",
           },
         });
         await prisma.order.updateMany({
-          where: { id: orderId },
+          where: {
+            id: orderId,
+            status: { not: "CANCELED" },
+          },
           data: { status: session.payment_status === "paid" ? "PAID" : "PENDING_PAYMENT" },
         });
       }
