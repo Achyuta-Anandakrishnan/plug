@@ -125,20 +125,9 @@ function buildTitle(cert: string, card: VerifyCardPayload | null) {
 }
 
 function buildDescription(cert: string, card: VerifyCardPayload | null) {
-  if (!card) return `Cert: ${cert}`;
-  const lines = [
-    card.grader ? `Company: ${card.grader}` : null,
-    card.grade ? `Grade: ${card.grade}` : null,
-    card.label ? `Label: ${card.label}` : null,
-    card.brand ? `Brand: ${card.brand}` : null,
-    card.set ? `Set: ${card.set}` : null,
-    card.player ? `Player: ${card.player}` : null,
-    card.subject ? `Card: ${card.subject}` : null,
-    card.cardNumber ? `Number: ${card.cardNumber}` : null,
-    card.variety ? `Variant: ${card.variety}` : null,
-    `Cert: ${cert}`,
-  ].filter((entry): entry is string => Boolean(entry));
-  return lines.join(" • ");
+  void cert;
+  void card;
+  return "";
 }
 
 export default function NewTradePage() {

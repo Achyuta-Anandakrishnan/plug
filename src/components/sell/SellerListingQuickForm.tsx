@@ -91,19 +91,9 @@ function buildTitle(cert: string, payload: VerifyPayload) {
 }
 
 function buildDescription(cert: string, payload: VerifyPayload) {
-  const lines = [
-    payload.grader ? `Company: ${payload.grader}` : null,
-    payload.grade ? `Grade: ${payload.grade}` : null,
-    payload.label ? `Label: ${payload.label}` : null,
-    payload.category ? `Category: ${payload.category}` : null,
-    payload.brand ? `Brand: ${payload.brand}` : null,
-    payload.set ? `Set: ${payload.set}` : null,
-    payload.player ? `Player: ${payload.player}` : null,
-    payload.cardNumber ? `Card #: ${payload.cardNumber}` : null,
-    payload.variety ? `Variety: ${payload.variety}` : null,
-    `Cert: ${cert}`,
-  ].filter((entry): entry is string => Boolean(entry));
-  return lines.join(" • ");
+  void cert;
+  void payload;
+  return "";
 }
 
 function infoLine(label: string, value: string | null | undefined) {
