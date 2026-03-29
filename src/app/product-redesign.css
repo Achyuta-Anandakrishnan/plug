@@ -10720,6 +10720,49 @@ html[data-theme="dark"] .sell-quick-row {
   gap: 20px;
 }
 
+.admin-table-shell {
+  border-radius: 24px;
+  border: 1px solid var(--product-border);
+  background: var(--product-surface);
+  overflow: hidden;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 16px 18px;
+  text-align: left;
+  font-size: 14px;
+  color: var(--product-text);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.admin-table th {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--product-text-soft);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+html[data-theme="dark"] .admin-table th {
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .admin-profiles-grid {
   display: grid;
   gap: 12px;

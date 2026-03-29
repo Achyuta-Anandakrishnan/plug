@@ -134,6 +134,7 @@ export default function AdminProfilesPage() {
           <div className="admin-nav">
             <Link href="/admin/sellers" className="admin-nav-tab">Seller Queue</Link>
             <Link href="/admin/profiles" className="admin-nav-tab is-active">Profiles</Link>
+            <Link href="/admin/waitlist" className="admin-nav-tab">Waitlist</Link>
           </div>
           <div className="admin-controls">
             <input
