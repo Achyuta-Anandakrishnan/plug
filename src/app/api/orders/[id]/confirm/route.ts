@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit, jsonError, jsonOk } from "@/lib/api";
 import { getStripeClient } from "@/lib/stripe";
 import { getSessionUser } from "@/lib/auth";
-import { getCanonicalSellerReadiness } from "@/lib/seller-onboarding";
+import { getCanonicalSellerReadiness, getSellerCapabilityError } from "@/lib/seller-onboarding";
 
 export async function POST(
   request: Request,
@@ -78,9 +78,10 @@ export async function POST(
     stripeAccountId: order.seller.stripeAccountId,
     payoutsEnabled: order.seller.payoutsEnabled,
   });
+  const payoutGateError = getSellerCapabilityError(sellerReadiness, "receive_payouts");
   const canAutoPay =
     Boolean(stripe) &&
-    sellerReadiness.sellerState === "active" &&
+    !payoutGateError &&
     Boolean(sellerReadiness.stripeAccountId) &&
     scheduledAt <= new Date() &&
     sellerNet > 0;

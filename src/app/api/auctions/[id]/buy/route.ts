@@ -4,6 +4,7 @@ import { computeFees } from "@/lib/fees";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getStripeClient, stripeEnabled } from "@/lib/stripe";
 import { getSessionUser } from "@/lib/auth";
+import { getCanonicalSellerReadiness, getSellerCapabilityError } from "@/lib/seller-onboarding";
 
 type BuyNowBody = {
   paymentMethodId?: string;
@@ -105,6 +106,18 @@ export async function POST(
 
   if (auction.seller.userId === buyerId) {
     return jsonError("Sellers cannot buy their own listings.", 403);
+  }
+
+  const sellerReadiness = await getCanonicalSellerReadiness({
+    id: auction.seller.id,
+    userId: auction.seller.userId,
+    status: auction.seller.status,
+    stripeAccountId: auction.seller.stripeAccountId,
+    payoutsEnabled: auction.seller.payoutsEnabled,
+  });
+  const payoutGateError = getSellerCapabilityError(sellerReadiness, "receive_payouts");
+  if (payoutGateError) {
+    return jsonError("Seller payouts are not available for this listing right now.", 409);
   }
 
   const now = new Date();

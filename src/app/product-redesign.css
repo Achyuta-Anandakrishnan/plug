@@ -14404,13 +14404,46 @@ html[data-theme="dark"] .pop-score-elite {
 
 /* Page wrapper — no scroll, full viewport */
 .stream-room-v4-page {
+  --stream-room-v4-page-bg:
+    radial-gradient(circle at top left, rgba(125, 163, 232, 0.18), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 247, 252, 0.98));
+  --stream-room-v4-shell-bg: transparent;
+  --stream-room-v4-panel-bg: color-mix(in srgb, var(--product-surface) 94%, rgba(125, 163, 232, 0.12));
+  --stream-room-v4-panel-border: var(--product-border);
+  --stream-room-v4-divider: rgba(15, 23, 42, 0.08);
+  --stream-room-v4-panel-muted: rgba(11, 26, 43, 0.58);
+  --stream-room-v4-panel-soft: rgba(11, 26, 43, 0.78);
+  --stream-room-v4-panel-text: var(--product-text);
+  --stream-room-v4-chip-bg: rgba(11, 26, 43, 0.04);
+  --stream-room-v4-chip-bg-hover: rgba(11, 26, 43, 0.08);
+  --stream-room-v4-chip-border: rgba(15, 23, 42, 0.12);
+  --stream-room-v4-control-bg: rgba(255, 255, 255, 0.82);
+  --stream-room-v4-control-border: rgba(15, 23, 42, 0.12);
+  --stream-room-v4-compose-bg: rgba(247, 250, 255, 0.92);
   padding: 0;
   height: calc(100dvh - var(--app-header-height, 64px));
   max-height: calc(100dvh - var(--app-header-height, 64px));
   overflow: hidden;
-  background: #05080f;
+  background: var(--stream-room-v4-page-bg);
   display: flex;
   flex-direction: column;
+}
+
+html[data-theme="dark"] .stream-room-v4-page {
+  --stream-room-v4-page-bg: #05080f;
+  --stream-room-v4-shell-bg: #05080f;
+  --stream-room-v4-panel-bg: rgba(6, 10, 20, 0.78);
+  --stream-room-v4-panel-border: rgba(255, 255, 255, 0.08);
+  --stream-room-v4-divider: rgba(255, 255, 255, 0.07);
+  --stream-room-v4-panel-muted: rgba(255, 255, 255, 0.4);
+  --stream-room-v4-panel-soft: rgba(255, 255, 255, 0.72);
+  --stream-room-v4-panel-text: rgba(255, 255, 255, 0.95);
+  --stream-room-v4-chip-bg: rgba(255, 255, 255, 0.06);
+  --stream-room-v4-chip-bg-hover: rgba(255, 255, 255, 0.1);
+  --stream-room-v4-chip-border: rgba(255, 255, 255, 0.1);
+  --stream-room-v4-control-bg: rgba(255, 255, 255, 0.06);
+  --stream-room-v4-control-border: rgba(255, 255, 255, 0.12);
+  --stream-room-v4-compose-bg: rgba(0, 0, 0, 0.2);
 }
 
 /* Override .app-container base rules (max-width, padding, min-height) when used
@@ -14432,17 +14465,17 @@ html[data-theme="dark"] .pop-score-elite {
   flex: 1;
   min-height: 0;
   padding: 10px;
-  background: #05080f;
+  background: var(--stream-room-v4-shell-bg);
   overflow: hidden;
 }
 
 /* ── Shared glass surface ── */
 .stream-room-v4-left,
 .stream-room-v4-right {
-  background: rgba(6, 10, 20, 0.78);
+  background: var(--stream-room-v4-panel-bg);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--stream-room-v4-panel-border);
   border-radius: 18px;
   overflow: hidden;
   min-height: 0;
@@ -14461,7 +14494,7 @@ html[data-theme="dark"] .pop-score-elite {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid var(--stream-room-v4-divider);
 }
 
 /* MIDDLE: scrollable */
@@ -14475,7 +14508,7 @@ html[data-theme="dark"] .pop-score-elite {
   flex-direction: column;
   gap: 12px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  scrollbar-color: var(--stream-room-v4-panel-border) transparent;
 }
 
 /* BOTTOM: bid controls — always pinned */
@@ -14485,8 +14518,8 @@ html[data-theme="dark"] .pop-score-elite {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(0, 0, 0, 0.25);
+  border-top: 1px solid var(--stream-room-v4-divider);
+  background: var(--stream-room-v4-compose-bg);
 }
 
 /* ── Seller row ── */
@@ -14526,7 +14559,7 @@ html[data-theme="dark"] .pop-score-elite {
 .stream-room-v4-seller-name {
   font-size: 13px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--stream-room-v4-panel-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -14534,7 +14567,7 @@ html[data-theme="dark"] .pop-score-elite {
 
 .stream-room-v4-seller-tag {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.38);
+  color: var(--stream-room-v4-panel-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -14545,7 +14578,7 @@ html[data-theme="dark"] .pop-score-elite {
   padding: 0 12px;
   border-radius: 999px;
   border: 1.5px solid rgba(125, 163, 232, 0.5);
-  background: transparent;
+  background: color-mix(in srgb, var(--stream-room-v4-control-bg) 92%, transparent);
   color: rgba(125, 163, 232, 0.9);
   font-size: 11px;
   font-weight: 700;
@@ -14569,10 +14602,10 @@ html[data-theme="dark"] .pop-score-elite {
 .stream-room-v4-prices {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--stream-room-v4-panel-border);
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--stream-room-v4-control-bg);
 }
 
 .stream-room-v4-price-cell {
@@ -14584,13 +14617,13 @@ html[data-theme="dark"] .pop-score-elite {
 }
 
 .stream-room-v4-price-cell + .stream-room-v4-price-cell {
-  border-left: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 1px solid var(--stream-room-v4-divider);
 }
 
 .stream-room-v4-price-label {
   font-size: 9px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--stream-room-v4-panel-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -14598,7 +14631,7 @@ html[data-theme="dark"] .pop-score-elite {
 .stream-room-v4-price-val {
   font-size: 13px;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--stream-room-v4-panel-text);
   letter-spacing: -0.01em;
 }
 
@@ -14610,8 +14643,8 @@ html[data-theme="dark"] .pop-score-elite {
 .stream-room-v4-item-card {
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--stream-room-v4-panel-border);
+  background: var(--stream-room-v4-control-bg);
 }
 
 .stream-room-v4-item-img-wrap {
@@ -14632,7 +14665,7 @@ html[data-theme="dark"] .pop-score-elite {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--stream-room-v4-panel-text);
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -14643,7 +14676,7 @@ html[data-theme="dark"] .pop-score-elite {
 .stream-room-v4-item-cond {
   margin: 3px 0 0;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.38);
+  color: var(--stream-room-v4-panel-muted);
 }
 
 /* ── Section label ── */
@@ -14653,7 +14686,7 @@ html[data-theme="dark"] .pop-score-elite {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--stream-room-v4-panel-muted);
 }
 
 /* ── Bid history ── */
@@ -14665,7 +14698,7 @@ html[data-theme="dark"] .pop-score-elite {
 
 .stream-room-v4-empty-note {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.32);
+  color: var(--stream-room-v4-panel-muted);
   margin: 0;
 }
 
@@ -14681,8 +14714,8 @@ html[data-theme="dark"] .pop-score-elite {
   justify-content: space-between;
   padding: 5px 9px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--stream-room-v4-control-bg);
+  border: 1px solid var(--stream-room-v4-panel-border);
 }
 
 .stream-room-v4-bid-row.is-top {
@@ -14692,13 +14725,13 @@ html[data-theme="dark"] .pop-score-elite {
 
 .stream-room-v4-bid-who {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--stream-room-v4-panel-muted);
 }
 
 .stream-room-v4-bid-amt {
   font-size: 12px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--stream-room-v4-panel-text);
 }
 
 /* ── Bid controls (pinned bottom) ── */
@@ -14711,9 +14744,9 @@ html[data-theme="dark"] .pop-score-elite {
   flex: 1;
   height: 32px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--stream-room-v4-chip-border);
+  background: var(--stream-room-v4-chip-bg);
+  color: var(--stream-room-v4-panel-soft);
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -14722,8 +14755,8 @@ html[data-theme="dark"] .pop-score-elite {
 }
 
 .stream-room-v4-quick-chip:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--stream-room-v4-chip-bg-hover);
+  border-color: var(--stream-room-v4-control-border);
 }
 
 .stream-room-v4-quick-chip:disabled {
@@ -14734,10 +14767,10 @@ html[data-theme="dark"] .pop-score-elite {
 .stream-room-v4-bid-row-input {
   display: flex;
   align-items: center;
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border: 1.5px solid var(--stream-room-v4-control-border);
   border-radius: 10px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--stream-room-v4-control-bg);
   transition: border-color 0.15s;
 }
 
@@ -14748,7 +14781,7 @@ html[data-theme="dark"] .pop-score-elite {
 .stream-room-v4-currency-prefix {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--stream-room-v4-panel-muted);
   padding-left: 10px;
   flex-shrink: 0;
 }
@@ -14758,7 +14791,7 @@ html[data-theme="dark"] .pop-score-elite {
   height: 40px;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--stream-room-v4-panel-text);
   font-size: 15px;
   font-weight: 700;
   outline: none;
@@ -14793,9 +14826,9 @@ html[data-theme="dark"] .pop-score-elite {
   width: 100%;
   height: 36px;
   border-radius: 9px;
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.8);
+  border: 1.5px solid var(--stream-room-v4-control-border);
+  background: var(--stream-room-v4-control-bg);
+  color: var(--stream-room-v4-panel-soft);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -14803,24 +14836,24 @@ html[data-theme="dark"] .pop-score-elite {
 }
 
 .stream-room-v4-buy-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--stream-room-v4-chip-bg-hover);
+  border-color: var(--stream-room-v4-control-border);
 }
 
 .stream-room-v4-buy-btn:disabled { opacity: 0.3; cursor: default; }
 
-.stream-room-v4-hint { font-size: 11px; color: rgba(255,255,255,0.4); margin: 0; }
+.stream-room-v4-hint { font-size: 11px; color: var(--stream-room-v4-panel-muted); margin: 0; }
 .stream-room-v4-hint.is-warning { color: #f04a55; }
-.stream-room-v4-status { font-size: 11px; color: rgba(255,255,255,0.55); margin: 0; }
+.stream-room-v4-status { font-size: 11px; color: var(--stream-room-v4-panel-muted); margin: 0; }
 
 /* Message seller */
 .stream-room-v4-msg-seller {
   width: 100%;
   height: 32px;
   border-radius: 9px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--stream-room-v4-control-border);
   background: transparent;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--stream-room-v4-panel-muted);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -14828,8 +14861,8 @@ html[data-theme="dark"] .pop-score-elite {
 }
 
 .stream-room-v4-msg-seller:hover {
-  border-color: rgba(255, 255, 255, 0.22);
-  color: rgba(255, 255, 255, 0.7);
+  border-color: var(--stream-room-v4-control-border);
+  color: var(--stream-room-v4-panel-soft);
 }
 
 /* ── Center: video ── */
@@ -14965,8 +14998,8 @@ html[data-theme="dark"] .pop-score-elite {
 .stream-room-v4-chat-label {
   flex-shrink: 0;
   padding: 13px 14px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.55);
+  border-bottom: 1px solid var(--stream-room-v4-divider);
+  color: var(--stream-room-v4-panel-muted);
 }
 
 .stream-room-v4-chat {
@@ -14978,7 +15011,7 @@ html[data-theme="dark"] .pop-score-elite {
   flex-direction: column;
   gap: 6px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.1) transparent;
+  scrollbar-color: var(--stream-room-v4-panel-border) transparent;
   min-height: 0;
 }
 
@@ -14991,7 +15024,7 @@ html[data-theme="dark"] .pop-score-elite {
 .stream-room-v4-msg-name {
   font-size: 10px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--stream-room-v4-panel-muted);
 }
 
 .stream-room-v4-msg.is-own .stream-room-v4-msg-name {
@@ -15000,7 +15033,7 @@ html[data-theme="dark"] .pop-score-elite {
 
 .stream-room-v4-msg-body {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--stream-room-v4-panel-soft);
   line-height: 1.4;
   word-break: break-word;
 }
@@ -15011,27 +15044,27 @@ html[data-theme="dark"] .pop-score-elite {
   align-items: center;
   gap: 7px;
   padding: 9px 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--stream-room-v4-divider);
+  background: var(--stream-room-v4-compose-bg);
 }
 
 .stream-room-v4-compose-input {
   flex: 1;
   height: 34px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--stream-room-v4-control-border);
+  background: var(--stream-room-v4-control-bg);
+  color: var(--stream-room-v4-panel-text);
   font-size: 12px;
   padding: 0 10px;
   outline: none;
   transition: border-color 0.15s;
 }
 
-.stream-room-v4-compose-input::placeholder { color: rgba(255,255,255,0.28); }
+.stream-room-v4-compose-input::placeholder { color: var(--stream-room-v4-panel-muted); }
 
 .stream-room-v4-compose-input:focus {
-  border-color: rgba(255, 255, 255, 0.22);
+  border-color: var(--stream-room-v4-control-border);
 }
 
 .stream-room-v4-send-btn {
@@ -15062,7 +15095,7 @@ html[data-theme="dark"] .pop-score-elite {
 }
 
 @media (max-width: 860px) {
-  .stream-room-v4-page { height: auto; max-height: none; overflow: auto; background: #05080f; }
+  .stream-room-v4-page { height: auto; max-height: none; overflow: auto; background: var(--stream-room-v4-page-bg); }
   .stream-room-v4-shell {
     grid-template-columns: 1fr;
     height: auto;

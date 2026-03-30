@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
 import { requireAdmin } from "@/lib/admin";
 import { getStripeClient, stripeEnabled } from "@/lib/stripe";
-import { getCanonicalSellerReadiness } from "@/lib/seller-onboarding";
+import { getCanonicalSellerReadiness, getSellerCapabilityError } from "@/lib/seller-onboarding";
 
 export async function POST(request: Request) {
   const admin = await requireAdmin(request);
@@ -60,12 +60,13 @@ export async function POST(request: Request) {
       });
 
       const destination = readiness.stripeAccountId;
-      if (readiness.sellerState !== "active" || !destination) {
+      const payoutGateError = getSellerCapabilityError(readiness, "receive_payouts");
+      if (payoutGateError || !destination) {
         results.push({
           payoutId: payout.id,
           orderId: payout.orderId,
           ok: false,
-          error: "Seller payouts are not currently enabled.",
+          error: payoutGateError || "Seller payouts are not currently enabled.",
         });
         continue;
       }

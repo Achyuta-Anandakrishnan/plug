@@ -42,6 +42,10 @@ export async function POST(request: Request) {
     return jsonError("Invalid email.");
   }
 
+  if (!(await checkRateLimit(`signup:email:${email}`, 5, 15 * 60_000))) {
+    return jsonError("Too many signup attempts for this email. Try again later.", 429);
+  }
+
   if (process.env.NODE_ENV === "production") {
     const captchaSecret = process.env.TURNSTILE_SECRET_KEY;
     if (captchaSecret && !body.captchaToken) {

@@ -56,6 +56,10 @@ export async function POST(
     return jsonError("Auction not found.", 404);
   }
 
+  if (auction.status !== "LIVE") {
+    return jsonError("Auction chat is only available while the stream is live.", 409);
+  }
+
   // Never trust client-provided moderation flags.
   const isModerator = Boolean(
     sessionUser &&

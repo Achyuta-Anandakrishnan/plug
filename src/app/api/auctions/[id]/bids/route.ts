@@ -3,6 +3,7 @@ import { jsonError, jsonOk, parseJson, checkRateLimit } from "@/lib/api";
 import { computeExtendedEndTime } from "@/lib/auction";
 import { getSessionUser } from "@/lib/auth";
 import { stripeEnabled } from "@/lib/stripe";
+import { getCanonicalSellerReadiness, getSellerCapabilityError } from "@/lib/seller-onboarding";
 
 type CreateBidBody = {
   bidderId?: string;
@@ -65,6 +66,18 @@ export async function POST(
 
   if (auction.seller.userId === bidderId) {
     return jsonError("Sellers cannot bid on their own listings.", 403);
+  }
+
+  const sellerReadiness = await getCanonicalSellerReadiness({
+    id: auction.seller.id,
+    userId: auction.seller.userId,
+    status: auction.seller.status,
+    stripeAccountId: auction.seller.stripeAccountId,
+    payoutsEnabled: auction.seller.payoutsEnabled,
+  });
+  const payoutGateError = getSellerCapabilityError(sellerReadiness, "receive_payouts");
+  if (payoutGateError) {
+    return jsonError("Seller payouts are not available for this listing right now.", 409);
   }
 
   const bidder = await prisma.user.findUnique({

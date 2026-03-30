@@ -42,6 +42,45 @@ type StripeConnectStatus = {
   sellerState?: "not_started" | "onboarding" | "restricted" | "active" | "payouts_disabled";
 };
 
+function sellerPayoutStatusCopy(status: StripeConnectStatus | null, loading: boolean) {
+  if (loading) {
+    return { tone: "", message: "Checking payout setup..." };
+  }
+  if (!status?.hasSellerProfile) {
+    return {
+      tone: "is-warning",
+      message: "Submit seller verification before creating listings or starting live selling.",
+    };
+  }
+  if (status.sellerState === "active") {
+    return { tone: "is-success", message: "Stripe payouts are connected." };
+  }
+  if (status.sellerState === "onboarding") {
+    return {
+      tone: "is-warning",
+      message: "Seller verification is still under review. You can finish Stripe onboarding while approval is pending.",
+    };
+  }
+  if (status.sellerState === "restricted") {
+    return {
+      tone: "is-error",
+      message: "Seller access is restricted. Listings and live selling stay disabled until support resolves it.",
+    };
+  }
+  if (status.sellerState === "payouts_disabled") {
+    return {
+      tone: "is-warning",
+      message: status.stripeAccountId
+        ? "Your Stripe account needs more information before listings and live selling are enabled."
+        : "Connect Stripe payouts before creating listings or starting live selling.",
+    };
+  }
+  return {
+    tone: "is-warning",
+    message: "Connect Stripe payouts before creating listings or starting live selling.",
+  };
+}
+
 const listingTypes: Array<{ value: ListingType; label: string }> = [
   { value: "AUCTION", label: "Auction" },
   { value: "BUY_NOW", label: "Buy now" },
@@ -180,6 +219,7 @@ export function SellerListingQuickForm() {
   const desiredCents = useMemo(() => toCents(desiredPrice), [desiredPrice]);
   const cert = certNumber.replace(/\s+/g, "").trim();
   const hasPayoutsReady = stripeStatus?.sellerState === "active";
+  const payoutStatusCopy = sellerPayoutStatusCopy(stripeStatus, stripeLoading);
   const canSubmit = Boolean(isSeller && hasPayoutsReady && cert.length >= 4 && desiredCents !== null && lookup?.found);
 
   useEffect(() => {
@@ -380,14 +420,10 @@ export function SellerListingQuickForm() {
 
       {isSeller ? (
         <div className="sell-alert-stack">
-          <p className={`app-status-note ${stripeStatus?.payoutsEnabled ? "is-success" : "is-warning"}`}>
-            {stripeLoading
-              ? "Checking payout setup..."
-              : stripeStatus?.payoutsEnabled
-                ? "Stripe payouts are connected."
-                : "Connect Stripe payouts before creating listings or starting live selling."}
+          <p className={`app-status-note ${payoutStatusCopy.tone}`.trim()}>
+            {payoutStatusCopy.message}
           </p>
-          {!stripeStatus?.payoutsEnabled ? (
+          {stripeStatus?.sellerState !== "active" ? (
             <div className="app-form-actions">
               <button
                 type="button"
@@ -395,7 +431,7 @@ export function SellerListingQuickForm() {
                 className="app-button app-button-secondary"
                 disabled={stripeLoading || stripeStatus?.stripeConfigured === false}
               >
-                {stripeLoading ? "Opening Stripe..." : "Connect Stripe payouts"}
+                {stripeLoading ? "Opening Stripe..." : stripeStatus?.stripeAccountId ? "Update Stripe payouts" : "Connect Stripe payouts"}
               </button>
               <Link href="/seller/verification" className="app-button app-button-secondary">
                 Seller settings

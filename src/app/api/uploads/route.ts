@@ -10,6 +10,13 @@ const UPLOAD_RATE_WINDOW = 60 * 60 * 1000; // per hour
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
+function normalizeUploadScope(scope: string) {
+  if (!scope) return "auctions" as const;
+  if (scope === "message" || scope === "messages") return "messages" as const;
+  if (scope === "auction" || scope === "auctions") return "auctions" as const;
+  return null;
+}
+
 export async function POST(request: Request) {
   const sessionUser = await getSessionUser();
   if (!sessionUser) {
@@ -24,8 +31,11 @@ export async function POST(request: Request) {
   }
 
   const requestUrl = new URL(request.url);
-  const scope = requestUrl.searchParams.get("scope")?.trim().toLowerCase() ?? "";
-  const isMessageUpload = scope === "message" || scope === "messages";
+  const scope = normalizeUploadScope(requestUrl.searchParams.get("scope")?.trim().toLowerCase() ?? "");
+  if (!scope) {
+    return jsonError("Invalid upload scope.", 400);
+  }
+  const isMessageUpload = scope === "messages";
 
   const isAdmin = isAdminEmail(sessionUser.email);
   if (!isAdmin && !isMessageUpload) {
@@ -59,7 +69,7 @@ export async function POST(request: Request) {
     return jsonError("Uploaded file content does not match supported image types.", 400);
   }
   const ext = extensionForImageType(detectedType);
-  const path = `${buildScopedUploadPath(isMessageUpload ? "messages" : "auctions", sessionUser.id)}.${ext}`;
+  const path = `${buildScopedUploadPath(scope, sessionUser.id)}.${ext}`;
 
   const supabase = getSupabaseServerClient();
   if (!supabase) {

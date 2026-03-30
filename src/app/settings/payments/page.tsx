@@ -21,6 +21,7 @@ type ConnectStatus = {
   stripeAccountId: string | null;
   payoutsEnabled: boolean;
   sellerStatus: string | null;
+  sellerState?: "not_started" | "onboarding" | "restricted" | "active" | "payouts_disabled";
 };
 
 export default function PaymentsSettingsPage() {
@@ -80,6 +81,11 @@ export default function PaymentsSettingsPage() {
     }
   };
 
+  const sellerReady = connect?.sellerState === "active";
+  const sellerNeedsStripe = connect?.sellerState === "payouts_disabled";
+  const sellerNeedsApproval = connect?.sellerState === "onboarding";
+  const sellerRestricted = connect?.sellerState === "restricted";
+
   return (
     <PageContainer>
       <PageHeader title="Payments" />
@@ -124,7 +130,7 @@ export default function PaymentsSettingsPage() {
               Required to create listings and receive payments from sales.
             </p>
 
-            {connect.payoutsEnabled ? (
+            {sellerReady ? (
               <>
                 <p className="app-status-note is-success">Stripe account connected. Payouts enabled.</p>
                 <SecondaryButton
@@ -143,9 +149,19 @@ export default function PaymentsSettingsPage() {
                 >
                   {sellerStatus === "loading" ? "Redirecting…" : connect.stripeAccountId ? "Complete Stripe setup" : "Connect Stripe for payouts"}
                 </PrimaryButton>
-                {connect.stripeAccountId && !connect.payoutsEnabled && (
+                {sellerNeedsStripe && connect.stripeAccountId && (
                   <p className="app-status-note is-warning" style={{ marginTop: 8 }}>
                     Your Stripe account needs more information before payouts are enabled.
+                  </p>
+                )}
+                {sellerNeedsApproval && (
+                  <p className="app-status-note is-warning" style={{ marginTop: 8 }}>
+                    Seller verification is still under review. You can finish Stripe onboarding now, but selling stays gated until approval.
+                  </p>
+                )}
+                {sellerRestricted && (
+                  <p className="app-status-note is-error" style={{ marginTop: 8 }}>
+                    Seller access is restricted. Payouts remain blocked until support resolves the account state.
                   </p>
                 )}
               </>

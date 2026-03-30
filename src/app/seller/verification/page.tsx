@@ -12,6 +12,14 @@ import {
 
 export default function SellerVerificationPage() {
   const { data: session } = useSession();
+  const [connect, setConnect] = useState<{
+    hasSellerProfile: boolean;
+    stripeConfigured: boolean;
+    stripeAccountId: string | null;
+    payoutsEnabled: boolean;
+    sellerStatus: string | null;
+    sellerState?: "not_started" | "onboarding" | "restricted" | "active" | "payouts_disabled";
+  } | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [stripeStatus, setStripeStatus] = useState<"idle" | "loading" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -23,6 +31,29 @@ export default function SellerVerificationPage() {
     if (session?.user?.name) setPrefillName(session.user.name);
     if (session?.user?.email) setPrefillEmail(session.user.email);
   }, [session]);
+
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setConnect(null);
+      return;
+    }
+    let cancelled = false;
+    void fetch("/api/stripe/connect", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((payload) => {
+        if (!cancelled) {
+          setConnect(payload);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setConnect(null);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -127,6 +158,27 @@ export default function SellerVerificationPage() {
 
           {stripeMessage ? (
             <div className="app-status-note is-error">{stripeMessage}</div>
+          ) : null}
+
+          {connect?.sellerState === "active" ? (
+            <div className="app-status-note is-success">
+              Seller approval and Stripe payouts are active.
+            </div>
+          ) : null}
+          {connect?.sellerState === "onboarding" ? (
+            <div className="app-status-note is-warning">
+              Seller verification is under review. You can complete Stripe onboarding now, but listing and live selling stay gated until approval.
+            </div>
+          ) : null}
+          {connect?.sellerState === "payouts_disabled" ? (
+            <div className="app-status-note is-warning">
+              Seller verification is approved, but Stripe payouts still need to be completed before selling is enabled.
+            </div>
+          ) : null}
+          {connect?.sellerState === "restricted" ? (
+            <div className="app-status-note is-error">
+              Seller access is restricted. Contact support before attempting to sell or reconnect payouts.
+            </div>
           ) : null}
 
           <section className="product-card seller-verification-panel">
