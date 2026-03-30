@@ -276,23 +276,16 @@ export function SiteDesktopHeader() {
           </div>
 
           <nav className="site-nav" aria-label="Primary">
-            {navItems.map(({ key, href, label, Icon }) =>
-              isAdmin ? (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`site-nav-link${isNavActive({ key, href, label, Icon }) ? " is-active" : ""}`}
-                >
-                  <Icon size={13} strokeWidth={1.9} aria-hidden="true" />
-                  {label}
-                </Link>
-              ) : (
-                <span key={href} className="site-nav-link site-nav-link-disabled" aria-disabled="true">
-                  <Icon size={13} strokeWidth={1.9} aria-hidden="true" />
-                  {label}
-                </span>
-              )
-            )}
+            {navItems.map(({ key, href, label, Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className={`site-nav-link${isNavActive({ key, href, label, Icon }) ? " is-active" : ""}`}
+              >
+                <Icon size={13} strokeWidth={1.9} aria-hidden="true" />
+                {label}
+              </Link>
+            ))}
             {isAdmin ? (
               <Link href="/admin/sellers" className="site-admin-link">
                 <Shield size={13} strokeWidth={1.9} aria-hidden="true" />
@@ -302,12 +295,13 @@ export function SiteDesktopHeader() {
           </nav>
 
           <div className="site-header-actions">
-            {isAdmin ? (
-              <Link
-                href={isVerifiedSeller ? "/sell" : "/seller/verification"}
-                className="app-button app-button-primary"
-              >
+            {isVerifiedSeller ? (
+              <Link href="/sell" className="app-button app-button-primary">
                 + List item
+              </Link>
+            ) : signedIn ? (
+              <Link href="/seller/verification" className="app-button app-button-primary">
+                Become a seller
               </Link>
             ) : (
               <Link href="/waitlist" className="app-button app-button-primary">

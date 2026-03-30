@@ -260,7 +260,7 @@ export function AuctionDetailClient({ auction, stripeEnabled = true, certSnapsho
             ) : null}
           </div>
 
-          {description ? (
+          {description && isAuction ? (
             <div className="auction-detail-description">
               <h2 className="auction-detail-description-heading">Description</h2>
               <p>{description}</p>
