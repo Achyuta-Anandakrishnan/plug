@@ -54,6 +54,9 @@ export async function POST(request: Request) {
   if (auction.seller.userId === sessionUser.id && auction.seller.status !== "APPROVED") {
     return jsonError("Seller verification pending approval.", 403);
   }
+  if (auction.seller.userId === sessionUser.id && (!auction.seller.stripeAccountId || !auction.seller.payoutsEnabled)) {
+    return jsonError("Connect Stripe payouts before starting a live selling room.", 403);
+  }
 
   let scheduledStart: Date | null = null;
   if (body?.scheduleAt) {

@@ -178,7 +178,8 @@ export function SellerListingQuickForm() {
 
   const desiredCents = useMemo(() => toCents(desiredPrice), [desiredPrice]);
   const cert = certNumber.replace(/\s+/g, "").trim();
-  const canSubmit = Boolean(isSeller && cert.length >= 4 && desiredCents !== null && lookup?.found);
+  const hasPayoutsReady = Boolean(stripeStatus?.payoutsEnabled);
+  const canSubmit = Boolean(isSeller && hasPayoutsReady && cert.length >= 4 && desiredCents !== null && lookup?.found);
 
   useEffect(() => {
     const mode = searchParams.get("mode");
@@ -258,7 +259,7 @@ export function SellerListingQuickForm() {
     event.preventDefault();
     if (!canSubmit || !lookup || !lookup.found || desiredCents === null) {
       setStatus("error");
-      setSubmitMessage("Enter a valid cert number and desired price.");
+      setSubmitMessage(hasPayoutsReady ? "Enter a valid cert number and desired price." : "Connect Stripe payouts before creating a listing.");
       return;
     }
 
@@ -383,7 +384,7 @@ export function SellerListingQuickForm() {
               ? "Checking payout setup..."
               : stripeStatus?.payoutsEnabled
                 ? "Stripe payouts are connected."
-                : "You can still create listings now. Connect Stripe payouts before you need automatic seller payouts."}
+                : "Connect Stripe payouts before creating listings or starting live selling."}
           </p>
           {!stripeStatus?.payoutsEnabled ? (
             <div className="app-form-actions">
