@@ -1,9 +1,8 @@
 import { createHash, randomInt } from "crypto";
 import { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { EMAIL_REGEX, jsonError, jsonOk, parseJson } from "@/lib/api";
+import { EMAIL_REGEX, checkRateLimit, getRequestIp, jsonError, jsonOk, parseJson } from "@/lib/api";
 import { isBlockedAccountStatus } from "@/lib/account-status";
-import { ensureProfileSchema } from "@/lib/profile-schema";
 import { generateUniqueUsername } from "@/lib/username";
 import { sendEmail } from "@/lib/email";
 
@@ -23,12 +22,17 @@ function hashCode(code: string) {
 }
 
 export async function POST(request: Request) {
-  await ensureProfileSchema().catch(() => null);
-
   const body = await parseJson<NativeAuthBody>(request);
   const email = body?.email ? normalizeEmail(body.email) : "";
   if (!email || !EMAIL_REGEX.test(email)) {
     return jsonError("Valid email is required.", 400);
+  }
+
+  const ip = getRequestIp(request);
+  const emailRateLimitOk = await checkRateLimit(`native-auth:email:${email}`, 5, 15 * 60 * 1000);
+  const ipRateLimitOk = await checkRateLimit(`native-auth:ip:${ip}`, 20, 15 * 60 * 1000);
+  if (!emailRateLimitOk || !ipRateLimitOk) {
+    return jsonError("Too many login code requests. Try again later.", 429);
   }
 
   const displayName = body?.displayName?.trim() || email.split("@")[0] || "Collector";

@@ -49,7 +49,8 @@ Create an admin account (for review dashboard access):
 npm run create-admin -- --email you@example.com --name "Admin"
 ```
 
-Set `ADMIN_KEY` in `.env` and use it in the admin dashboard header input.
+Set `ADMIN_EMAILS` in `.env` for any fallback admin-email allowlist behavior.
+Primary admin access should come from the user's stored `role`.
 Admin dashboard: `/admin/sellers`.
 
 ## Email
@@ -61,6 +62,9 @@ notify address is `NOTIFY_EMAIL`.
 
 Set `NEXTAUTH_URL` and `NEXTAUTH_SECRET`, plus OAuth credentials for Google and
 Apple in `.env` to enable social sign-in.
+
+If you use native email-code sign-in, also set `NATIVE_AUTH_SECRET`.
+If you enforce signup captcha in production, set `TURNSTILE_SECRET_KEY`.
 
 ## API Routes
 
@@ -80,11 +84,12 @@ Apple in `.env` to enable social sign-in.
 - `POST /api/conversations/:id/messages`
 - `POST /api/referrals`
 
-Note: API routes use NextAuth server sessions for auth. Admin routes may also accept `x-admin-key` as an escape hatch for local tooling.
+Note: API routes use NextAuth server sessions or native bearer auth where applicable.
 
 ## Hosting
 
 See `docs/hosting.md` for the recommended stack and deployment steps.
+For beta release prep, see [BETA_RELEASE_CHECKLIST.md](/Users/achyu/Documents/plug/BETA_RELEASE_CHECKLIST.md).
 
 ## iPhone App
 

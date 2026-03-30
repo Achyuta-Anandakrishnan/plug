@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "qa:seed": "node scripts/qa-seed.mjs",
     "mobile:sync": "node --env-file=.env ./node_modules/@capacitor/cli/bin/capacitor sync",
     "mobile:sync:ios": "node --env-file=.env ./node_modules/@capacitor/cli/bin/capacitor sync ios",
     "mobile:open:ios": "node --env-file=.env ./node_modules/@capacitor/cli/bin/capacitor open ios",

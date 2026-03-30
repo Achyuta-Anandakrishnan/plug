@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import { jsonError, jsonOk, parseJson } from "@/lib/api";
+import { checkRateLimit, jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
 
 type CreateChatBody = {
   body?: string;
 };
+
+const MAX_CHAT_LENGTH = 400;
 
 export async function GET(
   _request: Request,
@@ -35,9 +37,14 @@ export async function POST(
     return jsonError("Authentication required.", 401);
   }
 
-  const text = body?.body?.trim() ?? "";
+  const text = body?.body?.trim().slice(0, MAX_CHAT_LENGTH) ?? "";
   if (!text) {
     return jsonError("body is required.", 400);
+  }
+
+  const allowed = await checkRateLimit(`auction:chat:${id}:${senderId}`, 20, 60_000);
+  if (!allowed) {
+    return jsonError("Chat rate limit reached. Slow down.", 429);
   }
 
   const auction = await prisma.auction.findUnique({

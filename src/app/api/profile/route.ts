@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
-import { ensureProfileSchema } from "@/lib/profile-schema";
 import {
   generateUniqueUsername,
   isValidUsername,
@@ -27,8 +26,6 @@ function cleanOptionalText(value: string | undefined, maxLength: number) {
 }
 
 export async function GET() {
-  await ensureProfileSchema().catch(() => null);
-
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) return jsonError("Authentication required.", 401);
 
@@ -83,8 +80,6 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  await ensureProfileSchema().catch(() => null);
-
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) return jsonError("Authentication required.", 401);
 

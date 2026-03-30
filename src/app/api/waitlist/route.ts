@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ensureWaitlistSchema, isWaitlistSchemaMissing } from "@/lib/waitlist-schema";
+import { isWaitlistSchemaMissing } from "@/lib/waitlist-schema";
 
 type WaitlistBody = { email?: string; name?: string };
 
@@ -27,21 +27,12 @@ async function upsertWaitlistEntry(body: WaitlistBody) {
 }
 
 export async function POST(request: Request) {
-  const requestClone = request.clone();
-
   try {
     const body = (await request.json()) as WaitlistBody;
-    await ensureWaitlistSchema();
     return await upsertWaitlistEntry(body);
   } catch (error) {
     if (isWaitlistSchemaMissing(error)) {
-      try {
-        const body = (await requestClone.json()) as WaitlistBody;
-        await ensureWaitlistSchema();
-        return await upsertWaitlistEntry(body);
-      } catch {
-        return NextResponse.json({ error: "Waitlist is still initializing. Please retry." }, { status: 503 });
-      }
+      return NextResponse.json({ error: "Waitlist is still initializing. Please retry." }, { status: 503 });
     }
 
     return NextResponse.json({ error: "Something went wrong. Try again." }, { status: 500 });

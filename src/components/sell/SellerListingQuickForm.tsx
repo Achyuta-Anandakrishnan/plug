@@ -39,6 +39,7 @@ type StripeConnectStatus = {
   stripeAccountId: string | null;
   payoutsEnabled: boolean;
   sellerStatus: string | null;
+  sellerState?: "not_started" | "onboarding" | "restricted" | "active" | "payouts_disabled";
 };
 
 const listingTypes: Array<{ value: ListingType; label: string }> = [
@@ -178,7 +179,7 @@ export function SellerListingQuickForm() {
 
   const desiredCents = useMemo(() => toCents(desiredPrice), [desiredPrice]);
   const cert = certNumber.replace(/\s+/g, "").trim();
-  const hasPayoutsReady = Boolean(stripeStatus?.payoutsEnabled);
+  const hasPayoutsReady = stripeStatus?.sellerState === "active";
   const canSubmit = Boolean(isSeller && hasPayoutsReady && cert.length >= 4 && desiredCents !== null && lookup?.found);
 
   useEffect(() => {

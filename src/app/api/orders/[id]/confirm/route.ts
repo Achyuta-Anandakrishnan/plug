@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit, jsonError, jsonOk } from "@/lib/api";
 import { getStripeClient } from "@/lib/stripe";
 import { getSessionUser } from "@/lib/auth";
+import { getCanonicalSellerReadiness } from "@/lib/seller-onboarding";
 
 export async function POST(
   request: Request,
@@ -70,10 +71,17 @@ export async function POST(
     }));
 
   const stripe = getStripeClient();
+  const sellerReadiness = await getCanonicalSellerReadiness({
+    id: order.seller.id,
+    userId: order.seller.userId,
+    status: order.seller.status,
+    stripeAccountId: order.seller.stripeAccountId,
+    payoutsEnabled: order.seller.payoutsEnabled,
+  });
   const canAutoPay =
     Boolean(stripe) &&
-    Boolean(order.seller.stripeAccountId) &&
-    Boolean(order.seller.payoutsEnabled) &&
+    sellerReadiness.sellerState === "active" &&
+    Boolean(sellerReadiness.stripeAccountId) &&
     scheduledAt <= new Date() &&
     sellerNet > 0;
 
@@ -83,7 +91,7 @@ export async function POST(
         {
           amount: sellerNet,
           currency: order.currency,
-          destination: order.seller.stripeAccountId as string,
+          destination: sellerReadiness.stripeAccountId as string,
           metadata: { orderId: order.id },
         },
         {

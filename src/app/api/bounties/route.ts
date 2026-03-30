@@ -4,7 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
 import { checkRateLimit } from "@/lib/api";
-import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
+import { isBountySchemaMissing } from "@/lib/bounty-schema";
 import {
   bountyBudgetValue,
   bountySpecificityScore,
@@ -160,7 +160,6 @@ function sortEntries(entries: BountyRequestListItem[], sort: BountySortMode) {
 }
 
 export async function GET(request: Request) {
-  await ensureBountySchema().catch(() => null);
   try {
     const searchParams = getSearchParams(request);
     const q = searchParams.get("q")?.trim() ?? "";
@@ -230,7 +229,6 @@ export async function GET(request: Request) {
     return jsonOk(sortEntries(filtered, sort));
   } catch (error) {
     if (isBountySchemaMissing(error)) {
-      await ensureBountySchema().catch(() => null);
       return jsonError("Bounties are initializing. Retry in a few seconds.", 503);
     }
     console.error("Bounties GET failed", { error });
@@ -239,7 +237,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  await ensureBountySchema().catch(() => null);
   try {
     const sessionUser = await getSessionUser();
     if (!sessionUser?.id) {
@@ -316,7 +313,6 @@ export async function POST(request: Request) {
       return jsonError(error.message);
     }
     if (isBountySchemaMissing(error)) {
-      await ensureBountySchema().catch(() => null);
       return jsonError("Bounties are initializing. Retry in a few seconds.", 503);
     }
     console.error("Bounties POST failed", { error });

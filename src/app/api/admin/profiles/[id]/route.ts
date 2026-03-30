@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { requireAdmin } from "@/lib/admin";
 import { normalizeAccountStatus } from "@/lib/account-status";
-import { ensureProfileSchema } from "@/lib/profile-schema";
 
 const ALLOWED_ROLES = new Set<UserRole>(["BUYER", "SELLER", "ADMIN"]);
 const ALLOWED_ACCOUNT_STATUSES = new Set(["ACTIVE", "SUSPENDED", "DISABLED"]);
@@ -21,8 +20,6 @@ export async function PATCH(
   if (!admin.ok) {
     return jsonError(admin.error, admin.status);
   }
-
-  await ensureProfileSchema().catch(() => null);
 
   const body = await parseJson<UpdateAdminProfileBody>(request);
   if (!body) {

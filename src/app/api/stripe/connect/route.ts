@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { getStripeClient } from "@/lib/stripe";
 import { jsonError, jsonOk } from "@/lib/api";
+import { getCanonicalSellerReadiness } from "@/lib/seller-onboarding";
 
 export async function GET() {
   const sessionUser = await getSessionUser();
@@ -12,7 +13,7 @@ export async function GET() {
   const stripe = getStripeClient();
   const sellerProfile = await prisma.sellerProfile.findUnique({
     where: { userId: sessionUser.id },
-    select: { id: true, stripeAccountId: true, payoutsEnabled: true, status: true },
+    select: { id: true, userId: true, stripeAccountId: true, payoutsEnabled: true, status: true },
   });
 
   if (!sellerProfile) {
@@ -22,31 +23,19 @@ export async function GET() {
       stripeAccountId: null,
       payoutsEnabled: false,
       sellerStatus: null,
+      sellerState: "not_started",
     });
   }
 
-  let payoutsEnabled = Boolean(sellerProfile.payoutsEnabled);
-  if (stripe && sellerProfile.stripeAccountId) {
-    try {
-      const account = await stripe.accounts.retrieve(sellerProfile.stripeAccountId);
-      payoutsEnabled = Boolean(account.payouts_enabled && account.charges_enabled);
-      if (sellerProfile.payoutsEnabled !== payoutsEnabled) {
-        await prisma.sellerProfile.update({
-          where: { id: sellerProfile.id },
-          data: { payoutsEnabled },
-        });
-      }
-    } catch (error) {
-      console.error("Stripe account status lookup failed", { error, sellerProfileId: sellerProfile.id });
-    }
-  }
+  const readiness = await getCanonicalSellerReadiness(sellerProfile);
 
   return jsonOk({
     hasSellerProfile: true,
     stripeConfigured: Boolean(stripe),
-    stripeAccountId: sellerProfile.stripeAccountId,
-    payoutsEnabled,
+    stripeAccountId: readiness.stripeAccountId,
+    payoutsEnabled: readiness.payoutsEnabled,
     sellerStatus: sellerProfile.status,
+    sellerState: readiness.sellerState,
   });
 }
 
@@ -63,7 +52,7 @@ export async function POST() {
 
   const sellerProfile = await prisma.sellerProfile.findUnique({
     where: { userId: sessionUser.id },
-    select: { id: true, stripeAccountId: true, payoutsEnabled: true },
+    select: { id: true, userId: true, status: true, stripeAccountId: true, payoutsEnabled: true },
   });
 
   if (!sellerProfile) {
@@ -90,16 +79,6 @@ export async function POST() {
     });
   }
 
-  const account = await stripe.accounts.retrieve(stripeAccountId);
-  const payoutsEnabled = Boolean(account.payouts_enabled && account.charges_enabled);
-
-  if (sellerProfile.payoutsEnabled !== payoutsEnabled) {
-    await prisma.sellerProfile.update({
-      where: { id: sellerProfile.id },
-      data: { payoutsEnabled },
-    });
-  }
-
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const link = await stripe.accountLinks.create({
     account: stripeAccountId,
@@ -108,9 +87,15 @@ export async function POST() {
     type: "account_onboarding",
   });
 
+  const readiness = await getCanonicalSellerReadiness({
+    ...sellerProfile,
+    stripeAccountId,
+  });
+
   return jsonOk({
     url: link.url,
     stripeAccountId,
-    payoutsEnabled,
+    payoutsEnabled: readiness.payoutsEnabled,
+    sellerState: readiness.sellerState,
   });
 }

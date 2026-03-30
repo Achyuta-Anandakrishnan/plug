@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { computeFees } from "@/lib/fees";
 import { getStripeClient, stripeEnabled } from "@/lib/stripe";
+import { getCanonicalSellerReadiness } from "@/lib/seller-onboarding";
 
 export type SettleAuctionResult = {
   auctionId: string;
@@ -34,6 +35,7 @@ export async function settleAuction(auctionId: string, appUrl?: string): Promise
         select: {
           id: true,
           userId: true,
+          status: true,
           stripeAccountId: true,
           payoutsEnabled: true,
         },
@@ -146,7 +148,8 @@ export async function settleAuction(auctionId: string, appUrl?: string): Promise
         });
 
         const resolvedAppUrl = appUrl || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-        const connectEnabled = Boolean(auction.seller.stripeAccountId) && auction.seller.payoutsEnabled;
+        const sellerReadiness = await getCanonicalSellerReadiness(auction.seller);
+        const connectEnabled = sellerReadiness.sellerState === "active" && Boolean(sellerReadiness.stripeAccountId);
 
         const checkoutSession = await stripe.checkout.sessions.create(
           {
@@ -174,7 +177,7 @@ export async function settleAuction(auctionId: string, appUrl?: string): Promise
                 ? {
                     application_fee_amount: platformFee,
                     transfer_data: {
-                      destination: auction.seller.stripeAccountId as string,
+                      destination: sellerReadiness.stripeAccountId as string,
                     },
                   }
                 : {}),

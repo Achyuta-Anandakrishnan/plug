@@ -2,9 +2,10 @@ import { ListingType, StreamProvider } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
-import { ensureStreamSchema, isStreamSchemaMissing } from "@/lib/stream-schema";
+import { isStreamSchemaMissing } from "@/lib/stream-schema";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { tradeValueLabel } from "@/lib/trade-client";
+import { getCanonicalSellerReadiness, getSellerCapabilityError } from "@/lib/seller-onboarding";
 
 type StreamQueueBody = {
   auctionId?: string;
@@ -54,8 +55,12 @@ async function loadStreamAuctionForHost(auctionId: string, userId: string, email
   if (auction.seller.userId !== userId && !isAdmin) {
     return { error: jsonError("Not authorized to manage this stream.", 403) };
   }
-  if (auction.seller.userId === userId && auction.seller.status !== "APPROVED") {
-    return { error: jsonError("Seller verification pending approval.", 403) };
+  if (auction.seller.userId === userId) {
+    const readiness = await getCanonicalSellerReadiness(auction.seller);
+    const sellerGateError = getSellerCapabilityError(readiness, "stream");
+    if (sellerGateError) {
+      return { error: jsonError(sellerGateError, 403) };
+    }
   }
 
   return { auction };
@@ -86,8 +91,6 @@ async function ensureSessionForAuction(auctionId: string) {
 }
 
 export async function GET(request: Request) {
-  await ensureStreamSchema().catch(() => null);
-
   try {
     const sessionUser = await getSessionUser();
     if (!sessionUser?.id) {
@@ -187,7 +190,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     if (isStreamSchemaMissing(error)) {
-      await ensureStreamSchema().catch(() => null);
       return jsonError("Stream inventory is initializing. Retry in a few seconds.", 503);
     }
     console.error("Stream inventory GET failed", { error });
@@ -196,8 +198,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  await ensureStreamSchema().catch(() => null);
-
   try {
     const sessionUser = await getSessionUser();
     if (!sessionUser?.id) {
@@ -428,7 +428,6 @@ export async function POST(request: Request) {
     return jsonError("Unsupported sourceType.", 400);
   } catch (error) {
     if (isStreamSchemaMissing(error)) {
-      await ensureStreamSchema().catch(() => null);
       return jsonError("Stream inventory is initializing. Retry in a few seconds.", 503);
     }
     console.error("Stream inventory POST failed", { error });

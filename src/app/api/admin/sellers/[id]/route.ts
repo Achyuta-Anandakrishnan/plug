@@ -58,12 +58,7 @@ export async function PATCH(
           status: body.status ?? undefined,
           approvedAt: body.status === "APPROVED" ? new Date() : null,
           manualNotes: body.notes?.trim(),
-          payoutsEnabled:
-            body.status === "APPROVED"
-              ? true
-              : body.status === "REJECTED"
-                ? false
-                : undefined,
+          payoutsEnabled: body.status === "REJECTED" ? false : undefined,
         },
         include: { user: true, verifications: true },
       });

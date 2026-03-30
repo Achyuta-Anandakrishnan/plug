@@ -45,6 +45,7 @@ type DirectMessage = {
 
 type ConversationListResponse = {
   items: Conversation[];
+  profiles?: ProfileSearchResult[];
 };
 
 type MessageListResponse = {
@@ -134,53 +135,10 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadProfiles() {
-      const nextQuery = query.trim();
-      if (!nextQuery || !session?.user?.id) {
-        setProfileResults([]);
-        setProfilesLoading(false);
-        return;
-      }
-
-      setProfilesLoading(true);
-      try {
-        const params = new URLSearchParams({
-          q: nextQuery,
-          limit: "8",
-        });
-        const res = await fetch(`/api/users?${params.toString()}`);
-        const payload = (await res.json()) as ProfileSearchResult[] & { error?: string };
-        if (!res.ok) {
-          throw new Error(payload.error ?? "Unable to search collectors.");
-        }
-        if (cancelled) return;
-        setProfileResults(payload.filter((entry) => entry.id !== sessionUserId));
-      } catch {
-        if (cancelled) return;
-        setProfileResults([]);
-      } finally {
-        if (!cancelled) {
-          setProfilesLoading(false);
-        }
-      }
-    }
-
-    const timeout = window.setTimeout(() => {
-      void loadProfiles();
-    }, query.trim() ? 180 : 0);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeout);
-    };
-  }, [query, session?.user?.id, sessionUserId]);
-
-  useEffect(() => {
-    let cancelled = false;
-
     async function load() {
       setLoading(true);
       setError("");
+      setProfilesLoading(Boolean(query.trim()));
       try {
         const params = new URLSearchParams();
         params.set("limit", "40");
@@ -190,7 +148,9 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
         if (!res.ok) throw new Error(payload.error ?? "Unable to load conversations.");
         if (cancelled) return;
         setConversations(payload.items);
+        setProfileResults((payload.profiles ?? []).filter((entry) => entry.id !== sessionUserId));
         setLoading(false);
+        setProfilesLoading(false);
         setActiveId((current) => {
           if (preselectConversationId) return preselectConversationId;
           if (current && payload.items.some((entry) => entry.id === current)) return current;
@@ -199,6 +159,8 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
       } catch (e) {
         if (cancelled) return;
         setError(e instanceof Error ? e.message : "Unable to load conversations.");
+        setProfileResults([]);
+        setProfilesLoading(false);
         setLoading(false);
       }
     }
@@ -207,6 +169,8 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
       setLoading(false);
       setConversations([]);
       setActiveId(null);
+      setProfileResults([]);
+      setProfilesLoading(false);
       return;
     }
 
@@ -217,7 +181,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
       cancelled = true;
       window.clearTimeout(timeout);
     };
-  }, [preselectConversationId, query, session?.user?.id]);
+  }, [preselectConversationId, query, session?.user?.id, sessionUserId]);
 
   useEffect(() => {
     let cancelled = false;

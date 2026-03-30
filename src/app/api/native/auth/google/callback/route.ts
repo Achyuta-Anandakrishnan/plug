@@ -2,7 +2,6 @@ import { UserRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isBlockedAccountStatus } from "@/lib/account-status";
-import { ensureProfileSchema } from "@/lib/profile-schema";
 import { generateUniqueUsername } from "@/lib/username";
 import { signNativeAuthToken } from "@/lib/native-auth";
 import {
@@ -35,8 +34,6 @@ function buildNativeRedirect(target: string, params: Record<string, string>) {
 }
 
 export async function GET(request: Request) {
-  await ensureProfileSchema().catch(() => null);
-
   const appOrigin = getAppOrigin(request.url);
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;

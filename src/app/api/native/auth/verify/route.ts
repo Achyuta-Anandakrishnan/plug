@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { signNativeAuthToken } from "@/lib/native-auth";
-import { EMAIL_REGEX, jsonError, jsonOk, parseJson } from "@/lib/api";
+import { EMAIL_REGEX, checkRateLimit, getRequestIp, jsonError, jsonOk, parseJson } from "@/lib/api";
 import { isBlockedAccountStatus } from "@/lib/account-status";
 
 type VerifyBody = {
@@ -29,6 +29,13 @@ export async function POST(request: Request) {
   }
   if (!code || !/^\d{6}$/.test(code)) {
     return jsonError("Valid 6-digit code is required.", 400);
+  }
+
+  const ip = getRequestIp(request);
+  const ipRateLimitOk = await checkRateLimit(`native-auth:verify:ip:${ip}`, 30, 15 * 60 * 1000);
+  const emailRateLimitOk = await checkRateLimit(`native-auth:verify:email:${email}`, 12, 15 * 60 * 1000);
+  if (!ipRateLimitOk || !emailRateLimitOk) {
+    return jsonError("Too many verification attempts. Try again later.", 429);
   }
 
   const user = await prisma.user.findUnique({

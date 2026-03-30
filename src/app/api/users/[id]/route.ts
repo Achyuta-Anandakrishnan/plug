@@ -1,14 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
-import { ensureProfileSchema } from "@/lib/profile-schema";
-
 export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  await ensureProfileSchema().catch(() => null);
-
   const sessionUser = await getSessionUser();
   if (!sessionUser) {
     return jsonError("Authentication required.", 401);

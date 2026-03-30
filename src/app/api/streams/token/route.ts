@@ -4,6 +4,7 @@ import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { createLiveKitToken, livekitEnabled } from "@/lib/livekit";
 import { isAdminEmail } from "@/lib/admin";
+import { getCanonicalSellerReadiness, getSellerCapabilityError } from "@/lib/seller-onboarding";
 
 type TokenBody = {
   auctionId?: string;
@@ -43,8 +44,12 @@ export async function POST(request: Request) {
   if (role === "host" && !isSeller && !isAdminEmail(sessionUser?.email)) {
     return jsonError("Not authorized to host this stream.", 403);
   }
-  if (role === "host" && isSeller && auction.seller.status !== "APPROVED") {
-    return jsonError("Seller verification pending approval.", 403);
+  if (role === "host" && isSeller) {
+    const readiness = await getCanonicalSellerReadiness(auction.seller);
+    const sellerGateError = getSellerCapabilityError(readiness, "stream");
+    if (sellerGateError) {
+      return jsonError(sellerGateError, 403);
+    }
   }
 
   const session = auction.streamSessions[0];

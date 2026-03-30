@@ -8,7 +8,6 @@ import {
   isTradeDuelMode,
   normalizeTradeDuelTerms,
 } from "@/lib/duels";
-import { ensureTradeSchema } from "@/lib/trade-schema";
 import { isTradeOfferStatus, parseIntOrNull } from "@/lib/trades";
 import {
   createTradeDuelDraftData,
@@ -114,7 +113,6 @@ function standardSettlementWrite(offer: TradeOfferWithDuel) {
 }
 
 export async function PATCH(request: Request, { params }: RouteContext) {
-  await ensureTradeSchema().catch(() => null);
   const { offerId } = await params;
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) {

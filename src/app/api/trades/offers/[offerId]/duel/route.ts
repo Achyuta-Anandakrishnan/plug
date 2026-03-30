@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
-import { ensureTradeSchema } from "@/lib/trade-schema";
 import {
   applyTradeDuelAction,
   deriveTradeDuelStatus,
@@ -51,7 +50,6 @@ async function loadOfferForViewer(offerId: string, userId: string) {
 }
 
 export async function GET(_request: Request, { params }: RouteContext) {
-  await ensureTradeSchema().catch(() => null);
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) {
     return jsonError("Authentication required.", 401);
@@ -84,7 +82,6 @@ export async function GET(_request: Request, { params }: RouteContext) {
 }
 
 export async function PATCH(request: Request, { params }: RouteContext) {
-  await ensureTradeSchema().catch(() => null);
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) {
     return jsonError("Authentication required.", 401);

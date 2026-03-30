@@ -7,7 +7,7 @@ import {
   isForumSchemaMissing,
   isForumVoteSchemaMissing,
 } from "@/lib/forum-schema";
-import { ensureProfileSchema, isProfileSchemaMissing } from "@/lib/profile-schema";
+import { isProfileSchemaMissing } from "@/lib/profile-schema";
 
 type UpdatePostBody = {
   title?: string;
@@ -79,8 +79,6 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   await ensureForumSchema().catch(() => null);
-  await ensureProfileSchema().catch(() => null);
-
   const { id } = await context.params;
   const sessionUser = await getSessionUser();
 
@@ -157,8 +155,6 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   await ensureForumSchema().catch(() => null);
-  await ensureProfileSchema().catch(() => null);
-
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) return jsonError("Authentication required.", 401);
 

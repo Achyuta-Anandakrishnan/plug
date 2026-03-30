@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson, checkRateLimit } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
-import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
+import { isBountySchemaMissing } from "@/lib/bounty-schema";
 
 type CreateCommentBody = {
   body?: string;
@@ -11,7 +11,6 @@ export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  await ensureBountySchema().catch(() => null);
   const { id } = await context.params;
 
   try {
@@ -53,8 +52,6 @@ export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  await ensureBountySchema().catch(() => null);
-
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) {
     return jsonError("Authentication required.", 401);

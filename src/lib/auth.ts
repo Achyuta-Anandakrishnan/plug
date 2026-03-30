@@ -7,7 +7,6 @@ import AppleProvider from "next-auth/providers/apple";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { isBlockedAccountStatus, normalizeAccountStatus } from "@/lib/account-status";
-import { ensureProfileSchema } from "@/lib/profile-schema";
 import { generateUniqueUsername } from "@/lib/username";
 import { verifyNativeAuthToken } from "@/lib/native-auth";
 
@@ -45,8 +44,6 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       const userId = (user as { id?: string }).id;
       if (!userId || !account) return true;
-
-      await ensureProfileSchema().catch(() => null);
 
       const dbUser = await prisma.user.findUnique({
         where: { id: userId },
@@ -100,7 +97,6 @@ export const authOptions: NextAuthOptions = {
       const shouldHydrateToken = Boolean(tokenUserId && (user || needsProfileData || needsRefresh));
 
       if (tokenUserId && shouldHydrateToken) {
-        await ensureProfileSchema().catch(() => null);
         const dbUser = await prisma.user.findUnique({
           where: { id: tokenUserId },
           select: {
@@ -179,7 +175,6 @@ async function getNativeBearerSessionUser() {
       return null;
     }
 
-    await ensureProfileSchema().catch(() => null);
     const user = await prisma.user.findUnique({
       where: { id: payload.sub },
       select: {

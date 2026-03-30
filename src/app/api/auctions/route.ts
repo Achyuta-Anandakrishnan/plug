@@ -1,10 +1,11 @@
 import { AuctionStatus, ListingType, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { jsonError, jsonOk, parseJson } from "@/lib/api";
+import { checkRateLimit, jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
 import { getLiveKitRoomService, livekitEnabled } from "@/lib/livekit";
 import { nextThursdayNinePmEst } from "@/lib/auction-time";
+import { getCanonicalSellerReadiness, getSellerCapabilityError } from "@/lib/seller-onboarding";
 
 const allowedStatuses = new Set<string>([
   "DRAFT",
@@ -219,8 +220,20 @@ export async function POST(request: Request) {
     return jsonError("Authentication required.", 401);
   }
 
+  const rateLimitOk = await checkRateLimit(`listing:create:${sessionUser.id}`, 20, 60 * 60 * 1000);
+  if (!rateLimitOk) {
+    return jsonError("Listing creation limit reached. Try again later.", 429);
+  }
+
   const sellerProfile = await prisma.sellerProfile.findUnique({
     where: { userId: sessionUser.id },
+    select: {
+      id: true,
+      userId: true,
+      status: true,
+      stripeAccountId: true,
+      payoutsEnabled: true,
+    },
   });
   const sellerId = sellerProfile?.id ?? null;
 
@@ -232,22 +245,14 @@ export async function POST(request: Request) {
     return jsonError("sellerId and title are required.");
   }
 
-  const seller =
-    sellerProfile ??
-    (await prisma.sellerProfile.findUnique({
-      where: { id: sellerId },
-    }));
-
-  if (!seller) {
+  if (!sellerProfile) {
     return jsonError("Seller not found.", 404);
   }
 
-  if (seller.status !== "APPROVED") {
-    return jsonError("Seller verification pending approval.", 403);
-  }
-
-  if (!seller.stripeAccountId || !seller.payoutsEnabled) {
-    return jsonError("Connect Stripe payouts from seller verification before creating listings.", 403);
+  const readiness = await getCanonicalSellerReadiness(sellerProfile);
+  const sellerGateError = getSellerCapabilityError(readiness, "list");
+  if (sellerGateError) {
+    return jsonError(sellerGateError, 403);
   }
 
   const startTime = body.startTime ? new Date(body.startTime) : null;

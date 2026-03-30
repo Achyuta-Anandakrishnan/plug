@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { ensureForumSchema, isForumSchemaMissing } from "@/lib/forum-schema";
-import { ensureProfileSchema, isProfileSchemaMissing } from "@/lib/profile-schema";
+import { isProfileSchemaMissing } from "@/lib/profile-schema";
 
 type CreateCommentBody = {
   body?: string;
@@ -15,8 +15,6 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   await ensureForumSchema().catch(() => null);
-  await ensureProfileSchema().catch(() => null);
-
   const sessionUser = await getSessionUser();
   if (!sessionUser) return jsonError("Authentication required.", 401);
 

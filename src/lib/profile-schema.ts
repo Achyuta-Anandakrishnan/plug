@@ -1,14 +1,16 @@
 import "server-only";
-import { prisma } from "@/lib/prisma";
+import { isSchemaMissingError } from "@/lib/schema-missing";
 
+/**
+ * Profile/account-status schema is migration-owned.
+ *
+ * This helper remains as a compatibility shim because request handlers still
+ * import it, but it must never mutate schema at request time.
+ */
 export async function ensureProfileSchema() {
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE "User"
-    ADD COLUMN IF NOT EXISTS "accountStatus" TEXT NOT NULL DEFAULT 'ACTIVE';
-  `);
+  return;
 }
 
 export function isProfileSchemaMissing(error?: unknown) {
-  const message = error instanceof Error ? error.message : String(error ?? "");
-  return message.includes("accountStatus");
+  return isSchemaMissingError(error, ["accountStatus"]);
 }

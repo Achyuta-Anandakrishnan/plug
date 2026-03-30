@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
-import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
+import { isBountySchemaMissing } from "@/lib/bounty-schema";
 import { isBountyRequestStatus, type BountyRequestStatus } from "@/lib/bounties";
 
 type PatchBountyBody = {
@@ -36,7 +36,6 @@ export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  await ensureBountySchema().catch(() => null);
   try {
     const { id } = await context.params;
     const bounty = await loadBounty(id);
@@ -55,7 +54,6 @@ export async function GET(
     return jsonOk(bounty);
   } catch (error) {
     if (isBountySchemaMissing(error)) {
-      await ensureBountySchema().catch(() => null);
       return jsonError("Bounties are initializing. Retry in a few seconds.", 503);
     }
     console.error("Bounty detail GET failed", { error });
@@ -67,7 +65,6 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  await ensureBountySchema().catch(() => null);
   try {
     const { id } = await context.params;
 
@@ -117,7 +114,6 @@ export async function PATCH(
     return jsonOk(updated);
   } catch (error) {
     if (isBountySchemaMissing(error)) {
-      await ensureBountySchema().catch(() => null);
       return jsonError("Bounties are initializing. Retry in a few seconds.", 503);
     }
     console.error("Bounty detail PATCH failed", { error });
@@ -129,7 +125,6 @@ export async function DELETE(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  await ensureBountySchema().catch(() => null);
   try {
     const { id } = await context.params;
 
@@ -160,7 +155,6 @@ export async function DELETE(
     return jsonOk({ deleted: true });
   } catch (error) {
     if (isBountySchemaMissing(error)) {
-      await ensureBountySchema().catch(() => null);
       return jsonError("Bounties are initializing. Retry in a few seconds.", 503);
     }
     console.error("Bounty detail DELETE failed", { error });

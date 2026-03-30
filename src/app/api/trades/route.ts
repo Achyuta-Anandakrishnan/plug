@@ -4,7 +4,7 @@ import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/api";
 import { TRADE_POST_STATUSES, normalizeTags, parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
-import { ensureTradeSchema, isTradeSchemaMissing } from "@/lib/trade-schema";
+import { isTradeSchemaMissing } from "@/lib/trade-schema";
 
 type CreateTradePostBody = {
   title?: string;
@@ -34,7 +34,6 @@ function getSearchParams(request: Request) {
 }
 
 export async function GET(request: Request) {
-  await ensureTradeSchema().catch(() => null);
   const searchParams = getSearchParams(request);
   try {
     const sessionUser = await getSessionUser();
@@ -90,7 +89,6 @@ export async function GET(request: Request) {
     return jsonOk(posts);
   } catch (error) {
     if (isTradeSchemaMissing(error)) {
-      await ensureTradeSchema().catch(() => null);
       return jsonError("Trades are initializing. Retry in a few seconds.", 503);
     }
     return jsonError("Unable to load trades right now.", 500);
@@ -98,7 +96,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  await ensureTradeSchema().catch(() => null);
   try {
     const sessionUser = await getSessionUser();
     if (!sessionUser?.id) {
@@ -179,7 +176,6 @@ export async function POST(request: Request) {
     return jsonOk(post, { status: 201 });
   } catch (error) {
     if (isTradeSchemaMissing(error)) {
-      await ensureTradeSchema().catch(() => null);
       return jsonError("Trades are initializing. Retry in a few seconds.", 503);
     }
     return jsonError("Unable to create trade post.", 500);

@@ -3,7 +3,7 @@ import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { ensureLiveKitRoom, livekitEnabled } from "@/lib/livekit";
 import { isAdminEmail } from "@/lib/admin";
-import { ensureStreamSchema } from "@/lib/stream-schema";
+import { getCanonicalSellerReadiness, getSellerCapabilityError } from "@/lib/seller-onboarding";
 
 type StreamSessionBody = {
   auctionId?: string;
@@ -11,7 +11,6 @@ type StreamSessionBody = {
 };
 
 export async function POST(request: Request) {
-  await ensureStreamSchema().catch(() => null);
   const sessionUser = await getSessionUser();
   if (!sessionUser) {
     return jsonError("Authentication required.", 401);
@@ -51,11 +50,12 @@ export async function POST(request: Request) {
   ) {
     return jsonError("Not authorized to start this stream.", 403);
   }
-  if (auction.seller.userId === sessionUser.id && auction.seller.status !== "APPROVED") {
-    return jsonError("Seller verification pending approval.", 403);
-  }
-  if (auction.seller.userId === sessionUser.id && (!auction.seller.stripeAccountId || !auction.seller.payoutsEnabled)) {
-    return jsonError("Connect Stripe payouts before starting a live selling room.", 403);
+  if (auction.seller.userId === sessionUser.id) {
+    const readiness = await getCanonicalSellerReadiness(auction.seller);
+    const sellerGateError = getSellerCapabilityError(readiness, "stream");
+    if (sellerGateError) {
+      return jsonError(sellerGateError, 403);
+    }
   }
 
   let scheduledStart: Date | null = null;
@@ -111,7 +111,6 @@ type StreamStatusBody = {
 };
 
 export async function PATCH(request: Request) {
-  await ensureStreamSchema().catch(() => null);
   const sessionUser = await getSessionUser();
   if (!sessionUser) {
     return jsonError("Authentication required.", 401);
@@ -137,8 +136,12 @@ export async function PATCH(request: Request) {
   ) {
     return jsonError("Not authorized to update this stream.", 403);
   }
-  if (auction.seller.userId === sessionUser.id && auction.seller.status !== "APPROVED") {
-    return jsonError("Seller verification pending approval.", 403);
+  if (auction.seller.userId === sessionUser.id) {
+    const readiness = await getCanonicalSellerReadiness(auction.seller);
+    const sellerGateError = getSellerCapabilityError(readiness, "stream");
+    if (sellerGateError) {
+      return jsonError(sellerGateError, 403);
+    }
   }
 
   const session = await prisma.streamSession.findFirst({

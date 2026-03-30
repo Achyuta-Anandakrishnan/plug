@@ -4,11 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { MessageUserButton } from "@/components/profiles/MessageUserButton";
 import { formatCurrency } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
-import { ensureProfileSchema } from "@/lib/profile-schema";
 
 async function getProfile(id: string) {
-  await ensureProfileSchema().catch(() => null);
-
   return prisma.user.findUnique({
     where: { id },
     select: {

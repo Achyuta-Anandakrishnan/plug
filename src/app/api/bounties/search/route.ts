@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonOk } from "@/lib/api";
-import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
+import { isBountySchemaMissing } from "@/lib/bounty-schema";
 import { type BountySearchSuggestion } from "@/lib/bounties";
 
 function getSearchParams(request: Request) {
@@ -59,7 +59,6 @@ function dedupeSuggestions(entries: BountySearchSuggestion[]) {
 }
 
 export async function GET(request: Request) {
-  await ensureBountySchema().catch(() => null);
   try {
     const searchParams = getSearchParams(request);
     const q = searchParams.get("q")?.trim() ?? "";
@@ -223,7 +222,6 @@ export async function GET(request: Request) {
     ]).slice(0, limit));
   } catch (error) {
     if (isBountySchemaMissing(error)) {
-      await ensureBountySchema().catch(() => null);
       return jsonOk([]);
     }
     console.error("Bounty search failed", { error });

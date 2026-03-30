@@ -13,7 +13,7 @@ import {
   SecondaryButton,
 } from "@/components/product/ProductUI";
 import { bountyAmountLabel, bountyBudgetLabel } from "@/lib/bounties";
-import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
+import { isBountySchemaMissing } from "@/lib/bounty-schema";
 import type { AuctionListItem } from "@/hooks/useAuctions";
 import { getPrimaryImageUrl } from "@/lib/auctions";
 import { resolveDisplayMediaUrl } from "@/lib/media-placeholders";
@@ -207,7 +207,6 @@ export default async function BountyDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await ensureBountySchema().catch(() => null);
   const { id } = await params;
 
   let bounty: BountyDetailRecord | null = null;
@@ -223,7 +222,6 @@ export default async function BountyDetailPage({
     });
   } catch (error) {
     if (isBountySchemaMissing(error)) {
-      await ensureBountySchema().catch(() => null);
       bountyLoadError = "Bounties are still initializing. Retry in a few seconds.";
     } else {
       console.error("Bounty detail load failed", { id, error });

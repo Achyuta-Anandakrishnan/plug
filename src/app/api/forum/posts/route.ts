@@ -7,7 +7,7 @@ import {
   isForumSchemaMissing,
   isForumVoteSchemaMissing,
 } from "@/lib/forum-schema";
-import { ensureProfileSchema, isProfileSchemaMissing } from "@/lib/profile-schema";
+import { isProfileSchemaMissing } from "@/lib/profile-schema";
 
 type CreatePostBody = {
   title?: string;
@@ -34,8 +34,6 @@ type PostRow = {
 
 export async function GET(request: Request) {
   await ensureForumSchema().catch(() => null);
-  await ensureProfileSchema().catch(() => null);
-
   const { searchParams } = new URL(request.url);
   const sessionUser = await getSessionUser();
   const q = (searchParams.get("q") ?? "").trim();
@@ -166,8 +164,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   await ensureForumSchema().catch(() => null);
-  await ensureProfileSchema().catch(() => null);
-
   const sessionUser = await getSessionUser();
   if (!sessionUser) return jsonError("Authentication required.", 401);
 

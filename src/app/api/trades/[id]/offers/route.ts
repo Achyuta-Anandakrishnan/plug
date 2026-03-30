@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson, checkRateLimit } from "@/lib/api";
 import { parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
-import { ensureTradeSchema, isTradeSchemaMissing } from "@/lib/trade-schema";
+import { isTradeSchemaMissing } from "@/lib/trade-schema";
 import { tradeOfferWithDuelInclude } from "@/lib/trade-duel-service";
 
 type RouteContext = {
@@ -40,7 +40,6 @@ function clampText(value: unknown, maxLength: number) {
 }
 
 export async function GET(_request: Request, { params }: RouteContext) {
-  await ensureTradeSchema().catch(() => null);
   try {
     const { id } = await params;
     const sessionUser = await getSessionUser();
@@ -68,7 +67,6 @@ export async function GET(_request: Request, { params }: RouteContext) {
     return jsonOk(offers);
   } catch (error) {
     if (isTradeSchemaMissing(error)) {
-      await ensureTradeSchema().catch(() => null);
       return jsonError("Trade offers are initializing. Retry in a few seconds.", 503);
     }
     console.error("Trade offers GET failed", { error });
@@ -77,7 +75,6 @@ export async function GET(_request: Request, { params }: RouteContext) {
 }
 
 export async function POST(request: Request, { params }: RouteContext) {
-  await ensureTradeSchema().catch(() => null);
   try {
     const { id } = await params;
     const sessionUser = await getSessionUser();
@@ -211,7 +208,6 @@ export async function POST(request: Request, { params }: RouteContext) {
     return jsonOk(created, { status: 201 });
   } catch (error) {
     if (isTradeSchemaMissing(error)) {
-      await ensureTradeSchema().catch(() => null);
       return jsonError("Trade offers are initializing. Retry in a few seconds.", 503);
     }
     console.error("Trade offers POST failed", { error });

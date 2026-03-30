@@ -1,15 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
 import { requireAdmin } from "@/lib/admin";
-import { ensureWaitlistSchema } from "@/lib/waitlist-schema";
 
 export async function GET(request: Request) {
   const admin = await requireAdmin(request);
   if (!admin.ok) {
     return jsonError(admin.error, admin.status);
   }
-
-  await ensureWaitlistSchema().catch(() => null);
 
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") ?? "").trim();

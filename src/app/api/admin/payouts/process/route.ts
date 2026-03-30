@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
 import { requireAdmin } from "@/lib/admin";
 import { getStripeClient, stripeEnabled } from "@/lib/stripe";
+import { getCanonicalSellerReadiness } from "@/lib/seller-onboarding";
 
 export async function POST(request: Request) {
   const admin = await requireAdmin(request);
@@ -27,10 +28,6 @@ export async function POST(request: Request) {
       OR: [{ scheduledAt: null }, { scheduledAt: { lte: now } }],
       order: {
         status: "CONFIRMED",
-        seller: {
-          payoutsEnabled: true,
-          stripeAccountId: { not: null },
-        },
       },
     },
     include: {
@@ -54,13 +51,21 @@ export async function POST(request: Request) {
 
   for (const payout of payouts) {
     try {
-      const destination = payout.order.seller.stripeAccountId;
-      if (!destination) {
+      const readiness = await getCanonicalSellerReadiness({
+        id: payout.order.seller.id,
+        userId: payout.order.seller.userId,
+        status: payout.order.seller.status,
+        stripeAccountId: payout.order.seller.stripeAccountId,
+        payoutsEnabled: payout.order.seller.payoutsEnabled,
+      });
+
+      const destination = readiness.stripeAccountId;
+      if (readiness.sellerState !== "active" || !destination) {
         results.push({
           payoutId: payout.id,
           orderId: payout.orderId,
           ok: false,
-          error: "Missing seller Stripe account id.",
+          error: "Seller payouts are not currently enabled.",
         });
         continue;
       }
@@ -108,4 +113,3 @@ export async function POST(request: Request) {
     results,
   });
 }
-

@@ -9,13 +9,16 @@ function normalizePrismaUrl(rawUrl: string | undefined) {
   try {
     const url = new URL(rawUrl);
     const host = url.hostname.toLowerCase();
-    const isSupabasePooler = host.includes("pooler.supabase.com");
+    const isSupabaseHost =
+      host.includes("pooler.supabase.com")
+      || host.endsWith(".supabase.co")
+      || host.endsWith(".supabase.com");
 
-    if (isSupabasePooler && !url.searchParams.has("connection_limit")) {
+    if (isSupabaseHost && !url.searchParams.has("connection_limit")) {
       url.searchParams.set("connection_limit", "1");
     }
 
-    if (isSupabasePooler && !url.searchParams.has("pool_timeout")) {
+    if (isSupabaseHost && !url.searchParams.has("pool_timeout")) {
       url.searchParams.set("pool_timeout", "30");
     }
 
@@ -38,6 +41,4 @@ export const prisma =
     log: ["error", "warn"],
   });
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+globalForPrisma.prisma = prisma;

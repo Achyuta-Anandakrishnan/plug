@@ -1,9 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { jsonError, jsonOk, parseJson } from "@/lib/api";
+import { checkRateLimit, jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
-import { ensureProfileSchema } from "@/lib/profile-schema";
-import { ensureConversationSchema, isConversationSchemaMissing } from "@/lib/conversation-schema";
+import { isConversationSchemaMissing } from "@/lib/conversation-schema";
 
 type CreateConversationBody = {
   participantIds?: string[];
@@ -12,9 +11,6 @@ type CreateConversationBody = {
 };
 
 export async function GET(request: Request) {
-  await ensureProfileSchema().catch(() => null);
-  await ensureConversationSchema().catch(() => null);
-
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q")?.trim() ?? "";
@@ -26,48 +22,104 @@ export async function GET(request: Request) {
 
     const actorId = sessionUser.id;
 
-    const conversations = await prisma.conversation.findMany({
-      where: {
-        participants: {
-          some: { userId: actorId },
-        },
-        ...(query
-          ? {
-              OR: [
-                { subject: { contains: query, mode: "insensitive" } },
-                {
-                  participants: {
-                    some: {
-                      user: {
-                        OR: [
-                          { displayName: { contains: query, mode: "insensitive" } },
-                          { username: { contains: query, mode: "insensitive" } },
-                        ],
-                      },
+    const conversationWhere = {
+      participants: {
+        some: { userId: actorId },
+      },
+      ...(query
+        ? {
+            OR: [
+              { subject: { contains: query, mode: "insensitive" as const } },
+              {
+                participants: {
+                  some: {
+                    user: {
+                      OR: [
+                        { displayName: { contains: query, mode: "insensitive" as const } },
+                        { username: { contains: query, mode: "insensitive" as const } },
+                      ],
                     },
                   },
                 },
-              ],
-            }
-          : {}),
-      },
-      include: {
-        participants: {
-          include: { user: { select: { displayName: true, username: true, id: true } } },
-        },
-        messages: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-        },
-      },
-      orderBy: { updatedAt: "desc" },
-      take: limit,
-    });
+              },
+            ],
+          }
+        : {}),
+    };
 
-    return jsonOk({ items: conversations });
+    const [conversations, profiles] = await Promise.all([
+      prisma.conversation.findMany({
+        where: conversationWhere,
+        select: {
+          id: true,
+          subject: true,
+          isSupport: true,
+          updatedAt: true,
+          participants: {
+            select: {
+              userId: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  displayName: true,
+                },
+              },
+            },
+          },
+          messages: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: {
+              id: true,
+              body: true,
+              imageUrl: true,
+              createdAt: true,
+              senderId: true,
+            },
+          },
+        },
+        orderBy: { updatedAt: "desc" },
+        take: limit,
+      }),
+      query
+        ? prisma.user.findMany({
+            where: {
+              id: { not: actorId },
+              OR: [
+                { username: { contains: query, mode: "insensitive" } },
+                { displayName: { contains: query, mode: "insensitive" } },
+                { name: { contains: query, mode: "insensitive" } },
+              ],
+            },
+            orderBy: { createdAt: "desc" },
+            take: 8,
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              bio: true,
+              image: true,
+              role: true,
+              sellerProfile: {
+                select: {
+                  status: true,
+                  trustTier: true,
+                  auctions: {
+                    select: { id: true },
+                    where: { status: "LIVE" },
+                    take: 4,
+                  },
+                },
+              },
+            },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    return jsonOk({ items: conversations, profiles });
   } catch (error) {
     if (isConversationSchemaMissing(error)) {
-      await ensureConversationSchema().catch(() => null);
       return jsonError("Messages are initializing. Retry in a few seconds.", 503);
     }
     throw error;
@@ -75,8 +127,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  await ensureProfileSchema().catch(() => null);
-
   const body = await parseJson<CreateConversationBody>(request);
 
   if (!body?.participantIds || body.participantIds.length < 2) {
@@ -88,10 +138,25 @@ export async function POST(request: Request) {
     return jsonError("Authentication required.", 401);
   }
 
+  const rateLimitOk = await checkRateLimit(`conversation:create:${sessionUser.id}`, 20, 60 * 60 * 1000);
+  if (!rateLimitOk) {
+    return jsonError("Conversation creation limit reached. Try again later.", 429);
+  }
+
   const uniqueParticipants = Array.from(new Set(body.participantIds));
+  if (uniqueParticipants.length > 10) {
+    return jsonError("Too many conversation participants.", 400);
+  }
 
   if (!uniqueParticipants.includes(sessionUser.id)) {
     return jsonError("You must be a participant in the conversation.", 403);
+  }
+
+  const participantCount = await prisma.user.count({
+    where: { id: { in: uniqueParticipants } },
+  });
+  if (participantCount !== uniqueParticipants.length) {
+    return jsonError("One or more participants could not be found.", 400);
   }
 
   const allowSupportFlag = Boolean(isAdminEmail(sessionUser.email));
