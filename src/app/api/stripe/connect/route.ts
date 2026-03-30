@@ -5,6 +5,7 @@ import { jsonError, jsonOk } from "@/lib/api";
 import { getCanonicalSellerReadiness } from "@/lib/seller-onboarding";
 
 const HTTP_ORIGIN_PATTERN = /^https?:\/\/[^/]+$/i;
+const STRIPE_ACCOUNT_ID_PATTERN = /^acct_[A-Za-z0-9]+$/;
 
 function getSafeAppOrigin(request: Request) {
   const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
@@ -31,6 +32,12 @@ function getSafeAppOrigin(request: Request) {
   }
 
   return "http://localhost:3000";
+}
+
+function normalizeStripeAccountId(value: string | null | undefined) {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) return null;
+  return STRIPE_ACCOUNT_ID_PATTERN.test(trimmed) ? trimmed : null;
 }
 
 export async function GET() {
@@ -88,7 +95,14 @@ export async function POST(request: Request) {
     return jsonError("Seller profile required.", 403);
   }
 
-  let stripeAccountId = sellerProfile.stripeAccountId;
+  let stripeAccountId = normalizeStripeAccountId(sellerProfile.stripeAccountId);
+
+  if (sellerProfile.stripeAccountId && !stripeAccountId) {
+    await prisma.sellerProfile.update({
+      where: { id: sellerProfile.id },
+      data: { stripeAccountId: null, payoutsEnabled: false },
+    });
+  }
 
   if (!stripeAccountId) {
     const account = await stripe.accounts.create({
@@ -119,10 +133,45 @@ export async function POST(request: Request) {
       type: "account_onboarding",
     });
   } catch (error) {
+    if (stripeAccountId && error instanceof Error && /expected pattern|no such account|invalid/i.test(error.message)) {
+      const replacementAccount = await stripe.accounts.create({
+        type: "express",
+        email: sessionUser.email ?? undefined,
+        metadata: {
+          sellerProfileId: sellerProfile.id,
+          userId: sessionUser.id,
+        },
+      });
+
+      stripeAccountId = replacementAccount.id;
+
+      await prisma.sellerProfile.update({
+        where: { id: sellerProfile.id },
+        data: {
+          stripeAccountId,
+          payoutsEnabled: false,
+        },
+      });
+
+      try {
+        link = await stripe.accountLinks.create({
+          account: stripeAccountId,
+          refresh_url: `${appOrigin}/seller/verification?stripe=refresh`,
+          return_url: `${appOrigin}/seller/verification?stripe=success`,
+          type: "account_onboarding",
+        });
+      } catch (retryError) {
+        const retryMessage = retryError instanceof Error && retryError.message.trim()
+          ? retryError.message
+          : "Unable to start Stripe onboarding.";
+        return jsonError(retryMessage, 502);
+      }
+    } else {
     const message = error instanceof Error && error.message.trim()
       ? error.message
       : "Unable to start Stripe onboarding.";
     return jsonError(message, 502);
+    }
   }
 
   const readiness = await getCanonicalSellerReadiness({
