@@ -9,6 +9,24 @@ const HTTP_ORIGIN_PATTERN = /^https?:\/\/[^/]+$/i;
 const STRIPE_ACCOUNT_ID_PATTERN = /^acct_[A-Za-z0-9]+$/;
 
 function getSafeAppOrigin(request: Request) {
+  try {
+    const requestOrigin = new URL(request.url).origin.replace(/\/+$/g, "");
+    if (HTTP_ORIGIN_PATTERN.test(requestOrigin)) {
+      return requestOrigin;
+    }
+  } catch {
+    // Fall through to secondary resolution.
+  }
+
+  const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  if (forwardedProto && forwardedHost) {
+    const forwardedOrigin = `${forwardedProto}://${forwardedHost}`.replace(/\/+$/g, "");
+    if (HTTP_ORIGIN_PATTERN.test(forwardedOrigin)) {
+      return forwardedOrigin;
+    }
+  }
+
   const headerOrigin = request.headers.get("origin")?.trim().replace(/\/+$/g, "");
   if (headerOrigin && HTTP_ORIGIN_PATTERN.test(headerOrigin)) {
     return headerOrigin;
@@ -26,30 +44,27 @@ function getSafeAppOrigin(request: Request) {
     }
   }
 
-  const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
-  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
-  if (forwardedProto && forwardedHost) {
-    const forwardedOrigin = `${forwardedProto}://${forwardedHost}`.replace(/\/+$/g, "");
-    if (HTTP_ORIGIN_PATTERN.test(forwardedOrigin)) {
-      return forwardedOrigin;
-    }
-  }
-
-  try {
-    const requestOrigin = new URL(request.url).origin.replace(/\/+$/g, "");
-    if (HTTP_ORIGIN_PATTERN.test(requestOrigin)) {
-      return requestOrigin;
-    }
-  } catch {
-    // Fall through to configured env origin.
-  }
-
   const configuredOrigin = (process.env.NEXT_PUBLIC_APP_URL ?? "").trim().replace(/\/+$/g, "");
   if (HTTP_ORIGIN_PATTERN.test(configuredOrigin)) {
     return configuredOrigin;
   }
 
   return "http://localhost:3000";
+}
+
+function buildSellerVerificationUrls(request: Request) {
+  const origin = getSafeAppOrigin(request);
+  const refreshUrl = new URL("/seller/verification", origin);
+  refreshUrl.searchParams.set("stripe", "refresh");
+
+  const returnUrl = new URL("/seller/verification", origin);
+  returnUrl.searchParams.set("stripe", "success");
+
+  return {
+    origin,
+    refreshUrl: refreshUrl.toString(),
+    returnUrl: returnUrl.toString(),
+  };
 }
 
 function normalizeStripeAccountId(value: string | null | undefined) {
@@ -100,17 +115,25 @@ async function createStripeOnboardingLink(request: Request, sessionUser: NonNull
     });
   }
 
-  const appOrigin = getSafeAppOrigin(request);
+  const { origin, refreshUrl, returnUrl } = buildSellerVerificationUrls(request);
 
   let link;
   try {
     link = await stripe.accountLinks.create({
       account: stripeAccountId,
-      refresh_url: `${appOrigin}/seller/verification?stripe=refresh`,
-      return_url: `${appOrigin}/seller/verification?stripe=success`,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
       type: "account_onboarding",
     });
   } catch (error) {
+    console.error("Stripe account link creation failed", {
+      error,
+      sellerProfileId: sellerProfile.id,
+      stripeAccountId,
+      origin,
+      refreshUrl,
+      returnUrl,
+    });
     if (stripeAccountId && error instanceof Error && /expected pattern|no such account|invalid/i.test(error.message)) {
       const replacementAccount = await stripe.accounts.create({
         type: "express",
@@ -134,11 +157,19 @@ async function createStripeOnboardingLink(request: Request, sessionUser: NonNull
       try {
         link = await stripe.accountLinks.create({
           account: stripeAccountId,
-          refresh_url: `${appOrigin}/seller/verification?stripe=refresh`,
-          return_url: `${appOrigin}/seller/verification?stripe=success`,
+          refresh_url: refreshUrl,
+          return_url: returnUrl,
           type: "account_onboarding",
         });
       } catch (retryError) {
+        console.error("Stripe account link creation retry failed", {
+          error: retryError,
+          sellerProfileId: sellerProfile.id,
+          stripeAccountId,
+          origin,
+          refreshUrl,
+          returnUrl,
+        });
         const retryMessage = retryError instanceof Error && retryError.message.trim()
           ? retryError.message
           : "Unable to start Stripe onboarding.";
