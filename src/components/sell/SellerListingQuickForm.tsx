@@ -33,6 +33,14 @@ type VerifyPayload = {
   error?: string;
 };
 
+type StripeConnectStatus = {
+  hasSellerProfile: boolean;
+  stripeConfigured: boolean;
+  stripeAccountId: string | null;
+  payoutsEnabled: boolean;
+  sellerStatus: string | null;
+};
+
 const listingTypes: Array<{ value: ListingType; label: string }> = [
   { value: "AUCTION", label: "Auction" },
   { value: "BUY_NOW", label: "Buy now" },
@@ -117,6 +125,9 @@ export function SellerListingQuickForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [submitMessage, setSubmitMessage] = useState("");
   const [listingId, setListingId] = useState("");
+  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null);
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripeMessage, setStripeMessage] = useState("");
 
   useEffect(() => {
     const cert = certNumber.replace(/\s+/g, "").trim();
@@ -188,6 +199,39 @@ export function SellerListingQuickForm() {
       setGrader(grader);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setStripeStatus(null);
+      return;
+    }
+    let cancelled = false;
+    const loadStripeStatus = async () => {
+      setStripeLoading(true);
+      try {
+        const response = await fetch("/api/stripe/connect", { cache: "no-store" });
+        const payload = (await response.json()) as StripeConnectStatus & { error?: string };
+        if (!response.ok) {
+          throw new Error(payload.error || "Unable to load payout status.");
+        }
+        if (!cancelled) {
+          setStripeStatus(payload);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setStripeMessage(error instanceof Error ? error.message : "Unable to load payout status.");
+        }
+      } finally {
+        if (!cancelled) {
+          setStripeLoading(false);
+        }
+      }
+    };
+    void loadStripeStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id]);
 
   const previewTitle = useMemo(() => {
     if (!lookup || !lookup.found) return "Auto-filled title";
@@ -289,6 +333,22 @@ export function SellerListingQuickForm() {
     }
   };
 
+  const handleConnectStripe = async () => {
+    setStripeMessage("");
+    setStripeLoading(true);
+    try {
+      const response = await fetch("/api/stripe/connect", { method: "POST" });
+      const payload = (await response.json()) as { url?: string; error?: string };
+      if (!response.ok || !payload.url) {
+        throw new Error(payload.error || "Unable to start Stripe onboarding.");
+      }
+      window.location.href = payload.url;
+    } catch (error) {
+      setStripeLoading(false);
+      setStripeMessage(error instanceof Error ? error.message : "Unable to start Stripe onboarding.");
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="sell-form-panel sell-quick-form">
       <div className="sell-quick-head">
@@ -315,6 +375,37 @@ export function SellerListingQuickForm() {
           ) : null}
         </div>
       )}
+
+      {isSeller ? (
+        <div className="sell-alert-stack">
+          <p className={`app-status-note ${stripeStatus?.payoutsEnabled ? "is-success" : "is-warning"}`}>
+            {stripeLoading
+              ? "Checking payout setup..."
+              : stripeStatus?.payoutsEnabled
+                ? "Stripe payouts are connected."
+                : "You can still create listings now. Connect Stripe payouts before you need automatic seller payouts."}
+          </p>
+          {!stripeStatus?.payoutsEnabled ? (
+            <div className="app-form-actions">
+              <button
+                type="button"
+                onClick={() => void handleConnectStripe()}
+                className="app-button app-button-secondary"
+                disabled={stripeLoading || stripeStatus?.stripeConfigured === false}
+              >
+                {stripeLoading ? "Opening Stripe..." : "Connect Stripe payouts"}
+              </button>
+              <Link href="/seller/verification" className="app-button app-button-secondary">
+                Seller settings
+              </Link>
+            </div>
+          ) : null}
+          {stripeStatus?.stripeConfigured === false ? (
+            <p className="app-form-note">Stripe is not configured in this environment yet.</p>
+          ) : null}
+          {stripeMessage ? <p className="app-form-note is-error">{stripeMessage}</p> : null}
+        </div>
+      ) : null}
 
       <section className="listing-form-stage">
         <div className="listing-form-stage-head">

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import { LiveKitStream } from "@/components/streams/LiveKitStream";
+import { StreamInventoryManager } from "@/components/streams/StreamInventoryManager";
 import { useAuction } from "@/hooks/useAuction";
 import type { AuctionDetail } from "@/hooks/useAuction";
 import { getTimeLeftSeconds } from "@/lib/auctions";
@@ -79,7 +80,7 @@ export function StreamRoomMobile({
 
   const handleBid = async (amountOverride?: number) => {
     if (!data) return;
-    if (!canUseStripe) { setActionStatus("Connect Stripe to place offers."); return; }
+    if (!canUseStripe) { setActionStatus("Payments are unavailable right now."); return; }
     if (!sessionUserId) { setActionStatus("Sign in to place bids."); await signIn(); return; }
     if (isListingSeller) { setActionStatus("Sellers cannot bid on their own listings."); return; }
     if (!roomLive) { setActionStatus("Bidding opens once the seller is live."); return; }
@@ -99,7 +100,7 @@ export function StreamRoomMobile({
 
   const handleBuyNow = async () => {
     if (!data) return;
-    if (!canUseStripe) { setActionStatus("Connect Stripe to buy now."); return; }
+    if (!canUseStripe) { setActionStatus("Payments are unavailable right now."); return; }
     if (!sessionUserId) { setActionStatus("Sign in to buy now."); await signIn(); return; }
     if (isListingSeller) { setActionStatus("Sellers cannot buy their own listings."); return; }
     const response = await fetch(`/api/auctions/${data.id}/buy`, {
@@ -192,6 +193,8 @@ export function StreamRoomMobile({
           </div>
         </div>
 
+        {isHost ? <StreamInventoryManager auctionId={data.id} compact /> : null}
+
         {/* Chat feed */}
         <div ref={chatRef} className="stream-room-wn-mobile-chat">
           {data.chatMessages.length === 0 ? (
@@ -277,7 +280,7 @@ export function StreamRoomMobile({
           </div>
 
           {!canUseStripe && (
-            <p className="app-form-hint is-warning">Connect Stripe to place bids.</p>
+            <p className="app-form-hint is-warning">Payments are unavailable right now.</p>
           )}
           {actionStatus ? <p className="stream-room-wn-status">{actionStatus}</p> : null}
         </div>

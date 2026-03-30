@@ -246,7 +246,7 @@ export function AuctionDetailClient({ auction, stripeEnabled = true, certSnapsho
             ) : null}
 
             {hasBuyNow && isLive && !stripeEnabled ? (
-              <p className="auction-detail-note">Payments not configured for this listing.</p>
+              <p className="auction-detail-note">Payments are unavailable right now.</p>
             ) : null}
 
             {buyError ? (

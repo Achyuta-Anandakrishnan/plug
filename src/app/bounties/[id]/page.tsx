@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { getSessionUser } from "@/lib/auth";
 import { BountyCommentsClient } from "@/components/bounties/BountyCommentsClient";
 import { MessageUserButton } from "@/components/profiles/MessageUserButton";
 import { CardSpecSheet } from "@/components/product/CardSpecSheet";
@@ -245,6 +246,13 @@ export default async function BountyDetailPage({
       );
     }
     notFound();
+  }
+
+  if (bounty.status !== "OPEN") {
+    const sessionUser = await getSessionUser();
+    if (!sessionUser?.id || sessionUser.id !== bounty.userId) {
+      notFound();
+    }
   }
 
   const collectorName = bounty.user.displayName ?? bounty.user.username ?? "Collector";

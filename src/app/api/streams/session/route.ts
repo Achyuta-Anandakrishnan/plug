@@ -3,6 +3,7 @@ import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { ensureLiveKitRoom, livekitEnabled } from "@/lib/livekit";
 import { isAdminEmail } from "@/lib/admin";
+import { ensureStreamSchema } from "@/lib/stream-schema";
 
 type StreamSessionBody = {
   auctionId?: string;
@@ -10,6 +11,7 @@ type StreamSessionBody = {
 };
 
 export async function POST(request: Request) {
+  await ensureStreamSchema().catch(() => null);
   const sessionUser = await getSessionUser();
   if (!sessionUser) {
     return jsonError("Authentication required.", 401);
@@ -106,6 +108,7 @@ type StreamStatusBody = {
 };
 
 export async function PATCH(request: Request) {
+  await ensureStreamSchema().catch(() => null);
   const sessionUser = await getSessionUser();
   if (!sessionUser) {
     return jsonError("Authentication required.", 401);

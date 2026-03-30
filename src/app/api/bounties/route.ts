@@ -35,6 +35,7 @@ type CreateBountyBody = {
 type BountyGradeFilter = "all" | "raw" | "psa" | "bgs" | "cgc" | "high-grade";
 type BountyBudgetFilter = "all" | "under-500" | "500-2500" | "2500-10000" | "10000-plus";
 type BountySortMode = "newest" | "highest-bounty" | "highest-budget" | "most-specific" | "recently-active";
+const MAX_MONEY_CENTS = 100_000_000;
 
 function getSearchParams(request: Request) {
   try {
@@ -46,6 +47,21 @@ function getSearchParams(request: Request) {
 
 function normalizeText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function clampText(value: unknown, maxLength: number) {
+  return normalizeText(value).slice(0, maxLength);
+}
+
+function sanitizeMoney(value: number | null, fieldLabel: string) {
+  if (value === null) return null;
+  if (value < 0) {
+    throw new Error(`${fieldLabel} cannot be negative.`);
+  }
+  if (value > MAX_MONEY_CENTS) {
+    throw new Error(`${fieldLabel} exceeds the allowed limit.`);
+  }
+  return value;
 }
 
 function normalizePriceBounds(priceMin: number | null, priceMax: number | null) {
@@ -230,11 +246,11 @@ export async function POST(request: Request) {
     }
 
     const body = await parseJson<CreateBountyBody>(request);
-    const itemName = normalizeText(body?.itemName);
-    const title = normalizeText(body?.title) || itemName;
-    const priceMin = parseIntOrNull(body?.priceMin);
-    const priceMax = parseIntOrNull(body?.priceMax);
-    const bountyAmount = parseIntOrNull(body?.bountyAmount);
+    const itemName = clampText(body?.itemName, 140);
+    const title = clampText(body?.title, 140) || itemName;
+    const priceMin = sanitizeMoney(parseIntOrNull(body?.priceMin), "Budget minimum");
+    const priceMax = sanitizeMoney(parseIntOrNull(body?.priceMax), "Budget maximum");
+    const bountyAmount = sanitizeMoney(parseIntOrNull(body?.bountyAmount), "Bounty amount");
 
     if (!itemName && !title) {
       return jsonError("Card or item name is required.");
@@ -244,28 +260,37 @@ export async function POST(request: Request) {
     }
 
     const priceBounds = normalizePriceBounds(priceMin, priceMax);
-    const notes = normalizeText(body?.notes).slice(0, 240);
+    const notes = clampText(body?.notes, 240);
+    const category = clampText(body?.category, 80);
+    const player = clampText(body?.player, 120);
+    const setName = clampText(body?.setName, 120);
+    const year = clampText(body?.year, 12);
+    const gradeCompany = clampText(body?.gradeCompany, 32);
+    const gradeTarget = clampText(body?.gradeTarget, 32);
+    const grade = clampText(body?.grade, 32);
+    const condition = clampText(body?.condition, 48);
+    const certNumber = clampText(body?.certNumber, 64);
 
     const created = await prisma.wantRequest.create({
       data: {
         userId: sessionUser.id,
         title: title || itemName,
         itemName: itemName || title,
-        category: normalizeText(body?.category) || null,
-        player: normalizeText(body?.player) || null,
-        setName: normalizeText(body?.setName) || null,
-        year: normalizeText(body?.year) || null,
-        gradeCompany: normalizeText(body?.gradeCompany) || null,
-        gradeTarget: normalizeText(body?.gradeTarget) || null,
-        grade: normalizeText(body?.grade) || null,
-        condition: normalizeText(body?.condition) || null,
-        certNumber: normalizeText(body?.certNumber) || null,
+        category: category || null,
+        player: player || null,
+        setName: setName || null,
+        year: year || null,
+        gradeCompany: gradeCompany || null,
+        gradeTarget: gradeTarget || null,
+        grade: grade || null,
+        condition: condition || null,
+        certNumber: certNumber || null,
         priceMin: priceBounds.priceMin,
         priceMax: priceBounds.priceMax,
         bountyAmount,
         notes: notes || null,
         imageUrl: toHttpUrlOrNull(body?.imageUrl) ?? null,
-        status: body?.status && isBountyRequestStatus(body.status) ? body.status : "OPEN",
+        status: "OPEN",
       },
       include: {
         user: {
@@ -281,6 +306,9 @@ export async function POST(request: Request) {
 
     return jsonOk(asListItem(created), { status: 201 });
   } catch (error) {
+    if (error instanceof Error && /cannot be negative|exceeds the allowed limit/i.test(error.message)) {
+      return jsonError(error.message);
+    }
     if (isBountySchemaMissing(error)) {
       await ensureBountySchema().catch(() => null);
       return jsonError("Bounties are initializing. Retry in a few seconds.", 503);

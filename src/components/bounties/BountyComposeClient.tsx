@@ -23,6 +23,9 @@ export function BountyComposeClient() {
   const { data: session } = useSession();
 
   const [lookingFor, setLookingFor] = useState("");
+  const [category, setCategory] = useState("");
+  const [gradeOrCondition, setGradeOrCondition] = useState("");
+  const [certNumber, setCertNumber] = useState("");
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
   const [bountyAmount, setBountyAmount] = useState("");
@@ -47,6 +50,10 @@ export function BountyComposeClient() {
       setError("Add a budget or price range.");
       return;
     }
+    if (desiredMin !== null && desiredMax !== null && desiredMax < desiredMin) {
+      setError("Budget max must be at least the minimum.");
+      return;
+    }
 
     setSubmitting(true);
     setError("");
@@ -57,6 +64,10 @@ export function BountyComposeClient() {
         body: JSON.stringify({
           title: lookingFor.trim(),
           itemName: lookingFor.trim(),
+          category: category.trim() || null,
+          grade: gradeOrCondition.trim() || null,
+          condition: gradeOrCondition.trim() || null,
+          certNumber: certNumber.trim() || null,
           priceMin: desiredMin,
           priceMax: desiredMax,
           bountyAmount: desiredBounty,
@@ -79,7 +90,7 @@ export function BountyComposeClient() {
       <section className="app-section">
         <PageHeader
           eyebrow="Bounty board"
-          title="Post a want"
+          title="Post bounty"
           subtitle="Tell the community what you're looking for and what you'll pay."
           actions={<SecondaryButton href="/bounties">Back to board</SecondaryButton>}
         />
@@ -93,12 +104,42 @@ export function BountyComposeClient() {
                 <span>Looking for</span>
                 <input
                   value={lookingFor}
-                  onChange={(e) => setLookingFor(e.target.value)}
+                  onChange={(e) => setLookingFor(e.target.value.slice(0, 140))}
                   className="app-form-input bounty-compose-main-input"
                   placeholder="e.g. PSA 10 1952 Topps Mickey Mantle, Shohei Ohtani RC auto"
                   autoFocus
                 />
               </label>
+
+              <div className="bounty-compose-price-row">
+                <label className="app-form-field">
+                  <span>Category <span className="app-form-optional">(optional)</span></span>
+                  <input
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value.slice(0, 80))}
+                    className="app-form-input"
+                    placeholder="Pokemon, Sports, Anime"
+                  />
+                </label>
+                <label className="app-form-field">
+                  <span>Grade / condition <span className="app-form-optional">(optional)</span></span>
+                  <input
+                    value={gradeOrCondition}
+                    onChange={(e) => setGradeOrCondition(e.target.value.slice(0, 48))}
+                    className="app-form-input"
+                    placeholder="PSA 9, raw, strong eye appeal"
+                  />
+                </label>
+                <label className="app-form-field">
+                  <span>Cert # <span className="app-form-optional">(optional)</span></span>
+                  <input
+                    value={certNumber}
+                    onChange={(e) => setCertNumber(e.target.value.slice(0, 64))}
+                    className="app-form-input"
+                    placeholder="Optional exact cert"
+                  />
+                </label>
+              </div>
 
               <div className="bounty-compose-price-row">
                 <label className="app-form-field">
@@ -132,6 +173,10 @@ export function BountyComposeClient() {
                   />
                 </label>
               </div>
+
+              <p className="app-form-note">
+                Budget is what you will pay for the card. Bounty is the extra finder&apos;s fee on top.
+              </p>
 
               <label className="app-form-field">
                 <span>Notes <span className="app-form-optional">(optional)</span></span>

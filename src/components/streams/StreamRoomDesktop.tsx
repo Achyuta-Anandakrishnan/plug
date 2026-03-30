@@ -10,6 +10,7 @@ import { getTimeLeftSeconds } from "@/lib/auctions";
 import { formatCurrency, formatSeconds } from "@/lib/format";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import { LiveKitStream } from "@/components/streams/LiveKitStream";
+import { StreamInventoryManager } from "@/components/streams/StreamInventoryManager";
 
 type StreamRoomDesktopProps = {
   auctionId: string;
@@ -115,7 +116,7 @@ export function StreamRoomDesktop({
 
   const handleBid = async (amountOverride?: number) => {
     if (!data) return;
-    if (!canUseStripe) { setActionStatus("Connect Stripe to place bids."); return; }
+    if (!canUseStripe) { setActionStatus("Payments are unavailable right now."); return; }
     if (!sessionUserId) { setActionStatus("Sign in to place bids."); await signIn(); return; }
     if (isListingSeller) { setActionStatus("Sellers cannot bid on their own listings."); return; }
     if (!roomLive) { setActionStatus("Bidding opens once the seller is live."); return; }
@@ -135,7 +136,7 @@ export function StreamRoomDesktop({
 
   const handleBuyNow = async () => {
     if (!data) return;
-    if (!canUseStripe) { setActionStatus("Connect Stripe to buy now."); return; }
+    if (!canUseStripe) { setActionStatus("Payments are unavailable right now."); return; }
     if (!sessionUserId) { setActionStatus("Sign in to buy now."); await signIn(); return; }
     if (isListingSeller) { setActionStatus("Sellers cannot buy their own listings."); return; }
     const confirmBuy = window.confirm(`Confirm buy now for ${formatCurrency(data.buyNowPrice ?? 0, currency)}?`);
@@ -227,6 +228,8 @@ export function StreamRoomDesktop({
           </div>
         )}
 
+        {isHost ? <StreamInventoryManager auctionId={data.id} /> : null}
+
         {/* Live price summary */}
         <div className="stream-room-v4-prices">
           <div className="stream-room-v4-price-cell">
@@ -313,7 +316,7 @@ export function StreamRoomDesktop({
           ) : null}
 
           {!canUseStripe && (
-            <p className="stream-room-v4-hint is-warning">Connect Stripe to place bids.</p>
+            <p className="stream-room-v4-hint is-warning">Payments are unavailable right now.</p>
           )}
           {actionStatus ? <p className="stream-room-v4-status">{actionStatus}</p> : null}
         </div>

@@ -16,7 +16,7 @@ export async function POST(
   const { id } = await context.params;
   const body = await parseJson<CreateBidBody>(request);
   if (!stripeEnabled()) {
-    return jsonError("Stripe must be connected to place offers.", 503);
+    return jsonError("Payments are unavailable right now.", 503);
   }
   const sessionUser = await getSessionUser();
   const bidderId = sessionUser?.id ?? null;

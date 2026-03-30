@@ -246,10 +246,6 @@ export async function POST(request: Request) {
     return jsonError("Seller verification pending approval.", 403);
   }
 
-  if (!seller.stripeAccountId || !seller.payoutsEnabled) {
-    return jsonError("Connect a Stripe account before creating listings.", 403);
-  }
-
   const startTime = body.startTime ? new Date(body.startTime) : null;
   const endTime = body.endTime ? new Date(body.endTime) : null;
 

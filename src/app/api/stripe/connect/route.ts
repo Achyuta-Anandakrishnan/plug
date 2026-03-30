@@ -3,6 +3,53 @@ import { getSessionUser } from "@/lib/auth";
 import { getStripeClient } from "@/lib/stripe";
 import { jsonError, jsonOk } from "@/lib/api";
 
+export async function GET() {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser?.id) {
+    return jsonError("Authentication required.", 401);
+  }
+
+  const stripe = getStripeClient();
+  const sellerProfile = await prisma.sellerProfile.findUnique({
+    where: { userId: sessionUser.id },
+    select: { id: true, stripeAccountId: true, payoutsEnabled: true, status: true },
+  });
+
+  if (!sellerProfile) {
+    return jsonOk({
+      hasSellerProfile: false,
+      stripeConfigured: Boolean(stripe),
+      stripeAccountId: null,
+      payoutsEnabled: false,
+      sellerStatus: null,
+    });
+  }
+
+  let payoutsEnabled = Boolean(sellerProfile.payoutsEnabled);
+  if (stripe && sellerProfile.stripeAccountId) {
+    try {
+      const account = await stripe.accounts.retrieve(sellerProfile.stripeAccountId);
+      payoutsEnabled = Boolean(account.payouts_enabled && account.charges_enabled);
+      if (sellerProfile.payoutsEnabled !== payoutsEnabled) {
+        await prisma.sellerProfile.update({
+          where: { id: sellerProfile.id },
+          data: { payoutsEnabled },
+        });
+      }
+    } catch (error) {
+      console.error("Stripe account status lookup failed", { error, sellerProfileId: sellerProfile.id });
+    }
+  }
+
+  return jsonOk({
+    hasSellerProfile: true,
+    stripeConfigured: Boolean(stripe),
+    stripeAccountId: sellerProfile.stripeAccountId,
+    payoutsEnabled,
+    sellerStatus: sellerProfile.status,
+  });
+}
+
 export async function POST() {
   const sessionUser = await getSessionUser();
   if (!sessionUser?.id) {

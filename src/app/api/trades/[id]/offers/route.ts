@@ -30,6 +30,15 @@ type CreateOfferBody = {
   cards?: CreateOfferCardBody[];
 };
 
+const MAX_CASH_ADJUSTMENT = 100_000_00;
+const MAX_MESSAGE_LENGTH = 600;
+const MAX_CARD_NOTES_LENGTH = 240;
+const MAX_EXPIRATION_WINDOW_MS = 1000 * 60 * 60 * 24 * 30;
+
+function clampText(value: unknown, maxLength: number) {
+  return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+}
+
 export async function GET(_request: Request, { params }: RouteContext) {
   await ensureTradeSchema().catch(() => null);
   try {
@@ -98,6 +107,10 @@ export async function POST(request: Request, { params }: RouteContext) {
         postId: id,
         proposerId: sessionUser.id,
         status: { in: ["PENDING", "COUNTERED"] },
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: new Date() } },
+        ],
       },
       select: { id: true },
     });
@@ -114,26 +127,26 @@ export async function POST(request: Request, { params }: RouteContext) {
     const cards = Array.isArray(body.cards)
       ? body.cards
         .map((card) => ({
-          title: typeof card?.title === "string" ? card.title.trim() : "",
-          cardSet: typeof card?.cardSet === "string" ? card.cardSet.trim() : "",
-          cardNumber: typeof card?.cardNumber === "string" ? card.cardNumber.trim() : "",
-          condition: typeof card?.condition === "string" ? card.condition.trim() : "",
-          gradeCompany: typeof card?.gradeCompany === "string" ? card.gradeCompany.trim() : "",
-          gradeLabel: typeof card?.gradeLabel === "string" ? card.gradeLabel.trim() : "",
+          title: clampText(card?.title, 140),
+          cardSet: clampText(card?.cardSet, 120),
+          cardNumber: clampText(card?.cardNumber, 48),
+          condition: clampText(card?.condition, 48),
+          gradeCompany: clampText(card?.gradeCompany, 32),
+          gradeLabel: clampText(card?.gradeLabel, 32),
           estimatedValue: parseIntOrNull(card?.estimatedValue),
           imageUrl: toHttpUrlOrNull(card?.imageUrl) ?? "",
-          notes: typeof card?.notes === "string" ? card.notes.trim() : "",
+          notes: clampText(card?.notes, MAX_CARD_NOTES_LENGTH),
         }))
-        .filter((card) => card.title.length > 0)
+        .filter((card) => card.title.length > 0 && (card.estimatedValue === null || card.estimatedValue >= 0))
         .slice(0, 16)
       : [];
 
     const cashAdj = parseIntOrNull(body.cashAdjustment) ?? 0;
-    if (Math.abs(cashAdj) > 100_000_00) {
+    if (Math.abs(cashAdj) > MAX_CASH_ADJUSTMENT) {
       return jsonError("Cash adjustment exceeds the allowed limit.");
     }
 
-    const message = body.message?.trim() || "";
+    const message = clampText(body.message, MAX_MESSAGE_LENGTH);
     if (!message && cards.length === 0) {
       return jsonError("Add a message or at least one offered card.");
     }
@@ -143,6 +156,13 @@ export async function POST(request: Request, { params }: RouteContext) {
       const parsed = new Date(body.expiresAt);
       if (Number.isNaN(parsed.getTime())) {
         return jsonError("Invalid expiration date.");
+      }
+      const now = Date.now();
+      if (parsed.getTime() <= now) {
+        return jsonError("Expiration must be in the future.");
+      }
+      if (parsed.getTime() - now > MAX_EXPIRATION_WINDOW_MS) {
+        return jsonError("Expiration cannot be more than 30 days out.");
       }
       expiresAt = parsed;
     }

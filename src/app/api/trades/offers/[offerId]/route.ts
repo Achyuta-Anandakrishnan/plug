@@ -13,7 +13,6 @@ import {
   createTradeDuelDraftData,
   hydrateLegacyTradeDuel,
   recordTradeDuelAgreement,
-  settleTradeOfferByDuel,
   startTradeDuel,
   tradeOfferWithDuelInclude,
   viewerCanAccessTradeOffer,
@@ -41,6 +40,15 @@ type UpdateOfferBody = {
   gameAction?: "AGREE_TERMS" | "START_GAME" | "RESOLVE_GAME";
   gameWinnerId?: string | null;
 };
+
+const MAX_COUNTER_MESSAGE_LENGTH = 600;
+const MAX_COUNTER_CASH_ADJUSTMENT = 100_000_00;
+
+function isOfferExpired(offer: Pick<TradeOfferWithDuel, "expiresAt" | "status">) {
+  if (!offer.expiresAt) return false;
+  if (!["PENDING", "COUNTERED"].includes(offer.status)) return false;
+  return new Date(offer.expiresAt).getTime() <= Date.now();
+}
 
 function normalizeCounterMode(value: unknown) {
   return value === "GAME" || value === "DUEL" ? "DUEL" : "STANDARD";
@@ -146,6 +154,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     if (!offer.duel) {
       return jsonError("No duel is attached to this counter offer.", 409);
     }
+    if (isOfferExpired(offer)) {
+      return jsonError("This offer has expired.", 409);
+    }
     const updated = await prisma.$transaction(async (tx) => recordTradeDuelAgreement(tx, offer as TradeOfferWithRequiredDuel, sessionUser.id));
     return jsonOk(updated);
   }
@@ -154,33 +165,23 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     if (!offer.duel) {
       return jsonError("This offer does not have duel terms.", 409);
     }
+    if (isOfferExpired(offer)) {
+      return jsonError("This offer has expired.", 409);
+    }
     const updated = await prisma.$transaction(async (tx) => startTradeDuel(tx, offer as TradeOfferWithRequiredDuel, sessionUser.id));
     return jsonOk(updated);
   }
 
   if (body.gameAction === "RESOLVE_GAME") {
-    if (!offer.duel) {
-      return jsonError("This offer does not have duel terms.", 409);
-    }
-    const winnerId = typeof body.gameWinnerId === "string" ? body.gameWinnerId.trim() : "";
-    if (!winnerId || (winnerId !== offer.duel.challengerId && winnerId !== offer.duel.defenderId)) {
-      return jsonError("Winner must be one of the duel participants.", 409);
-    }
-    const winnerParty = winnerId === offer.duel.challengerId ? "CHALLENGER" : "DEFENDER";
-    const updated = await prisma.$transaction(async (tx) =>
-      settleTradeOfferByDuel(
-        tx,
-        offer as TradeOfferWithRequiredDuel,
-        winnerParty,
-        `Legacy resolution awarded the duel to the ${winnerParty === "CHALLENGER" ? "challenger" : "defender"}.`,
-      ),
-    );
-    return jsonOk(updated);
+    return jsonError("Resolve duels from the duel room only.", 409);
   }
 
   const nextStatus = body.status as NonNullable<UpdateOfferBody["status"]>;
 
   if (nextStatus === "WITHDRAWN") {
+    if (isOfferExpired(offer)) {
+      return jsonError("This offer has already expired.", 409);
+    }
     if (!isProposer) {
       return jsonError("Only the proposer can withdraw this offer.", 403);
     }
@@ -205,6 +206,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   if (nextStatus === "ACCEPTED") {
+    if (isOfferExpired(offer)) {
+      return jsonError("This offer has expired.", 409);
+    }
     if (offer.duel || (offer.gameType && offer.gameTerms)) {
       return jsonError("This counter uses duel settlement. Resolve the duel first.", 409);
     }
@@ -245,6 +249,9 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   if (nextStatus === "COUNTERED") {
+    if (isOfferExpired(offer)) {
+      return jsonError("This offer has expired.", 409);
+    }
     if (!["PENDING", "COUNTERED"].includes(offer.status)) {
       return jsonError("Only active offers can be countered.", 409);
     }
@@ -261,12 +268,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     if (nextCashAdjustment === null) {
       return jsonError("Invalid counter cash adjustment.");
     }
-    if (Math.abs(nextCashAdjustment) > 100_000_00) {
+    if (Math.abs(nextCashAdjustment) > MAX_COUNTER_CASH_ADJUSTMENT) {
       return jsonError("Cash adjustment exceeds the allowed limit.");
     }
 
     const nextMessage = body.message !== undefined
-      ? (body.message?.trim() || null)
+      ? ((typeof body.message === "string" ? body.message.trim().slice(0, MAX_COUNTER_MESSAGE_LENGTH) : "") || null)
       : offer.message;
 
     const counterMode = normalizeCounterMode(body.counterMode);

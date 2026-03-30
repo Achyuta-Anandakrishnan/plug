@@ -838,8 +838,33 @@ model StreamSession {
   updatedAt     DateTime       @updatedAt
 
   auction       Auction        @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  items         StreamSessionItem[]
 
   @@index([auctionId])
+}
+
+model StreamSessionItem {
+  id               String        @id @default(cuid())
+  streamSessionId  String
+  sourceType       String
+  sourceAuctionId  String?
+  sourceTradePostId String?
+  derivedAuctionId String?
+  title            String
+  subtitle         String?
+  imageUrl         String?
+  priceLabel       String?
+  status           String        @default("QUEUED")
+  position         Int           @default(0)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  streamSession    StreamSession @relation(fields: [streamSessionId], references: [id], onDelete: Cascade)
+
+  @@index([streamSessionId, position])
+  @@index([sourceAuctionId])
+  @@index([sourceTradePostId])
+  @@index([derivedAuctionId])
 }
 
 model UserSave {

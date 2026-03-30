@@ -73,7 +73,7 @@ export async function POST(
   const { id } = await context.params;
   const body = await parseJson<BuyNowBody>(request);
   if (!stripeEnabled()) {
-    return jsonError("Stripe must be connected to buy now.", 503);
+    return jsonError("Payments are unavailable right now.", 503);
   }
   const sessionUser = await getSessionUser();
   const buyerId = sessionUser?.id ?? null;
