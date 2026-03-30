@@ -14,9 +14,25 @@ export async function GET() {
     select: { stripeCustomerId: true },
   });
 
+  if (!user?.stripeCustomerId) {
+    return jsonOk({ stripeConfigured: stripeEnabled(), hasPaymentMethod: false });
+  }
+
+  // Verify the customer still exists on Stripe (could be deleted or from a different mode)
+  const stripe = getStripeClient();
+  if (stripe) {
+    try {
+      const customer = await stripe.customers.retrieve(user.stripeCustomerId);
+      if ((customer as { deleted?: boolean }).deleted) throw new Error("deleted");
+    } catch {
+      await prisma.user.update({ where: { id: sessionUser.id }, data: { stripeCustomerId: null } });
+      return jsonOk({ stripeConfigured: stripeEnabled(), hasPaymentMethod: false });
+    }
+  }
+
   return jsonOk({
     stripeConfigured: stripeEnabled(),
-    hasPaymentMethod: Boolean(user?.stripeCustomerId),
+    hasPaymentMethod: Boolean(user.stripeCustomerId),
   });
 }
 

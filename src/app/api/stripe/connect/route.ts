@@ -52,8 +52,14 @@ function getSafeAppOrigin(request: Request) {
   return "http://localhost:3000";
 }
 
+function ensureHttps(url: string): string {
+  // Stripe requires HTTPS for all non-localhost URLs
+  if (url.startsWith("http://localhost") || url.startsWith("http://127.0.0.1")) return url;
+  return url.replace(/^http:\/\//, "https://");
+}
+
 function buildSellerVerificationUrls(request: Request) {
-  const origin = getSafeAppOrigin(request);
+  const origin = ensureHttps(getSafeAppOrigin(request));
   const refreshUrl = new URL("/seller/verification", origin);
   refreshUrl.searchParams.set("stripe", "refresh");
 

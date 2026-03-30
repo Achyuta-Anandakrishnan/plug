@@ -253,12 +253,20 @@ export async function POST(
       try {
         const origin = (() => {
           try {
-            return new URL(request.url).origin;
+            const o = new URL(request.url).origin;
+            // Stripe requires HTTPS for non-localhost URLs
+            if (!o.startsWith("http://localhost") && !o.startsWith("http://127.0.0.1")) {
+              return o.replace(/^http:\/\//, "https://");
+            }
+            return o;
           } catch {
             return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
           }
         })();
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
+        const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
+        const appUrl = (!rawAppUrl.startsWith("http://localhost") && !rawAppUrl.startsWith("http://127.0.0.1"))
+          ? rawAppUrl.replace(/^http:\/\//, "https://")
+          : rawAppUrl;
 
         const session = await stripe.checkout.sessions.create(
           {
