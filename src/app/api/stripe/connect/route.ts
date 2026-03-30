@@ -8,6 +8,23 @@ const HTTP_ORIGIN_PATTERN = /^https?:\/\/[^/]+$/i;
 const STRIPE_ACCOUNT_ID_PATTERN = /^acct_[A-Za-z0-9]+$/;
 
 function getSafeAppOrigin(request: Request) {
+  const headerOrigin = request.headers.get("origin")?.trim().replace(/\/+$/g, "");
+  if (headerOrigin && HTTP_ORIGIN_PATTERN.test(headerOrigin)) {
+    return headerOrigin;
+  }
+
+  const referer = request.headers.get("referer")?.trim();
+  if (referer) {
+    try {
+      const refererOrigin = new URL(referer).origin.replace(/\/+$/g, "");
+      if (HTTP_ORIGIN_PATTERN.test(refererOrigin)) {
+        return refererOrigin;
+      }
+    } catch {
+      // Ignore malformed referers and continue fallback resolution.
+    }
+  }
+
   const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
   const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
   if (forwardedProto && forwardedHost) {
