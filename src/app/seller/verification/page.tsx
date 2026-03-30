@@ -101,13 +101,16 @@ export default function SellerVerificationPage() {
 
     try {
       const response = await fetch("/api/stripe/connect", { method: "POST" });
-      const payload = (await response.json()) as { url?: string; error?: string };
+      const payload = (await response.json()) as { url?: string; redirectPath?: string; error?: string };
 
-      if (!response.ok || !payload.url) {
+      if (!response.ok || (!payload.redirectPath && !payload.url)) {
         throw new Error(payload.error || "Unable to start Stripe onboarding.");
       }
 
-      window.location.href = payload.url;
+      const target = typeof payload.redirectPath === "string" && payload.redirectPath.trim()
+        ? payload.redirectPath.trim()
+        : payload.url!;
+      window.location.assign(target);
     } catch (error) {
       setStripeStatus("error");
       setStripeMessage(error instanceof Error ? error.message : "Unable to connect Stripe right now.");

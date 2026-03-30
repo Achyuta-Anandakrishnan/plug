@@ -72,9 +72,14 @@ export default function PaymentsSettingsPage() {
     setSellerMsg("");
     try {
       const res = await fetch("/api/stripe/connect", { method: "POST" });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) throw new Error(data.error || "Unable to start Stripe onboarding.");
-      window.location.href = data.url;
+      const data = (await res.json()) as { url?: string; redirectPath?: string; error?: string };
+      if (!res.ok || (!data.redirectPath && !data.url)) {
+        throw new Error(data.error || "Unable to start Stripe onboarding.");
+      }
+      const target = typeof data.redirectPath === "string" && data.redirectPath.trim()
+        ? data.redirectPath.trim()
+        : data.url!;
+      window.location.assign(target);
     } catch (err) {
       setSellerStatus("error");
       setSellerMsg(err instanceof Error ? err.message : "Something went wrong.");

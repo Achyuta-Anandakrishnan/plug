@@ -3,6 +3,7 @@ import { getSessionUser } from "@/lib/auth";
 import { getStripeClient } from "@/lib/stripe";
 import { jsonError, jsonOk } from "@/lib/api";
 import { getCanonicalSellerReadiness } from "@/lib/seller-onboarding";
+import { NextResponse } from "next/server";
 
 const HTTP_ORIGIN_PATTERN = /^https?:\/\/[^/]+$/i;
 const STRIPE_ACCOUNT_ID_PATTERN = /^acct_[A-Za-z0-9]+$/;
@@ -57,50 +58,10 @@ function normalizeStripeAccountId(value: string | null | undefined) {
   return STRIPE_ACCOUNT_ID_PATTERN.test(trimmed) ? trimmed : null;
 }
 
-export async function GET() {
-  const sessionUser = await getSessionUser();
-  if (!sessionUser?.id) {
-    return jsonError("Authentication required.", 401);
-  }
-
-  const stripe = getStripeClient();
-  const sellerProfile = await prisma.sellerProfile.findUnique({
-    where: { userId: sessionUser.id },
-    select: { id: true, userId: true, stripeAccountId: true, payoutsEnabled: true, status: true },
-  });
-
-  if (!sellerProfile) {
-    return jsonOk({
-      hasSellerProfile: false,
-      stripeConfigured: Boolean(stripe),
-      stripeAccountId: null,
-      payoutsEnabled: false,
-      sellerStatus: null,
-      sellerState: "not_started",
-    });
-  }
-
-  const readiness = await getCanonicalSellerReadiness(sellerProfile);
-
-  return jsonOk({
-    hasSellerProfile: true,
-    stripeConfigured: Boolean(stripe),
-    stripeAccountId: readiness.stripeAccountId,
-    payoutsEnabled: readiness.payoutsEnabled,
-    sellerStatus: sellerProfile.status,
-    sellerState: readiness.sellerState,
-  });
-}
-
-export async function POST(request: Request) {
-  const sessionUser = await getSessionUser();
-  if (!sessionUser?.id) {
-    return jsonError("Authentication required.", 401);
-  }
-
+async function createStripeOnboardingLink(request: Request, sessionUser: NonNullable<Awaited<ReturnType<typeof getSessionUser>>>) {
   const stripe = getStripeClient();
   if (!stripe) {
-    return jsonError("Stripe is not configured.", 503);
+    return { ok: false as const, response: jsonError("Stripe is not configured.", 503) };
   }
 
   const sellerProfile = await prisma.sellerProfile.findUnique({
@@ -109,7 +70,7 @@ export async function POST(request: Request) {
   });
 
   if (!sellerProfile) {
-    return jsonError("Seller profile required.", 403);
+    return { ok: false as const, response: jsonError("Seller profile required.", 403) };
   }
 
   let stripeAccountId = normalizeStripeAccountId(sellerProfile.stripeAccountId);
@@ -181,13 +142,13 @@ export async function POST(request: Request) {
         const retryMessage = retryError instanceof Error && retryError.message.trim()
           ? retryError.message
           : "Unable to start Stripe onboarding.";
-        return jsonError(retryMessage, 502);
+        return { ok: false as const, response: jsonError(retryMessage, 502) };
       }
     } else {
-    const message = error instanceof Error && error.message.trim()
-      ? error.message
-      : "Unable to start Stripe onboarding.";
-    return jsonError(message, 502);
+      const message = error instanceof Error && error.message.trim()
+        ? error.message
+        : "Unable to start Stripe onboarding.";
+      return { ok: false as const, response: jsonError(message, 502) };
     }
   }
 
@@ -196,10 +157,74 @@ export async function POST(request: Request) {
     stripeAccountId,
   });
 
-  return jsonOk({
-    url: link.url,
+  return {
+    ok: true as const,
+    linkUrl: String(link.url).trim(),
     stripeAccountId,
     payoutsEnabled: readiness.payoutsEnabled,
     sellerState: readiness.sellerState,
+  };
+}
+
+export async function GET(request: Request) {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser?.id) {
+    return jsonError("Authentication required.", 401);
+  }
+
+  const searchParams = new URL(request.url).searchParams;
+  if (searchParams.get("redirect") === "1") {
+    const result = await createStripeOnboardingLink(request, sessionUser);
+    if (!result.ok) {
+      return result.response;
+    }
+    return NextResponse.redirect(result.linkUrl, { status: 302 });
+  }
+
+  const stripe = getStripeClient();
+  const sellerProfile = await prisma.sellerProfile.findUnique({
+    where: { userId: sessionUser.id },
+    select: { id: true, userId: true, stripeAccountId: true, payoutsEnabled: true, status: true },
+  });
+
+  if (!sellerProfile) {
+    return jsonOk({
+      hasSellerProfile: false,
+      stripeConfigured: Boolean(stripe),
+      stripeAccountId: null,
+      payoutsEnabled: false,
+      sellerStatus: null,
+      sellerState: "not_started",
+    });
+  }
+
+  const readiness = await getCanonicalSellerReadiness(sellerProfile);
+
+  return jsonOk({
+    hasSellerProfile: true,
+    stripeConfigured: Boolean(stripe),
+    stripeAccountId: readiness.stripeAccountId,
+    payoutsEnabled: readiness.payoutsEnabled,
+    sellerStatus: sellerProfile.status,
+    sellerState: readiness.sellerState,
+  });
+}
+
+export async function POST(request: Request) {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser?.id) {
+    return jsonError("Authentication required.", 401);
+  }
+  const result = await createStripeOnboardingLink(request, sessionUser);
+  if (!result.ok) {
+    return result.response;
+  }
+
+  return jsonOk({
+    url: result.linkUrl,
+    redirectPath: "/api/stripe/connect?redirect=1",
+    stripeAccountId: result.stripeAccountId,
+    payoutsEnabled: result.payoutsEnabled,
+    sellerState: result.sellerState,
   });
 }
