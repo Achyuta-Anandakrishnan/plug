@@ -25,7 +25,6 @@ import {
 import { AppContainer } from "@/components/product/ProductUI";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { MOBILE_QUERY } from "@/hooks/useMobileUi";
-import { isPrimaryAdminEmail } from "@/lib/admin-email";
 
 function Brand() {
   return (
@@ -162,7 +161,7 @@ function useSiteHeaderState() {
   const { data: session } = useSession();
 
   const isVerifiedSeller = session?.user?.role === "SELLER" || session?.user?.role === "ADMIN";
-  const isAdmin = session?.user?.role === "ADMIN" || isPrimaryAdminEmail(session?.user?.email);
+  const isAdmin = session?.user?.role === "ADMIN";
 
   const navItems = DESKTOP_NAV_ITEMS;
 

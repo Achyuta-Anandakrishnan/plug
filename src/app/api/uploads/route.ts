@@ -1,9 +1,12 @@
 import { randomUUID } from "crypto";
-import { jsonError, jsonOk } from "@/lib/api";
+import { checkRateLimit, jsonError, jsonOk } from "@/lib/api";
 import { getSupabaseServerClient, supabaseEnabled } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdminEmail } from "@/lib/admin";
+
+const UPLOAD_RATE_LIMIT = 30;       // max uploads
+const UPLOAD_RATE_WINDOW = 60 * 60 * 1000; // per hour
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
@@ -50,6 +53,13 @@ export async function POST(request: Request) {
   const sessionUser = await getSessionUser();
   if (!sessionUser) {
     return jsonError("Authentication required.", 401);
+  }
+
+  // Per-user upload rate limit
+  const rateLimitKey = `upload:${sessionUser.id}`;
+  const allowed = await checkRateLimit(rateLimitKey, UPLOAD_RATE_LIMIT, UPLOAD_RATE_WINDOW);
+  if (!allowed) {
+    return jsonError("Upload rate limit reached. Try again later.", 429);
   }
 
   const requestUrl = new URL(request.url);

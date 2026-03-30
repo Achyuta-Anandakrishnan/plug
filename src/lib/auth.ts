@@ -6,14 +6,12 @@ import GoogleProvider from "next-auth/providers/google";
 import AppleProvider from "next-auth/providers/apple";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
-import { getConfiguredAdminEmails, isConfiguredAdminEmail } from "@/lib/admin-email";
 import { isBlockedAccountStatus, normalizeAccountStatus } from "@/lib/account-status";
 import { ensureProfileSchema } from "@/lib/profile-schema";
 import { generateUniqueUsername } from "@/lib/username";
 import { verifyNativeAuthToken } from "@/lib/native-auth";
 
 const providers = [];
-const adminEmails = getConfiguredAdminEmails();
 const AUTH_TOKEN_REFRESH_MS = 1000 * 60 * 30;
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
@@ -139,24 +137,14 @@ export const authOptions: NextAuthOptions = {
         }
 
         const resolvedEmail = dbUser?.email ?? (token.email as string | undefined);
-        const shouldBeAdmin = isConfiguredAdminEmail(resolvedEmail, adminEmails);
 
-        token.role = shouldBeAdmin ? "ADMIN" : dbUser?.role ?? (token.role as string | undefined);
+        token.role = dbUser?.role ?? (token.role as string | undefined);
         token.email = resolvedEmail;
         token.accountStatus = normalizeAccountStatus(dbUser?.accountStatus ?? (token.accountStatus as string | undefined));
         token.username = resolvedUsername ?? (token.username as string | undefined);
         token.displayName = dbUser?.displayName ?? dbUser?.name ?? (token.displayName as string | undefined);
         token.image = dbUser?.image ?? (token.image as string | undefined);
         token.profileSyncedAt = Date.now();
-
-        if (shouldBeAdmin && canWriteProfile && dbUser?.role !== "ADMIN") {
-          await prisma.user.update({
-            where: { id: tokenUserId },
-            data: { role: "ADMIN" },
-          }).catch(() => null);
-        }
-      } else if (isConfiguredAdminEmail(token.email as string | undefined, adminEmails)) {
-        token.role = "ADMIN";
       }
       return token;
     },

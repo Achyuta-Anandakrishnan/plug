@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { headers } from "next/headers";
 import { AppContainer } from "@/components/product/ProductUI";
 import { StreamRoomResponsive } from "@/components/streams/StreamRoomResponsive";
@@ -15,23 +14,9 @@ export default async function StreamRoom({
   const initialIsMobile = isProbablyMobileUserAgent((await headers()).get("user-agent"));
   const stripeReady = Boolean(process.env.STRIPE_SECRET_KEY);
   const initialData = await getAuctionDetail(id) as AuctionDetail | null;
-  const sellerLabel = initialData?.seller?.user?.displayName ?? "Verified seller";
-  const statusLabel = initialData?.status === "LIVE" ? "Live auction" : "Stream room";
 
   return (
-    <AppContainer className="stream-room-page">
-      <section className="stream-room-head">
-        <div className="stream-room-head-copy">
-          <Link href="/live" className="stream-room-back">
-            Back to live
-          </Link>
-          <h1>{initialData?.title ?? "Live stream"}</h1>
-          <p className="stream-room-head-meta">
-            {sellerLabel} · {statusLabel}
-          </p>
-        </div>
-      </section>
-
+    <AppContainer className="stream-room-v4-page">
       <StreamRoomResponsive
         auctionId={id}
         initialData={initialData}

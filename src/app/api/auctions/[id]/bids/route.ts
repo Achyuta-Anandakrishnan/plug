@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { jsonError, jsonOk, parseJson } from "@/lib/api";
+import { jsonError, jsonOk, parseJson, checkRateLimit } from "@/lib/api";
 import { computeExtendedEndTime } from "@/lib/auction";
 import { getSessionUser } from "@/lib/auth";
 import { stripeEnabled } from "@/lib/stripe";
@@ -23,6 +23,11 @@ export async function POST(
 
   if (!bidderId || typeof body?.amount !== "number") {
     return jsonError("Authentication and amount are required.", 401);
+  }
+
+  const allowed = await checkRateLimit(`bid:${bidderId}`, 20, 60_000);
+  if (!allowed) {
+    return jsonError("Too many bids. Please slow down.", 429);
   }
   if (!Number.isFinite(body.amount) || !Number.isInteger(body.amount) || body.amount <= 0) {
     return jsonError("amount must be a positive integer (cents).", 400);

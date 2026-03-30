@@ -212,6 +212,7 @@ model User {
   following      UserFollow[]  @relation("UserFollowFollower")
   followers      UserFollow[]  @relation("UserFollowFollowing")
   emailVerificationTokens EmailVerificationToken[]
+  nativeLoginCodes        NativeLoginCode[]
   forumPosts     ForumPost[]
   forumComments  ForumComment[]
   forumPostVotes ForumPostVote[]
@@ -904,6 +905,22 @@ model EmailVerificationToken {
 
   @@index([userId, createdAt])
   @@index([email, expiresAt])
+}
+
+model NativeLoginCode {
+  id         String    @id @default(cuid())
+  userId     String
+  email      String
+  codeHash   String    // SHA-256 hex of the 6-digit OTP
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email, expiresAt])
+  @@index([userId])
 }
 
 model VerifiedCardCache {

@@ -1,9 +1,15 @@
 import { prisma } from "@/lib/prisma";
-import { jsonOk } from "@/lib/api";
+import { jsonError, jsonOk } from "@/lib/api";
+import { getSessionUser } from "@/lib/auth";
 import { ensureProfileSchema } from "@/lib/profile-schema";
 
 export async function GET(request: Request) {
   await ensureProfileSchema().catch(() => null);
+
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) {
+    return jsonError("Authentication required.", 401);
+  }
 
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") ?? "").trim();
@@ -16,7 +22,6 @@ export async function GET(request: Request) {
           OR: [
             { username: { contains: q, mode: "insensitive" } },
             { displayName: { contains: q, mode: "insensitive" } },
-            { email: { contains: q, mode: "insensitive" } },
             { name: { contains: q, mode: "insensitive" } },
           ],
         }
@@ -30,10 +35,8 @@ export async function GET(request: Request) {
       bio: true,
       image: true,
       createdAt: true,
-      role: true,
       sellerProfile: {
         select: {
-          status: true,
           trustTier: true,
           auctions: {
             where: { status: "LIVE" },

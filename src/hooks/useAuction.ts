@@ -22,7 +22,7 @@ export type AuctionDetail = {
   watchersCount: number;
   seller: {
     status: string;
-    user: { displayName: string | null; id: string };
+    user: { displayName: string | null; id: string; image: string | null };
   };
   category?: { name: string } | null;
   item?: {

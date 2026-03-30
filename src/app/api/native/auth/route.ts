@@ -1,19 +1,25 @@
+import { createHash, randomInt } from "crypto";
 import { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { EMAIL_REGEX, jsonError, jsonOk, parseJson } from "@/lib/api";
-import { isBlockedAccountStatus, normalizeAccountStatus } from "@/lib/account-status";
+import { isBlockedAccountStatus } from "@/lib/account-status";
 import { ensureProfileSchema } from "@/lib/profile-schema";
-import { sendVerificationEmailForUser } from "@/lib/email-verification";
 import { generateUniqueUsername } from "@/lib/username";
-import { signNativeAuthToken } from "@/lib/native-auth";
+import { sendEmail } from "@/lib/email";
 
 type NativeAuthBody = {
   email?: string;
   displayName?: string;
 };
 
+const LOGIN_CODE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
+}
+
+function hashCode(code: string) {
+  return createHash("sha256").update(code).digest("hex");
 }
 
 export async function POST(request: Request) {
@@ -46,8 +52,6 @@ export async function POST(request: Request) {
       role: true,
       accountStatus: true,
       username: true,
-      displayName: true,
-      image: true,
     },
   });
 
@@ -55,50 +59,47 @@ export async function POST(request: Request) {
     return jsonError("This account is not active.", 403);
   }
 
-  if (!user.emailVerified) {
-    await sendVerificationEmailForUser({
+  // Invalidate any prior unused codes for this user
+  await prisma.nativeLoginCode.updateMany({
+    where: { userId: user.id, consumedAt: null },
+    data: { consumedAt: new Date() },
+  });
+
+  // Generate a 6-digit OTP
+  const code = randomInt(100000, 1000000).toString().padStart(6, "0");
+  const codeHash = hashCode(code);
+  const expiresAt = new Date(Date.now() + LOGIN_CODE_TTL_MS);
+
+  await prisma.nativeLoginCode.create({
+    data: {
       userId: user.id,
       email,
-    }).catch(() => null);
+      codeHash,
+      expiresAt,
+    },
+  });
 
-    return jsonOk({
-      requiresVerification: true,
-      email,
-    }, { status: 202 });
-  }
+  await sendEmail({
+    to: email,
+    subject: "Your dalow login code",
+    text: [
+      `Your dalow login code is: ${code}`,
+      "",
+      "This code expires in 15 minutes.",
+      "If you did not request this, you can ignore this email.",
+    ].join("\n"),
+  }).catch(() => null);
 
-  let username = user.username;
-  if (!username) {
-    const generated = await generateUniqueUsername(prisma, displayName || email.split("@")[0], user.id);
-    try {
-      const updated = await prisma.user.update({
+  // Ensure username exists (non-blocking)
+  if (!user.username) {
+    const generated = await generateUniqueUsername(prisma, displayName || email.split("@")[0], user.id).catch(() => null);
+    if (generated) {
+      await prisma.user.update({
         where: { id: user.id },
         data: { username: generated },
-        select: { username: true },
-      });
-      username = updated.username;
-    } catch {
-      // If a concurrent request generated username first, proceed without failing auth.
+      }).catch(() => null);
     }
   }
 
-  const token = signNativeAuthToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-    accountStatus: user.accountStatus,
-  });
-
-  return jsonOk({
-    token,
-    user: {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      accountStatus: normalizeAccountStatus(user.accountStatus),
-      username: username ?? null,
-      displayName: user.displayName ?? null,
-      image: user.image ?? null,
-    },
-  });
+  return jsonOk({ requiresVerification: true, email }, { status: 202 });
 }

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ArrowLeftRight, MessageSquare, Radio, ShoppingBag, Target } from "lucide-react";
-import { isPrimaryAdminEmail } from "@/lib/admin-email";
 
 const NAV_ITEMS = [
   { key: "market", label: "Market", href: "/listings", Icon: ShoppingBag },
@@ -36,7 +35,7 @@ function isActive(pathname: string | null, href: string, key: string) {
 export function SiteMobileNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const isAdmin = session?.user?.role === "ADMIN" || isPrimaryAdminEmail(session?.user?.email);
+  const isAdmin = session?.user?.role === "ADMIN";
 
   return (
     <nav className="site-mobile-tabbar" aria-label="Primary navigation">

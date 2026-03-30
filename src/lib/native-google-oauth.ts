@@ -10,7 +10,13 @@ export type GoogleNativeState = {
 export const DEFAULT_NATIVE_REDIRECT = "dalow://auth/native";
 
 function getSecret() {
-  return process.env.NATIVE_AUTH_SECRET || process.env.NEXTAUTH_SECRET || "dev-native-secret-change-me";
+  const secret = process.env.NATIVE_AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    throw new Error(
+      "NATIVE_AUTH_SECRET (or NEXTAUTH_SECRET) must be set. Refusing to use a hardcoded fallback.",
+    );
+  }
+  return secret;
 }
 
 function toBase64Url(input: string | Buffer) {

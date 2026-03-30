@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
+import { getSessionUser } from "@/lib/auth";
 import { ensureProfileSchema } from "@/lib/profile-schema";
 
 export async function GET(
@@ -7,6 +8,11 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   await ensureProfileSchema().catch(() => null);
+
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) {
+    return jsonError("Authentication required.", 401);
+  }
 
   const { id } = await context.params;
 
@@ -16,16 +22,12 @@ export async function GET(
       id: true,
       username: true,
       displayName: true,
-      name: true,
       bio: true,
       image: true,
       createdAt: true,
-      role: true,
       sellerProfile: {
         select: {
-          status: true,
           trustTier: true,
-          approvedAt: true,
           auctions: {
             where: { status: { in: ["LIVE", "SCHEDULED"] } },
             orderBy: { createdAt: "desc" },

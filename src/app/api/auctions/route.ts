@@ -160,7 +160,7 @@ export async function GET(request: Request) {
           id: true,
           userId: true,
           status: true,
-          user: { select: { displayName: true, id: true } },
+          user: { select: { displayName: true, id: true, image: true } },
         },
       },
       streamSessions: {
@@ -244,6 +244,10 @@ export async function POST(request: Request) {
 
   if (seller.status !== "APPROVED") {
     return jsonError("Seller verification pending approval.", 403);
+  }
+
+  if (!seller.stripeAccountId || !seller.payoutsEnabled) {
+    return jsonError("Connect a Stripe account before creating listings.", 403);
   }
 
   const startTime = body.startTime ? new Date(body.startTime) : null;
