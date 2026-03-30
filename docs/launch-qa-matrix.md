@@ -23,6 +23,7 @@ Small high-value unit coverage added:
 | Bid | None | Manual QA required |
 | Start live room | None | Manual QA required |
 | Add stream inventory | None | Manual QA required |
+| Payment confirm / webhook / payout | None | Manual QA required |
 | Trade post | None | Manual QA required |
 | Trade offer | None | Manual QA required |
 | Duel / settlement | None | Manual QA required |
@@ -42,10 +43,15 @@ Seed utility:
 - [scripts/qa-seed.mjs](/Users/achyu/Documents/plug/scripts/qa-seed.mjs)
 
 It creates or reuses:
-- `qa-seller@dalow.local`
+- `qa-seller@dalow.local` (approved, payouts disabled)
+- `qa-live-seller@dalow.local` (approved, payout-ready)
+- `qa-seller-onboarding@dalow.local` (application pending)
 - `qa-buyer@dalow.local`
 - Pokemon category
 - one live listing
+- one live stream session
+- one active bid and one auction chat message
+- one pending order with payment row
 - one open trade post
 - one open bounty
 - one seed conversation
@@ -93,6 +99,7 @@ Expected:
 Expected:
 - checkout starts successfully
 - duplicate stale order lock clears after expiry
+- pending order can be identified for webhook/confirm follow-up
 
 ### 5. Bid
 - Place bids on a live listing
@@ -123,7 +130,18 @@ Expected:
 - inventory appears in stream queue
 - unauthorized user cannot modify stream queue
 
-### 8. Trade post
+### 8. Payment confirm / webhook / payout
+- Use the seeded pending order or create a fresh buy-now order
+- Confirm order on [src/app/api/orders/[id]/confirm/route.ts](/Users/achyu/Documents/plug/src/app/api/orders/[id]/confirm/route.ts)
+- Validate the payment webhook path on [src/app/api/payments/webhook/route.ts](/Users/achyu/Documents/plug/src/app/api/payments/webhook/route.ts)
+- Verify payout scheduling/processing behavior for the active seller
+
+Expected:
+- confirmed orders do not regress to unpaid states
+- webhook replay or late events do not revive expired/canceled orders
+- payout processing only proceeds for payout-eligible sellers
+
+### 9. Trade post
 - Create new trade at [src/app/trades/new/page.tsx](/Users/achyu/Documents/plug/src/app/trades/new/page.tsx)
 - Upload images
 - Verify post appears in [src/app/trades/page.tsx](/Users/achyu/Documents/plug/src/app/trades/page.tsx)
@@ -133,7 +151,7 @@ Expected:
 - images upload successfully
 - created post is visible and owned correctly
 
-### 9. Trade offer
+### 10. Trade offer
 - Submit offer on another user’s trade
 - Attempt duplicate active offer
 - Attempt expired offer actions
@@ -143,7 +161,7 @@ Expected:
 - expired offers cannot be accepted/countered
 - cash-offer rules enforced
 
-### 10. Duel / settlement
+### 11. Duel / settlement
 - Start duel from trade counter flow
 - Confirm both-party approvals
 - Complete duel
@@ -154,7 +172,7 @@ Expected:
 - server resolves duel outcome
 - trade settlement reflects final state
 
-### 11. Bounty
+### 12. Bounty
 - Create bounty on [src/app/bounties/new/page.tsx](/Users/achyu/Documents/plug/src/app/bounties/new/page.tsx)
 - View bounty board on [src/app/bounties/page.tsx](/Users/achyu/Documents/plug/src/app/bounties/page.tsx)
 - Comment on bounty
@@ -165,7 +183,7 @@ Expected:
 - invalid money/text values rejected
 - non-open bounty visibility follows intended restrictions
 
-### 12. Messages
+### 13. Messages
 - Open [src/app/messages/page.tsx](/Users/achyu/Documents/plug/src/app/messages/page.tsx)
 - Search profiles/conversations
 - Start a new conversation
@@ -178,7 +196,7 @@ Expected:
 - only owned uploaded message images are accepted
 - rate limiting triggers on abuse
 
-### 13. Admin actions
+### 14. Admin actions
 - Review sellers in [src/app/admin/sellers/page.tsx](/Users/achyu/Documents/plug/src/app/admin/sellers/page.tsx)
 - Update roles/statuses in [src/app/admin/profiles/page.tsx](/Users/achyu/Documents/plug/src/app/admin/profiles/page.tsx)
 - Review waitlist at [src/app/admin/waitlist/page.tsx](/Users/achyu/Documents/plug/src/app/admin/waitlist/page.tsx)
@@ -198,9 +216,10 @@ Expected:
 5. Bid
 6. Start live room
 7. Add stream inventory
-8. Trade post
-9. Trade offer
-10. Duel / settlement
-11. Bounty
-12. Messages
-13. Admin actions
+8. Payment confirm / webhook / payout
+9. Trade post
+10. Trade offer
+11. Duel / settlement
+12. Bounty
+13. Messages
+14. Admin actions

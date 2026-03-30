@@ -1,17 +1,27 @@
-import { PrismaClient, ListingType, AuctionStatus, TradePostStatus, WantRequestStatus } from "@prisma/client";
+import {
+  PrismaClient,
+  ListingType,
+  AuctionStatus,
+  TradePostStatus,
+  WantRequestStatus,
+  StreamStatus,
+  PaymentProvider,
+  PaymentStatus,
+  OrderStatus,
+} from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const seller = await prisma.user.upsert({
+  const sellerUser = await prisma.user.upsert({
     where: { email: "qa-seller@dalow.local" },
     update: {
-      displayName: "QA Seller",
+      displayName: "QA Seller (Payouts Disabled)",
       role: "SELLER",
     },
     create: {
       email: "qa-seller@dalow.local",
-      displayName: "QA Seller",
+      displayName: "QA Seller (Payouts Disabled)",
       role: "SELLER",
       sellerProfile: {
         create: {
@@ -20,6 +30,101 @@ async function main() {
         },
       },
     },
+  });
+  await prisma.sellerProfile.upsert({
+    where: { userId: sellerUser.id },
+    update: {
+      status: "APPROVED",
+      stripeAccountId: null,
+      payoutsEnabled: false,
+      manualNotes: "QA seed seller",
+    },
+    create: {
+      userId: sellerUser.id,
+      status: "APPROVED",
+      manualNotes: "QA seed seller",
+    },
+  });
+  const seller = await prisma.user.findUnique({
+    where: { id: sellerUser.id },
+    include: { sellerProfile: true },
+  });
+
+  const activeSellerUser = await prisma.user.upsert({
+    where: { email: "qa-live-seller@dalow.local" },
+    update: {
+      displayName: "QA Live Seller",
+      role: "SELLER",
+    },
+    create: {
+      email: "qa-live-seller@dalow.local",
+      displayName: "QA Live Seller",
+      role: "SELLER",
+      sellerProfile: {
+        create: {
+          status: "APPROVED",
+          stripeAccountId: "acct_qa_seed_active",
+          payoutsEnabled: true,
+          manualNotes: "QA seed active seller",
+        },
+      },
+    },
+  });
+  await prisma.sellerProfile.upsert({
+    where: { userId: activeSellerUser.id },
+    update: {
+      status: "APPROVED",
+      stripeAccountId: "acct_qa_seed_active",
+      payoutsEnabled: true,
+      manualNotes: "QA seed active seller",
+    },
+    create: {
+      userId: activeSellerUser.id,
+      status: "APPROVED",
+      stripeAccountId: "acct_qa_seed_active",
+      payoutsEnabled: true,
+      manualNotes: "QA seed active seller",
+    },
+  });
+  const activeSeller = await prisma.user.findUnique({
+    where: { id: activeSellerUser.id },
+    include: { sellerProfile: true },
+  });
+
+  const onboardingSellerUser = await prisma.user.upsert({
+    where: { email: "qa-seller-onboarding@dalow.local" },
+    update: {
+      displayName: "QA Seller (Onboarding)",
+      role: "SELLER",
+    },
+    create: {
+      email: "qa-seller-onboarding@dalow.local",
+      displayName: "QA Seller (Onboarding)",
+      role: "SELLER",
+      sellerProfile: {
+        create: {
+          status: "APPLIED",
+          manualNotes: "QA seed onboarding seller",
+        },
+      },
+    },
+  });
+  await prisma.sellerProfile.upsert({
+    where: { userId: onboardingSellerUser.id },
+    update: {
+      status: "APPLIED",
+      stripeAccountId: null,
+      payoutsEnabled: false,
+      manualNotes: "QA seed onboarding seller",
+    },
+    create: {
+      userId: onboardingSellerUser.id,
+      status: "APPLIED",
+      manualNotes: "QA seed onboarding seller",
+    },
+  });
+  const onboardingSeller = await prisma.user.findUnique({
+    where: { id: onboardingSellerUser.id },
     include: { sellerProfile: true },
   });
 
@@ -44,13 +149,19 @@ async function main() {
     },
   });
 
-  if (!seller.sellerProfile) {
+  if (!seller?.sellerProfile) {
     throw new Error("QA seller profile is missing.");
+  }
+  if (!activeSeller?.sellerProfile) {
+    throw new Error("QA active seller profile is missing.");
+  }
+  if (!onboardingSeller?.sellerProfile) {
+    throw new Error("QA onboarding seller profile is missing.");
   }
 
   let item = await prisma.item.findFirst({
     where: {
-      sellerId: seller.sellerProfile.id,
+      sellerId: activeSeller.sellerProfile.id,
       title: "QA Seed Blastoise EX",
     },
     select: { id: true },
@@ -58,7 +169,7 @@ async function main() {
   if (!item) {
     item = await prisma.item.create({
       data: {
-        sellerId: seller.sellerProfile.id,
+        sellerId: activeSeller.sellerProfile.id,
         categoryId: category.id,
         title: "QA Seed Blastoise EX",
         description: "QA seed item for launch verification",
@@ -79,19 +190,19 @@ async function main() {
 
   let listing = await prisma.auction.findFirst({
     where: {
-      sellerId: seller.sellerProfile.id,
-      title: "QA Buy Now Listing",
+      sellerId: activeSeller.sellerProfile.id,
+      title: "QA Live Listing",
     },
     select: { id: true },
   });
   if (!listing) {
     listing = await prisma.auction.create({
       data: {
-        sellerId: seller.sellerProfile.id,
+        sellerId: activeSeller.sellerProfile.id,
         itemId: item.id,
         categoryId: category.id,
-        title: "QA Buy Now Listing",
-        description: "QA seed listing for buy now and bidding checks",
+        title: "QA Live Listing",
+        description: "QA seed listing for buy now, bids, and live room checks",
         listingType: ListingType.BOTH,
         status: AuctionStatus.LIVE,
         startingBid: 10000,
@@ -106,9 +217,70 @@ async function main() {
     });
   }
 
+  let streamSession = await prisma.streamSession.findFirst({
+    where: { auctionId: listing.id },
+    select: { id: true },
+  });
+  if (!streamSession) {
+    streamSession = await prisma.streamSession.create({
+      data: {
+        auctionId: listing.id,
+        provider: "LIVEKIT",
+        status: StreamStatus.LIVE,
+        roomName: `qa-room-${listing.id}`,
+      },
+      select: { id: true },
+    });
+  }
+
+  const existingTopBid = await prisma.bid.findFirst({
+    where: {
+      auctionId: listing.id,
+      bidderId: buyer.id,
+      amount: 11000,
+      status: "ACTIVE",
+    },
+    select: { id: true },
+  });
+  if (!existingTopBid) {
+    await prisma.bid.create({
+      data: {
+        auctionId: listing.id,
+        bidderId: buyer.id,
+        amount: 11000,
+        status: "ACTIVE",
+      },
+    });
+
+    await prisma.auction.update({
+      where: { id: listing.id },
+      data: {
+        currentBid: 11000,
+      },
+    });
+  }
+
+  const existingChat = await prisma.auctionChatMessage.findFirst({
+    where: {
+      auctionId: listing.id,
+      senderId: buyer.id,
+      body: "QA live chat message",
+    },
+    select: { id: true },
+  });
+  if (!existingChat) {
+    await prisma.auctionChatMessage.create({
+      data: {
+        auctionId: listing.id,
+        senderId: buyer.id,
+        body: "QA live chat message",
+      },
+    });
+  }
+
   let trade = await prisma.tradePost.findFirst({
     where: {
-      ownerId: seller.id,
+      ownerId: activeSeller.id,
       title: "QA Trade Post",
     },
     select: { id: true },
@@ -116,7 +288,7 @@ async function main() {
   if (!trade) {
     trade = await prisma.tradePost.create({
       data: {
-        ownerId: seller.id,
+        ownerId: activeSeller.id,
         title: "QA Trade Post",
         description: "QA seed trade post",
         category: "Pokemon",
@@ -174,10 +346,10 @@ async function main() {
     where: {
       subject: "QA Conversation",
       participants: {
-        every: { userId: { in: [seller.id, buyer.id] } },
+        every: { userId: { in: [activeSeller.id, buyer.id] } },
       },
       AND: [
-        { participants: { some: { userId: seller.id } } },
+        { participants: { some: { userId: activeSeller.id } } },
         { participants: { some: { userId: buyer.id } } },
       ],
     },
@@ -189,7 +361,7 @@ async function main() {
         subject: "QA Conversation",
         participants: {
           create: [
-            { userId: seller.id },
+            { userId: activeSeller.id },
             { userId: buyer.id },
           ],
         },
@@ -204,13 +376,50 @@ async function main() {
     });
   }
 
+  let order = await prisma.order.findFirst({
+    where: {
+      auctionId: listing.id,
+      buyerId: buyer.id,
+      amount: 15000,
+      status: OrderStatus.PENDING_PAYMENT,
+    },
+    select: { id: true },
+  });
+  if (!order) {
+    order = await prisma.order.create({
+      data: {
+        auctionId: listing.id,
+        buyerId: buyer.id,
+        sellerId: activeSeller.sellerProfile.id,
+        amount: 15000,
+        currency: "usd",
+        platformFee: 1500,
+        processingFee: 450,
+        status: OrderStatus.PENDING_PAYMENT,
+        payment: {
+          create: {
+            provider: PaymentProvider.STRIPE,
+            status: PaymentStatus.REQUIRES_PAYMENT_METHOD,
+            amount: 15000,
+            currency: "usd",
+          },
+        },
+      },
+      select: { id: true },
+    });
+  }
+
   console.log(JSON.stringify({
     sellerEmail: seller.email,
+    activeSellerEmail: activeSeller.email,
+    onboardingSellerEmail: onboardingSeller.email,
     buyerEmail: buyer.email,
     listingId: listing.id,
+    streamSessionId: streamSession.id,
     tradeId: trade.id,
     bountyId: bounty.id,
     conversationId: conversation.id,
+    pendingOrderId: order.id,
   }, null, 2));
 }
 
