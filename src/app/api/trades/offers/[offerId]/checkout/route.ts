@@ -69,36 +69,39 @@ export async function POST(_request: Request, { params }: RouteContext) {
 
   let session;
   try {
-    session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      success_url: `${appUrl}/trades/${offer.post.id}?offer=${offer.id}&settlement=success`,
-      cancel_url: `${appUrl}/trades/${offer.post.id}?offer=${offer.id}&settlement=cancel`,
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: offer.settlement.currency,
-            unit_amount: offer.settlement.amount,
-            product_data: {
-              name: `Trade settlement - ${offer.post.title}`.slice(0, 120),
+    session = await stripe.checkout.sessions.create(
+      {
+        mode: "payment",
+        success_url: `${appUrl}/trades/${offer.post.id}?offer=${offer.id}&settlement=success`,
+        cancel_url: `${appUrl}/trades/${offer.post.id}?offer=${offer.id}&settlement=cancel`,
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: offer.settlement.currency,
+              unit_amount: offer.settlement.amount,
+              product_data: {
+                name: `Trade settlement - ${offer.post.title}`.slice(0, 120),
+              },
             },
           },
-        },
-      ],
-      metadata: {
-        tradeSettlementId: offer.settlement.id,
-        tradeOfferId: offer.id,
-        tradePostId: offer.post.id,
-      },
-      payment_intent_data: {
+        ],
         metadata: {
           tradeSettlementId: offer.settlement.id,
           tradeOfferId: offer.id,
           tradePostId: offer.post.id,
         },
+        payment_intent_data: {
+          metadata: {
+            tradeSettlementId: offer.settlement.id,
+            tradeOfferId: offer.id,
+            tradePostId: offer.post.id,
+          },
+        },
       },
-    });
+      { idempotencyKey: `trade_checkout_${offer.settlement.id}` },
+    );
   } catch {
     return jsonError("Unable to create checkout session. Please try again.", 502);
   }

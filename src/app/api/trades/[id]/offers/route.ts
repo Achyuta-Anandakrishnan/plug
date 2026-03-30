@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { jsonError, jsonOk, parseJson } from "@/lib/api";
+import { jsonError, jsonOk, parseJson, checkRateLimit } from "@/lib/api";
 import { parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
 import { ensureTradeSchema, isTradeSchemaMissing } from "@/lib/trade-schema";
 import { tradeOfferWithDuelInclude } from "@/lib/trade-duel-service";
@@ -119,6 +119,11 @@ export async function POST(request: Request, { params }: RouteContext) {
       return jsonError("You already have an active offer on this trade.", 409);
     }
 
+    const rateLimitOk = await checkRateLimit(`trade:offer:${sessionUser.id}`, 20, 60 * 60 * 1000);
+    if (!rateLimitOk) {
+      return jsonError("Too many offers submitted. Try again later.", 429);
+    }
+
     const body = await parseJson<CreateOfferBody>(request);
     if (!body) {
       return jsonError("Invalid request body.");
@@ -144,6 +149,16 @@ export async function POST(request: Request, { params }: RouteContext) {
     const cashAdj = parseIntOrNull(body.cashAdjustment) ?? 0;
     if (Math.abs(cashAdj) > MAX_CASH_ADJUSTMENT) {
       return jsonError("Cash adjustment exceeds the allowed limit.");
+    }
+
+    if (cashAdj !== 0) {
+      const proposer = await prisma.user.findUnique({
+        where: { id: sessionUser.id },
+        select: { stripeCustomerId: true },
+      });
+      if (!proposer?.stripeCustomerId) {
+        return jsonError("Connect a payment method before making cash offers.", 403);
+      }
     }
 
     const message = clampText(body.message, MAX_MESSAGE_LENGTH);

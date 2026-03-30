@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/api";
 import { TRADE_POST_STATUSES, normalizeTags, parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
 import { ensureTradeSchema, isTradeSchemaMissing } from "@/lib/trade-schema";
 
@@ -104,15 +105,22 @@ export async function POST(request: Request) {
       return jsonError("Authentication required.", 401);
     }
 
+    const rateLimitOk = await checkRateLimit(`trade:create:${sessionUser.id}`, 10, 60 * 60 * 1000);
+    if (!rateLimitOk) {
+      return jsonError("Too many trade posts created. Try again later.", 429);
+    }
+
     const body = await parseJson<CreateTradePostBody>(request);
-    if (!body?.title?.trim()) {
+    const title = body?.title?.trim().slice(0, 140) ?? "";
+    const lookingFor = body?.lookingFor?.trim().slice(0, 300) ?? "";
+    if (!title) {
       return jsonError("Title is required.");
     }
-    if (!body?.lookingFor?.trim()) {
+    if (!lookingFor) {
       return jsonError("Looking-for details are required.");
     }
 
-    const images = (body.images ?? [])
+    const images = (body?.images ?? [])
       .map((entry) => ({
         url: toHttpUrlOrNull(entry?.url) ?? "",
         isPrimary: Boolean(entry?.isPrimary),
@@ -120,25 +128,25 @@ export async function POST(request: Request) {
       .filter((entry) => entry.url.length > 0)
       .slice(0, 12);
 
-    const tags = normalizeTags(body.tags);
-    const valueMin = parseIntOrNull(body.valueMin);
-    const valueMax = parseIntOrNull(body.valueMax);
+    const tags = normalizeTags(body?.tags);
+    const valueMin = parseIntOrNull(body?.valueMin);
+    const valueMax = parseIntOrNull(body?.valueMax);
 
     const post = await prisma.tradePost.create({
       data: {
         ownerId: sessionUser.id,
-        title: body.title.trim(),
-        description: body.description?.trim() || null,
-        category: body.category?.trim() || null,
-        cardSet: body.cardSet?.trim() || null,
-        cardNumber: body.cardNumber?.trim() || null,
-        condition: body.condition?.trim() || null,
-        gradeCompany: body.gradeCompany?.trim() || null,
-        gradeLabel: body.gradeLabel?.trim() || null,
-        lookingFor: body.lookingFor.trim(),
-        preferredBrands: body.preferredBrands?.trim() || null,
-        location: body.location?.trim() || null,
-        shippingMode: body.shippingMode?.trim() || null,
+        title,
+        description: body?.description?.trim().slice(0, 1000) || null,
+        category: body?.category?.trim().slice(0, 80) || null,
+        cardSet: body?.cardSet?.trim().slice(0, 120) || null,
+        cardNumber: body?.cardNumber?.trim().slice(0, 48) || null,
+        condition: body?.condition?.trim().slice(0, 48) || null,
+        gradeCompany: body?.gradeCompany?.trim().slice(0, 32) || null,
+        gradeLabel: body?.gradeLabel?.trim().slice(0, 32) || null,
+        lookingFor,
+        preferredBrands: body?.preferredBrands?.trim().slice(0, 200) || null,
+        location: body?.location?.trim().slice(0, 120) || null,
+        shippingMode: body?.shippingMode?.trim().slice(0, 80) || null,
         tags: tags.length > 0 ? (tags as unknown as Prisma.InputJsonValue) : undefined,
         valueMin,
         valueMax,

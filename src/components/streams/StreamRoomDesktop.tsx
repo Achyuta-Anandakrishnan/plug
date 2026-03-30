@@ -158,15 +158,20 @@ export function StreamRoomDesktop({
   const handleSend = async () => {
     if (!data || !message.trim()) return;
     if (!sessionUserId) { setActionStatus("Sign in to chat."); await signIn(); return; }
+    const trimmed = message.trim();
+    setMessage("");
     const response = await fetch(`/api/auctions/${data.id}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body: message }),
+      body: JSON.stringify({ body: trimmed }),
     });
     const payload = await response.json();
-    if (!response.ok) { setActionStatus(payload.error || "Unable to send message."); return; }
-    setMessage("");
-    refresh();
+    if (!response.ok) {
+      setMessage(trimmed);
+      setActionStatus(payload.error || "Unable to send message.");
+      return;
+    }
+    void refresh({ poll: true, silent: true });
   };
 
   if (loading) {
@@ -190,84 +195,96 @@ export function StreamRoomDesktop({
     <section className="stream-room-v4-shell">
       {/* ── LEFT: Bids panel ─────────────────────────────────── */}
       <aside className="stream-room-v4-left">
-        {/* Seller identity + follow */}
-        <div className="stream-room-v4-seller">
-          <SellerAvatar image={sellerImage} displayName={sellerName} size={42} />
-          <div className="stream-room-v4-seller-info">
-            <span className="stream-room-v4-seller-name">{sellerName}</span>
-            <span className="stream-room-v4-seller-tag">{data.category?.name ?? "Collectibles"}</span>
+        {/* ── TOP: always visible ── */}
+        <div className="stream-room-v4-left-top">
+          {/* Seller identity + follow */}
+          <div className="stream-room-v4-seller">
+            <SellerAvatar image={sellerImage} displayName={sellerName} size={38} />
+            <div className="stream-room-v4-seller-info">
+              <span className="stream-room-v4-seller-name">{sellerName}</span>
+              <span className="stream-room-v4-seller-tag">{data.category?.name ?? "Collectibles"}</span>
+            </div>
+            {!isListingSeller && (
+              <button
+                className={`stream-room-v4-follow-btn${isFollowing ? " is-following" : ""}`}
+                onClick={() => setIsFollowing((f) => !f)}
+              >
+                {isFollowing ? "✓" : "Follow"}
+              </button>
+            )}
           </div>
-          {!isListingSeller && (
-            <button
-              className={`stream-room-v4-follow-btn${isFollowing ? " is-following" : ""}`}
-              onClick={() => setIsFollowing((f) => !f)}
-            >
-              {isFollowing ? "Following" : "Follow"}
+
+          {/* Live price summary */}
+          <div className="stream-room-v4-prices">
+            <div className="stream-room-v4-price-cell">
+              <span className="stream-room-v4-price-label">Current bid</span>
+              <span className="stream-room-v4-price-val">{formatCurrency(data.currentBid, currency)}</span>
+            </div>
+            <div className="stream-room-v4-price-cell">
+              <span className="stream-room-v4-price-label">Next bid</span>
+              <span className="stream-room-v4-price-val">{formatCurrency(minimumBid, currency)}</span>
+            </div>
+            <div className="stream-room-v4-price-cell">
+              <span className="stream-room-v4-price-label">Closes in</span>
+              <span className={`stream-room-v4-price-val${timeLeft < 60 && roomLive ? " is-urgent" : ""}`}>
+                {roomLive ? formatSeconds(timeLeft) : "—"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── MIDDLE: scrollable ── */}
+        <div className="stream-room-v4-left-scroll">
+          {/* Current item card */}
+          {imageUrl && (
+            <div className="stream-room-v4-item-card">
+              <div className="stream-room-v4-item-img-wrap">
+                <Image
+                  src={imageUrl}
+                  alt={data.title}
+                  fill
+                  sizes="240px"
+                  className="stream-room-v4-item-img"
+                />
+              </div>
+              <div className="stream-room-v4-item-meta">
+                <p className="stream-room-v4-item-title">{data.title}</p>
+                {data.item?.condition && (
+                  <p className="stream-room-v4-item-cond">{data.item.condition}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Bid history */}
+          <div className="stream-room-v4-bid-history">
+            <p className="stream-room-v4-section-label">Recent bids</p>
+            {recentBids.length === 0 ? (
+              <p className="stream-room-v4-empty-note">No bids yet — be first!</p>
+            ) : (
+              <div className="stream-room-v4-bid-list">
+                {recentBids.map((bid, i) => (
+                  <div key={bid.id} className={`stream-room-v4-bid-row${i === 0 ? " is-top" : ""}`}>
+                    <span className="stream-room-v4-bid-who">
+                      {bid.bidderId === sessionUserId ? "You" : `Bidder #${recentBids.length - i}`}
+                    </span>
+                    <span className="stream-room-v4-bid-amt">{formatCurrency(bid.amount, currency)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Message seller + Host inventory */}
+          {!isListingSeller && sessionUserId && (
+            <button onClick={() => void handleMessageSeller()} className="stream-room-v4-msg-seller">
+              Message seller
             </button>
           )}
+          {isHost && <StreamInventoryManager auctionId={data.id} compact />}
         </div>
 
-        {/* Current item card */}
-        {imageUrl && (
-          <div className="stream-room-v4-item-card">
-            <div className="stream-room-v4-item-img-wrap">
-              <Image
-                src={imageUrl}
-                alt={data.title}
-                fill
-                sizes="240px"
-                className="stream-room-v4-item-img"
-              />
-            </div>
-            <div className="stream-room-v4-item-meta">
-              <p className="stream-room-v4-item-title">{data.title}</p>
-              {data.item?.condition && (
-                <p className="stream-room-v4-item-cond">{data.item.condition}</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {isHost ? <StreamInventoryManager auctionId={data.id} /> : null}
-
-        {/* Live price summary */}
-        <div className="stream-room-v4-prices">
-          <div className="stream-room-v4-price-cell">
-            <span className="stream-room-v4-price-label">Current bid</span>
-            <span className="stream-room-v4-price-val">{formatCurrency(data.currentBid, currency)}</span>
-          </div>
-          <div className="stream-room-v4-price-cell">
-            <span className="stream-room-v4-price-label">Minimum</span>
-            <span className="stream-room-v4-price-val">{formatCurrency(minimumBid, currency)}</span>
-          </div>
-          <div className="stream-room-v4-price-cell">
-            <span className="stream-room-v4-price-label">Closes in</span>
-            <span className={`stream-room-v4-price-val${timeLeft < 60 && roomLive ? " is-urgent" : ""}`}>
-              {roomLive ? formatSeconds(timeLeft) : "—"}
-            </span>
-          </div>
-        </div>
-
-        {/* Bid history */}
-        <div className="stream-room-v4-bid-history">
-          <p className="stream-room-v4-section-label">Recent bids</p>
-          {recentBids.length === 0 ? (
-            <p className="stream-room-v4-empty-note">No bids yet. Be first!</p>
-          ) : (
-            <div className="stream-room-v4-bid-list">
-              {recentBids.map((bid, i) => (
-                <div key={bid.id} className={`stream-room-v4-bid-row${i === 0 ? " is-top" : ""}`}>
-                  <span className="stream-room-v4-bid-who">
-                    {bid.bidderId === sessionUserId ? "You" : `Bidder #${recentBids.length - i}`}
-                  </span>
-                  <span className="stream-room-v4-bid-amt">{formatCurrency(bid.amount, currency)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Bid controls */}
+        {/* ── BOTTOM: bid controls — always visible ── */}
         <div className="stream-room-v4-bid-controls">
           {data.listingType !== "BUY_NOW" && (
             <>
@@ -304,7 +321,6 @@ export function StreamRoomDesktop({
               </div>
             </>
           )}
-
           {data.listingType !== "AUCTION" && data.buyNowPrice ? (
             <button
               onClick={() => void handleBuyNow()}
@@ -314,22 +330,11 @@ export function StreamRoomDesktop({
               Buy now · {formatCurrency(data.buyNowPrice, currency)}
             </button>
           ) : null}
-
           {!canUseStripe && (
-            <p className="stream-room-v4-hint is-warning">Payments are unavailable right now.</p>
+            <p className="stream-room-v4-hint is-warning">Payments unavailable.</p>
           )}
           {actionStatus ? <p className="stream-room-v4-status">{actionStatus}</p> : null}
         </div>
-
-        {/* Message seller */}
-        {!isListingSeller && sessionUserId && (
-          <button
-            onClick={() => void handleMessageSeller()}
-            className="stream-room-v4-msg-seller"
-          >
-            Message seller
-          </button>
-        )}
       </aside>
 
       {/* ── CENTER: Video ─────────────────────────────────────── */}

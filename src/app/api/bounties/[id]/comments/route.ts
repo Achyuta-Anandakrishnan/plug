@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { jsonError, jsonOk, parseJson } from "@/lib/api";
+import { jsonError, jsonOk, parseJson, checkRateLimit } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
 
@@ -70,6 +70,11 @@ export async function POST(
 
   if (body.length > 400) {
     return jsonError("Comment must be 400 characters or fewer.", 400);
+  }
+
+  const rateLimitOk = await checkRateLimit(`bounty:comment:${sessionUser.id}`, 20, 60 * 60 * 1000);
+  if (!rateLimitOk) {
+    return jsonError("Too many comments. Try again later.", 429);
   }
 
   try {

@@ -69,10 +69,15 @@ export async function POST(
 
   const bidder = await prisma.user.findUnique({
     where: { id: bidderId },
+    select: { id: true, stripeCustomerId: true },
   });
 
   if (!bidder) {
     return jsonError("Bidder not found.", 404);
+  }
+
+  if (!bidder.stripeCustomerId) {
+    return jsonError("Connect a payment method before bidding.", 403);
   }
 
   const nextEndTime = computeExtendedEndTime(

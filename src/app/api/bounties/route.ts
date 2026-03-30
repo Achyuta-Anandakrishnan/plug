@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
 import { parseIntOrNull, toHttpUrlOrNull } from "@/lib/trades";
+import { checkRateLimit } from "@/lib/api";
 import { ensureBountySchema, isBountySchemaMissing } from "@/lib/bounty-schema";
 import {
   bountyBudgetValue,
@@ -243,6 +244,11 @@ export async function POST(request: Request) {
     const sessionUser = await getSessionUser();
     if (!sessionUser?.id) {
       return jsonError("Authentication required.", 401);
+    }
+
+    const rateLimitOk = await checkRateLimit(`bounty:create:${sessionUser.id}`, 10, 60 * 60 * 1000);
+    if (!rateLimitOk) {
+      return jsonError("Too many bounties created. Try again later.", 429);
     }
 
     const body = await parseJson<CreateBountyBody>(request);

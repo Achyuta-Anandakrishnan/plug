@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
+import { getStripeClient, stripeEnabled } from "@/lib/stripe";
 import {
   createInitialDuelState,
   isTradeDuelMode,
@@ -245,7 +246,71 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       });
     });
 
-    return jsonOk(accepted);
+    // Auto-create Stripe checkout if cash settlement is required
+    let checkoutUrl: string | null = null;
+    const settlement = accepted.settlement;
+    if (settlement && settlement.amount > 0 && settlement.status === "REQUIRES_PAYMENT" && stripeEnabled()) {
+      const stripe = getStripeClient();
+      if (stripe) {
+        try {
+          const appUrl =
+            process.env.NEXT_PUBLIC_APP_URL ||
+            process.env.NEXTAUTH_URL ||
+            "http://localhost:3000";
+
+          const session = await stripe.checkout.sessions.create(
+            {
+              mode: "payment",
+              success_url: `${appUrl}/trades/${accepted.postId}?offer=${accepted.id}&settlement=success`,
+              cancel_url: `${appUrl}/trades/${accepted.postId}?offer=${accepted.id}&settlement=cancel`,
+              payment_method_types: ["card"],
+              line_items: [
+                {
+                  quantity: 1,
+                  price_data: {
+                    currency: settlement.currency,
+                    unit_amount: settlement.amount,
+                    product_data: {
+                      name: `Trade settlement`.slice(0, 120),
+                    },
+                  },
+                },
+              ],
+              metadata: {
+                tradeSettlementId: settlement.id,
+                tradeOfferId: accepted.id,
+                tradePostId: accepted.postId,
+              },
+              payment_intent_data: {
+                metadata: {
+                  tradeSettlementId: settlement.id,
+                  tradeOfferId: accepted.id,
+                  tradePostId: accepted.postId,
+                },
+              },
+            },
+            { idempotencyKey: `trade_checkout_${settlement.id}` },
+          );
+
+          checkoutUrl = session.url ?? null;
+
+          await prisma.tradeSettlement.update({
+            where: { id: settlement.id },
+            data: {
+              status: "PROCESSING",
+              providerCheckoutSession: session.id,
+              providerPaymentIntent: typeof session.payment_intent === "string"
+                ? session.payment_intent
+                : null,
+            },
+          });
+        } catch (error) {
+          console.error("Stripe checkout create failed on trade acceptance", { offerId: accepted.id, error });
+        }
+      }
+    }
+
+    return jsonOk({ ...accepted, checkoutUrl });
   }
 
   if (nextStatus === "COUNTERED") {

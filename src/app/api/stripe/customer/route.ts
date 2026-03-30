@@ -1,0 +1,69 @@
+import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
+import { getStripeClient, stripeEnabled } from "@/lib/stripe";
+import { jsonError, jsonOk } from "@/lib/api";
+
+export async function GET() {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser?.id) {
+    return jsonError("Authentication required.", 401);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: sessionUser.id },
+    select: { stripeCustomerId: true },
+  });
+
+  return jsonOk({
+    stripeConfigured: stripeEnabled(),
+    hasPaymentMethod: Boolean(user?.stripeCustomerId),
+  });
+}
+
+export async function POST() {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser?.id) {
+    return jsonError("Authentication required.", 401);
+  }
+
+  if (!stripeEnabled()) {
+    return jsonError("Stripe payments are not configured.", 503);
+  }
+
+  const stripe = getStripeClient();
+  if (!stripe) {
+    return jsonError("Stripe client is unavailable.", 503);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: sessionUser.id },
+    select: { id: true, email: true, name: true, stripeCustomerId: true },
+  });
+
+  if (!user) {
+    return jsonError("User not found.", 404);
+  }
+
+  if (user.stripeCustomerId) {
+    // Already registered — verify the customer still exists on Stripe
+    try {
+      await stripe.customers.retrieve(user.stripeCustomerId);
+      return jsonOk({ hasPaymentMethod: true, stripeCustomerId: user.stripeCustomerId });
+    } catch {
+      // Customer was deleted on Stripe — fall through to recreate
+    }
+  }
+
+  const customer = await stripe.customers.create({
+    email: user.email ?? undefined,
+    name: user.name ?? undefined,
+    metadata: { userId: user.id },
+  });
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { stripeCustomerId: customer.id },
+  });
+
+  return jsonOk({ hasPaymentMethod: true, stripeCustomerId: customer.id });
+}

@@ -14400,54 +14400,111 @@ html[data-theme="dark"] .pop-score-elite {
   flex-shrink: 0;
 }
 
-/* ─── Stream room v4: 3-panel layout ───────────────────────────────────── */
+/* ─── Stream room v4: glassmorphism 3-panel layout ──────────────────────── */
 
+/* Page wrapper — no scroll, full viewport */
 .stream-room-v4-page {
   padding: 0;
-  height: 100dvh;
-  max-height: 100dvh;
+  height: calc(100dvh - var(--app-header-height, 64px));
+  max-height: calc(100dvh - var(--app-header-height, 64px));
   overflow: hidden;
+  background: #05080f;
   display: flex;
   flex-direction: column;
 }
 
+/* Override .app-container base rules (max-width, padding, min-height) when used
+   as the stream page wrapper. Specificity 0,2,0 beats .site-main--app > .app-container
+   at the same specificity because this rule appears later in the sheet. */
+.app-container.stream-room-v4-page {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  min-height: 0;
+}
+
+/* 3-column grid */
 .stream-room-v4-shell {
   display: grid;
-  grid-template-columns: 272px 1fr 288px;
-  gap: 12px;
+  grid-template-columns: 278px 1fr 292px;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 10px;
   flex: 1;
   min-height: 0;
-  padding: 16px;
-  background: var(--product-bg);
+  padding: 10px;
+  background: #05080f;
   overflow: hidden;
 }
 
-/* ── Left: bids panel ─────────────────── */
+/* ── Shared glass surface ── */
+.stream-room-v4-left,
+.stream-room-v4-right {
+  background: rgba(6, 10, 20, 0.78);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Left panel: 3 zones ── */
 .stream-room-v4-left {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--product-border) transparent;
-  padding-right: 2px;
 }
 
+/* TOP: always visible — seller + prices */
+.stream-room-v4-left-top {
+  flex-shrink: 0;
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* MIDDLE: scrollable */
+.stream-room-v4-left-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+/* BOTTOM: bid controls — always pinned */
+.stream-room-v4-bid-controls {
+  flex-shrink: 0;
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* ── Seller row ── */
 .stream-room-v4-seller {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
 }
 
 .stream-room-v4-seller-avatar {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
 }
 
 .stream-room-v4-seller-avatar-initial {
-  background: #1d3d80;
+  background: linear-gradient(135deg, #1d3d80, #3a6fd8);
   color: #fff;
   display: flex;
   align-items: center;
@@ -14455,6 +14512,7 @@ html[data-theme="dark"] .pop-score-elite {
   font-weight: 700;
   border-radius: 50%;
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
 }
 
 .stream-room-v4-seller-info {
@@ -14462,64 +14520,98 @@ html[data-theme="dark"] .pop-score-elite {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .stream-room-v4-seller-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--product-text);
+  color: rgba(255, 255, 255, 0.95);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .stream-room-v4-seller-tag {
-  font-size: 11px;
-  color: var(--product-text-muted);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .stream-room-v4-follow-btn {
   flex-shrink: 0;
-  height: 28px;
-  padding: 0 14px;
+  height: 26px;
+  padding: 0 12px;
   border-radius: 999px;
-  border: 1.5px solid #1d3d80;
+  border: 1.5px solid rgba(125, 163, 232, 0.5);
   background: transparent;
-  color: #1d3d80;
-  font-size: 12px;
+  color: rgba(125, 163, 232, 0.9);
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   white-space: nowrap;
 }
 
-html[data-theme="dark"] .stream-room-v4-follow-btn {
-  border-color: #7da3e8;
-  color: #7da3e8;
+.stream-room-v4-follow-btn:hover:not(.is-following) {
+  background: rgba(125, 163, 232, 0.12);
+  border-color: rgba(125, 163, 232, 0.75);
 }
 
 .stream-room-v4-follow-btn.is-following {
-  background: #1d3d80;
-  color: #fff;
-  border-color: #1d3d80;
+  background: rgba(125, 163, 232, 0.18);
+  color: #7da3e8;
+  border-color: rgba(125, 163, 232, 0.6);
 }
 
-html[data-theme="dark"] .stream-room-v4-follow-btn.is-following {
-  background: #7da3e8;
-  color: #0a0e16;
-  border-color: #7da3e8;
-}
-
-.stream-room-v4-follow-btn:hover:not(.is-following) {
-  background: rgba(29, 61, 128, 0.07);
-}
-
-.stream-room-v4-item-card {
-  border-radius: 14px;
+/* ── Price summary ── */
+.stream-room-v4-prices {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--product-border);
-  background: var(--product-surface);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.stream-room-v4-price-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 9px 4px;
+}
+
+.stream-room-v4-price-cell + .stream-room-v4-price-cell {
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.stream-room-v4-price-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stream-room-v4-price-val {
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: -0.01em;
+}
+
+.stream-room-v4-price-val.is-urgent {
+  color: #f04a55;
+}
+
+/* ── Item card ── */
+.stream-room-v4-item-card {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .stream-room-v4-item-img-wrap {
@@ -14533,14 +14625,14 @@ html[data-theme="dark"] .stream-room-v4-follow-btn.is-following {
 }
 
 .stream-room-v4-item-meta {
-  padding: 10px 12px 12px;
+  padding: 8px 10px 10px;
 }
 
 .stream-room-v4-item-title {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--product-text);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -14549,60 +14641,22 @@ html[data-theme="dark"] .stream-room-v4-follow-btn.is-following {
 }
 
 .stream-room-v4-item-cond {
-  margin: 4px 0 0;
-  font-size: 11px;
-  color: var(--product-text-muted);
+  margin: 3px 0 0;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.38);
 }
 
-.stream-room-v4-prices {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  border: 1px solid var(--product-border);
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--product-surface);
-}
-
-.stream-room-v4-price-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 10px 4px;
-}
-
-.stream-room-v4-price-cell + .stream-room-v4-price-cell {
-  border-left: 1px solid var(--product-border);
-}
-
-.stream-room-v4-price-label {
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--product-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.stream-room-v4-price-val {
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--product-text);
-  letter-spacing: -0.01em;
-}
-
-.stream-room-v4-price-val.is-urgent {
-  color: #c0303a;
-}
-
+/* ── Section label ── */
 .stream-room-v4-section-label {
   margin: 0;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--product-text-muted);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.35);
 }
 
+/* ── Bid history ── */
 .stream-room-v4-bid-history {
   display: flex;
   flex-direction: column;
@@ -14611,53 +14665,43 @@ html[data-theme="dark"] .stream-room-v4-follow-btn.is-following {
 
 .stream-room-v4-empty-note {
   font-size: 12px;
-  color: var(--product-text-muted);
+  color: rgba(255, 255, 255, 0.32);
   margin: 0;
 }
 
 .stream-room-v4-bid-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .stream-room-v4-bid-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 10px;
+  padding: 5px 9px;
   border-radius: 8px;
-  background: var(--product-surface);
-  border: 1px solid var(--product-border);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .stream-room-v4-bid-row.is-top {
-  background: rgba(29, 61, 128, 0.06);
-  border-color: rgba(29, 61, 128, 0.2);
-}
-
-html[data-theme="dark"] .stream-room-v4-bid-row.is-top {
   background: rgba(125, 163, 232, 0.1);
-  border-color: rgba(125, 163, 232, 0.22);
+  border-color: rgba(125, 163, 232, 0.2);
 }
 
 .stream-room-v4-bid-who {
-  font-size: 12px;
-  color: var(--product-text-soft);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .stream-room-v4-bid-amt {
   font-size: 12px;
   font-weight: 700;
-  color: var(--product-text);
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.stream-room-v4-bid-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
+/* ── Bid controls (pinned bottom) ── */
 .stream-room-v4-quick-bids {
   display: flex;
   gap: 5px;
@@ -14665,11 +14709,11 @@ html[data-theme="dark"] .stream-room-v4-bid-row.is-top {
 
 .stream-room-v4-quick-chip {
   flex: 1;
-  height: 34px;
+  height: 32px;
   border-radius: 8px;
-  border: 1px solid var(--product-border);
-  background: var(--product-surface);
-  color: var(--product-text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -14678,47 +14722,43 @@ html[data-theme="dark"] .stream-room-v4-bid-row.is-top {
 }
 
 .stream-room-v4-quick-chip:hover:not(:disabled) {
-  background: var(--product-surface-raised, rgba(0,0,0,0.05));
-  border-color: var(--product-border-strong);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .stream-room-v4-quick-chip:disabled {
-  opacity: 0.38;
+  opacity: 0.3;
   cursor: default;
 }
 
 .stream-room-v4-bid-row-input {
   display: flex;
   align-items: center;
-  border: 1.5px solid var(--product-border);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   overflow: hidden;
-  background: var(--product-surface);
+  background: rgba(255, 255, 255, 0.05);
   transition: border-color 0.15s;
 }
 
 .stream-room-v4-bid-row-input:focus-within {
-  border-color: #c0303a;
-}
-
-html[data-theme="dark"] .stream-room-v4-bid-row-input {
-  background: rgba(255,255,255,0.04);
+  border-color: rgba(192, 48, 58, 0.7);
 }
 
 .stream-room-v4-currency-prefix {
   font-size: 13px;
   font-weight: 600;
-  color: var(--product-text-muted);
+  color: rgba(255, 255, 255, 0.35);
   padding-left: 10px;
   flex-shrink: 0;
 }
 
 .stream-room-v4-bid-input {
   flex: 1;
-  height: 42px;
+  height: 40px;
   border: none;
   background: transparent;
-  color: var(--product-text);
+  color: rgba(255, 255, 255, 0.95);
   font-size: 15px;
   font-weight: 700;
   outline: none;
@@ -14728,83 +14768,84 @@ html[data-theme="dark"] .stream-room-v4-bid-row-input {
 
 .stream-room-v4-bid-btn {
   flex-shrink: 0;
-  height: 42px;
-  padding: 0 18px;
+  height: 40px;
+  padding: 0 16px;
   border: none;
   background: #c0303a;
   color: #fff;
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .stream-room-v4-bid-btn:hover:not(:disabled) {
-  background: #a8282f;
+  background: #d93643;
 }
 
 .stream-room-v4-bid-btn:disabled {
-  opacity: 0.38;
+  opacity: 0.3;
   cursor: default;
 }
 
 .stream-room-v4-buy-btn {
   width: 100%;
-  height: 38px;
-  border-radius: 10px;
-  border: 1.5px solid var(--product-border-strong, rgba(0,0,0,0.2));
-  background: transparent;
-  color: var(--product-text);
+  height: 36px;
+  border-radius: 9px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .stream-room-v4-buy-btn:hover:not(:disabled) {
-  background: var(--product-surface-muted, rgba(0,0,0,0.04));
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
-.stream-room-v4-buy-btn:disabled { opacity: 0.38; cursor: default; }
+.stream-room-v4-buy-btn:disabled { opacity: 0.3; cursor: default; }
 
-.stream-room-v4-hint { font-size: 11px; color: var(--product-text-muted); margin: 0; }
-.stream-room-v4-hint.is-warning { color: #c0303a; }
-.stream-room-v4-status { font-size: 11px; color: var(--product-text-soft); margin: 0; }
+.stream-room-v4-hint { font-size: 11px; color: rgba(255,255,255,0.4); margin: 0; }
+.stream-room-v4-hint.is-warning { color: #f04a55; }
+.stream-room-v4-status { font-size: 11px; color: rgba(255,255,255,0.55); margin: 0; }
 
+/* Message seller */
 .stream-room-v4-msg-seller {
-  margin-top: auto;
   width: 100%;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid var(--product-border);
+  height: 32px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
-  color: var(--product-text-soft);
-  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }
 
 .stream-room-v4-msg-seller:hover {
-  border-color: var(--product-border-strong);
-  color: var(--product-text);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.7);
 }
 
-/* ── Center: video ───────────────────────── */
+/* ── Center: video ── */
 .stream-room-v4-video {
   position: relative;
   border-radius: 18px;
   overflow: hidden;
-  background: #060a12;
+  background: #030508;
   min-height: 0;
 }
 
 .stream-room-v4-grad-top {
   position: absolute;
   inset: 0;
-  bottom: 55%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%);
+  bottom: 58%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%);
   pointer-events: none;
   z-index: 1;
 }
@@ -14812,17 +14853,17 @@ html[data-theme="dark"] .stream-room-v4-bid-row-input {
 .stream-room-v4-grad-bottom {
   position: absolute;
   inset: 0;
-  top: 62%;
-  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%);
+  top: 65%;
+  background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);
   pointer-events: none;
   z-index: 1;
 }
 
 .stream-room-v4-hud-top {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  right: 14px;
+  top: 12px;
+  left: 12px;
+  right: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -14835,63 +14876,70 @@ html[data-theme="dark"] .stream-room-v4-bid-row-input {
 .stream-room-v4-hud-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .stream-room-v4-live-badge {
-  height: 24px;
-  padding: 0 10px;
+  height: 22px;
+  padding: 0 9px;
   border-radius: 999px;
-  background: rgba(30,30,30,0.7);
-  backdrop-filter: blur(6px);
-  color: rgba(255,255,255,0.55);
-  font-size: 11px;
+  background: rgba(20, 20, 30, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255,255,255,0.45);
+  font-size: 10px;
   font-weight: 700;
   display: flex;
   align-items: center;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
 .stream-room-v4-live-badge.is-live {
   background: #c0303a;
   color: #fff;
+  border-color: transparent;
 }
 
 .stream-room-v4-timer {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
-  background: rgba(0,0,0,0.52);
-  backdrop-filter: blur(4px);
-  padding: 3px 9px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 2px 9px;
   border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
 .stream-room-v4-watchers {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: rgba(255,255,255,0.78);
-  background: rgba(0,0,0,0.42);
-  backdrop-filter: blur(4px);
-  padding: 3px 10px;
+  color: rgba(255,255,255,0.72);
+  background: rgba(0,0,0,0.48);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 2px 9px;
   border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 .stream-room-v4-hud-bottom {
   position: absolute;
-  bottom: 14px;
-  left: 14px;
-  right: 14px;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   z-index: 2;
   pointer-events: none;
 }
 
 .stream-room-v4-hud-seller {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #fff;
   line-height: 1.2;
@@ -14899,45 +14947,39 @@ html[data-theme="dark"] .stream-room-v4-bid-row-input {
 
 .stream-room-v4-hud-title {
   margin: 0;
-  font-size: 11px;
-  color: rgba(255,255,255,0.68);
+  font-size: 10px;
+  color: rgba(255,255,255,0.6);
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ── Right: chat panel ───────────────────── */
+/* ── Right: chat panel ── */
 .stream-room-v4-right {
   display: flex;
   flex-direction: column;
-  background: var(--product-surface);
-  border: 1px solid var(--product-border);
-  border-radius: 18px;
-  overflow: hidden;
   min-height: 0;
-}
-
-html[data-theme="dark"] .stream-room-v4-right {
-  background: #0f1117;
 }
 
 .stream-room-v4-chat-label {
   flex-shrink: 0;
-  padding: 14px 16px 10px;
-  border-bottom: 1px solid var(--product-border);
+  padding: 13px 14px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .stream-room-v4-chat {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 10px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
   scrollbar-width: thin;
-  scrollbar-color: var(--product-border) transparent;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+  min-height: 0;
 }
 
 .stream-room-v4-msg {
@@ -14947,17 +14989,18 @@ html[data-theme="dark"] .stream-room-v4-right {
 }
 
 .stream-room-v4-msg-name {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  color: var(--product-text-soft);
+  color: rgba(255, 255, 255, 0.4);
 }
 
-.stream-room-v4-msg.is-own .stream-room-v4-msg-name { color: #1d3d80; }
-html[data-theme="dark"] .stream-room-v4-msg.is-own .stream-room-v4-msg-name { color: #7da3e8; }
+.stream-room-v4-msg.is-own .stream-room-v4-msg-name {
+  color: #7da3e8;
+}
 
 .stream-room-v4-msg-body {
-  font-size: 13px;
-  color: var(--product-text);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.82);
   line-height: 1.4;
   word-break: break-word;
 }
@@ -14967,25 +15010,29 @@ html[data-theme="dark"] .stream-room-v4-msg.is-own .stream-room-v4-msg-name { co
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 10px 12px;
-  border-top: 1px solid var(--product-border);
+  padding: 9px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .stream-room-v4-compose-input {
   flex: 1;
-  height: 36px;
+  height: 34px;
   border-radius: 8px;
-  border: 1px solid var(--product-border);
-  background: var(--product-bg);
-  color: var(--product-text);
-  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
   padding: 0 10px;
   outline: none;
   transition: border-color 0.15s;
 }
 
-.stream-room-v4-compose-input:focus { border-color: var(--product-border-strong); }
-html[data-theme="dark"] .stream-room-v4-compose-input { background: rgba(255,255,255,0.05); }
+.stream-room-v4-compose-input::placeholder { color: rgba(255,255,255,0.28); }
+
+.stream-room-v4-compose-input:focus {
+  border-color: rgba(255, 255, 255, 0.22);
+}
 
 .stream-room-v4-send-btn {
   flex-shrink: 0;
@@ -15003,40 +15050,32 @@ html[data-theme="dark"] .stream-room-v4-compose-input { background: rgba(255,255
   transition: opacity 0.15s;
 }
 
-.stream-room-v4-send-btn:hover { opacity: 0.82; }
+.stream-room-v4-send-btn:hover { opacity: 0.84; }
 
-/* ── Responsive ─────────────────────────── */
+/* ── Responsive ── */
 @media (max-width: 1100px) {
   .stream-room-v4-shell {
-    grid-template-columns: 240px 1fr 250px;
-    gap: 10px;
-    padding: 12px;
+    grid-template-columns: 248px 1fr 258px;
+    gap: 8px;
+    padding: 8px;
   }
 }
 
 @media (max-width: 860px) {
-  .stream-room-v4-page { height: auto; max-height: none; overflow: auto; }
-
+  .stream-room-v4-page { height: auto; max-height: none; overflow: auto; background: #05080f; }
   .stream-room-v4-shell {
     grid-template-columns: 1fr;
     height: auto;
     overflow: visible;
-    padding: 12px;
-    gap: 12px;
+    padding: 10px;
+    gap: 10px;
   }
-
-  .stream-room-v4-video {
-    aspect-ratio: 9/16;
-    max-height: 62dvh;
-  }
-
+  .stream-room-v4-video { aspect-ratio: 9/16; max-height: 62dvh; }
   .stream-room-v4-left,
-  .stream-room-v4-right {
-    max-height: none;
-  }
-
-  .stream-room-v4-right { min-height: 320px; }
+  .stream-room-v4-right { max-height: none; }
+  .stream-room-v4-right { min-height: 300px; }
 }
+
 
 .stream-inventory-panel {
   display: grid;

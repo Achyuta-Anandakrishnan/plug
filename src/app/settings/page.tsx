@@ -27,6 +27,7 @@ export default function SettingsPage() {
 
           <section className="settings-mobile-actions-list" aria-label="Settings shortcuts">
             <SecondaryButton href="/orders">Orders</SecondaryButton>
+            <SecondaryButton href="/settings/payments">Payments</SecondaryButton>
             <SecondaryButton href="/referral">Referral program</SecondaryButton>
             <ThemeToggle />
             {session?.user?.id ? (
@@ -53,6 +54,7 @@ export default function SettingsPage() {
           actions={(
             <div className="settings-header-actions">
               <SecondaryButton href="/orders">Orders</SecondaryButton>
+              <SecondaryButton href="/settings/payments">Payments</SecondaryButton>
               <SecondaryButton href="/referral">Referral program</SecondaryButton>
               {session?.user?.id ? (
                 <SecondaryButton onClick={() => void signOut()}>Sign out</SecondaryButton>
