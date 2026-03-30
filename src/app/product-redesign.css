@@ -15110,6 +15110,426 @@ html[data-theme="dark"] .stream-room-v4-page {
 }
 
 
+/* ─── Stream Room Mobile (srm-*) ─────────────────────────────────────────── */
+/* Full-screen immersive layout: video fills container, controls float on top */
+
+.srm-page {
+  position: relative;
+  height: 100%; /* fills app-container.stream-room-v4-page */
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+}
+
+.srm-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #000;
+}
+
+/* ── Video layer — absolute, fills container ── */
+.srm-video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* gradient: dark at top for HUD legibility */
+.srm-grad-top {
+  position: absolute;
+  inset: 0;
+  bottom: 50%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* gradient: dark at bottom for tray readability */
+.srm-grad-bottom {
+  position: absolute;
+  inset: 0;
+  top: 42%;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Top HUD ── */
+.srm-hud-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  pointer-events: none;
+}
+.srm-hud-top > * { pointer-events: auto; }
+
+.srm-hud-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.srm-live-badge {
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(12, 14, 22, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.45);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+}
+.srm-live-badge.is-live {
+  background: #c0303a;
+  color: #fff;
+  border-color: transparent;
+}
+
+.srm-timer {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.srm-watchers {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ── Chat feed — floats above tray, fades into video ── */
+.srm-chat {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--srm-tray-height, 220px);
+  z-index: 3;
+  max-height: 38dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  padding: 6px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  pointer-events: none;
+  /* fade out top so messages emerge from video */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 28%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 28%);
+}
+.srm-chat::-webkit-scrollbar { display: none; }
+
+.srm-msg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+  max-width: 80%;
+  pointer-events: auto;
+}
+
+.srm-msg-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.65);
+  flex-shrink: 0;
+}
+.srm-msg.is-own .srm-msg-name { color: #7da3e8; }
+
+.srm-msg-body {
+  font-size: 13px;
+  color: rgba(255,255,255,0.92);
+  line-height: 1.35;
+  word-break: break-word;
+  background: rgba(0,0,0,0.3);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+/* ── Bottom tray — glass panel ── */
+.srm-tray {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px 14px 20px;
+  background: rgba(3, 5, 12, 0.88);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+/* Seller row */
+.srm-tray-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.srm-avatar-img {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.12);
+}
+
+.srm-avatar-initial {
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #1d3d80, #3a6fd8);
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.12);
+}
+
+.srm-tray-seller-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.srm-tray-seller-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.srm-tray-title {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.srm-follow-btn {
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(125,163,232,0.5);
+  background: transparent;
+  color: rgba(125,163,232,0.9);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.srm-follow-btn:hover:not(.is-following) { background: rgba(125,163,232,0.12); }
+.srm-follow-btn.is-following {
+  background: rgba(125,163,232,0.18);
+  color: #7da3e8;
+  border-color: rgba(125,163,232,0.6);
+}
+
+.srm-tray-price {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+.srm-tray-price-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(255,255,255,0.35);
+}
+.srm-tray-price-val {
+  font-size: 17px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.95);
+  letter-spacing: -0.02em;
+}
+.srm-tray-price-val.is-urgent { color: #f04a55; }
+
+/* Quick bid chips */
+.srm-chips {
+  display: flex;
+  gap: 6px;
+}
+.srm-chip {
+  flex: 1;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.85);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+.srm-chip:active:not(:disabled) { background: rgba(255,255,255,0.15); }
+.srm-chip:disabled { opacity: 0.3; cursor: default; }
+
+/* Bid input row */
+.srm-bid-row {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+  transition: border-color 0.15s;
+}
+.srm-bid-row:focus-within { border-color: rgba(192,48,58,0.65); }
+
+.srm-currency {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  padding-left: 13px;
+  flex-shrink: 0;
+}
+.srm-bid-input {
+  flex: 1;
+  height: 48px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.95);
+  font-size: 17px;
+  font-weight: 700;
+  outline: none;
+  min-width: 0;
+  padding: 0 9px;
+}
+.srm-bid-btn {
+  flex-shrink: 0;
+  height: 48px;
+  padding: 0 22px;
+  border: none;
+  background: #c0303a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.srm-bid-btn:active:not(:disabled) { background: #d93643; }
+.srm-bid-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* Buy now */
+.srm-buy-btn {
+  width: 100%;
+  height: 42px;
+  border-radius: 11px;
+  border: 1.5px solid rgba(255,255,255,0.13);
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.srm-buy-btn:active:not(:disabled) { background: rgba(255,255,255,0.13); }
+.srm-buy-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* Compose bar */
+.srm-compose {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.srm-compose-input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  border-radius: 11px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.9);
+  font-size: 13px;
+  padding: 0 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.srm-compose-input::placeholder { color: rgba(255,255,255,0.28); }
+.srm-compose-input:focus { border-color: rgba(255,255,255,0.22); }
+
+.srm-send-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  border: none;
+  background: #c0303a;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
+}
+.srm-send-btn:active { opacity: 0.78; }
+
+.srm-dm-btn {
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 13px;
+  border-radius: 11px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.srm-dm-btn:active {
+  border-color: rgba(255,255,255,0.24);
+  color: rgba(255,255,255,0.72);
+}
+
+/* Host panel */
+.srm-host-panel {
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding-top: 10px;
+}
+
+.srm-hint { font-size: 11px; color: rgba(255,255,255,0.38); margin: 0; }
+.srm-hint.is-warning { color: #f04a55; }
+.srm-status { font-size: 12px; color: rgba(255,255,255,0.6); margin: 0; text-align: center; }
+
 .stream-inventory-panel {
   display: grid;
   gap: 14px;

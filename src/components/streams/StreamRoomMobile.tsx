@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
@@ -17,6 +18,38 @@ type StreamRoomMobileProps = {
   stripeEnabled?: boolean;
 };
 
+function MobileAvatar({
+  image,
+  displayName,
+  size = 32,
+}: {
+  image: string | null;
+  displayName: string | null;
+  size?: number;
+}) {
+  const initial = (displayName ?? "?")[0]?.toUpperCase() ?? "?";
+  if (image) {
+    return (
+      <Image
+        src={image}
+        alt={displayName ?? "Seller"}
+        width={size}
+        height={size}
+        className="srm-avatar-img"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <div
+      className="srm-avatar-initial"
+      style={{ width: size, height: size, fontSize: size * 0.42 }}
+    >
+      {initial}
+    </div>
+  );
+}
+
 export function StreamRoomMobile({
   auctionId,
   initialData,
@@ -33,6 +66,7 @@ export function StreamRoomMobile({
   const [participantCount, setParticipantCount] = useState<number | null>(null);
   const [streamStatus, setStreamStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
   const [bidAmount, setBidAmount] = useState("");
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
     if (chatRef.current) {
@@ -43,6 +77,12 @@ export function StreamRoomMobile({
   const timeLeft = useMemo(() => (data ? getTimeLeftSeconds(data) : 0), [data]);
   const nextBid = data ? data.currentBid + data.minBidIncrement : 0;
   const currency = data?.currency?.toUpperCase() ?? "USD";
+  const isAdmin = session?.user?.role === "ADMIN";
+  const isHost = Boolean(
+    sessionUserId
+      && data?.seller?.user?.id
+      && (data.seller.user.id === sessionUserId || isAdmin),
+  );
   const isListingSeller =
     Boolean(sessionUserId && data?.seller?.user?.id) && data?.seller?.user?.id === sessionUserId;
   const canUseStripe = Boolean(stripeEnabled);
@@ -93,9 +133,9 @@ export function StreamRoomMobile({
     });
     const payload = await response.json();
     if (!response.ok) { setActionStatus(payload.error || "Unable to place bid."); return; }
-    setActionStatus(`Bid placed at ${formatCurrency(amount, currency)}.`);
+    setActionStatus(`Bid placed · ${formatCurrency(amount, currency)}`);
     setBidAmount(((amount + data.minBidIncrement) / 100).toFixed(2));
-    void refresh({ poll: true });
+    void refresh({ poll: true, silent: true });
   };
 
   const handleBuyNow = async () => {
@@ -120,19 +160,28 @@ export function StreamRoomMobile({
   const handleSend = async () => {
     if (!data || !message.trim()) return;
     if (!sessionUserId) { setActionStatus("Sign in to chat."); await signIn(); return; }
+    const trimmed = message.trim();
+    setMessage("");
     const response = await fetch(`/api/auctions/${data.id}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body: message }),
+      body: JSON.stringify({ body: trimmed }),
     });
     const payload = await response.json();
-    if (!response.ok) { setActionStatus(payload.error || "Unable to send message."); return; }
-    setMessage("");
-    void refresh();
+    if (!response.ok) {
+      setMessage(trimmed);
+      setActionStatus(payload.error || "Unable to send message.");
+      return;
+    }
+    void refresh({ poll: true, silent: true });
   };
 
   if (loading) {
-    return <CheckersLoader title="Loading stream room..." compact />;
+    return (
+      <div className="srm-loading">
+        <CheckersLoader title="Loading stream…" compact />
+      </div>
+    );
   }
 
   if (error || !data) {
@@ -140,12 +189,13 @@ export function StreamRoomMobile({
   }
 
   const imageUrl = data.item?.images?.find((img) => img.isPrimary)?.url ?? data.item?.images?.[0]?.url ?? null;
-  const isHost = Boolean(sessionUserId && data.seller?.user?.id === sessionUserId);
+  const sellerName = data.seller?.user?.displayName ?? "Verified seller";
+  const sellerImage = data.seller?.user?.image ?? null;
 
   return (
-    <section className="stream-room-wn-mobile">
-      {/* Video */}
-      <div className="stream-room-wn-mobile-video">
+    <section className="srm-page">
+      {/* ── Video fills entire container ── */}
+      <div className="srm-video">
         <LiveKitStream
           auctionId={data.id}
           isHost={isHost}
@@ -154,136 +204,148 @@ export function StreamRoomMobile({
           onParticipantCount={setParticipantCount}
           onStatusChange={setStreamStatus}
         />
-        <div className="stream-room-wn-grad-top" aria-hidden />
-        <div className="stream-room-wn-grad-bottom" aria-hidden />
-        <div className="stream-room-wn-video-top">
-          <div className="stream-room-wn-video-top-left">
-            {!isHost && (
-              <span className={`stream-room-badge${streamStatus === "live" ? " is-live" : ""}`}>
-                {streamStatus === "live" ? "Live" : "Offline"}
-              </span>
-            )}
-            <span className="stream-room-wn-timer">{formatSeconds(timeLeft)}</span>
-          </div>
-          <span className="stream-room-wn-watchers">
-            {(participantCount ?? data.watchersCount).toLocaleString()} watching
-          </span>
-        </div>
-        <div className="stream-room-wn-video-footer">
-          <p className="stream-room-wn-video-seller">{data.seller?.user?.displayName ?? "Verified seller"}</p>
-          <p className="stream-room-wn-video-title">{data.title}</p>
-        </div>
+        <div className="srm-grad-top" aria-hidden />
+        <div className="srm-grad-bottom" aria-hidden />
       </div>
 
-      {/* Body */}
-      <div className="stream-room-wn-mobile-body">
-        {/* Stats */}
-        <div className="stream-room-wn-mobile-stats">
-          <div className="stream-room-wn-mobile-stat">
-            <span>Current bid</span>
-            <strong>{formatCurrency(data.currentBid, currency)}</strong>
-          </div>
-          <div className="stream-room-wn-mobile-stat">
-            <span>Time left</span>
-            <strong>{roomLive ? formatSeconds(timeLeft) : "—"}</strong>
-          </div>
-          <div className="stream-room-wn-mobile-stat">
-            <span>Watching</span>
-            <strong>{(participantCount ?? data.watchersCount).toLocaleString()}</strong>
-          </div>
+      {/* ── Top HUD ── */}
+      <div className="srm-hud-top">
+        <div className="srm-hud-left">
+          <span className={`srm-live-badge${roomLive ? " is-live" : ""}`}>
+            {roomLive ? "● Live" : "Offline"}
+          </span>
+          <span className="srm-timer">{formatSeconds(timeLeft)}</span>
         </div>
+        <span className="srm-watchers">
+          {(participantCount ?? data.watchersCount).toLocaleString()} watching
+        </span>
+      </div>
 
-        {isHost ? <StreamInventoryManager auctionId={data.id} compact /> : null}
+      {/* ── Chat feed floats above tray ── */}
+      <div ref={chatRef} className="srm-chat" aria-label="Live chat">
+        {data.chatMessages.slice(-50).map((entry) => (
+          <div
+            key={entry.id}
+            className={`srm-msg${entry.senderId === sessionUserId ? " is-own" : ""}`}
+          >
+            <span className="srm-msg-name">{entry.sender.displayName ?? "Guest"}</span>
+            <span className="srm-msg-body">{entry.body}</span>
+          </div>
+        ))}
+      </div>
 
-        {/* Chat feed */}
-        <div ref={chatRef} className="stream-room-wn-mobile-chat">
-          {data.chatMessages.length === 0 ? (
-            <p className="stream-room-empty">No messages yet.</p>
-          ) : (
-            data.chatMessages.slice(-40).map((entry) => (
-              <div key={entry.id} className="stream-room-wn-mobile-msg">
-                <strong>{entry.sender.displayName ?? "Guest"}</strong>
-                {entry.body}
-              </div>
-            ))
+      {/* ── Bottom tray — glass panel pinned to bottom ── */}
+      <div className="srm-tray">
+
+        {/* Seller identity + live price */}
+        <div className="srm-tray-top">
+          <MobileAvatar image={sellerImage} displayName={sellerName} size={32} />
+          <div className="srm-tray-seller-info">
+            <span className="srm-tray-seller-name">{sellerName}</span>
+            <span className="srm-tray-title">{data.title}</span>
+          </div>
+          {!isListingSeller && (
+            <button
+              className={`srm-follow-btn${isFollowing ? " is-following" : ""}`}
+              onClick={() => setIsFollowing((f) => !f)}
+            >
+              {isFollowing ? "✓" : "Follow"}
+            </button>
           )}
+          <div className="srm-tray-price">
+            <span className="srm-tray-price-label">Bid</span>
+            <span className={`srm-tray-price-val${timeLeft < 60 && roomLive ? " is-urgent" : ""}`}>
+              {formatCurrency(data.currentBid, currency)}
+            </span>
+          </div>
         </div>
 
-        {/* Compose */}
-        <div className="stream-room-wn-compose">
+        {/* Auction bid controls */}
+        {data.listingType !== "BUY_NOW" && (
+          <>
+            <div className="srm-chips">
+              {quickBidOptions.map((amount) => (
+                <button
+                  key={amount}
+                  type="button"
+                  className="srm-chip"
+                  onClick={() => { setBidAmount((amount / 100).toFixed(2)); void handleBid(amount); }}
+                  disabled={isListingSeller || !canUseStripe || !roomLive}
+                >
+                  {formatCurrency(amount, currency)}
+                </button>
+              ))}
+            </div>
+            <div className="srm-bid-row">
+              <span className="srm-currency">$</span>
+              <input
+                value={bidAmount}
+                onChange={(e) => setBidAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                onKeyDown={(e) => { if (e.key === "Enter") void handleBid(); }}
+                inputMode="decimal"
+                placeholder={(minimumBid / 100).toFixed(2)}
+                className="srm-bid-input"
+              />
+              <button
+                onClick={() => void handleBid()}
+                disabled={isListingSeller || !canUseStripe || !roomLive}
+                className="srm-bid-btn"
+              >
+                BID
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Buy now */}
+        {data.listingType !== "AUCTION" && data.buyNowPrice ? (
+          <button
+            onClick={() => void handleBuyNow()}
+            disabled={isListingSeller || !canUseStripe}
+            className="srm-buy-btn"
+          >
+            Buy now · {formatCurrency(data.buyNowPrice, currency)}
+          </button>
+        ) : null}
+
+        {/* Compose + secondary actions */}
+        <div className="srm-compose">
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") void handleSend(); }}
-            placeholder="Say something..."
-            className="stream-room-wn-compose-input"
+            placeholder="Say something…"
+            className="srm-compose-input"
           />
-          <button onClick={() => void handleSend()} className="stream-room-wn-send-btn" aria-label="Send">
+          <button
+            onClick={() => void handleSend()}
+            className="srm-send-btn"
+            aria-label="Send"
+          >
             ↑
           </button>
-        </div>
-
-        {/* Bid area */}
-        <div className="stream-room-wn-bid-area">
-          {data.listingType !== "BUY_NOW" && (
-            <>
-              <div className="stream-room-wn-chips">
-                {quickBidOptions.map((amount) => (
-                  <button
-                    key={amount}
-                    type="button"
-                    onClick={() => { setBidAmount((amount / 100).toFixed(2)); void handleBid(amount); }}
-                    className="stream-room-wn-chip"
-                  >
-                    {formatCurrency(amount, currency)}
-                  </button>
-                ))}
-              </div>
-              <div className="stream-room-wn-bid-row">
-                <input
-                  value={bidAmount}
-                  onChange={(e) => setBidAmount(e.target.value.replace(/[^\d.]/g, ""))}
-                  onKeyDown={(e) => { if (e.key === "Enter") void handleBid(); }}
-                  inputMode="decimal"
-                  placeholder={(minimumBid / 100).toFixed(2)}
-                  className="stream-room-wn-bid-input"
-                />
-                <button
-                  onClick={() => void handleBid()}
-                  disabled={isListingSeller || !canUseStripe || !roomLive}
-                  className="stream-room-wn-bid-btn"
-                >
-                  BID
-                </button>
-              </div>
-            </>
-          )}
-
-          {data.listingType !== "AUCTION" && data.buyNowPrice ? (
-            <button
-              onClick={() => void handleBuyNow()}
-              disabled={isListingSeller || !canUseStripe}
-              className="stream-room-wn-buy-btn"
-            >
-              Buy now — {formatCurrency(data.buyNowPrice, currency)}
-            </button>
-          ) : null}
-
-          <div className="stream-room-wn-secondary-actions">
+          {!isListingSeller && sessionUserId && (
             <button
               onClick={() => void handleMessageSeller()}
-              disabled={isListingSeller}
-              className="stream-room-wn-msg-seller-btn"
+              className="srm-dm-btn"
+              aria-label="Message seller"
             >
-              Message seller
+              DM
             </button>
-          </div>
-
-          {!canUseStripe && (
-            <p className="app-form-hint is-warning">Payments are unavailable right now.</p>
           )}
-          {actionStatus ? <p className="stream-room-wn-status">{actionStatus}</p> : null}
         </div>
+
+        {/* Host tools */}
+        {isHost && (
+          <div className="srm-host-panel">
+            <StreamInventoryManager auctionId={data.id} compact />
+          </div>
+        )}
+
+        {!canUseStripe && (
+          <p className="srm-hint is-warning">Payments unavailable on this platform.</p>
+        )}
+        {actionStatus ? <p className="srm-status">{actionStatus}</p> : null}
       </div>
     </section>
   );
