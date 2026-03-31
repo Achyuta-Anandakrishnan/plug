@@ -15115,7 +15115,7 @@ html[data-theme="dark"] .stream-room-v4-page {
 
 .srm-page {
   position: relative;
-  height: 100%; /* fills app-container.stream-room-v4-page */
+  height: calc(100dvh - var(--app-header-height, 64px) - var(--app-bottom-nav-height, 0px));
   overflow: hidden;
   background: #000;
   color: #fff;
