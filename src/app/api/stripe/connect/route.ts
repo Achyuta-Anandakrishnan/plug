@@ -79,6 +79,18 @@ function normalizeStripeAccountId(value: string | null | undefined) {
   return STRIPE_ACCOUNT_ID_PATTERN.test(trimmed) ? trimmed : null;
 }
 
+function stripeErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    const e = error as { message: string; param?: string; code?: string };
+    const parts: string[] = [];
+    if (e.message?.trim()) parts.push(e.message.trim());
+    if (e.param) parts.push(`(param: ${e.param})`);
+    if (e.code) parts.push(`[${e.code}]`);
+    return parts.join(" ") || "Unable to start Stripe onboarding.";
+  }
+  return "Unable to start Stripe onboarding.";
+}
+
 async function createStripeOnboardingLink(request: Request, sessionUser: NonNullable<Awaited<ReturnType<typeof getSessionUser>>>) {
   const stripe = getStripeClient();
   if (!stripe) {
@@ -104,14 +116,20 @@ async function createStripeOnboardingLink(request: Request, sessionUser: NonNull
   }
 
   if (!stripeAccountId) {
-    const account = await stripe.accounts.create({
-      type: "express",
-      email: sessionUser.email ?? undefined,
-      metadata: {
-        sellerProfileId: sellerProfile.id,
-        userId: sessionUser.id,
-      },
-    });
+    let account;
+    try {
+      account = await stripe.accounts.create({
+        type: "express",
+        email: sessionUser.email ?? undefined,
+        metadata: {
+          sellerProfileId: sellerProfile.id,
+          userId: sessionUser.id,
+        },
+      });
+    } catch (error) {
+      console.error("Stripe account create failed", { error, sellerProfileId: sellerProfile.id });
+      return { ok: false as const, response: jsonError(stripeErrorMessage(error), 502) };
+    }
 
     stripeAccountId = account.id;
 
@@ -141,14 +159,20 @@ async function createStripeOnboardingLink(request: Request, sessionUser: NonNull
       returnUrl,
     });
     if (stripeAccountId && error instanceof Error && /expected pattern|no such account|invalid/i.test(error.message)) {
-      const replacementAccount = await stripe.accounts.create({
-        type: "express",
-        email: sessionUser.email ?? undefined,
-        metadata: {
-          sellerProfileId: sellerProfile.id,
-          userId: sessionUser.id,
-        },
-      });
+      let replacementAccount;
+      try {
+        replacementAccount = await stripe.accounts.create({
+          type: "express",
+          email: sessionUser.email ?? undefined,
+          metadata: {
+            sellerProfileId: sellerProfile.id,
+            userId: sessionUser.id,
+          },
+        });
+      } catch (createError) {
+        console.error("Stripe replacement account create failed", { error: createError, sellerProfileId: sellerProfile.id });
+        return { ok: false as const, response: jsonError(stripeErrorMessage(createError), 502) };
+      }
 
       stripeAccountId = replacementAccount.id;
 
@@ -176,16 +200,10 @@ async function createStripeOnboardingLink(request: Request, sessionUser: NonNull
           refreshUrl,
           returnUrl,
         });
-        const retryMessage = retryError instanceof Error && retryError.message.trim()
-          ? retryError.message
-          : "Unable to start Stripe onboarding.";
-        return { ok: false as const, response: jsonError(retryMessage, 502) };
+        return { ok: false as const, response: jsonError(stripeErrorMessage(retryError), 502) };
       }
     } else {
-      const message = error instanceof Error && error.message.trim()
-        ? error.message
-        : "Unable to start Stripe onboarding.";
-      return { ok: false as const, response: jsonError(message, 502) };
+      return { ok: false as const, response: jsonError(stripeErrorMessage(error), 502) };
     }
   }
 
