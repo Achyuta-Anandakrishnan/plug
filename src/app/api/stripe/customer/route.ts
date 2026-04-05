@@ -30,9 +30,22 @@ export async function GET() {
     }
   }
 
+  let hasPaymentMethod = false;
+  if (stripe) {
+    try {
+      const methods = await stripe.paymentMethods.list({
+        customer: user.stripeCustomerId,
+        limit: 1,
+      });
+      hasPaymentMethod = methods.data.length > 0;
+    } catch {
+      // If we can't verify, assume not set up
+    }
+  }
+
   return jsonOk({
     stripeConfigured: stripeEnabled(),
-    hasPaymentMethod: Boolean(user.stripeCustomerId),
+    hasPaymentMethod,
   });
 }
 
@@ -64,7 +77,11 @@ export async function POST() {
     // Already registered — verify the customer still exists on Stripe
     try {
       await stripe.customers.retrieve(user.stripeCustomerId);
-      return jsonOk({ hasPaymentMethod: true, stripeCustomerId: user.stripeCustomerId });
+      const methods = await stripe.paymentMethods.list({
+        customer: user.stripeCustomerId,
+        limit: 1,
+      });
+      return jsonOk({ hasPaymentMethod: methods.data.length > 0, stripeCustomerId: user.stripeCustomerId });
     } catch {
       // Customer was deleted on Stripe — fall through to recreate
     }

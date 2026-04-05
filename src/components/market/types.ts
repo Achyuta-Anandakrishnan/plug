@@ -1,6 +1,6 @@
 import type { AuctionListItem } from "@/hooks/useAuctions";
 
-export type MarketMode = "all" | "buy-now" | "auctions";
+export type MarketMode = "all" | "buy-now" | "auctions" | "trade";
 export type SortMode = "newest" | "ending" | "price-low" | "price-high" | "popular";
 
 export type MarketListing = AuctionListItem;

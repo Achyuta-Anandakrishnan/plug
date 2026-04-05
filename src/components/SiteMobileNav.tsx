@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeftRight, MessageSquare, Radio, ShoppingBag, Target } from "lucide-react";
+import { MessageSquare, Radio, ShoppingBag, Target } from "lucide-react";
 
 const NAV_ITEMS = [
   { key: "market", label: "Market", href: "/listings", Icon: ShoppingBag },
   { key: "bounty", label: "Bounty", href: "/bounties", Icon: Target },
   { key: "live", label: "Live", href: "/live", Icon: Radio },
-  { key: "trades", label: "Trades", href: "/trades", Icon: ArrowLeftRight },
   { key: "forum", label: "Forum", href: "/forum", Icon: MessageSquare },
 ];
 
@@ -18,7 +17,9 @@ function isActive(pathname: string | null, href: string, key: string) {
       || pathname === "/explore"
       || pathname?.startsWith("/listings/")
       || pathname?.startsWith("/explore/")
-      || pathname?.startsWith("/auctions/");
+      || pathname?.startsWith("/auctions/")
+      || pathname === "/trades"
+      || pathname?.startsWith("/trades/");
   }
   if (key === "bounty") {
     return pathname === href || pathname?.startsWith(`${href}/`);

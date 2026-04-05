@@ -42,7 +42,7 @@ export function SellerListingMobile() {
   const [condition, setCondition] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [listingType, setListingType] = useState<
-    "AUCTION" | "BUY_NOW" | "BOTH"
+    "AUCTION" | "BUY_NOW" | "BOTH" | "TRADE"
   >("AUCTION");
   const [startingBid, setStartingBid] = useState("100");
   const [buyNowPrice, setBuyNowPrice] = useState("250");
@@ -85,8 +85,8 @@ export function SellerListingMobile() {
     () => getGradeOptions(gradingCompany),
     [gradingCompany],
   );
-  const needsAuctionPricing = listingType !== "BUY_NOW";
-  const needsBuyNowPricing = listingType !== "AUCTION";
+  const needsAuctionPricing = listingType === "AUCTION" || listingType === "BOTH";
+  const needsBuyNowPricing = listingType === "BUY_NOW" || listingType === "BOTH";
 
   const handleImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -434,17 +434,21 @@ export function SellerListingMobile() {
       {stepIndex === 1 ? (
         <section className="sell-form-panel">
           <div className="sell-type-grid">
-            {(["AUCTION", "BUY_NOW", "BOTH"] as const).map((type) => (
+            {(["AUCTION", "BUY_NOW", "BOTH", "TRADE"] as const).map((type) => (
               <button
                 key={type}
                 type="button"
                 onClick={() => setListingType(type)}
                 className={`sell-type-btn${listingType === type ? " is-active" : ""}`}
               >
-                {type === "BOTH" ? "Buy Now + Auction" : type.replace("_", " ")}
+                {type === "BOTH" ? "Buy Now + Auction" : type === "TRADE" ? "Trade only" : type.replace("_", " ")}
               </button>
             ))}
           </div>
+
+          {listingType === "TRADE" ? (
+            <p className="sell-hint">Trade offers only — no cash price. Buyers can propose items to swap.</p>
+          ) : null}
 
           {needsAuctionPricing ? (
             <div className="app-form-field">
@@ -482,16 +486,18 @@ export function SellerListingMobile() {
             </div>
           ) : null}
 
-          <div className="app-form-field">
-            <label className="app-form-label">End time</label>
-            <input
-              type="datetime-local"
-              value={endTime}
-              onChange={(event) => setEndTime(event.target.value)}
-              className="app-form-input"
-            />
-            <p className="sell-hint">Default: Thursday 9:00 PM EST.</p>
-          </div>
+          {listingType !== "TRADE" ? (
+            <div className="app-form-field">
+              <label className="app-form-label">End time</label>
+              <input
+                type="datetime-local"
+                value={endTime}
+                onChange={(event) => setEndTime(event.target.value)}
+                className="app-form-input"
+              />
+              <p className="sell-hint">Default: Thursday 9:00 PM EST.</p>
+            </div>
+          ) : null}
 
           <label className="sell-checkbox-row">
             <input
@@ -512,24 +518,16 @@ export function SellerListingMobile() {
         <section className="sell-form-panel">
           <div className="app-form-field">
             <label className="app-form-label">Photos</label>
-            <div className="sell-upload-grid">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                capture="environment"
-                onChange={handleImageChange}
-                className="sell-file-input"
-              />
+            <label className="sell-file-input">
+              <span>Add photos</span>
               <input
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={handleImageChange}
-                className="sell-file-input"
+                style={{ display: "none" }}
               />
-            </div>
-            <p className="sell-hint">Top: take photo. Bottom: upload from device.</p>
+            </label>
 
             {uploadMessage ? (
               <p className="app-status-note">{uploadMessage}</p>

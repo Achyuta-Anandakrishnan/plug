@@ -67,6 +67,7 @@ export function StreamRoomDesktop({
   const [streamStatus, setStreamStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
   const [bidAmount, setBidAmount] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
+  const [inventoryOpen, setInventoryOpen] = useState(false);
 
   useEffect(() => {
     if (chatRef.current) {
@@ -281,7 +282,19 @@ export function StreamRoomDesktop({
               Message seller
             </button>
           )}
-          {isHost && <StreamInventoryManager auctionId={data.id} compact />}
+          {isHost && (
+            <div className="stream-room-v4-inventory-wrap">
+              <button
+                type="button"
+                className="stream-room-v4-inventory-toggle"
+                onClick={() => setInventoryOpen((v) => !v)}
+              >
+                <span>Inventory</span>
+                <span className="stream-room-v4-inventory-toggle-chevron">{inventoryOpen ? "▲" : "▼"}</span>
+              </button>
+              {inventoryOpen && <StreamInventoryManager auctionId={data.id} compact />}
+            </div>
+          )}
         </div>
 
         {/* ── BOTTOM: bid controls — always visible ── */}

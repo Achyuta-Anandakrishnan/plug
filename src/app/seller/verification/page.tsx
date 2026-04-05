@@ -134,15 +134,15 @@ export default function SellerVerificationPage() {
           />
 
           <ol className="app-stepper seller-verification-stepper" aria-label="Seller verification steps">
-            <li className="app-step is-active">
+            <li className={`app-step${session?.user?.id ? " is-done" : " is-active"}`}>
               <span>1</span>
               <strong>Account</strong>
             </li>
-            <li className="app-step">
+            <li className={`app-step${connect?.payoutsEnabled ? " is-done" : connect?.stripeAccountId ? " is-active" : ""}`}>
               <span>2</span>
               <strong>Payouts</strong>
             </li>
-            <li className="app-step">
+            <li className={`app-step${connect?.sellerState === "active" ? " is-done" : connect?.sellerState === "onboarding" ? " is-active" : ""}`}>
               <span>3</span>
               <strong>Review</strong>
             </li>

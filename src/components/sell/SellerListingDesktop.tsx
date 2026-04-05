@@ -20,6 +20,7 @@ const listingTypes = [
   { label: "Auction", value: "AUCTION" },
   { label: "Buy Now", value: "BUY_NOW" },
   { label: "Buy Now + Auction", value: "BOTH" },
+  { label: "Trade only", value: "TRADE" },
 ] as const;
 
 function toCents(value: string) {
@@ -45,7 +46,7 @@ export function SellerListingDesktop() {
   const [condition, setCondition] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [listingType, setListingType] = useState<
-    "AUCTION" | "BUY_NOW" | "BOTH"
+    "AUCTION" | "BUY_NOW" | "BOTH" | "TRADE"
   >("AUCTION");
   const [startingBid, setStartingBid] = useState("100");
   const [buyNowPrice, setBuyNowPrice] = useState("250");
@@ -89,8 +90,8 @@ export function SellerListingDesktop() {
     () => getGradeOptions(gradingCompany),
     [gradingCompany],
   );
-  const needsAuctionPricing = listingType !== "BUY_NOW";
-  const needsBuyNowPricing = listingType !== "AUCTION";
+  const needsAuctionPricing = listingType === "AUCTION" || listingType === "BOTH";
+  const needsBuyNowPricing = listingType === "BUY_NOW" || listingType === "BOTH";
 
   const handleImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -437,23 +438,16 @@ export function SellerListingDesktop() {
 
             <div className="sell-form-section">
               <h3 className="sell-section-title">Media uploads</h3>
-              <div className="sell-upload-grid sell-upload-grid-desktop">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleImageChange}
-                  className="sell-file-input"
-                />
+              <label className="sell-file-input">
+                <span>Choose photos</span>
                 <input
                   type="file"
                   multiple
                   accept="image/*"
                   onChange={handleImageChange}
-                  className="sell-file-input"
+                  style={{ display: "none" }}
                 />
-              </div>
+              </label>
               {uploadMessage ? (
                 <p className="app-status-note">{uploadMessage}</p>
               ) : null}
@@ -498,6 +492,10 @@ export function SellerListingDesktop() {
               ))}
             </div>
 
+            {listingType === "TRADE" ? (
+              <p className="sell-hint">Trade offers only — no cash price. Buyers can propose items to swap.</p>
+            ) : null}
+
             {needsAuctionPricing ? (
               <div className="app-form-field">
                 <label className="app-form-label">Starting bid (USD)</label>
@@ -534,16 +532,18 @@ export function SellerListingDesktop() {
               </div>
             ) : null}
 
-            <div className="app-form-field">
-              <label className="app-form-label">End time</label>
-              <input
-                type="datetime-local"
-                value={endTime}
-                onChange={(event) => setEndTime(event.target.value)}
-                className="app-form-input"
-              />
-              <p className="sell-hint">Default: Thursday 9:00 PM EST.</p>
-            </div>
+            {listingType !== "TRADE" ? (
+              <div className="app-form-field">
+                <label className="app-form-label">End time</label>
+                <input
+                  type="datetime-local"
+                  value={endTime}
+                  onChange={(event) => setEndTime(event.target.value)}
+                  className="app-form-input"
+                />
+                <p className="sell-hint">Default: Thursday 9:00 PM EST.</p>
+              </div>
+            ) : null}
 
             <label className="sell-checkbox-row">
               <input

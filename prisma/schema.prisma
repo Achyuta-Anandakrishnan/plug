@@ -48,6 +48,7 @@ enum ListingType {
   AUCTION
   BUY_NOW
   BOTH
+  TRADE
 }
 
 enum BidStatus {
@@ -88,12 +89,45 @@ enum TradeOfferStatus {
   COUNTERED
 }
 
+enum TradeDuelStatus {
+  PENDING
+  READY
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  CANCELED
+  EXPIRED
+}
+
+enum TradeDuelMode {
+  checkers
+  chess
+  coin
+  poker
+}
+
 enum TradeSettlementStatus {
   REQUIRES_PAYMENT
   PROCESSING
   SUCCEEDED
   FAILED
   CANCELED
+}
+
+enum StreamItemSourceType {
+  AUCTION
+  TRADE_POST
+}
+
+enum StreamItemStatus {
+  QUEUED
+  REMOVED
+}
+
+enum UserAccountStatus {
+  ACTIVE
+  SUSPENDED
+  DISABLED
 }
 
 enum DisputeStatus {
@@ -191,8 +225,8 @@ model User {
   usernameChangePeriodStart DateTime?
   image          String?
   emailVerified  DateTime?
-  role           UserRole      @default(BUYER)
-  accountStatus  String        @default("ACTIVE")
+  role           UserRole          @default(BUYER)
+  accountStatus  UserAccountStatus @default(ACTIVE)
   trustScore     Int           @default(0)
   stripeCustomerId String?
   createdAt      DateTime      @default(now())
@@ -350,6 +384,7 @@ model Auction {
   @@index([status])
   @@index([startTime])
   @@index([endTime])
+  @@index([status, endTime])
 }
 
 model Bid {
@@ -366,6 +401,7 @@ model Bid {
 
   @@index([auctionId])
   @@index([bidderId])
+  @@index([auctionId, status])
 }
 
 model AuctionChatMessage {
@@ -487,6 +523,10 @@ model Referral {
   approvedAt      DateTime?
 
   referrer        User           @relation("ReferralReferrer", fields: [referrerId], references: [id])
+
+  @@index([referrerId])
+  @@index([referredUserId])
+  @@index([status])
 }
 
 model TradePost {
@@ -623,9 +663,9 @@ model TradeDuel {
   challengerId     String
   defenderId       String
   winnerId         String?
-  mode             String
+  mode             TradeDuelMode
   terms            String
-  status           String     @default("PENDING")
+  status           TradeDuelStatus @default(PENDING)
   scheduledFor     DateTime?
   durationSeconds  Int?
   challengerAgreedAt DateTime?
@@ -845,9 +885,9 @@ model StreamSession {
 }
 
 model StreamSessionItem {
-  id               String        @id @default(cuid())
+  id               String              @id @default(cuid())
   streamSessionId  String
-  sourceType       String
+  sourceType       StreamItemSourceType
   sourceAuctionId  String?
   sourceTradePostId String?
   derivedAuctionId String?
@@ -855,7 +895,7 @@ model StreamSessionItem {
   subtitle         String?
   imageUrl         String?
   priceLabel       String?
-  status           String        @default("QUEUED")
+  status           StreamItemStatus    @default(QUEUED)
   position         Int           @default(0)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt

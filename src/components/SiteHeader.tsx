@@ -6,7 +6,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import {
-  ArrowLeftRight,
   Bell,
   ChevronDown,
   Gift,
@@ -151,7 +150,6 @@ const DESKTOP_NAV_ITEMS = [
   { key: "market", label: "Market", href: "/listings", Icon: ShoppingBag },
   { key: "bounty", label: "Bounty", href: "/bounties", Icon: Target },
   { key: "live", label: "Live", href: "/live", Icon: Radio },
-  { key: "trades", label: "Trades", href: "/trades", Icon: ArrowLeftRight },
   { key: "forum", label: "Forum", href: "/forum", Icon: MessageSquare },
   { key: "messages", label: "Messages", href: "/messages", Icon: Mail },
 ];
@@ -171,7 +169,9 @@ function useSiteHeaderState() {
         || pathname === "/explore"
         || pathname?.startsWith("/listings/")
         || pathname?.startsWith("/explore/")
-        || pathname?.startsWith("/auctions/");
+        || pathname?.startsWith("/auctions/")
+        || pathname === "/trades"
+        || pathname?.startsWith("/trades/");
     }
     if (item.key === "bounty") {
       return pathname === item.href || pathname?.startsWith(`${item.href}/`);
@@ -199,7 +199,7 @@ function useSiteHeaderState() {
     if (pathname.startsWith("/auctions/")) return "Listing";
     if (pathname === "/live" || pathname.startsWith("/live/")) return "Live";
     if (pathname.startsWith("/streams/")) return "Live room";
-    if (pathname === "/trades") return "Trades";
+    if (pathname === "/trades") return "Market";
     if (pathname === "/trades/new") return "New trade";
     if (pathname.startsWith("/trades/")) return "Trade";
     if (pathname === "/forum") return "Forum";
@@ -223,8 +223,8 @@ function useSiteHeaderState() {
     if (pathname.startsWith("/forum/")) return "/forum";
     if (pathname === "/bounties/new") return "/bounties";
     if (pathname.startsWith("/bounties/")) return "/bounties";
-    if (pathname === "/trades/new") return "/trades";
-    if (pathname.startsWith("/trades/")) return "/trades";
+    if (pathname === "/trades/new") return "/listings";
+    if (pathname.startsWith("/trades/")) return "/listings";
     if (pathname.startsWith("/streams/")) return "/live";
     if (pathname.startsWith("/auctions/")) return "/listings";
     if (pathname.startsWith("/my/")) return "/settings";
@@ -241,7 +241,6 @@ function useSiteHeaderState() {
       "/explore",
       "/bounties",
       "/live",
-      "/trades",
       "/forum",
       "/messages",
       "/settings",

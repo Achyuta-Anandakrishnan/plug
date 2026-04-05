@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckersLoader } from "@/components/CheckersLoader";
+import { ListingCard } from "@/components/market/ListingCard";
 import { ListingGrid } from "@/components/market/ListingGrid";
 import type { MarketListing, SortMode } from "@/components/market/types";
 import {
@@ -17,6 +19,7 @@ import { useAuctions } from "@/hooks/useAuctions";
 import { useCategories } from "@/hooks/useCategories";
 import { useMobileUi } from "@/hooks/useMobileUi";
 import { useSavedListings } from "@/hooks/useSavedListings";
+import type { TradePostListItem } from "@/lib/trade-client";
 
 function parsePrice(entry: MarketListing) {
   if (entry.listingType === "AUCTION") return entry.currentBid;
@@ -46,9 +49,45 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
+  const [showTrades, setShowTrades] = useState(false);
+  const [tradePosts, setTradePosts] = useState<TradePostListItem[]>([]);
+  const [tradesLoading, setTradesLoading] = useState(false);
+  const [tradesError, setTradesError] = useState("");
+  const tradesAbortRef = useRef<AbortController | null>(null);
 
   const { data: categories } = useCategories();
-  const { auctionIds: savedAuctionIds, toggleAuctionSave } = useSavedListings();
+  const { auctionIds: savedAuctionIds, toggleAuctionSave, tradePostIds, toggleTradeSave } = useSavedListings();
+
+  useEffect(() => {
+    if (!showTrades) return;
+    const controller = new AbortController();
+    tradesAbortRef.current?.abort();
+    tradesAbortRef.current = controller;
+    setTradesLoading(true);
+    setTradesError("");
+    const params = new URLSearchParams({ limit: "80" });
+    if (query.trim()) params.set("q", query.trim());
+    fetch(`/api/trades?${params.toString()}`, { signal: controller.signal })
+      .then((res) => res.json().then((data: TradePostListItem[] & { error?: string }) => ({ res, data })))
+      .then(({ res, data }) => {
+        if (!res.ok) throw new Error(data.error ?? "Unable to load trades.");
+        setTradePosts(data);
+        setTradesLoading(false);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setTradesError(err instanceof Error ? err.message : "Unable to load trades.");
+        setTradesLoading(false);
+      });
+    return () => controller.abort();
+  }, [showTrades, query]);
+
+  function handleTradeChip() {
+    setShowTrades((prev) => {
+      if (!prev) setSelectedCategory("");
+      return !prev;
+    });
+  }
 
   const categoryFilters = useMemo(() => {
     const base = [
@@ -141,7 +180,13 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
               </label>
             </div>
             <div className="mobile-page-toolbar-scroll market-mobile-chiprail">
-              {categoryFilters.map((category) => (
+              <FilterChip
+                key="trade"
+                label="For Trade"
+                active={showTrades}
+                onClick={handleTradeChip}
+              />
+              {!showTrades && categoryFilters.map((category) => (
                 <FilterChip
                   key={category.id}
                   label={category.label}
@@ -155,26 +200,63 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
           {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
           {listingsLoading ? <CheckersLoader title="Loading inventory..." compact /> : null}
 
-          {!listingsLoading ? (
-            <section className="mobile-feed-section market-mobile-feed-section">
-              <div className="mobile-feed-section-head">
-                <h2>Inventory</h2>
-                <span>{sortedListings.length}</span>
-              </div>
-              {sortedListings.length === 0 ? (
-                <EmptyStateCard
-                  title="No listings match right now."
-                  description="Try another search or category."
-                />
-              ) : (
-                <ListingGrid
-                  listings={sortedListings}
-                  savedAuctionIds={savedAuctionIds}
-                  onToggleSave={toggleAuctionSave}
-                />
+          {showTrades ? (
+            <>
+              {tradesLoading ? <CheckersLoader title="Loading trades..." compact /> : null}
+              {!tradesLoading ? (
+                <section className="mobile-feed-section market-mobile-feed-section">
+                  <div className="mobile-feed-section-head">
+                    <h2>For Trade</h2>
+                    <div className="market-section-actions">
+                      <span>{tradePosts.length}</span>
+                      <Link href="/trades/new" className="app-button app-button-secondary market-new-trade-btn">+ New</Link>
+                    </div>
+                  </div>
+                  {tradesError ? (
+                    <EmptyStateCard title="Trade board unavailable" description={tradesError} />
+                  ) : tradePosts.length === 0 ? (
+                    <EmptyStateCard title="No trade posts match." description="Try a different search." />
+                  ) : (
+                    <div className={`trade-board-grid ${tradePosts.length < 3 ? "is-sparse" : ""}`}>
+                      {tradePosts.map((post) => (
+                        <ListingCard
+                          key={post.id}
+                          kind="trade"
+                          trade={post}
+                          saved={tradePostIds.has(post.id)}
+                          onToggleSave={toggleTradeSave}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </section>
+              ) : null}
+            </>
+          ) : (
+            <>
+              {listingsLoading ? null : (
+                <section className="mobile-feed-section market-mobile-feed-section">
+                  <div className="mobile-feed-section-head">
+                    <h2>Inventory</h2>
+                    <span>{sortedListings.length}</span>
+                  </div>
+                  {sortedListings.length === 0 ? (
+                    <EmptyStateCard
+                      title="No listings match right now."
+                      description="Try another search or category."
+                    />
+                  ) : (
+                    <ListingGrid
+                      listings={sortedListings}
+                      savedAuctionIds={savedAuctionIds}
+                      onToggleSave={toggleAuctionSave}
+                    />
+                  )}
+                </section>
               )}
-            </section>
-          ) : null}
+              {listingsLoading ? <CheckersLoader title="Loading inventory..." compact /> : null}
+            </>
+          )}
         </section>
       </PageContainer>
     );
@@ -198,7 +280,13 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
               />
             </div>
             <div className="app-chip-row">
-              {categoryFilters.map((category) => (
+              <FilterChip
+                key="trade"
+                label="For Trade"
+                active={showTrades}
+                onClick={handleTradeChip}
+              />
+              {!showTrades && categoryFilters.map((category) => (
                 <FilterChip
                   key={category.id}
                   label={category.label}
@@ -230,25 +318,60 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
       </section>
 
       <section className="app-section listing-system-feed market-inventory-section">
-        <SectionHeader
-          title="Inventory"
-          subtitle="Browse active listings and compare them fast."
-          action={<span className="market-count">{sortedListings.length} items</span>}
-        />
-
-        {listingsLoading ? (
-          <CheckersLoader title="Loading inventory..." compact />
-        ) : sortedListings.length === 0 ? (
-          <EmptyStateCard
-            title="No listings match these filters."
-            description="Try broadening the search or clearing a category."
-          />
+        {showTrades ? (
+          <>
+            <SectionHeader
+              title="For Trade"
+              subtitle="Items listed for trade by collectors."
+              action={
+                <div className="market-section-actions">
+                  <span className="market-count">{tradePosts.length} posts</span>
+                  <Link href="/trades/new" className="app-button app-button-secondary market-new-trade-btn">+ New trade post</Link>
+                </div>
+              }
+            />
+            {tradesLoading ? (
+              <CheckersLoader title="Loading trades..." compact />
+            ) : tradesError ? (
+              <EmptyStateCard title="Trade board unavailable" description={tradesError} />
+            ) : tradePosts.length === 0 ? (
+              <EmptyStateCard title="No trade posts match." description="Try a different search." />
+            ) : (
+              <div className={`trade-board-grid ${tradePosts.length < 3 ? "is-sparse" : ""}`}>
+                {tradePosts.map((post) => (
+                  <ListingCard
+                    key={post.id}
+                    kind="trade"
+                    trade={post}
+                    saved={tradePostIds.has(post.id)}
+                    onToggleSave={toggleTradeSave}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         ) : (
-          <ListingGrid
-            listings={sortedListings}
-            savedAuctionIds={savedAuctionIds}
-            onToggleSave={toggleAuctionSave}
-          />
+          <>
+            <SectionHeader
+              title="Inventory"
+              subtitle="Browse active listings and compare them fast."
+              action={<span className="market-count">{sortedListings.length} items</span>}
+            />
+            {listingsLoading ? (
+              <CheckersLoader title="Loading inventory..." compact />
+            ) : sortedListings.length === 0 ? (
+              <EmptyStateCard
+                title="No listings match these filters."
+                description="Try broadening the search or clearing a category."
+              />
+            ) : (
+              <ListingGrid
+                listings={sortedListings}
+                savedAuctionIds={savedAuctionIds}
+                onToggleSave={toggleAuctionSave}
+              />
+            )}
+          </>
         )}
       </section>
     </PageContainer>
