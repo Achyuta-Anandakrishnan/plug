@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Prisma } from "@prisma/client";
+import { Prisma, TradeDuelStatus } from "@prisma/client";
 import {
   applyCheckersDuelMove,
   applyChessDuelMove,
@@ -208,7 +208,7 @@ export function createTradeDuelDraftData(
     postId: offer.postId,
     mode: input.mode,
     terms: input.terms,
-    status: "PENDING",
+    status: TradeDuelStatus.PENDING,
     scheduledFor,
     durationSeconds,
     challengerAgreedAt: now,
@@ -245,9 +245,9 @@ export async function hydrateLegacyTradeDuel(
           challengerId,
           defenderId,
           winnerId: offer.gameWinnerId,
-          mode: offer.gameType,
+          mode: offer.gameType as TradeDuelMode,
           terms: offer.gameTerms,
-          status: offer.gameResolvedAt ? "COMPLETED" : offer.gameStartedAt ? "ACTIVE" : offer.gameLockedAt ? "READY" : "PENDING",
+          status: (offer.gameResolvedAt ? TradeDuelStatus.COMPLETED : offer.gameStartedAt ? TradeDuelStatus.ACTIVE : offer.gameLockedAt ? TradeDuelStatus.READY : TradeDuelStatus.PENDING),
           challengerAgreedAt: challengerId === offer.post.ownerId ? offer.gameOwnerAgreedAt : offer.gameProposerAgreedAt,
           defenderAgreedAt: defenderId === offer.post.ownerId ? offer.gameOwnerAgreedAt : offer.gameProposerAgreedAt,
           startedAt: offer.gameStartedAt,
@@ -349,7 +349,7 @@ export async function settleTradeOfferByDuel(
       duel: {
         update: {
           winnerId,
-          status: "COMPLETED",
+          status: TradeDuelStatus.COMPLETED,
           completedAt: resolvedAt,
           resultReason,
           state: duelState,
@@ -441,7 +441,7 @@ export async function startTradeDuel(
       gameStateVersion: offer.duel.stateVersion,
       duel: {
         update: {
-          status: "ACTIVE",
+          status: TradeDuelStatus.ACTIVE,
           startedAt: offer.duel.startedAt ?? now,
           deadlineAt,
           state: duelState,

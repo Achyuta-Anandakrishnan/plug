@@ -14,7 +14,7 @@ type AuctionCardProps = {
   badge?: string;
   imageUrl?: string | null;
   currency?: string;
-  listingType?: "AUCTION" | "BUY_NOW" | "BOTH";
+  listingType?: "AUCTION" | "BUY_NOW" | "BOTH" | "TRADE";
   buyNowPrice?: number | null;
   gradeLabel?: string;
   preservePlaceholderMedia?: boolean;

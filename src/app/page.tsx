@@ -23,7 +23,7 @@ type AuctionApiItem = {
   extendedTime: string | Date | null;
   currentBid: number;
   watchersCount: number;
-  listingType: "AUCTION" | "BUY_NOW" | "BOTH";
+  listingType: "AUCTION" | "BUY_NOW" | "BOTH" | "TRADE";
   buyNowPrice: number | null;
   currency: string;
   category?: { name: string } | null;

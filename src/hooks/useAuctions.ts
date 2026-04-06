@@ -6,7 +6,7 @@ export type AuctionListItem = {
   id: string;
   title: string;
   description: string | null;
-  listingType: "AUCTION" | "BUY_NOW" | "BOTH";
+  listingType: "AUCTION" | "BUY_NOW" | "BOTH" | "TRADE";
   status: "DRAFT" | "SCHEDULED" | "LIVE" | "ENDED" | "CANCELED";
   currentBid: number;
   buyNowPrice: number | null;
