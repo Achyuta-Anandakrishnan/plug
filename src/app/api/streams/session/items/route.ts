@@ -178,7 +178,7 @@ export async function GET(request: Request) {
           title: entry.title,
           subtitle: [entry.category?.name, entry.listingType.replaceAll("_", " ")].filter(Boolean).join(" · "),
           imageUrl: entry.item?.images?.[0]?.url ?? null,
-          priceLabel: auctionPriceLabel(entry),
+          priceLabel: auctionPriceLabel(entry as Parameters<typeof auctionPriceLabel>[0]),
         })),
         trades: candidateTrades.map((entry) => ({
           id: entry.id,
