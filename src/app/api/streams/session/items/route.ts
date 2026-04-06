@@ -16,7 +16,7 @@ type StreamQueueBody = {
 };
 
 function auctionPriceLabel(auction: {
-  listingType: "AUCTION" | "BUY_NOW" | "BOTH";
+  listingType: ListingType;
   currentBid: number;
   buyNowPrice: number | null;
   currency?: string | null;
@@ -32,6 +32,9 @@ function auctionPriceLabel(auction: {
   }
   if (auction.listingType === "BOTH" && typeof auction.buyNowPrice === "number") {
     return `Bid ${formatter.format(auction.currentBid / 100)} · Buy ${formatter.format(auction.buyNowPrice / 100)}`;
+  }
+  if (auction.listingType === "TRADE") {
+    return null;
   }
   return `Bid ${formatter.format(auction.currentBid / 100)}`;
 }
@@ -178,7 +181,7 @@ export async function GET(request: Request) {
           title: entry.title,
           subtitle: [entry.category?.name, entry.listingType.replaceAll("_", " ")].filter(Boolean).join(" · "),
           imageUrl: entry.item?.images?.[0]?.url ?? null,
-          priceLabel: auctionPriceLabel(entry as Parameters<typeof auctionPriceLabel>[0]),
+          priceLabel: auctionPriceLabel(entry),
         })),
         trades: candidateTrades.map((entry) => ({
           id: entry.id,
