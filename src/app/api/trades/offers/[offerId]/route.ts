@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, TradeDuelStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { jsonError, jsonOk, parseJson } from "@/lib/api";
@@ -67,7 +67,7 @@ function cancelDuelWrite(offer: TradeOfferWithDuel) {
   if (!offer.duel || offer.duel.completedAt || offer.duel.status === "COMPLETED") return undefined;
   return {
     update: {
-      status: "CANCELED",
+      status: TradeDuelStatus.CANCELED,
       completedAt: new Date(),
       resultReason: "Offer closed before duel completion.",
     },
