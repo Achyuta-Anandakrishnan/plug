@@ -73,30 +73,45 @@ export async function POST() {
     return jsonError("User not found.", 404);
   }
 
-  if (user.stripeCustomerId) {
-    // Already registered — verify the customer still exists on Stripe
+  let customerId = user.stripeCustomerId;
+
+  if (customerId) {
     try {
-      await stripe.customers.retrieve(user.stripeCustomerId);
-      const methods = await stripe.paymentMethods.list({
-        customer: user.stripeCustomerId,
-        limit: 1,
-      });
-      return jsonOk({ hasPaymentMethod: methods.data.length > 0, stripeCustomerId: user.stripeCustomerId });
+      const existing = await stripe.customers.retrieve(customerId);
+      if (!(existing as { deleted?: boolean }).deleted) {
+        const methods = await stripe.paymentMethods.list({ customer: customerId, limit: 1 });
+        if (methods.data.length > 0) {
+          return jsonOk({ hasPaymentMethod: true, stripeCustomerId: customerId });
+        }
+      }
     } catch {
-      // Customer was deleted on Stripe — fall through to recreate
+      // Customer deleted on Stripe — recreate below
+      await prisma.user.update({ where: { id: user.id }, data: { stripeCustomerId: null } });
+      customerId = null;
     }
   }
 
-  const customer = await stripe.customers.create({
-    email: user.email ?? undefined,
-    name: user.name ?? undefined,
-    metadata: { userId: user.id },
+  if (!customerId) {
+    const newCustomer = await stripe.customers.create({
+      email: user.email ?? undefined,
+      name: user.name ?? undefined,
+      metadata: { userId: user.id },
+    });
+    await prisma.user.update({ where: { id: user.id }, data: { stripeCustomerId: newCustomer.id } });
+    customerId = newCustomer.id;
+  }
+
+  const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const appUrl = (!rawAppUrl.startsWith("http://localhost") && !rawAppUrl.startsWith("http://127.0.0.1"))
+    ? rawAppUrl.replace(/^http:\/\//, "https://")
+    : rawAppUrl;
+
+  const session = await stripe.checkout.sessions.create({
+    mode: "setup",
+    customer: customerId,
+    success_url: `${appUrl}/settings/payments?setup=success`,
+    cancel_url: `${appUrl}/settings/payments?setup=cancel`,
   });
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { stripeCustomerId: customer.id },
-  });
-
-  return jsonOk({ hasPaymentMethod: true, stripeCustomerId: customer.id });
+  return jsonOk({ setupUrl: session.url });
 }

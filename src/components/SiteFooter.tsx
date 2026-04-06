@@ -12,7 +12,7 @@ export function SiteFooter() {
         <div className="site-footer-links">
           <Link href="/live">Live</Link>
           <Link href="/listings">Market</Link>
-          <Link href="/trades">Trades</Link>
+          <Link href="/bounties">Bounty</Link>
           <Link href="/forum">Forum</Link>
         </div>
         <p className="site-footer-copy">© 2026 dalow Labs</p>

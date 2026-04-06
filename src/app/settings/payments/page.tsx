@@ -39,6 +39,20 @@ export default function PaymentsSettingsPage() {
     void fetch("/api/stripe/connect").then((r) => r.json()).then(setConnect);
   }, [session?.user?.id]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const setup = params.get("setup");
+    if (setup === "success") {
+      setBuyerStatus("done");
+      setBuyerMsg("Payment method added successfully.");
+      void fetch("/api/stripe/customer").then((r) => r.json()).then(setCustomer);
+    } else if (setup === "cancel") {
+      setBuyerStatus("idle");
+      setBuyerMsg("Payment setup was cancelled.");
+    }
+  }, []);
+
   if (!session?.user?.id) {
     return (
       <PageContainer>
@@ -56,11 +70,19 @@ export default function PaymentsSettingsPage() {
     setBuyerMsg("");
     try {
       const res = await fetch("/api/stripe/customer", { method: "POST" });
-      const data = (await res.json()) as { hasPaymentMethod?: boolean; error?: string };
+      const data = (await res.json()) as { hasPaymentMethod?: boolean; setupUrl?: string; error?: string };
       if (!res.ok) throw new Error(data.error || "Unable to set up payments.");
-      setBuyerStatus("done");
-      setBuyerMsg("Payment account ready. You can now bid and make cash offers.");
-      setCustomer((prev) => prev ? { ...prev, hasPaymentMethod: true } : prev);
+      if (data.hasPaymentMethod) {
+        setBuyerStatus("done");
+        setBuyerMsg("Payment account already set up.");
+        setCustomer((prev) => prev ? { ...prev, hasPaymentMethod: true } : prev);
+        return;
+      }
+      if (data.setupUrl) {
+        window.location.assign(data.setupUrl);
+        return;
+      }
+      throw new Error("Unable to start payment setup.");
     } catch (err) {
       setBuyerStatus("error");
       setBuyerMsg(err instanceof Error ? err.message : "Something went wrong.");

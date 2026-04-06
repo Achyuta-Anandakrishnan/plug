@@ -7155,14 +7155,14 @@ html[data-theme="dark"] .streams-scheduled-item {
 .app-layout .messages-page .app-screen-section--messages {
   min-height: 0;
   height: 100%;
-  display: grid;
-  align-content: stretch;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
 .app-layout .messages-page .messages-layout {
+  flex: 1;
   min-height: 0;
-  height: 100%;
   align-items: stretch;
 }
 
@@ -7821,8 +7821,8 @@ html[data-theme="dark"] .streams-scheduled-item {
   min-height: 0;
   height: 100%;
   overflow: hidden;
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
@@ -7830,8 +7830,8 @@ html[data-theme="dark"] .streams-scheduled-item {
   display: grid;
   grid-template-columns: 204px minmax(0, 1fr);
   gap: 8px;
+  flex: 1;
   min-height: 0;
-  height: 100%;
   overflow: hidden;
 }
 

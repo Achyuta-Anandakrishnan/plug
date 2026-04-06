@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { ArrowLeftRight } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
 import { CardSpecSheet } from "@/components/product/CardSpecSheet";
 import { formatCurrency } from "@/lib/format";
@@ -251,6 +252,16 @@ export function AuctionDetailClient({ auction, stripeEnabled = true, certSnapsho
 
             {buyError ? (
               <p className="auction-detail-note is-error">{buyError}</p>
+            ) : null}
+
+            {isLive && session?.user?.id && auction.seller?.user?.id !== session.user.id ? (
+              <Link
+                href="/trades/new"
+                className="app-button app-button-secondary auction-propose-trade-btn"
+              >
+                <ArrowLeftRight size={14} aria-hidden="true" />
+                Propose a trade instead
+              </Link>
             ) : null}
 
             {!isLive ? (

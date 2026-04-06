@@ -209,7 +209,7 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
                     <h2>For Trade</h2>
                     <div className="market-section-actions">
                       <span>{tradePosts.length}</span>
-                      <Link href="/trades/new" className="app-button app-button-secondary market-new-trade-btn">+ New</Link>
+                      <Link href="/trades/new" className="app-button app-button-secondary market-new-trade-btn">+ Post for trade</Link>
                     </div>
                   </div>
                   {tradesError ? (
@@ -326,7 +326,7 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
               action={
                 <div className="market-section-actions">
                   <span className="market-count">{tradePosts.length} posts</span>
-                  <Link href="/trades/new" className="app-button app-button-secondary market-new-trade-btn">+ New trade post</Link>
+                  <Link href="/trades/new" className="app-button app-button-secondary market-new-trade-btn">+ Post for trade</Link>
                 </div>
               }
             />

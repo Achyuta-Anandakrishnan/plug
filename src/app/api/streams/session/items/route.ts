@@ -122,6 +122,7 @@ export async function GET(request: Request) {
         sellerId: loaded.auction.sellerId,
         id: { not: auctionId },
         status: { in: ["DRAFT", "SCHEDULED", "LIVE"] },
+        listingType: { not: "TRADE" },
       },
       include: {
         item: {
