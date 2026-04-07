@@ -230,15 +230,19 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
   }, [activeId, conversations]);
 
   const activeConversation = conversations.find((c) => c.id === activeId) ?? null;
+  const activeParticipants =
+    activeConversation?.participants.filter((p) => p.userId !== sessionUserId) ?? [];
   const activeParticipantsLabel =
-    activeConversation?.participants
-      .filter((p) => p.userId !== sessionUserId)
-      .map((p) => p.user.displayName ?? p.user.username ?? "Unknown")
-      .join(", ") ?? "";
+    activeParticipants.map((p) => p.user.displayName ?? p.user.username ?? "Unknown").join(", ");
   const activeTitle =
     activeConversation?.subject?.trim() ||
     activeParticipantsLabel ||
     "Conversation";
+  const activeParticipantHref = (() => {
+    if (!activeConversation || activeConversation.isSupport || activeParticipants.length !== 1) return null;
+    const u = activeParticipants[0].user;
+    return u.username ? `/u/${encodeURIComponent(u.username)}` : `/profiles/${u.id}`;
+  })();
 
   const isDesktop = !isMobileUi;
   const showThreadsPane = isDesktop || mobilePane === "threads";
@@ -614,7 +618,11 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                         Back
                       </button>
                     ) : null}
-                    <h2>{activeTitle}</h2>
+                    {activeParticipantHref ? (
+                      <h2><Link href={activeParticipantHref} className="messages-chat-profile-link">{activeTitle}</Link></h2>
+                    ) : (
+                      <h2>{activeTitle}</h2>
+                    )}
                     <p className="messages-chat-sublabel">
                       {activeConversation.isSupport ? "Support thread" : activeParticipantsLabel || "Direct conversation"}
                     </p>

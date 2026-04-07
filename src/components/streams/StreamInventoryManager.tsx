@@ -191,7 +191,7 @@ export function StreamInventoryManager({
       <div className="stream-inventory-panel-head">
         <div>
           <p className="stream-inventory-kicker">Stream inventory</p>
-          <h3 className="stream-inventory-title">Pre-load what you want to sell live</h3>
+          <h3 className="stream-inventory-title">Add items to sell live</h3>
         </div>
         <span className="stream-inventory-count">{queue.length} queued</span>
       </div>
@@ -207,7 +207,7 @@ export function StreamInventoryManager({
               <span>Queued for this room</span>
             </div>
             {queue.length === 0 ? (
-              <p className="stream-inventory-note">Add buy now listings or trade inventory before you go live, then add more while the room is running.</p>
+              <p className="stream-inventory-note">Nothing queued yet. Add listings or trades below.</p>
             ) : (
               <div className="stream-queue-list">
                 {queue.map((item) => (
@@ -226,10 +226,10 @@ export function StreamInventoryManager({
           <div className="stream-inventory-grid">
             <section className="stream-inventory-section">
               <div className="stream-inventory-section-head">
-                <span>From your listings</span>
+                <span>Your listings</span>
               </div>
               {auctionCandidates.length === 0 ? (
-                <p className="stream-inventory-note">No other listings ready right now.</p>
+                <p className="stream-inventory-note">No listings available.</p>
               ) : (
                 <div className="stream-candidate-list">
                   {auctionCandidates.slice(0, compact ? 4 : 8).map((item) => (
@@ -247,10 +247,10 @@ export function StreamInventoryManager({
 
             <section className="stream-inventory-section">
               <div className="stream-inventory-section-head">
-                <span>Turn trade inventory into live auctions</span>
+                <span>Trade inventory</span>
               </div>
               {tradeCandidates.length === 0 ? (
-                <p className="stream-inventory-note">Open trades you own will show up here.</p>
+                <p className="stream-inventory-note">No open trades.</p>
               ) : (
                 <div className="stream-candidate-list">
                   {tradeCandidates.slice(0, compact ? 4 : 8).map((item) => (

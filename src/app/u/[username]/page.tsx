@@ -5,6 +5,27 @@ import { MessageUserButton } from "@/components/profiles/MessageUserButton";
 import { formatCurrency } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 
+const auctionSelect = {
+  id: true,
+  title: true,
+  status: true,
+  listingType: true,
+  currentBid: true,
+  buyNowPrice: true,
+  currency: true,
+  endTime: true,
+  category: { select: { name: true } },
+  item: {
+    select: {
+      images: {
+        orderBy: { createdAt: "asc" as const },
+        take: 1,
+        select: { url: true },
+      },
+    },
+  },
+};
+
 async function getProfileByUsername(username: string) {
   return prisma.user.findUnique({
     where: { username },
@@ -16,34 +37,15 @@ async function getProfileByUsername(username: string) {
       bio: true,
       image: true,
       createdAt: true,
-      role: true,
       sellerProfile: {
         select: {
           status: true,
           trustTier: true,
           auctions: {
-            where: { status: { in: ["LIVE", "SCHEDULED"] } },
-            orderBy: { createdAt: "desc" },
-            take: 10,
-            select: {
-              id: true,
-              title: true,
-              status: true,
-              listingType: true,
-              currentBid: true,
-              buyNowPrice: true,
-              currency: true,
-              category: { select: { name: true } },
-              item: {
-                select: {
-                  images: {
-                    orderBy: { createdAt: "asc" },
-                    take: 1,
-                    select: { url: true },
-                  },
-                },
-              },
-            },
+            where: { status: { in: ["LIVE", "SCHEDULED", "ENDED"] } },
+            orderBy: { updatedAt: "desc" },
+            take: 24,
+            select: auctionSelect,
           },
         },
       },
@@ -60,6 +62,10 @@ export default async function UsernameProfilePage({
   const profile = await getProfileByUsername(username.toLowerCase());
   if (!profile) notFound();
 
+  const allAuctions = profile.sellerProfile?.auctions ?? [];
+  const activeListings = allAuctions.filter((a) => a.status !== "ENDED");
+  const saleHistory = allAuctions.filter((a) => a.status === "ENDED");
+
   return (
     <div className="profile-page-screen">
       <div className="profile-page-top-row">
@@ -73,71 +79,93 @@ export default async function UsernameProfilePage({
         <div className="profile-card-header">
           <div className="profile-avatar">
             {profile.image ? (
-              <Image
-                src={profile.image}
-                alt={profile.displayName ?? "User"}
-                fill
-                sizes="56px"
-                className="object-cover"
-                unoptimized
-              />
+              <Image src={profile.image} alt={profile.displayName ?? "User"} fill sizes="72px" className="object-cover" unoptimized />
             ) : null}
           </div>
           <div className="profile-card-identity">
-            <h1 className="profile-display-name">
-              {profile.displayName ?? profile.name ?? "User"}
-            </h1>
-            <p className="profile-username">@{profile.username}</p>
-            <p className="profile-since">
-              Member since {new Date(profile.createdAt).toLocaleDateString()}
-            </p>
+            <h1 className="profile-display-name">{profile.displayName ?? profile.name ?? "User"}</h1>
+            {profile.username ? <p className="profile-username">@{profile.username}</p> : null}
+            <p className="profile-since">Since {new Date(profile.createdAt).getFullYear()}</p>
           </div>
         </div>
 
-        <div className="profile-bio-block">
-          <p className="app-eyebrow">Bio</p>
-          <p className="profile-bio-text">{profile.bio ?? "No bio added yet."}</p>
-        </div>
+        {profile.bio ? <p className="profile-bio-text">{profile.bio}</p> : null}
 
         <div className="profile-meta-grid">
           <div className="profile-meta-item">
-            <span className="profile-meta-label">Role</span>
-            <span className="profile-meta-value">{profile.role}</span>
+            <span className="profile-meta-label">Sales</span>
+            <span className="profile-meta-value">{saleHistory.length}</span>
           </div>
-          <div className="profile-meta-item">
-            <span className="profile-meta-label">Seller status</span>
-            <span className="profile-meta-value">{profile.sellerProfile?.status ?? "N/A"}</span>
-          </div>
-          <div className="profile-meta-item">
-            <span className="profile-meta-label">Trust tier</span>
-            <span className="profile-meta-value">{profile.sellerProfile?.trustTier ?? "–"}</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="profile-card">
-        <div className="profile-section-head">
-          <h2 className="app-section-title">Live / Scheduled listings</h2>
-          <span className="market-count">{profile.sellerProfile?.auctions.length ?? 0} active</span>
-        </div>
-
-        <div className="profile-listings-grid">
-          {(profile.sellerProfile?.auctions ?? []).map((listing) => (
-            <Link key={listing.id} href={`/streams/${listing.id}`} className="profile-listing-item">
-              <p className="profile-listing-title">{listing.title}</p>
-              <p className="profile-listing-meta">
-                {listing.category?.name ?? "Collectible"} · {listing.status}
-              </p>
-              <p className="profile-listing-price">
-                {formatCurrency(listing.currentBid, listing.currency?.toUpperCase() ?? "USD")}
-              </p>
-            </Link>
-          ))}
-          {(profile.sellerProfile?.auctions?.length ?? 0) === 0 ? (
-            <p className="app-status-note">No active listings.</p>
+          {profile.sellerProfile?.trustTier ? (
+            <div className="profile-meta-item">
+              <span className="profile-meta-label">Trust tier</span>
+              <span className="profile-meta-value">{profile.sellerProfile.trustTier}</span>
+            </div>
+          ) : null}
+          {profile.sellerProfile?.status ? (
+            <div className="profile-meta-item">
+              <span className="profile-meta-label">Seller</span>
+              <span className="profile-meta-value">{profile.sellerProfile.status}</span>
+            </div>
           ) : null}
         </div>
       </section>
+
+      {activeListings.length > 0 ? (
+        <section className="profile-card">
+          <div className="profile-section-head">
+            <h2 className="app-section-title">Active listings</h2>
+            <span className="market-count">{activeListings.length}</span>
+          </div>
+          <div className="profile-listings-grid">
+            {activeListings.map((listing) => (
+              <Link key={listing.id} href={`/streams/${listing.id}`} className="profile-listing-item">
+                {listing.item?.images?.[0]?.url ? (
+                  <div className="profile-listing-thumb">
+                    <Image src={listing.item.images[0].url} alt={listing.title} fill sizes="80px" className="object-cover" unoptimized />
+                  </div>
+                ) : null}
+                <div className="profile-listing-copy">
+                  <p className="profile-listing-title">{listing.title}</p>
+                  <p className="profile-listing-meta">{listing.category?.name ?? "Collectible"}</p>
+                  <p className="profile-listing-price">{formatCurrency(listing.currentBid, listing.currency?.toUpperCase() ?? "USD")}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {saleHistory.length > 0 ? (
+        <section className="profile-card">
+          <div className="profile-section-head">
+            <h2 className="app-section-title">Sale history</h2>
+            <span className="market-count">{saleHistory.length}</span>
+          </div>
+          <div className="profile-listings-grid">
+            {saleHistory.map((listing) => (
+              <Link key={listing.id} href={`/streams/${listing.id}`} className="profile-listing-item">
+                {listing.item?.images?.[0]?.url ? (
+                  <div className="profile-listing-thumb">
+                    <Image src={listing.item.images[0].url} alt={listing.title} fill sizes="80px" className="object-cover" unoptimized />
+                  </div>
+                ) : null}
+                <div className="profile-listing-copy">
+                  <p className="profile-listing-title">{listing.title}</p>
+                  <p className="profile-listing-meta">{listing.category?.name ?? "Collectible"}</p>
+                  <p className="profile-listing-price">{formatCurrency(listing.currentBid, listing.currency?.toUpperCase() ?? "USD")}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {activeListings.length === 0 && saleHistory.length === 0 ? (
+        <section className="profile-card">
+          <p className="app-status-note">No listings yet.</p>
+        </section>
+      ) : null}
     </div>
   );
 }
