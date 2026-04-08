@@ -2973,12 +2973,6 @@ html[data-theme="dark"] .landing-hero-word {
   max-width: 520px;
 }
 
-.bounty-toolbar {
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
 
 .bounty-board-grid {
   gap: 18px;
@@ -13231,11 +13225,12 @@ html[data-theme="dark"] .auction-detail-cta-secondary:hover { background: rgba(2
    Consistent, professional, elegant, modern.
    ═══════════════════════════════════════════════ */
 
-/* ── Hub hero section ── */
+/* ── Hub hero section (PageHeader pill) ── */
 .app-page--market .app-page-header,
 .app-page--trades .app-page-header,
 .app-page--bounties .app-page-header,
-.app-page--live .app-page-header {
+.app-page--live .app-page-header,
+.app-page--forum .app-page-header {
   padding: 12px 16px;
   margin-bottom: 0;
   border: 1px solid var(--product-border);
@@ -13249,7 +13244,8 @@ html[data-theme="dark"] .auction-detail-cta-secondary:hover { background: rgba(2
 html[data-theme="dark"] .app-page--market .app-page-header,
 html[data-theme="dark"] .app-page--trades .app-page-header,
 html[data-theme="dark"] .app-page--bounties .app-page-header,
-html[data-theme="dark"] .app-page--live .app-page-header {
+html[data-theme="dark"] .app-page--live .app-page-header,
+html[data-theme="dark"] .app-page--forum .app-page-header {
   background: rgba(12, 14, 20, 0.92);
   border-color: rgba(255, 255, 255, 0.07);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 24px rgba(0, 0, 0, 0.3);
@@ -13258,7 +13254,8 @@ html[data-theme="dark"] .app-page--live .app-page-header {
 .app-page--market .app-page-title,
 .app-page--trades .app-page-title,
 .app-page--bounties .app-page-title,
-.app-page--live .app-page-title {
+.app-page--live .app-page-title,
+.app-page--forum .app-page-title {
   font-size: 1.45rem;
   letter-spacing: -0.04em;
   line-height: 1;
@@ -13267,16 +13264,18 @@ html[data-theme="dark"] .app-page--live .app-page-header {
 .app-page--market .app-page-subtitle,
 .app-page--trades .app-page-subtitle,
 .app-page--bounties .app-page-subtitle,
-.app-page--live .app-page-subtitle {
+.app-page--live .app-page-subtitle,
+.app-page--forum .app-page-subtitle {
   font-size: 13px;
   margin-top: 3px;
 }
 
-/* ── Desktop: sticky glass toolbar ── */
+/* ── Desktop: sticky glass search/filter bar ── */
 .app-page--market .app-discovery-bar,
 .app-page--trades .app-discovery-bar,
 .app-page--bounties .app-discovery-bar,
-.app-page--live .app-discovery-bar {
+.app-page--live .app-discovery-bar,
+.app-page--forum .app-discovery-bar {
   position: sticky;
   top: var(--app-header-height);
   z-index: 38;
@@ -13292,17 +13291,19 @@ html[data-theme="dark"] .app-page--live .app-page-header {
 html[data-theme="dark"] .app-page--market .app-discovery-bar,
 html[data-theme="dark"] .app-page--trades .app-discovery-bar,
 html[data-theme="dark"] .app-page--bounties .app-discovery-bar,
-html[data-theme="dark"] .app-page--live .app-discovery-bar {
+html[data-theme="dark"] .app-page--live .app-discovery-bar,
+html[data-theme="dark"] .app-page--forum .app-discovery-bar {
   background: rgba(12, 14, 20, 0.94);
   border-color: rgba(255, 255, 255, 0.07);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
 }
 
-/* ── Hide toolbar title — now in PageHeader ── */
-.app-page--market .market-toolbar > .app-control-title,
-.app-page--trades .trades-toolbar > .app-control-title,
-.app-page--trades .trades-toolbar-meta,
-.app-page--live .live-toolbar > .app-control-title {
+/* ── Safety: hide leftover app-control-title in toolbars (title is in PageHeader) ── */
+.app-page--market .app-discovery-bar .app-control-title,
+.app-page--bounties .app-discovery-bar .app-control-title,
+.app-page--live .app-discovery-bar .app-control-title,
+.app-page--forum .app-discovery-bar .app-control-title,
+.app-page--trades .app-discovery-bar .app-control-title {
   display: none;
 }
 
@@ -13323,7 +13324,8 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
 .app-page--market .app-section,
 .app-page--trades .app-section,
 .app-page--bounties .app-section,
-.app-page--live .app-section {
+.app-page--live .app-section,
+.app-page--forum .app-section {
   gap: 0;
 }
 
@@ -14095,14 +14097,16 @@ html[data-theme="dark"] .app-chip.is-active {
   .app-page--market .app-page-header,
   .app-page--trades .app-page-header,
   .app-page--bounties .app-page-header,
-  .app-page--live .app-page-header {
+  .app-page--live .app-page-header,
+  .app-page--forum .app-page-header {
     padding: 9px 14px;
   }
 
   .app-page--market .app-page-title,
   .app-page--trades .app-page-title,
   .app-page--bounties .app-page-title,
-  .app-page--live .app-page-title {
+  .app-page--live .app-page-title,
+  .app-page--forum .app-page-title {
     font-size: 1.3rem;
   }
 }

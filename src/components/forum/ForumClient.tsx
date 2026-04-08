@@ -9,6 +9,7 @@ import {
   EmptyStateCard,
   FilterChip,
   PageContainer,
+  PageHeader,
   PrimaryButton,
   SearchIcon,
   SecondaryButton,
@@ -212,6 +213,14 @@ export function ForumClient({ initialIsMobile }: ForumClientProps) {
 
   return (
     <PageContainer className="forum-page app-page--forum">
+      <PageHeader
+        title="Forum"
+        subtitle="Community discussions for collectors"
+        actions={session?.user?.id
+          ? <PrimaryButton href="/forum/new">Write thread</PrimaryButton>
+          : <SecondaryButton onClick={() => signIn()}>Sign in</SecondaryButton>
+        }
+      />
       <section className="app-section">
         {isMobileUi ? (
           <section className="mobile-page-toolbar forum-mobile-toolbar" aria-label="Forum browsing controls">
@@ -254,7 +263,6 @@ export function ForumClient({ initialIsMobile }: ForumClientProps) {
           </section>
         ) : (
           <DiscoveryBar className="app-control-bar forum-toolbar">
-            <div className="app-control-title">Forum</div>
             <div className="app-search">
               <SearchIcon />
               <input
@@ -287,10 +295,6 @@ export function ForumClient({ initialIsMobile }: ForumClientProps) {
             <button type="button" onClick={() => void handleSearch()} className="app-button app-button-primary forum-toolbar-search">
               Search
             </button>
-            {!session?.user?.id ? (
-              <SecondaryButton onClick={() => signIn()} className="forum-toolbar-auth">Sign in</SecondaryButton>
-            ) : null}
-            <PrimaryButton href="/forum/new" className="forum-toolbar-compose">Write thread</PrimaryButton>
           </DiscoveryBar>
         )}
 

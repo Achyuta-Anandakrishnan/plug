@@ -69,7 +69,6 @@ export function LiveFilters({
 
   return (
     <DiscoveryBar className="app-control-bar listing-system-toolbar live-toolbar" aria-label="Live stream discovery filters">
-      <div className="app-control-title">{title}</div>
       <div className="app-search">
         <SearchIcon />
         <input
