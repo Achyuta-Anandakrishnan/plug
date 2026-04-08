@@ -56,7 +56,9 @@ export function StreamRoomMobile({
   stripeEnabled = true,
 }: StreamRoomMobileProps) {
   const router = useRouter();
-  const chatRef = useRef<HTMLDivElement | null>(null);
+  const chatPanelRef = useRef<HTMLDivElement | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
   const { data, loading, error, refresh } = useAuction(auctionId, 5000, initialData);
   const { data: session } = useSession();
   const sessionUserId = session?.user?.id ?? "";
@@ -67,12 +69,21 @@ export function StreamRoomMobile({
   const [streamStatus, setStreamStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
   const [bidAmount, setBidAmount] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showInventory, setShowInventory] = useState(false);
 
+  // Fullscreen: hide header + bottom nav while stream is open
   useEffect(() => {
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    document.body.classList.add("stream-room-active");
+    return () => { document.body.classList.remove("stream-room-active"); };
+  }, []);
+
+  // Scroll full chat panel to bottom when messages update
+  useEffect(() => {
+    if (showChat && chatPanelRef.current) {
+      chatPanelRef.current.scrollTop = chatPanelRef.current.scrollHeight;
     }
-  }, [data?.chatMessages]);
+  }, [data?.chatMessages, showChat]);
 
   const timeLeft = useMemo(() => (data ? getTimeLeftSeconds(data) : 0), [data]);
   const nextBid = data ? data.currentBid + data.minBidIncrement : 0;
@@ -102,6 +113,31 @@ export function StreamRoomMobile({
   useEffect(() => {
     setBidAmount((minimumBid / 100).toFixed(2));
   }, [minimumBid]);
+
+  // Swipe detection
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (showChat || showInventory) return;
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+    touchStartY.current = e.touches[0]?.clientY ?? null;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (showChat || showInventory) return;
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const dx = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
+    const dy = (e.changedTouches[0]?.clientY ?? 0) - touchStartY.current;
+    // Only count horizontal swipes (x movement dominates)
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    if (dx < 0) {
+      // swipe left → open chat
+      setShowChat(true);
+    } else if (dx > 0 && isListingSeller) {
+      // swipe right → open inventory (sellers only)
+      setShowInventory(true);
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
 
   const handleMessageSeller = async () => {
     if (!data) return;
@@ -191,10 +227,16 @@ export function StreamRoomMobile({
   const imageUrl = data.item?.images?.find((img) => img.isPrimary)?.url ?? data.item?.images?.[0]?.url ?? null;
   const sellerName = data.seller?.user?.displayName ?? "Verified seller";
   const sellerImage = data.seller?.user?.image ?? null;
+  const peekMessages = data.chatMessages.slice(-5);
+  const allMessages = data.chatMessages;
 
   return (
-    <section className="srm-page">
-      {/* ── Video fills entire container ── */}
+    <section
+      className="srm-page"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* ── Video fills entire screen ── */}
       <div className="srm-video">
         <LiveKitStream
           auctionId={data.id}
@@ -221,9 +263,9 @@ export function StreamRoomMobile({
         </span>
       </div>
 
-      {/* ── Chat feed floats above tray ── */}
-      <div ref={chatRef} className="srm-chat" aria-label="Live chat">
-        {data.chatMessages.slice(-50).map((entry) => (
+      {/* ── Peek chat (last 5 messages) ── */}
+      <div className="srm-chat" aria-label="Live chat preview">
+        {peekMessages.map((entry) => (
           <div
             key={entry.id}
             className={`srm-msg${entry.senderId === sessionUserId ? " is-own" : ""}`}
@@ -234,10 +276,14 @@ export function StreamRoomMobile({
         ))}
       </div>
 
-      {/* ── Bottom tray — glass panel pinned to bottom ── */}
-      <div className="srm-tray">
+      {/* Swipe hints */}
+      <span className="srm-swipe-hint srm-swipe-hint-left" aria-hidden>← Chat</span>
+      {isListingSeller && (
+        <span className="srm-swipe-hint srm-swipe-hint-right" aria-hidden>Inventory →</span>
+      )}
 
-        {/* Seller identity + live price */}
+      {/* ── Bottom tray — glass ── */}
+      <div className="srm-tray">
         <div className="srm-tray-top">
           <MobileAvatar image={sellerImage} displayName={sellerName} size={32} />
           <div className="srm-tray-seller-info">
@@ -260,7 +306,6 @@ export function StreamRoomMobile({
           </div>
         </div>
 
-        {/* Auction bid controls */}
         {data.listingType !== "BUY_NOW" && (
           <>
             <div className="srm-chips">
@@ -297,7 +342,6 @@ export function StreamRoomMobile({
           </>
         )}
 
-        {/* Buy now */}
         {data.listingType !== "AUCTION" && data.buyNowPrice ? (
           <button
             onClick={() => void handleBuyNow()}
@@ -308,7 +352,6 @@ export function StreamRoomMobile({
           </button>
         ) : null}
 
-        {/* Compose + secondary actions */}
         <div className="srm-compose">
           <input
             value={message}
@@ -335,18 +378,53 @@ export function StreamRoomMobile({
           )}
         </div>
 
-        {/* Host tools */}
-        {isHost && (
-          <div className="srm-host-panel">
-            <StreamInventoryManager auctionId={data.id} compact />
-          </div>
-        )}
-
         {!canUseStripe && (
           <p className="srm-hint is-warning">Payments unavailable on this platform.</p>
         )}
         {actionStatus ? <p className="srm-status">{actionStatus}</p> : null}
       </div>
+
+      {/* ── Full chat panel (swipe left) ── */}
+      <div className={`srm-panel srm-panel-from-right${showChat ? " is-open" : " is-hidden"}`} aria-hidden={!showChat}>
+        <div className="srm-panel-head">
+          <span className="srm-panel-title">Live Chat</span>
+          <button className="srm-panel-close" onClick={() => setShowChat(false)} aria-label="Close chat">×</button>
+        </div>
+        <div ref={chatPanelRef} className="srm-panel-chat-feed">
+          {allMessages.map((entry) => (
+            <div
+              key={entry.id}
+              className={`srm-msg${entry.senderId === sessionUserId ? " is-own" : ""}`}
+            >
+              <span className="srm-msg-name">{entry.sender.displayName ?? "Guest"}</span>
+              <span className="srm-msg-body">{entry.body}</span>
+            </div>
+          ))}
+        </div>
+        <div className="srm-panel-compose">
+          <input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") void handleSend(); }}
+            placeholder="Say something…"
+            className="srm-compose-input"
+          />
+          <button onClick={() => void handleSend()} className="srm-send-btn" aria-label="Send">↑</button>
+        </div>
+      </div>
+
+      {/* ── Inventory panel (swipe right, sellers only) ── */}
+      {isListingSeller && (
+        <div className={`srm-panel srm-panel-from-left${showInventory ? " is-open" : " is-hidden"}`} aria-hidden={!showInventory}>
+          <div className="srm-panel-head">
+            <span className="srm-panel-title">Your Inventory</span>
+            <button className="srm-panel-close" onClick={() => setShowInventory(false)} aria-label="Close inventory">×</button>
+          </div>
+          <div className="srm-panel-inventory">
+            <StreamInventoryManager auctionId={data.id} compact />
+          </div>
+        </div>
+      )}
     </section>
   );
 }

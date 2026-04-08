@@ -115,11 +115,32 @@ type HomeBountyPreview = {
   meta: string;
 };
 
+type HomeMostLiked = {
+  id: string;
+  href: string;
+  title: string;
+  seller: string;
+  category: string;
+  watchersCount: number;
+  imageUrl: string;
+};
+
+type HomeForumPost = {
+  id: string;
+  title: string;
+  authorName: string;
+  voteScore: number;
+  commentCount: number;
+  publishedAt: string;
+};
+
 type HomePageData = {
   streams: HomeLiveStreamPreview[];
   auctions: HomeAuctionPreview[];
   trades: HomeTradePreview[];
   bounties: HomeBountyPreview[];
+  mostLiked: HomeMostLiked | null;
+  forumPosts: HomeForumPost[];
 };
 
 const FALLBACK_STREAMS: HomeLiveStreamPreview[] = [
@@ -323,7 +344,7 @@ function classNames(...parts: Array<string | null | undefined | false>) {
 }
 
 async function getHomePageData(): Promise<HomePageData> {
-  const [liveStreamsData, listingsData, tradesData, bountiesData] = await Promise.all([
+  const [liveStreamsData, listingsData, tradesData, bountiesData, mostLikedData, forumData] = await Promise.all([
     prisma.auction.findMany({
       where: {
         status: "LIVE",
@@ -398,6 +419,28 @@ async function getHomePageData(): Promise<HomePageData> {
       orderBy: [{ bountyAmount: "desc" }, { updatedAt: "desc" }],
       take: 4,
     }),
+    // Most liked (most watched) collectible across all live listings
+    prisma.auction.findFirst({
+      where: { status: "LIVE", watchersCount: { gt: 0 } },
+      include: {
+        category: true,
+        item: { include: { images: true } },
+        seller: {
+          select: { user: { select: { displayName: true, id: true } } },
+        },
+      },
+      orderBy: { watchersCount: "desc" },
+    }).catch(() => null),
+    // Recent forum posts for landing section
+    prisma.forumPost.findMany({
+      where: { status: "PUBLISHED" },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      include: {
+        author: { select: { displayName: true, username: true } },
+        _count: { select: { comments: true } },
+      },
+    }).catch(() => []),
   ]);
 
   const streams = mapStreams(liveStreamsData);
@@ -405,11 +448,34 @@ async function getHomePageData(): Promise<HomePageData> {
   const trades = mapTrades(tradesData);
   const bounties = mapBounties(bountiesData);
 
+  const mostLiked: HomeMostLiked | null = mostLikedData
+    ? {
+        id: mostLikedData.id,
+        href: `/auctions/${mostLikedData.id}`,
+        title: mostLikedData.title,
+        seller: mostLikedData.seller?.user?.displayName ?? "Verified seller",
+        category: mostLikedData.category?.name ?? "Collectibles",
+        watchersCount: mostLikedData.watchersCount,
+        imageUrl: validImage(resolveDisplayMediaUrl(primaryAuctionImage(mostLikedData as AuctionApiItem)), 0),
+      }
+    : null;
+
+  const forumPosts: HomeForumPost[] = (Array.isArray(forumData) ? forumData : []).map((post) => ({
+    id: post.id,
+    title: post.title,
+    authorName: post.author.displayName ?? post.author.username ?? "Member",
+    voteScore: 0,
+    commentCount: post._count.comments,
+    publishedAt: post.publishedAt?.toISOString() ?? post.createdAt.toISOString(),
+  }));
+
   return {
     streams: streams.length ? streams : FALLBACK_STREAMS,
     auctions: auctions.length ? auctions : mapFallbackAuctions(),
     trades: trades.length ? trades : FALLBACK_TRADES,
     bounties: bounties.length ? bounties : FALLBACK_BOUNTIES,
+    mostLiked,
+    forumPosts,
   };
 }
 
@@ -450,12 +516,14 @@ function SurfacePreview({
 function BountyHeroCard({
   bounty,
   className,
+  gridCell = false,
 }: {
   bounty: HomeBountyPreview;
   className?: string;
+  gridCell?: boolean;
 }) {
   return (
-    <Link href={bounty.href} className={classNames("landing-bounty-hero-card", className)}>
+    <Link href={bounty.href} className={classNames("landing-bounty-hero-card", gridCell ? "is-grid-cell" : null, className)}>
       <span className="landing-visual-badge">Bounty</span>
       <div className="landing-bounty-hero-body">
         <p className="landing-bounty-hero-name">{bounty.itemName}</p>
@@ -496,6 +564,15 @@ function HomeActionColumn({
   );
 }
 
+function timeAgoShort(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  return `${Math.floor(hrs / 24)}d`;
+}
+
 export default async function Home() {
   const initialIsMobile = isProbablyMobileUserAgent((await headers()).get("user-agent"));
   const data = await getHomePageData();
@@ -529,25 +606,39 @@ export default async function Home() {
               </div>
 
               <div className="landing-hero-showcase">
-                <div className="landing-hero-showcase-shell" aria-hidden="true" />
+                {/* Top-left: Most liked collectible (or fallback to live stream) */}
+                {data.mostLiked ? (
+                  <SurfacePreview
+                    title={data.mostLiked.title}
+                    subtitle={`${data.mostLiked.category} · ${data.mostLiked.seller}`}
+                    meta={`${data.mostLiked.watchersCount.toLocaleString()} watching`}
+                    imageUrl={data.mostLiked.imageUrl}
+                    href={data.mostLiked.href}
+                    accent="Most Liked"
+                    className="landing-showcase-card is-hero-featured"
+                  />
+                ) : (
+                  <SurfacePreview
+                    title={heroStream.title}
+                    subtitle={`${heroStream.host} · ${heroStream.category}`}
+                    meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
+                    imageUrl={heroStream.imageUrl}
+                    href={heroStream.href}
+                    accent="Live now"
+                    className="landing-showcase-card is-hero-featured"
+                  />
+                )}
+                {/* Top-right: Live stream */}
                 <SurfacePreview
                   title={heroStream.title}
                   subtitle={`${heroStream.host} · ${heroStream.category}`}
                   meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
                   imageUrl={heroStream.imageUrl}
                   href={heroStream.href}
-                  accent="Live now"
-                  className="landing-showcase-card is-hero-featured"
-                />
-                <SurfacePreview
-                  title={heroAuction.title}
-                  subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
-                  meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
-                  imageUrl={heroAuction.imageUrl}
-                  href={heroAuction.href}
-                  accent="Auction"
+                  accent="Live"
                   className="landing-showcase-card is-hero-auction"
                 />
+                {/* Bottom-left: Trade */}
                 <SurfacePreview
                   title={heroTrade.title}
                   subtitle={heroTrade.owner}
@@ -557,10 +648,36 @@ export default async function Home() {
                   accent="Trade"
                   className="landing-showcase-card is-hero-trade"
                 />
+                {/* Bottom-right: Bounty */}
                 <BountyHeroCard
                   bounty={heroBounty}
                   className="landing-showcase-card is-hero-bounty"
+                  gridCell
                 />
+              </div>
+            </section>
+
+            {/* ── Forums section ────────────────────────────────────────── */}
+            <section className="landing-section landing-forums-section">
+              <div className="landing-forums-head">
+                <h2>Forum</h2>
+                <Link href="/forum" className="landing-forums-see-all">See all discussions →</Link>
+              </div>
+              <div className="landing-forums-grid">
+                {data.forumPosts.length === 0 ? (
+                  <div className="landing-forums-empty">No forum posts yet. <Link href="/forum">Start a discussion.</Link></div>
+                ) : (
+                  data.forumPosts.slice(0, 4).map((post) => (
+                    <Link key={post.id} href={`/forum/${post.id}`} className="landing-forum-post-card">
+                      <p className="landing-forum-post-title">{post.title}</p>
+                      <p className="landing-forum-post-meta">@{post.authorName} · {timeAgoShort(post.publishedAt)} ago</p>
+                      <div className="landing-forum-post-votes">
+                        <span>↑ {post.voteScore}</span>
+                        <span>· {post.commentCount} replies</span>
+                      </div>
+                    </Link>
+                  ))
+                )}
               </div>
             </section>
 
@@ -662,6 +779,30 @@ export default async function Home() {
                 <HomeActionColumn eyebrow="AUCTIONS" title="Bids" copy="Timed auctions on graded singles" href="/listings" />
                 <HomeActionColumn eyebrow="TRADES" title="Get what you want" copy="Post what you have. Browse what collectors want. Make offers" href="/trades" />
                 <HomeActionColumn eyebrow="BOUNTY" title="Name your price" copy="Post exactly what you want. Put a finder's fee on it. Sellers bring it to you" href="/bounties" />
+              </div>
+            </section>
+
+            {/* ── Mobile forums ─────────────────────────────────────────── */}
+            <section className="landing-mobile-section landing-forums-section">
+              <div className="landing-forums-head">
+                <h2>Forum</h2>
+                <Link href="/forum" className="landing-forums-see-all">See all →</Link>
+              </div>
+              <div className="landing-forums-grid">
+                {data.forumPosts.length === 0 ? (
+                  <div className="landing-forums-empty">No posts yet. <Link href="/forum">Start a discussion.</Link></div>
+                ) : (
+                  data.forumPosts.slice(0, 4).map((post) => (
+                    <Link key={post.id} href={`/forum/${post.id}`} className="landing-forum-post-card">
+                      <p className="landing-forum-post-title">{post.title}</p>
+                      <p className="landing-forum-post-meta">@{post.authorName} · {timeAgoShort(post.publishedAt)} ago</p>
+                      <div className="landing-forum-post-votes">
+                        <span>↑ {post.voteScore}</span>
+                        <span>· {post.commentCount} replies</span>
+                      </div>
+                    </Link>
+                  ))
+                )}
               </div>
             </section>
 

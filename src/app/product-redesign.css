@@ -1408,39 +1408,40 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 }
 
 .landing-hero-showcase {
-  position: relative;
-  min-height: 580px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(200px, 1fr) minmax(200px, 1fr);
+  gap: 12px;
+  align-self: stretch;
+  min-height: 480px;
 }
 
 .landing-hero-showcase-shell {
-  position: absolute;
-  inset: 48px 36px 44px 72px;
-  border-radius: 36px;
-  background:
-    radial-gradient(circle at 25% 18%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 45%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.45));
-  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.08);
+  display: none;
 }
 
 .landing-visual-card {
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 24px;
+  border-radius: 20px;
   background: var(--product-surface);
-  box-shadow: 0 22px 46px rgba(15, 23, 42, 0.11);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.11);
   color: inherit;
   text-decoration: none;
 }
 
 .landing-showcase-card {
-  position: absolute;
+  position: relative;
+  min-height: 0;
 }
 
 .landing-visual-media {
   position: relative;
-  aspect-ratio: 4 / 5;
+  flex: 1;
+  min-height: 120px;
   overflow: hidden;
   background: #e9eef4;
 }
@@ -1510,49 +1511,16 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
   font-weight: 700;
 }
 
-.landing-showcase-card.is-hero-featured {
-  left: 0;
-  top: 34px;
-  width: 58%;
-  z-index: 4;
-  transform: rotate(-1.6deg);
-}
-
-.landing-showcase-card.is-hero-featured .landing-visual-media {
-  aspect-ratio: 5 / 6;
-}
-
-.landing-showcase-card.is-hero-auction {
-  right: 2%;
-  top: 0;
-  width: 40%;
-  z-index: 3;
-}
-
-.landing-showcase-card.is-hero-auction .landing-visual-media,
-.landing-showcase-card.is-hero-room .landing-visual-media {
-  aspect-ratio: 16 / 11;
-}
-
-.landing-showcase-card.is-hero-trade {
-  right: 0;
-  bottom: 44px;
-  width: 44%;
-  z-index: 3;
-}
-
-.landing-showcase-card.is-hero-room {
-  left: 32%;
-  bottom: 0;
-  width: 31%;
-  z-index: 5;
-}
-
+/* All 4 showcase cards are equal grid cells */
+.landing-showcase-card.is-hero-featured,
+.landing-showcase-card.is-hero-auction,
+.landing-showcase-card.is-hero-trade,
 .landing-showcase-card.is-hero-bounty {
-  left: 34%;
-  bottom: 0;
-  width: 36%;
-  z-index: 5;
+  position: relative;
+  inset: auto;
+  width: auto;
+  transform: none;
+  z-index: auto;
 }
 
 /* ── Bounty hero card — glassmorphism text card for showcase ── */
@@ -1916,6 +1884,151 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 
 .landing-mobile-story-card .landing-visual-media {
   aspect-ratio: 16 / 11;
+}
+
+/* ── Landing bounty card as grid cell (gradient bg, no image required) ── */
+.landing-bounty-hero-card.is-grid-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #0d1a2e 0%, #1a2d52 60%, #162244 100%);
+  border: 1px solid rgba(125, 163, 232, 0.18);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+  text-decoration: none;
+  color: inherit;
+  min-height: 0;
+}
+.landing-bounty-hero-card.is-grid-cell .landing-visual-badge {
+  background: rgba(125, 163, 232, 0.18);
+  color: rgba(125, 163, 232, 0.9);
+  border-color: rgba(125, 163, 232, 0.25);
+  width: max-content;
+  margin-bottom: auto;
+}
+.landing-bounty-hero-card.is-grid-cell .landing-bounty-hero-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  margin: 0;
+  line-height: 1.25;
+}
+.landing-bounty-hero-card.is-grid-cell .landing-bounty-hero-meta {
+  font-size: 11px;
+  color: rgba(255,255,255,0.42);
+  margin: 0;
+}
+.landing-bounty-hero-card.is-grid-cell .landing-bounty-hero-pricing {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.landing-bounty-hero-card.is-grid-cell .landing-bounty-hero-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(255,255,255,0.32);
+  display: block;
+}
+.landing-bounty-hero-card.is-grid-cell .landing-bounty-hero-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.92);
+  letter-spacing: -0.02em;
+}
+.landing-bounty-hero-card.is-grid-cell .landing-bounty-hero-fee {
+  color: #5da8ff;
+}
+
+/* ── Landing forums section ── */
+.landing-forums-section {
+  display: grid;
+  gap: 20px;
+}
+.landing-forums-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.landing-forums-head h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--product-text);
+}
+.landing-forums-see-all {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--product-accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.landing-forums-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 680px) {
+  .landing-forums-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.landing-forum-post-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--product-border);
+  background: var(--product-surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s;
+}
+.landing-forum-post-card:hover {
+  border-color: var(--product-accent);
+}
+.landing-forum-post-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--product-text);
+  line-height: 1.3;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.landing-forum-post-meta {
+  font-size: 11px;
+  color: var(--product-text-soft);
+  margin: 0;
+}
+.landing-forum-post-votes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--product-text-muted, var(--product-text-soft));
+  margin-top: auto;
+  padding-top: 6px;
+}
+.landing-forums-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 32px;
+  color: var(--product-text-soft);
+  font-size: 13px;
+  border: 1px dashed var(--product-border);
+  border-radius: 14px;
 }
 
 /* ── Skeleton loading ── */
@@ -7210,14 +7323,8 @@ html[data-theme="dark"] .streams-scheduled-item {
   }
 
   .landing-hero-showcase {
-    min-height: 0;
-    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-  }
-
-  .landing-hero-showcase-shell {
-    display: none;
+    gap: 10px;
   }
 
   .landing-showcase-card {
@@ -13410,10 +13517,6 @@ html[data-theme="dark"] .app-page--live .app-discovery-bar {
   color: var(--product-text);
   flex: 1;
   min-width: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .bounty-row-title-link {
@@ -15214,18 +15317,35 @@ html[data-theme="dark"] .stream-room-v4-page {
 /* Full-screen immersive layout: video fills container, controls float on top */
 
 .srm-page {
-  position: relative;
-  height: calc(100dvh - var(--app-header-height, 64px) - var(--app-bottom-nav-height, 0px));
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   overflow: hidden;
   background: #000;
   color: #fff;
 }
 
+/* Hide global chrome while stream is fullscreen */
+.stream-room-active .site-header,
+.stream-room-active .site-mobile-tabbar,
+.stream-room-active [class*="app-bottom-nav"],
+.stream-room-active [class*="tab-bar"],
+.stream-room-active [class*="bottom-nav"] {
+  display: none !important;
+}
+.stream-room-active body,
+.stream-room-active #__next,
+.stream-room-active main {
+  overflow: hidden;
+}
+
 .srm-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
   background: #000;
 }
 
@@ -15371,7 +15491,7 @@ html[data-theme="dark"] .stream-room-v4-page {
   border-radius: 8px;
 }
 
-/* ── Bottom tray — glass panel ── */
+/* ── Bottom tray — transparent glass ── */
 .srm-tray {
   position: absolute;
   bottom: 0;
@@ -15381,12 +15501,116 @@ html[data-theme="dark"] .stream-room-v4-page {
   display: flex;
   flex-direction: column;
   gap: 9px;
-  padding: 14px 14px 20px;
-  background: rgba(3, 5, 12, 0.88);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border-top: 1px solid rgba(255,255,255,0.07);
+  padding: 14px 14px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: rgba(3, 5, 12, 0.48);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
+
+/* ── Full-screen slide panels ── */
+.srm-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  background: rgba(3, 5, 14, 0.82);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+              opacity 0.22s ease;
+}
+.srm-panel.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.srm-panel-from-right {
+  transform: translateX(100%);
+}
+.srm-panel-from-right.is-open {
+  transform: translateX(0);
+  opacity: 1;
+}
+.srm-panel-from-left {
+  transform: translateX(-100%);
+}
+.srm-panel-from-left.is-open {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.srm-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.srm-panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+}
+.srm-panel-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.6);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.srm-panel-close:active { background: rgba(255,255,255,0.15); }
+
+/* full chat panel scroll area */
+.srm-panel-chat-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: none;
+}
+.srm-panel-chat-feed::-webkit-scrollbar { display: none; }
+
+.srm-panel-compose {
+  padding: 10px 14px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  gap: 8px;
+}
+
+/* inventory panel */
+.srm-panel-inventory {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  scrollbar-width: none;
+}
+.srm-panel-inventory::-webkit-scrollbar { display: none; }
+
+/* peek hint arrows */
+.srm-swipe-hint {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 6;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.22);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
+  writing-mode: vertical-rl;
+}
+.srm-swipe-hint-left { left: 5px; }
+.srm-swipe-hint-right { right: 5px; }
 
 /* Seller row */
 .srm-tray-top {

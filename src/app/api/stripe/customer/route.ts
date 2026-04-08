@@ -101,17 +101,23 @@ export async function POST() {
     customerId = newCustomer.id;
   }
 
-  const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const rawAppUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/+$/, "");
   const appUrl = (!rawAppUrl.startsWith("http://localhost") && !rawAppUrl.startsWith("http://127.0.0.1"))
     ? rawAppUrl.replace(/^http:\/\//, "https://")
     : rawAppUrl;
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "setup",
-    customer: customerId,
-    success_url: `${appUrl}/settings/payments?setup=success`,
-    cancel_url: `${appUrl}/settings/payments?setup=cancel`,
-  });
+  let session: Awaited<ReturnType<typeof stripe.checkout.sessions.create>>;
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: "setup",
+      customer: customerId,
+      success_url: `${appUrl}/settings/payments?setup=success`,
+      cancel_url: `${appUrl}/settings/payments?setup=cancel`,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unable to create payment setup session.";
+    return jsonError(msg, 502);
+  }
 
   return jsonOk({ setupUrl: session.url });
 }
