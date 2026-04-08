@@ -4,27 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { MessageUserButton } from "@/components/profiles/MessageUserButton";
 import { formatCurrency } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
-
-const auctionSelect = {
-  id: true,
-  title: true,
-  status: true,
-  listingType: true,
-  currentBid: true,
-  buyNowPrice: true,
-  currency: true,
-  endTime: true,
-  category: { select: { name: true } },
-  item: {
-    select: {
-      images: {
-        orderBy: { createdAt: "asc" as const },
-        take: 1,
-        select: { url: true },
-      },
-    },
-  },
-};
+import { getProfileListingPrice, getProfileListings } from "@/lib/server/profile-listings";
 
 async function getProfile(id: string) {
   return prisma.user.findUnique({
@@ -39,14 +19,9 @@ async function getProfile(id: string) {
       createdAt: true,
       sellerProfile: {
         select: {
+          id: true,
           status: true,
           trustTier: true,
-          auctions: {
-            where: { status: { in: ["LIVE", "SCHEDULED", "ENDED"] } },
-            orderBy: { updatedAt: "desc" },
-            take: 24,
-            select: auctionSelect,
-          },
         },
       },
     },
@@ -61,9 +36,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
     redirect(`/u/${profile.username}`);
   }
 
-  const allAuctions = profile.sellerProfile?.auctions ?? [];
-  const activeListings = allAuctions.filter((a) => a.status !== "ENDED");
-  const saleHistory = allAuctions.filter((a) => a.status === "ENDED");
+  const {
+    activeListings,
+    activeCount,
+    saleHistory,
+    salesCount,
+  } = profile.sellerProfile
+    ? await getProfileListings(profile.sellerProfile.id)
+    : { activeListings: [], activeCount: 0, saleHistory: [], salesCount: 0 };
 
   return (
     <div className="profile-page-screen">
@@ -92,7 +72,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         <div className="profile-meta-grid">
           <div className="profile-meta-item">
             <span className="profile-meta-label">Sales</span>
-            <span className="profile-meta-value">{saleHistory.length}</span>
+            <span className="profile-meta-value">{salesCount}</span>
           </div>
           {profile.sellerProfile?.trustTier ? (
             <div className="profile-meta-item">
@@ -113,7 +93,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         <section className="profile-card">
           <div className="profile-section-head">
             <h2 className="app-section-title">Active listings</h2>
-            <span className="market-count">{activeListings.length}</span>
+            <span className="market-count">{activeCount}</span>
           </div>
           <div className="profile-listings-grid">
             {activeListings.map((listing) => (
@@ -126,7 +106,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                 <div className="profile-listing-copy">
                   <p className="profile-listing-title">{listing.title}</p>
                   <p className="profile-listing-meta">{listing.category?.name ?? "Collectible"}</p>
-                  <p className="profile-listing-price">{formatCurrency(listing.currentBid, listing.currency?.toUpperCase() ?? "USD")}</p>
+                  <p className="profile-listing-price">{formatCurrency(getProfileListingPrice(listing), listing.currency?.toUpperCase() ?? "USD")}</p>
                 </div>
               </Link>
             ))}
@@ -138,7 +118,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         <section className="profile-card">
           <div className="profile-section-head">
             <h2 className="app-section-title">Sale history</h2>
-            <span className="market-count">{saleHistory.length}</span>
+            <span className="market-count">{salesCount}</span>
           </div>
           <div className="profile-listings-grid">
             {saleHistory.map((listing) => (
@@ -151,7 +131,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                 <div className="profile-listing-copy">
                   <p className="profile-listing-title">{listing.title}</p>
                   <p className="profile-listing-meta">{listing.category?.name ?? "Collectible"}</p>
-                  <p className="profile-listing-price">{formatCurrency(listing.currentBid, listing.currency?.toUpperCase() ?? "USD")}</p>
+                  <p className="profile-listing-price">{formatCurrency(getProfileListingPrice(listing), listing.currency?.toUpperCase() ?? "USD")}</p>
                 </div>
               </Link>
             ))}
@@ -159,7 +139,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         </section>
       ) : null}
 
-      {activeListings.length === 0 && saleHistory.length === 0 ? (
+      {activeCount === 0 && salesCount === 0 ? (
         <section className="profile-card">
           <p className="app-status-note">No listings yet.</p>
         </section>
