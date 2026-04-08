@@ -248,7 +248,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
       <section className="app-section bounty-board-page">
         <DiscoveryBar className="app-control-bar listing-system-toolbar bounty-toolbar">
           <div className="app-control-title">Bounty</div>
-          <div className="app-search bounty-toolbar-search">
+          <div className="app-search">
             <SearchIcon />
             <input
               value={query}
@@ -256,15 +256,14 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
               placeholder="Search cards, players, sets, cert numbers"
             />
           </div>
-          <div className="listing-system-toolbar-meta bounty-toolbar-meta">
-            <label className="app-select-wrap app-select-inline">
-              <span>Sort</span>
-              <select value={sort} onChange={(e) => setSort(e.target.value as SortMode)} className="app-select">
-                {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </label>
-            <PrimaryButton href="/bounties/new">Post bounty</PrimaryButton>
-          </div>
+          <div className="app-toolbar-spacer" aria-hidden="true" />
+          <label className="app-select-wrap app-select-inline">
+            <span>Sort</span>
+            <select value={sort} onChange={(e) => setSort(e.target.value as SortMode)} className="app-select">
+              {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+          <PrimaryButton href="/bounties/new">Post bounty</PrimaryButton>
         </DiscoveryBar>
 
         {error ? <EmptyStateCard title="Bounty unavailable" description={error} /> : null}

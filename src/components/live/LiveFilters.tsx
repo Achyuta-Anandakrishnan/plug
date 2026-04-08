@@ -78,19 +78,18 @@ export function LiveFilters({
           placeholder="Search streams, hosts, categories"
         />
       </div>
-      <div className="listing-system-toolbar-meta live-toolbar-meta">
-        <label className="app-select-wrap app-select-inline">
-          <span>Sort</span>
-          <select value={sort} onChange={(event) => onSortChange(event.target.value as LiveSortMode)} className="app-select">
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <SegmentedControl options={TIMING_OPTIONS} value={timing} onChange={onTimingChange} />
-      </div>
+      <SegmentedControl options={TIMING_OPTIONS} value={timing} onChange={onTimingChange} />
+      <div className="app-toolbar-spacer" aria-hidden="true" />
+      <label className="app-select-wrap app-select-inline">
+        <span>Sort</span>
+        <select value={sort} onChange={(event) => onSortChange(event.target.value as LiveSortMode)} className="app-select">
+          {SORT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
     </DiscoveryBar>
   );
 }

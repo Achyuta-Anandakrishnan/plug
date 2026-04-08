@@ -479,68 +479,62 @@ async function getHomePageData(): Promise<HomePageData> {
   };
 }
 
-function SurfacePreview({
-  title,
-  subtitle,
-  meta,
-  imageUrl,
-  href,
-  accent,
-  className,
-}: {
+type HeroSectionItem = {
+  imageUrl?: string;
   title: string;
-  subtitle: string;
-  meta: string;
-  imageUrl: string;
-  href: string;
-  accent: string;
-  className?: string;
-}) {
-  return (
-    <Link href={href} className={classNames("landing-visual-card", className)}>
-      <div className="landing-visual-media">
-        <Image src={imageUrl} alt={title} fill sizes="(max-width: 900px) 100vw, 380px" className="object-cover" unoptimized />
-      </div>
-      <div className="landing-visual-overlay">
-        <span className="landing-visual-badge">{accent}</span>
-        <div className="landing-visual-copy">
-          <h3>{title}</h3>
-          <p>{subtitle}</p>
-          <strong>{meta}</strong>
-        </div>
-      </div>
-    </Link>
-  );
-}
+  meta?: string;
+};
 
-function BountyHeroCard({
-  bounty,
+function HeroSectionCard({
+  href,
+  variant,
+  eyebrow,
+  name,
+  items,
   className,
-  gridCell = false,
 }: {
-  bounty: HomeBountyPreview;
+  href: string;
+  variant: "live" | "marketplace" | "trade" | "bounty";
+  eyebrow: string;
+  name: string;
+  items: HeroSectionItem[];
   className?: string;
-  gridCell?: boolean;
 }) {
+  const cells: HeroSectionItem[] = [...items.slice(0, 4)];
+  while (cells.length < 4) cells.push({ title: "" });
+
   return (
-    <Link href={bounty.href} className={classNames("landing-bounty-hero-card", gridCell ? "is-grid-cell" : null, className)}>
-      <span className="landing-visual-badge">Bounty</span>
-      <div className="landing-bounty-hero-body">
-        <p className="landing-bounty-hero-name">{bounty.itemName}</p>
-        <p className="landing-bounty-hero-meta">{bounty.meta}</p>
+    <Link href={href} className={classNames("landing-hero-section-card", `is-${variant}`, className)}>
+      <div className="landing-hero-section-head">
+        <span className="landing-hero-section-eyebrow">{eyebrow}</span>
+        <h3 className="landing-hero-section-name">{name}</h3>
       </div>
-      <div className="landing-bounty-hero-pricing">
-        <div>
-          <span className="landing-bounty-hero-label">Budget</span>
-          <strong className="landing-bounty-hero-value">{bounty.budgetLabel}</strong>
-        </div>
-        {bounty.bountyLabel && (
-          <div>
-            <span className="landing-bounty-hero-label">Finder&rsquo;s fee</span>
-            <strong className="landing-bounty-hero-value landing-bounty-hero-fee">{bounty.bountyLabel}</strong>
-          </div>
+      <div className="landing-hero-mini-grid">
+        {cells.map((cell, i) =>
+          cell.imageUrl ? (
+            <div key={i} className="landing-hero-mini-item">
+              <Image
+                src={cell.imageUrl}
+                alt={cell.title}
+                fill
+                sizes="120px"
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div key={i} className={`landing-hero-mini-text-item${!cell.title ? " is-empty" : ""}`}>
+              {cell.title ? (
+                <>
+                  <p>{cell.title}</p>
+                  {cell.meta && <span>{cell.meta}</span>}
+                </>
+              ) : null}
+            </div>
+          )
         )}
       </div>
+      <div className="landing-hero-section-cta">Explore →</div>
     </Link>
   );
 }
@@ -576,10 +570,6 @@ function timeAgoShort(iso: string): string {
 export default async function Home() {
   const initialIsMobile = isProbablyMobileUserAgent((await headers()).get("user-agent"));
   const data = await getHomePageData();
-  const heroStream = data.streams[0];
-  const heroAuction = data.auctions[0];
-  const heroTrade = data.trades[0];
-  const heroBounty = data.bounties[0];
 
   return (
     <PageContainer className="landing-page">
@@ -595,7 +585,13 @@ export default async function Home() {
                   <p className="landing-eyebrow">For collectors, by collectors</p>
                   <LandingSearchBar />
                 </div>
-                <h1>Live Auctions<br />Trades Bounties</h1>
+                <h1>
+                  <span className="landing-hero-word">Live</span>{" "}
+                  <span className="landing-hero-word">Auctions</span>
+                  <br />
+                  <span className="landing-hero-word">Trades</span>{" "}
+                  <span className="landing-hero-word">Bounties</span>
+                </h1>
                 <p>
                   One premium collectibles platform for real-time streams, live bidding, structured deals, and demand-led buying
                 </p>
@@ -606,53 +602,37 @@ export default async function Home() {
               </div>
 
               <div className="landing-hero-showcase">
-                {/* Top-left: Most liked collectible (or fallback to live stream) */}
-                {data.mostLiked ? (
-                  <SurfacePreview
-                    title={data.mostLiked.title}
-                    subtitle={`${data.mostLiked.category} · ${data.mostLiked.seller}`}
-                    meta={`${data.mostLiked.watchersCount.toLocaleString()} watching`}
-                    imageUrl={data.mostLiked.imageUrl}
-                    href={data.mostLiked.href}
-                    accent="Most Liked"
-                    className="landing-showcase-card is-hero-featured"
-                  />
-                ) : (
-                  <SurfacePreview
-                    title={heroStream.title}
-                    subtitle={`${heroStream.host} · ${heroStream.category}`}
-                    meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
-                    imageUrl={heroStream.imageUrl}
-                    href={heroStream.href}
-                    accent="Live now"
-                    className="landing-showcase-card is-hero-featured"
-                  />
-                )}
-                {/* Top-right: Live stream */}
-                <SurfacePreview
-                  title={heroStream.title}
-                  subtitle={`${heroStream.host} · ${heroStream.category}`}
-                  meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
-                  imageUrl={heroStream.imageUrl}
-                  href={heroStream.href}
-                  accent="Live"
+                <HeroSectionCard
+                  href="/live"
+                  variant="live"
+                  eyebrow="Now streaming"
+                  name="Live Auctions"
+                  items={data.streams.slice(0, 4).map((s) => ({ imageUrl: s.imageUrl, title: s.title }))}
+                  className="landing-showcase-card is-hero-featured"
+                />
+                <HeroSectionCard
+                  href="/listings"
+                  variant="marketplace"
+                  eyebrow="Active listings"
+                  name="Marketplace"
+                  items={data.auctions.slice(0, 4).map((a) => ({ imageUrl: a.imageUrl, title: a.title }))}
                   className="landing-showcase-card is-hero-auction"
                 />
-                {/* Bottom-left: Trade */}
-                <SurfacePreview
-                  title={heroTrade.title}
-                  subtitle={heroTrade.owner}
-                  meta={`${heroTrade.valueLabel} · ${heroTrade.offersCount} offers`}
-                  imageUrl={heroTrade.imageUrl}
-                  href={heroTrade.href}
-                  accent="Trade"
+                <HeroSectionCard
+                  href="/listings"
+                  variant="trade"
+                  eyebrow="For trade"
+                  name="Trade Board"
+                  items={data.trades.slice(0, 4).map((t) => ({ imageUrl: t.imageUrl, title: t.title }))}
                   className="landing-showcase-card is-hero-trade"
                 />
-                {/* Bottom-right: Bounty */}
-                <BountyHeroCard
-                  bounty={heroBounty}
+                <HeroSectionCard
+                  href="/bounties"
+                  variant="bounty"
+                  eyebrow="Wanted"
+                  name="Bounties"
+                  items={data.bounties.slice(0, 4).map((b) => ({ title: b.itemName, meta: b.budgetLabel }))}
                   className="landing-showcase-card is-hero-bounty"
-                  gridCell
                 />
               </div>
             </section>
@@ -729,7 +709,13 @@ export default async function Home() {
                 <p className="landing-eyebrow">For collectors, by collectors</p>
                 <LandingSearchBar />
               </div>
-              <h1>Live Auctions<br />Trades Bounties</h1>
+              <h1>
+                <span className="landing-hero-word">Live</span>{" "}
+                <span className="landing-hero-word">Auctions</span>
+                <br />
+                <span className="landing-hero-word">Trades</span>{" "}
+                <span className="landing-hero-word">Bounties</span>
+              </h1>
               <p className="landing-mobile-copy">
                 One premium platform for real-time streams, live bidding, structured deals, and demand-led buying
               </p>
@@ -741,47 +727,39 @@ export default async function Home() {
 
             {/* ── Mobile preview cards ─────────────────────────────────── */}
             <section className="landing-mobile-section landing-mobile-preview">
-              <div className="landing-mobile-preview-stack">
-                <SurfacePreview
-                  title={heroStream.title}
-                  subtitle={`${heroStream.host} · ${heroStream.category}`}
-                  meta={`${heroStream.watchers.toLocaleString()} watching · ${heroStream.priceLabel}`}
-                  imageUrl={heroStream.imageUrl}
-                  href={heroStream.href}
-                  accent="Live"
-                  className="landing-mobile-preview-card is-live"
+              <div className="landing-mobile-hero-grid">
+                <HeroSectionCard
+                  href="/live"
+                  variant="live"
+                  eyebrow="Now streaming"
+                  name="Live Auctions"
+                  items={data.streams.slice(0, 4).map((s) => ({ imageUrl: s.imageUrl, title: s.title }))}
                 />
-                <SurfacePreview
-                  title={heroAuction.title}
-                  subtitle={`${heroAuction.category} · ${heroAuction.seller}`}
-                  meta={`${heroAuction.currentBidLabel} · ${heroAuction.timeLeftLabel}`}
-                  imageUrl={heroAuction.imageUrl}
-                  href={heroAuction.href}
-                  accent="Auction"
-                  className="landing-mobile-preview-card is-auction"
+                <HeroSectionCard
+                  href="/listings"
+                  variant="marketplace"
+                  eyebrow="Active listings"
+                  name="Marketplace"
+                  items={data.auctions.slice(0, 4).map((a) => ({ imageUrl: a.imageUrl, title: a.title }))}
                 />
-                <SurfacePreview
-                  title={heroTrade.title}
-                  subtitle={heroTrade.owner}
-                  meta={`${heroTrade.valueLabel} · ${heroTrade.offersCount} offers`}
-                  imageUrl={heroTrade.imageUrl}
-                  href={heroTrade.href}
-                  accent="Trade"
-                  className="landing-mobile-preview-card is-trade"
+                <HeroSectionCard
+                  href="/listings"
+                  variant="trade"
+                  eyebrow="For trade"
+                  name="Trade Board"
+                  items={data.trades.slice(0, 4).map((t) => ({ imageUrl: t.imageUrl, title: t.title }))}
+                />
+                <HeroSectionCard
+                  href="/bounties"
+                  variant="bounty"
+                  eyebrow="Wanted"
+                  name="Bounties"
+                  items={data.bounties.slice(0, 4).map((b) => ({ title: b.itemName, meta: b.budgetLabel }))}
                 />
               </div>
             </section>
 
             {/* ── Mobile core actions ──────────────────────────────────── */}
-            <section className="landing-mobile-section landing-mobile-actions-section">
-              <div className="landing-mobile-action-grid">
-                <HomeActionColumn eyebrow="LIVE STREAM" title="Fast deals" copy="Verified sellers doing fast auctions live on dalow" href="/live" />
-                <HomeActionColumn eyebrow="AUCTIONS" title="Bids" copy="Timed auctions on graded singles" href="/listings" />
-                <HomeActionColumn eyebrow="TRADES" title="Get what you want" copy="Post what you have. Browse what collectors want. Make offers" href="/trades" />
-                <HomeActionColumn eyebrow="BOUNTY" title="Name your price" copy="Post exactly what you want. Put a finder's fee on it. Sellers bring it to you" href="/bounties" />
-              </div>
-            </section>
-
             {/* ── Mobile forums ─────────────────────────────────────────── */}
             <section className="landing-mobile-section landing-forums-section">
               <div className="landing-forums-head">
@@ -803,6 +781,15 @@ export default async function Home() {
                     </Link>
                   ))
                 )}
+              </div>
+            </section>
+
+            <section className="landing-mobile-section landing-mobile-actions-section">
+              <div className="landing-mobile-action-grid">
+                <HomeActionColumn eyebrow="LIVE STREAM" title="Fast deals" copy="Verified sellers doing fast auctions live on dalow" href="/live" />
+                <HomeActionColumn eyebrow="AUCTIONS" title="Bids" copy="Timed auctions on graded singles" href="/listings" />
+                <HomeActionColumn eyebrow="TRADES" title="Get what you want" copy="Post what you have. Browse what collectors want. Make offers" href="/trades" />
+                <HomeActionColumn eyebrow="BOUNTY" title="Name your price" copy="Post exactly what you want. Put a finder's fee on it. Sellers bring it to you" href="/bounties" />
               </div>
             </section>
 

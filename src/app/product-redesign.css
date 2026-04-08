@@ -1239,8 +1239,8 @@ html[data-theme="dark"] .site-account-popover {
 }
 
 .landing-page {
-  gap: 72px;
-  padding-top: 40px;
+  gap: 48px;
+  padding-top: 32px;
   padding-bottom: 72px;
 }
 
@@ -1261,9 +1261,10 @@ html[data-theme="dark"] .site-account-popover {
 }
 
 .landing-hero {
-  grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.08fr);
-  gap: 44px;
+  grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.1fr);
+  gap: 36px;
   align-items: center;
+  min-height: calc(100dvh - var(--app-header-height, 64px) - 80px);
 }
 
 .landing-hero-copy {
@@ -1378,8 +1379,29 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 .landing-hero-copy h1 {
   margin: 0;
   font-size: clamp(4.2rem, 9vw, 7.2rem);
-  line-height: 0.84;
+  line-height: 0.95;
   letter-spacing: -0.07em;
+}
+
+/* Blob word treatment — each word gets an elegant dark pill */
+.landing-hero-word {
+  display: inline;
+  color: #fff;
+  background: #09111e;
+  padding: 0.04em 0.18em 0.08em;
+  border-radius: 0.35em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+html[data-theme="dark"] .landing-hero-word {
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
 }
 
 .landing-hero-copy > p:not(.landing-eyebrow):not(.landing-hero-note) {
@@ -1410,195 +1432,170 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 .landing-hero-showcase {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: minmax(200px, 1fr) minmax(200px, 1fr);
-  gap: 12px;
+  grid-template-rows: minmax(150px, 1fr) minmax(150px, 1fr);
+  gap: 10px;
   align-self: stretch;
-  min-height: 480px;
 }
 
 .landing-hero-showcase-shell {
   display: none;
 }
 
-.landing-visual-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 20px;
-  background: var(--product-surface);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.11);
-  color: inherit;
-  text-decoration: none;
-}
-
+/* ── Hero section cards — 4-box showcase ── */
 .landing-showcase-card {
   position: relative;
   min-height: 0;
 }
 
-.landing-visual-media {
+.landing-hero-section-card {
   position: relative;
-  flex: 1;
-  min-height: 120px;
-  overflow: hidden;
-  background: #e9eef4;
-}
-
-.landing-visual-overlay {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  align-content: space-between;
-  padding: 16px;
-  background: linear-gradient(
-    to top,
-    rgba(5, 10, 18, 0.78) 0%,
-    rgba(5, 10, 18, 0.42) 38%,
-    rgba(5, 10, 18, 0) 72%
-  );
-}
-
-.landing-visual-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: max-content;
-  min-height: 28px;
-  padding: 0 11px;
-  border: 1px solid rgba(255, 255, 255, 0.42);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-  color: rgba(11, 26, 43, 0.82);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  backdrop-filter: blur(18px);
-}
-
-.landing-visual-copy {
-  align-self: end;
-  display: grid;
-  gap: 5px;
-}
-
-.landing-visual-copy h3 {
-  margin: 0;
-  display: -webkit-box;
-  overflow: hidden;
-  color: white;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.08;
-  letter-spacing: -0.03em;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.landing-visual-copy p,
-.landing-visual-copy strong {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.landing-visual-copy strong {
-  color: white;
-  font-weight: 700;
-}
-
-/* All 4 showcase cards are equal grid cells */
-.landing-showcase-card.is-hero-featured,
-.landing-showcase-card.is-hero-auction,
-.landing-showcase-card.is-hero-trade,
-.landing-showcase-card.is-hero-bounty {
-  position: relative;
-  inset: auto;
-  width: auto;
-  transform: none;
-  z-index: auto;
-}
-
-/* ── Bounty hero card — glassmorphism text card for showcase ── */
-.landing-bounty-hero-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px 18px;
+  gap: 12px;
+  padding: 16px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
   text-decoration: none;
   color: inherit;
-  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.landing-bounty-hero-card:hover {
-  transform: translateY(-3px) scale(1.01);
-  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
+.landing-hero-section-card:hover {
+  transform: translateY(-2px);
 }
 
-.landing-bounty-hero-body {
-  display: grid;
-  gap: 3px;
+/* Per-section dark gradient backgrounds */
+.landing-hero-section-card.is-live {
+  background: linear-gradient(148deg, #0d0608 0%, #180c0f 55%, #1e0d10 100%);
+  border: 1px solid rgba(192, 48, 58, 0.22);
+  box-shadow: 0 0 0 1px rgba(192, 48, 58, 0.06) inset, 0 20px 48px rgba(0, 0, 0, 0.5);
+}
+.landing-hero-section-card.is-live:hover {
+  box-shadow: 0 0 0 1px rgba(192, 48, 58, 0.12) inset, 0 24px 56px rgba(0, 0, 0, 0.55), 0 0 32px rgba(192, 48, 58, 0.08);
 }
 
-.landing-bounty-hero-name {
+.landing-hero-section-card.is-marketplace {
+  background: linear-gradient(148deg, #07091a 0%, #0b0f24 55%, #0e1230 100%);
+  border: 1px solid rgba(79, 130, 246, 0.2);
+  box-shadow: 0 0 0 1px rgba(79, 130, 246, 0.06) inset, 0 20px 48px rgba(0, 0, 0, 0.5);
+}
+.landing-hero-section-card.is-marketplace:hover {
+  box-shadow: 0 0 0 1px rgba(79, 130, 246, 0.14) inset, 0 24px 56px rgba(0, 0, 0, 0.55), 0 0 32px rgba(79, 130, 246, 0.08);
+}
+
+.landing-hero-section-card.is-trade {
+  background: linear-gradient(148deg, #05100d 0%, #081713 55%, #0a1c17 100%);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.06) inset, 0 20px 48px rgba(0, 0, 0, 0.5);
+}
+.landing-hero-section-card.is-trade:hover {
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.14) inset, 0 24px 56px rgba(0, 0, 0, 0.55), 0 0 32px rgba(16, 185, 129, 0.07);
+}
+
+.landing-hero-section-card.is-bounty {
+  background: linear-gradient(148deg, #100e04 0%, #1a1608 55%, #1e1a09 100%);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.06) inset, 0 20px 48px rgba(0, 0, 0, 0.5);
+}
+.landing-hero-section-card.is-bounty:hover {
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.14) inset, 0 24px 56px rgba(0, 0, 0, 0.55), 0 0 32px rgba(245, 158, 11, 0.07);
+}
+
+/* Card header */
+.landing-hero-section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.landing-hero-section-eyebrow {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.is-live .landing-hero-section-eyebrow    { color: #f04a55; }
+.is-marketplace .landing-hero-section-eyebrow { color: #6ba3f9; }
+.is-trade .landing-hero-section-eyebrow  { color: #34d399; }
+.is-bounty .landing-hero-section-eyebrow { color: #fbbf24; }
+
+.landing-hero-section-name {
   margin: 0;
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.1;
+}
+
+/* 2×2 mini item grid */
+.landing-hero-mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 5px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Image thumbnail item */
+.landing-hero-mini-item {
+  position: relative;
+  border-radius: 9px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  min-height: 48px;
+}
+
+/* Text item (bounty, no image) */
+.landing-hero-mini-text-item {
+  border-radius: 9px;
+  padding: 7px 9px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  justify-content: center;
+  min-height: 48px;
+}
+.landing-hero-mini-text-item.is-empty {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: rgba(255, 255, 255, 0.04);
+}
+.landing-hero-mini-text-item p {
+  margin: 0;
+  font-size: 10px;
   font-weight: 700;
-  line-height: 1.2;
-  color: var(--product-text);
-  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.25;
+  overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
 }
-
-.landing-bounty-hero-meta {
-  margin: 0;
-  font-size: 10px;
-  color: var(--product-text-faint);
-  letter-spacing: 0.02em;
-}
-
-.landing-bounty-hero-pricing {
-  display: flex;
-  gap: 16px;
-  padding-top: 4px;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
-}
-
-.landing-bounty-hero-pricing > div {
-  display: grid;
-  gap: 1px;
-}
-
-.landing-bounty-hero-label {
+.landing-hero-mini-text-item span {
   font-size: 9px;
+  color: rgba(255, 255, 255, 0.38);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Explore footer */
+.landing-hero-section-cta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--product-text-faint);
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.3);
+  transition: color 0.15s;
 }
-
-.landing-bounty-hero-value {
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--product-text);
-}
-
-.landing-bounty-hero-fee {
-  color: #0d8c50;
+.landing-hero-section-card:hover .landing-hero-section-cta {
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .landing-actions-section {
@@ -1818,6 +1815,12 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 .landing-mobile-story-points {
   display: grid;
   gap: 12px;
+}
+
+.landing-mobile-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .landing-mobile-preview-card .landing-visual-media {
@@ -15325,18 +15328,30 @@ html[data-theme="dark"] .stream-room-v4-page {
   color: #fff;
 }
 
-/* Hide global chrome while stream is fullscreen */
-.stream-room-active .site-header,
-.stream-room-active .site-mobile-tabbar,
-.stream-room-active [class*="app-bottom-nav"],
-.stream-room-active [class*="tab-bar"],
-.stream-room-active [class*="bottom-nav"] {
+/* Hide global chrome while stream is fullscreen.
+   Class is on <body>, so correct selector is body.stream-room-active */
+body.stream-room-active .site-header,
+body.stream-room-active .site-mobile-tabbar {
   display: none !important;
 }
-.stream-room-active body,
-.stream-room-active #__next,
-.stream-room-active main {
-  overflow: hidden;
+
+/* Lock ALL scrolling — prevents iOS bounce revealing white behind fixed stream */
+html.stream-room-active,
+body.stream-room-active {
+  overflow: hidden !important;
+  height: 100% !important;
+  overscroll-behavior: none;
+}
+body.stream-room-active .app-layout {
+  overflow: hidden !important;
+  padding-top: 0 !important;
+}
+body.stream-room-active .site-main {
+  overflow: hidden !important;
+  min-height: 0 !important;
+}
+body.stream-room-active .app-container {
+  overflow: hidden !important;
 }
 
 .srm-loading {
@@ -15386,7 +15401,7 @@ html[data-theme="dark"] .stream-room-v4-page {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px;
   pointer-events: none;
 }
 .srm-hud-top > * { pointer-events: auto; }
@@ -15457,7 +15472,7 @@ html[data-theme="dark"] .stream-room-v4-page {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  pointer-events: none;
+  pointer-events: auto;
   /* fade out top so messages emerge from video */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 28%);
   mask-image: linear-gradient(to bottom, transparent 0%, black 28%);
@@ -15712,8 +15727,8 @@ html[data-theme="dark"] .stream-room-v4-page {
   flex: 1;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.09);
+  background: rgba(255,255,255,0.04);
   color: rgba(255,255,255,0.85);
   font-size: 12px;
   font-weight: 700;
@@ -15721,17 +15736,17 @@ html[data-theme="dark"] .stream-room-v4-page {
   transition: background 0.12s;
   white-space: nowrap;
 }
-.srm-chip:active:not(:disabled) { background: rgba(255,255,255,0.15); }
+.srm-chip:active:not(:disabled) { background: rgba(255,255,255,0.12); }
 .srm-chip:disabled { opacity: 0.3; cursor: default; }
 
 /* Bid input row */
 .srm-bid-row {
   display: flex;
   align-items: center;
-  border: 1.5px solid rgba(255,255,255,0.12);
+  border: 1.5px solid rgba(255,255,255,0.09);
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.03);
   transition: border-color 0.15s;
 }
 .srm-bid-row:focus-within { border-color: rgba(192,48,58,0.65); }
@@ -15760,7 +15775,7 @@ html[data-theme="dark"] .stream-room-v4-page {
   height: 48px;
   padding: 0 22px;
   border: none;
-  background: #c0303a;
+  background: rgba(192, 48, 58, 0.72);
   color: #fff;
   font-size: 13px;
   font-weight: 800;
@@ -15768,7 +15783,7 @@ html[data-theme="dark"] .stream-room-v4-page {
   cursor: pointer;
   transition: background 0.15s;
 }
-.srm-bid-btn:active:not(:disabled) { background: #d93643; }
+.srm-bid-btn:active:not(:disabled) { background: rgba(217, 54, 67, 0.88); }
 .srm-bid-btn:disabled { opacity: 0.3; cursor: default; }
 
 /* Buy now */
@@ -15776,8 +15791,8 @@ html[data-theme="dark"] .stream-room-v4-page {
   width: 100%;
   height: 42px;
   border-radius: 11px;
-  border: 1.5px solid rgba(255,255,255,0.13);
-  background: rgba(255,255,255,0.07);
+  border: 1.5px solid rgba(255,255,255,0.09);
+  background: rgba(255,255,255,0.04);
   color: rgba(255,255,255,0.85);
   font-size: 13px;
   font-weight: 700;
@@ -15798,8 +15813,8 @@ html[data-theme="dark"] .stream-room-v4-page {
   min-width: 0;
   height: 40px;
   border-radius: 11px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.09);
+  background: rgba(255,255,255,0.05);
   color: rgba(255,255,255,0.9);
   font-size: 13px;
   padding: 0 13px;
@@ -15815,7 +15830,7 @@ html[data-theme="dark"] .stream-room-v4-page {
   height: 40px;
   border-radius: 11px;
   border: none;
-  background: #c0303a;
+  background: rgba(192, 48, 58, 0.72);
   color: #fff;
   font-size: 18px;
   cursor: pointer;

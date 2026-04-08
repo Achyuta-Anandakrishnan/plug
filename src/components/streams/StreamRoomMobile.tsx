@@ -74,8 +74,12 @@ export function StreamRoomMobile({
 
   // Fullscreen: hide header + bottom nav while stream is open
   useEffect(() => {
+    document.documentElement.classList.add("stream-room-active");
     document.body.classList.add("stream-room-active");
-    return () => { document.body.classList.remove("stream-room-active"); };
+    return () => {
+      document.documentElement.classList.remove("stream-room-active");
+      document.body.classList.remove("stream-room-active");
+    };
   }, []);
 
   // Scroll full chat panel to bottom when messages update

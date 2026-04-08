@@ -266,48 +266,45 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
       <section className="app-section market-overview">
         <DiscoveryBar className="app-control-bar listing-system-toolbar market-toolbar">
           <div className="app-control-title">Marketplace</div>
-          <div className="listing-system-toolbar-main market-toolbar-main">
-            <div className="app-search">
-              <SearchIcon />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search cards, sets, players, cert numbers"
-              />
-            </div>
-            <div className="app-chip-row">
+          <div className="app-search">
+            <SearchIcon />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search cards, sets, players, cert numbers"
+            />
+          </div>
+          <div className="app-chip-row">
+            <FilterChip
+              key="trade"
+              label="For Trade"
+              active={showTrades}
+              onClick={handleTradeChip}
+            />
+            {!showTrades && categoryFilters.map((category) => (
               <FilterChip
-                key="trade"
-                label="For Trade"
-                active={showTrades}
-                onClick={handleTradeChip}
+                key={category.id}
+                label={category.label}
+                active={selectedCategory === category.slug}
+                onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
               />
-              {!showTrades && categoryFilters.map((category) => (
-                <FilterChip
-                  key={category.id}
-                  label={category.label}
-                  active={selectedCategory === category.slug}
-                  onClick={() => setSelectedCategory(selectedCategory === category.slug ? "" : category.slug)}
-                />
+            ))}
+          </div>
+          <div className="app-toolbar-spacer" aria-hidden="true" />
+          <label className="app-select-wrap app-select-inline">
+            <span>Sort</span>
+            <select
+              value={sortMode}
+              onChange={(event) => setSortMode(event.target.value as SortMode)}
+              className="app-select"
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
               ))}
-            </div>
-          </div>
-          <div className="listing-system-toolbar-meta market-toolbar-meta">
-            <label className="app-select-wrap app-select-inline">
-              <span>Sort</span>
-              <select
-                value={sortMode}
-                onChange={(event) => setSortMode(event.target.value as SortMode)}
-                className="app-select"
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+            </select>
+          </label>
         </DiscoveryBar>
 
         {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
