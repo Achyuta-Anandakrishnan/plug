@@ -591,9 +591,6 @@ export default async function Home() {
                   <span className="landing-hero-word">Trades</span>{" "}
                   <span className="landing-hero-word">Bounties</span>
                 </h1>
-                <p>
-                  One premium collectibles platform for real-time streams, live bidding, structured deals, and demand-led buying
-                </p>
                 <div className="landing-hero-actions">
                   <PrimaryButton href="/waitlist">Join Waitlist</PrimaryButton>
                 </div>

@@ -1261,9 +1261,10 @@ html[data-theme="dark"] .site-account-popover {
 }
 
 .landing-hero {
-  grid-template-columns: minmax(260px, 0.82fr) minmax(0, 1.18fr);
+  grid-template-columns: minmax(240px, 0.78fr) minmax(0, 1.22fr);
   gap: 32px;
   align-items: stretch;
+  min-height: calc(100dvh - var(--app-header-height, 64px));
 }
 
 .landing-hero-copy {
@@ -1278,11 +1279,12 @@ html[data-theme="dark"] .site-account-popover {
   margin-top: auto !important;
 }
 
-/* Right column: 4 boxes stacked above forum */
+/* Right column: 4 boxes stacked above forum, fills full hero height */
 .landing-hero-right {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  min-height: 0;
 }
 
 .landing-hero-topline {
@@ -1390,9 +1392,9 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 
 .landing-hero-copy h1 {
   margin: 0;
-  font-size: clamp(3.6rem, 8vw, 6rem);
-  line-height: 1.08;
-  letter-spacing: -0.06em;
+  font-size: clamp(2.6rem, 5.5vw, 4rem);
+  line-height: 1.1;
+  letter-spacing: -0.05em;
 }
 
 /* Per-word bubble — tight black pill around each word */
@@ -1400,12 +1402,12 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
   display: inline;
   color: #fff;
   background: #09111e;
-  padding: 0.04em 0.14em 0.1em;
-  border-radius: 0.28em;
+  padding: 0.03em 0.13em 0.08em;
+  border-radius: 0.22em;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
-  margin-right: 0.08em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+  margin-right: 0.06em;
 }
 
 html[data-theme="dark"] .landing-hero-word {
@@ -1441,8 +1443,10 @@ html[data-theme="dark"] .landing-hero-word {
 .landing-hero-showcase {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: minmax(110px, 1fr) minmax(110px, 1fr);
+  grid-template-rows: 1fr 1fr;
   gap: 8px;
+  flex: 1;
+  min-height: 0;
 }
 
 .landing-hero-showcase-shell {
@@ -1472,41 +1476,22 @@ html[data-theme="dark"] .landing-hero-word {
   transform: translateY(-2px);
 }
 
-/* Per-section dark gradient backgrounds */
-.landing-hero-section-card.is-live {
-  background: linear-gradient(148deg, #0d0608 0%, #180c0f 55%, #1e0d10 100%);
-  border: 1px solid rgba(192, 48, 58, 0.22);
-  box-shadow: 0 0 0 1px rgba(192, 48, 58, 0.06) inset, 0 20px 48px rgba(0, 0, 0, 0.5);
-}
-.landing-hero-section-card.is-live:hover {
-  box-shadow: 0 0 0 1px rgba(192, 48, 58, 0.12) inset, 0 24px 56px rgba(0, 0, 0, 0.55), 0 0 32px rgba(192, 48, 58, 0.08);
-}
-
-.landing-hero-section-card.is-marketplace {
-  background: linear-gradient(148deg, #07091a 0%, #0b0f24 55%, #0e1230 100%);
-  border: 1px solid rgba(79, 130, 246, 0.2);
-  box-shadow: 0 0 0 1px rgba(79, 130, 246, 0.06) inset, 0 20px 48px rgba(0, 0, 0, 0.5);
-}
-.landing-hero-section-card.is-marketplace:hover {
-  box-shadow: 0 0 0 1px rgba(79, 130, 246, 0.14) inset, 0 24px 56px rgba(0, 0, 0, 0.55), 0 0 32px rgba(79, 130, 246, 0.08);
-}
-
-.landing-hero-section-card.is-trade {
-  background: linear-gradient(148deg, #05100d 0%, #081713 55%, #0a1c17 100%);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.06) inset, 0 20px 48px rgba(0, 0, 0, 0.5);
-}
-.landing-hero-section-card.is-trade:hover {
-  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.14) inset, 0 24px 56px rgba(0, 0, 0, 0.55), 0 0 32px rgba(16, 185, 129, 0.07);
-}
-
+/* Section cards — white/light surface */
+.landing-hero-section-card.is-live,
+.landing-hero-section-card.is-marketplace,
+.landing-hero-section-card.is-trade,
 .landing-hero-section-card.is-bounty {
-  background: linear-gradient(148deg, #100e04 0%, #1a1608 55%, #1e1a09 100%);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.06) inset, 0 20px 48px rgba(0, 0, 0, 0.5);
+  background: var(--product-surface);
+  border: 1px solid var(--product-border);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.07);
+  color: var(--product-text);
 }
+.landing-hero-section-card.is-live:hover,
+.landing-hero-section-card.is-marketplace:hover,
+.landing-hero-section-card.is-trade:hover,
 .landing-hero-section-card.is-bounty:hover {
-  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.14) inset, 0 24px 56px rgba(0, 0, 0, 0.55), 0 0 32px rgba(245, 158, 11, 0.07);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.11);
+  border-color: rgba(15, 23, 42, 0.15);
 }
 
 /* Card header */
@@ -1532,7 +1517,7 @@ html[data-theme="dark"] .landing-hero-word {
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--product-text);
   line-height: 1.1;
 }
 
@@ -1558,25 +1543,21 @@ html[data-theme="dark"] .landing-hero-word {
 
 /* Text item (bounty, no image) */
 .landing-hero-mini-text-item {
-  border-radius: 9px;
+  border-radius: 8px;
   padding: 7px 9px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--product-surface-muted, #f4f5f8);
+  border: 1px solid var(--product-border);
   display: flex;
   flex-direction: column;
   gap: 2px;
   justify-content: center;
   min-height: 48px;
 }
-.landing-hero-mini-text-item.is-empty {
-  background: rgba(255, 255, 255, 0.025);
-  border-color: rgba(255, 255, 255, 0.04);
-}
 .landing-hero-mini-text-item p {
   margin: 0;
   font-size: 10px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--product-text);
   line-height: 1.25;
   overflow: hidden;
   display: -webkit-box;
@@ -1585,7 +1566,7 @@ html[data-theme="dark"] .landing-hero-word {
 }
 .landing-hero-mini-text-item span {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.38);
+  color: var(--product-text-soft);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1599,11 +1580,11 @@ html[data-theme="dark"] .landing-hero-word {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--product-text-faint);
   transition: color 0.15s;
 }
 .landing-hero-section-card:hover .landing-hero-section-cta {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--product-text-soft);
 }
 
 .landing-actions-section {
@@ -13306,13 +13287,16 @@ html[data-theme="dark"] .app-page--forum .app-discovery-bar {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
 }
 
-/* ── Safety: hide leftover app-control-title in toolbars (title is in PageHeader) ── */
+/* ── app-control-title in combined toolbar pill ── */
 .app-page--market .app-discovery-bar .app-control-title,
 .app-page--bounties .app-discovery-bar .app-control-title,
 .app-page--live .app-discovery-bar .app-control-title,
 .app-page--forum .app-discovery-bar .app-control-title,
 .app-page--trades .app-discovery-bar .app-control-title {
-  display: none;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  padding-right: 4px;
 }
 
 /* Fix grid layout after removing title/create from toolbar ── */

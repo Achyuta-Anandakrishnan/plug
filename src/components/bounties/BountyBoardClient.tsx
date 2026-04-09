@@ -7,7 +7,6 @@ import {
   DiscoveryBar,
   EmptyStateCard,
   PageContainer,
-  PageHeader,
   PrimaryButton,
   SearchIcon,
 } from "@/components/product/ProductUI";
@@ -246,13 +245,9 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
 
   return (
     <PageContainer className="bounty-page listing-system-page app-page--bounties">
-      <PageHeader
-        title="Bounty"
-        subtitle="Post what you want. Put money on it."
-        actions={<PrimaryButton href="/bounties/new">Post bounty</PrimaryButton>}
-      />
       <section className="app-section bounty-board-page">
         <DiscoveryBar className="app-control-bar listing-system-toolbar bounty-toolbar">
+          <div className="app-control-title">Bounty</div>
           <div className="app-search">
             <SearchIcon />
             <input
@@ -268,6 +263,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
               {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </label>
+          <PrimaryButton href="/bounties/new">Post bounty</PrimaryButton>
         </DiscoveryBar>
 
         {error ? <EmptyStateCard title="Bounty unavailable" description={error} /> : null}

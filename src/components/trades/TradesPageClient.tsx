@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import { ListingCard } from "@/components/market/ListingCard";
 import {
+  DiscoveryBar,
   EmptyStateCard,
   PageContainer,
-  PageHeader,
   PrimaryButton,
 } from "@/components/product/ProductUI";
 import { useMobileUi } from "@/hooks/useMobileUi";
@@ -131,14 +131,13 @@ export function TradesPageClient({ initialIsMobile }: TradesPageClientProps) {
 
   return (
     <PageContainer className="trades-page listing-system-page app-page--trades">
-      <PageHeader
-        title="Trades"
-        subtitle="Post what you have. Find what you want."
-        actions={<PrimaryButton href="/trades/new">New trade</PrimaryButton>}
-      />
-
       <section className="app-section">
-        {searchBar}
+        <DiscoveryBar className="app-control-bar listing-system-toolbar trades-toolbar">
+          <div className="app-control-title">Trades</div>
+          {searchBar}
+          <div className="app-toolbar-spacer" aria-hidden="true" />
+          <PrimaryButton href="/trades/new">New trade</PrimaryButton>
+        </DiscoveryBar>
 
         {error ? <EmptyStateCard title="Trade board unavailable" description={error} /> : null}
         {loading ? <CheckersLoader title="Loading trades…" compact /> : null}
