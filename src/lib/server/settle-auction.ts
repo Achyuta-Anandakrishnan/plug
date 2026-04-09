@@ -162,7 +162,7 @@ export async function settleAuction(auctionId: string, appUrl?: string): Promise
               {
                 quantity: 1,
                 price_data: {
-                  currency: auction.currency,
+                  currency: auction.currency ?? "usd",
                   unit_amount: chargeAmount,
                   product_data: {
                     name: auction.title.slice(0, 120),

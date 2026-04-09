@@ -119,6 +119,7 @@ export async function POST(
   if (payoutGateError) {
     return jsonError("Seller payouts are not available for this listing right now.", 409);
   }
+  const connectEnabled = !payoutGateError && Boolean(sellerReadiness.stripeAccountId);
 
   const now = new Date();
   const effectiveEnd = auction.extendedTime ?? auction.endTime;
@@ -200,7 +201,7 @@ export async function POST(
         intent = await stripe.paymentIntents.create(
           {
             amount: chargeAmount,
-            currency: auction.currency,
+            currency: auction.currency ?? "usd",
             capture_method: "automatic",
             metadata: {
               orderId: order.id,
@@ -208,6 +209,12 @@ export async function POST(
             },
             payment_method: body.paymentMethodId,
             confirm: true,
+            ...(connectEnabled
+              ? {
+                  application_fee_amount: platformFee,
+                  transfer_data: { destination: sellerReadiness.stripeAccountId as string },
+                }
+              : {}),
           },
           {
             idempotencyKey: `pi_${order.id}`,
@@ -278,7 +285,7 @@ export async function POST(
               {
                 quantity: 1,
                 price_data: {
-                  currency: auction.currency,
+                  currency: auction.currency ?? "usd",
                   unit_amount: chargeAmount,
                   product_data: {
                     name: auction.title.slice(0, 120),
@@ -296,6 +303,12 @@ export async function POST(
                 orderId: order.id,
                 auctionId: auction.id,
               },
+              ...(connectEnabled
+                ? {
+                    application_fee_amount: platformFee,
+                    transfer_data: { destination: sellerReadiness.stripeAccountId as string },
+                  }
+                : {}),
             },
           },
           {
