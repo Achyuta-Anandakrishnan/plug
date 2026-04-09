@@ -504,10 +504,7 @@ function HeroSectionCard({
 
   return (
     <Link href={href} className={classNames("landing-hero-section-card", `is-${variant}`, className)}>
-      <div className="landing-hero-section-head">
-        <span className="landing-hero-section-eyebrow">{eyebrow}</span>
-        <h3 className="landing-hero-section-name">{name}</h3>
-      </div>
+      {/* Images fill the entire card */}
       <div className="landing-hero-mini-grid">
         {cells.map((cell, i) =>
           cell.imageUrl ? (
@@ -516,7 +513,7 @@ function HeroSectionCard({
                 src={cell.imageUrl}
                 alt={cell.title}
                 fill
-                sizes="120px"
+                sizes="200px"
                 className="object-cover"
                 unoptimized
               />
@@ -533,7 +530,14 @@ function HeroSectionCard({
           )
         )}
       </div>
-      <div className="landing-hero-section-cta">Explore →</div>
+      {/* Text overlay on top of images */}
+      <div className="landing-hero-card-overlay">
+        <div className="landing-hero-section-head">
+          <span className="landing-hero-section-eyebrow">{eyebrow}</span>
+          <h3 className="landing-hero-section-name">{name}</h3>
+        </div>
+        <div className="landing-hero-section-cta">Explore →</div>
+      </div>
     </Link>
   );
 }

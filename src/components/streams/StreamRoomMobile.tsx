@@ -96,12 +96,7 @@ export function StreamRoomMobile({
     };
   }, []);
 
-  // Scroll full chat panel to bottom when messages update
-  useEffect(() => {
-    if (showChat && chatPanelRef.current) {
-      chatPanelRef.current.scrollTop = chatPanelRef.current.scrollHeight;
-    }
-  }, [data?.chatMessages, showChat]);
+  // column-reverse on srm-panel-chat-feed keeps newest messages visible — no manual scroll needed
 
   const timeLeft = useMemo(() => (data ? getTimeLeftSeconds(data) : 0), [data]);
   const nextBid = data ? data.currentBid + data.minBidIncrement : 0;
@@ -415,7 +410,7 @@ export function StreamRoomMobile({
       </div>
 
       {/* ── Full chat panel (swipe left) ── */}
-      <div className={`srm-panel srm-panel-from-right${showChat ? " is-open" : " is-hidden"}`} aria-hidden={!showChat}>
+      <div className={`srm-panel srm-panel-from-right${showChat ? " is-open" : " is-hidden"}`} aria-hidden={!showChat} onTouchStart={(e) => e.stopPropagation()} onTouchEnd={(e) => e.stopPropagation()}>
         <div className="srm-panel-head">
           <span className="srm-panel-title">Live Chat</span>
           <button className="srm-panel-close" onClick={() => setShowChat(false)} aria-label="Close chat">×</button>
