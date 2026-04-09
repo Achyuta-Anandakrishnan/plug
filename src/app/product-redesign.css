@@ -15532,10 +15532,10 @@ body.stream-room-active .app-container {
   flex-direction: column;
   gap: 9px;
   padding: 14px 14px calc(20px + env(safe-area-inset-bottom, 0px));
-  background: rgba(3, 5, 12, 0.48);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  border-top: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top: none;
 }
 
 /* ── Full-screen slide panels ── */
@@ -15742,9 +15742,9 @@ body.stream-room-active .app-container {
   flex: 1;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.09);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.22);
+  background: transparent;
+  color: rgba(255,255,255,0.9);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -15758,10 +15758,10 @@ body.stream-room-active .app-container {
 .srm-bid-row {
   display: flex;
   align-items: center;
-  border: 1.5px solid rgba(255,255,255,0.09);
+  border: 1.5px solid rgba(255,255,255,0.22);
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(255,255,255,0.03);
+  background: transparent;
   transition: border-color 0.15s;
 }
 .srm-bid-row:focus-within { border-color: rgba(192,48,58,0.65); }
@@ -15806,15 +15806,15 @@ body.stream-room-active .app-container {
   width: 100%;
   height: 42px;
   border-radius: 11px;
-  border: 1.5px solid rgba(255,255,255,0.09);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.85);
+  border: 1.5px solid rgba(255,255,255,0.22);
+  background: transparent;
+  color: rgba(255,255,255,0.9);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
 }
-.srm-buy-btn:active:not(:disabled) { background: rgba(255,255,255,0.13); }
+.srm-buy-btn:active:not(:disabled) { background: rgba(255,255,255,0.1); }
 .srm-buy-btn:disabled { opacity: 0.3; cursor: default; }
 
 /* Compose bar */
@@ -15828,9 +15828,9 @@ body.stream-room-active .app-container {
   min-width: 0;
   height: 40px;
   border-radius: 11px;
-  border: 1px solid rgba(255,255,255,0.09);
-  background: rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.9);
+  border: 1px solid rgba(255,255,255,0.22);
+  background: transparent;
+  color: rgba(255,255,255,0.95);
   font-size: 13px;
   padding: 0 13px;
   outline: none;

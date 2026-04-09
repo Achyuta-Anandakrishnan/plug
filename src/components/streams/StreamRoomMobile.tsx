@@ -71,6 +71,20 @@ export function StreamRoomMobile({
   const [isFollowing, setIsFollowing] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showInventory, setShowInventory] = useState(false);
+  const [nextStreamId, setNextStreamId] = useState<string | null>(null);
+
+  // Fetch live stream list to know which stream comes next
+  useEffect(() => {
+    fetch("/api/auctions?status=LIVE&streamStatus=LIVE&limit=30")
+      .then((r) => r.json())
+      .then((streams: { id: string }[]) => {
+        if (!Array.isArray(streams)) return;
+        const idx = streams.findIndex((s) => s.id === auctionId);
+        const next = streams[idx + 1] ?? (streams[0]?.id !== auctionId ? streams[0] : null);
+        if (next) setNextStreamId(next.id);
+      })
+      .catch(() => {});
+  }, [auctionId]);
 
   // Fullscreen: hide header + bottom nav while stream is open
   useEffect(() => {
@@ -130,17 +144,29 @@ export function StreamRoomMobile({
     if (touchStartX.current === null || touchStartY.current === null) return;
     const dx = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
     const dy = (e.changedTouches[0]?.clientY ?? 0) - touchStartY.current;
-    // Only count horizontal swipes (x movement dominates)
-    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
-    if (dx < 0) {
-      // swipe left → open chat
-      setShowChat(true);
-    } else if (dx > 0 && isListingSeller) {
-      // swipe right → open inventory (sellers only)
-      setShowInventory(true);
-    }
     touchStartX.current = null;
     touchStartY.current = null;
+
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    // Swipe down → next live stream
+    if (dy > 70 && absDy > absDx * 1.4) {
+      if (nextStreamId) {
+        router.push(`/streams/${nextStreamId}`);
+      } else {
+        router.push("/live");
+      }
+      return;
+    }
+
+    // Horizontal swipes
+    if (absDx < 50 || absDx < absDy * 1.2) return;
+    if (dx < 0) {
+      setShowChat(true);
+    } else if (dx > 0 && isListingSeller) {
+      setShowInventory(true);
+    }
   };
 
   const handleMessageSeller = async () => {
@@ -268,7 +294,7 @@ export function StreamRoomMobile({
       </div>
 
       {/* ── Peek chat (last 5 messages) ── */}
-      <div className="srm-chat" aria-label="Live chat preview">
+      <div className="srm-chat" aria-label="Live chat preview" onTouchStart={(e) => e.stopPropagation()} onTouchEnd={(e) => e.stopPropagation()}>
         {peekMessages.map((entry) => (
           <div
             key={entry.id}
@@ -286,8 +312,8 @@ export function StreamRoomMobile({
         <span className="srm-swipe-hint srm-swipe-hint-right" aria-hidden>Inventory →</span>
       )}
 
-      {/* ── Bottom tray — glass ── */}
-      <div className="srm-tray">
+      {/* ── Bottom tray ── */}
+      <div className="srm-tray" onTouchStart={(e) => e.stopPropagation()} onTouchEnd={(e) => e.stopPropagation()}>
         <div className="srm-tray-top">
           <MobileAvatar image={sellerImage} displayName={sellerName} size={32} />
           <div className="srm-tray-seller-info">
