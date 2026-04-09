@@ -1269,8 +1269,8 @@ html[data-theme="dark"] .site-account-popover {
 .landing-hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-width: 500px;
+  gap: 12px;
+  max-width: 480px;
 }
 
 /* Anchor tagline to the bottom of the left column */
@@ -1390,30 +1390,27 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 
 .landing-hero-copy h1 {
   margin: 0;
-  font-size: clamp(4.2rem, 9vw, 7.2rem);
-  line-height: 0.95;
-  letter-spacing: -0.07em;
-  color: #fff;
-  background: #09111e;
-  padding: 0.08em 0.18em 0.14em;
-  border-radius: 0.38em;
-  width: fit-content;
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.22),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  font-size: clamp(3.6rem, 8vw, 6rem);
+  line-height: 1.08;
+  letter-spacing: -0.06em;
 }
 
-html[data-theme="dark"] .landing-hero-copy h1 {
-  background: rgba(10, 14, 22, 0.92);
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.07) inset;
-}
-
-/* Words are now just white text — background lives on the h1 */
+/* Per-word bubble — tight black pill around each word */
 .landing-hero-word {
   display: inline;
-  color: inherit;
+  color: #fff;
+  background: #09111e;
+  padding: 0.04em 0.14em 0.1em;
+  border-radius: 0.28em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+  margin-right: 0.08em;
+}
+
+html[data-theme="dark"] .landing-hero-word {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
 }
 
 .landing-hero-copy > p:not(.landing-eyebrow):not(.landing-hero-note) {
@@ -1539,11 +1536,11 @@ html[data-theme="dark"] .landing-hero-copy h1 {
   line-height: 1.1;
 }
 
-/* 2×2 mini item grid */
+/* 1×2 mini item grid — two images side by side */
 .landing-hero-mini-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: 1fr;
   gap: 5px;
   flex: 1;
   min-height: 0;
@@ -1556,7 +1553,7 @@ html[data-theme="dark"] .landing-hero-copy h1 {
   overflow: hidden;
   background: transparent;
   border: none;
-  min-height: 44px;
+  min-height: 70px;
 }
 
 /* Text item (bounty, no image) */

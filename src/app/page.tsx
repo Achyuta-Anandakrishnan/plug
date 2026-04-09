@@ -500,8 +500,7 @@ function HeroSectionCard({
   items: HeroSectionItem[];
   className?: string;
 }) {
-  const cells: HeroSectionItem[] = [...items.slice(0, 4)];
-  while (cells.length < 4) cells.push({ title: "" });
+  const cells: HeroSectionItem[] = items.slice(0, 2);
 
   return (
     <Link href={href} className={classNames("landing-hero-section-card", `is-${variant}`, className)}>
