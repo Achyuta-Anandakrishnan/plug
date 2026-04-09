@@ -1320,7 +1320,7 @@ html[data-theme="dark"] .site-account-popover {
   flex-direction: column;
   gap: 12px;
   max-width: 480px;
-  overflow: hidden;
+  height: 100%;
 }
 
 /* Anchor tagline to the bottom of the left column */
@@ -1442,7 +1442,7 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 
 .landing-hero-copy h1 {
   margin: 0;
-  font-size: clamp(2.0rem, 3.0vw, 3.2rem);
+  font-size: clamp(3.2rem, 5.0vw, 5.0rem);
   line-height: 1.15;
   letter-spacing: -0.04em;
 }
@@ -11768,7 +11768,7 @@ html[data-theme="dark"] .site-account-popover {
 
 /* ── Landing hero h1 — refined size ─────────────────────────────── */
 .landing-hero-copy h1 {
-  font-size: clamp(2.0rem, 3.0vw, 3.2rem);
+  font-size: clamp(3.2rem, 5.0vw, 5.0rem);
 }
 
 /* ── Trust/action sections — refined border ──────────────────────── */
