@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
 import { EmptyStateCard, PageContainer, PageHeader } from "@/components/product/ProductUI";
 
