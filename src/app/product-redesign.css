@@ -1288,7 +1288,7 @@ html[data-theme="dark"] .site-account-popover {
 }
 
 .landing-hero {
-  grid-template-columns: minmax(120px, 0.34fr) minmax(0, 1.66fr);
+  grid-template-columns: minmax(280px, 0.55fr) minmax(0, 1.45fr);
   gap: 32px;
   align-items: stretch;
   min-height: calc(100dvh - var(--app-header-height, 64px));
@@ -1320,6 +1320,7 @@ html[data-theme="dark"] .site-account-popover {
   flex-direction: column;
   gap: 12px;
   max-width: 480px;
+  overflow: hidden;
 }
 
 /* Anchor tagline to the bottom of the left column */
@@ -1441,7 +1442,7 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 
 .landing-hero-copy h1 {
   margin: 0;
-  font-size: clamp(1.0rem, 1.5vw, 1.6rem);
+  font-size: clamp(2.0rem, 3.0vw, 3.2rem);
   line-height: 1.15;
   letter-spacing: -0.04em;
 }
@@ -1495,8 +1496,8 @@ html[data-theme="dark"] .landing-hero-word {
   grid-template-rows: 1fr 1fr;
   gap: 8px;
   flex: 1 1 auto;
-  min-height: 260px;
-  max-height: 52vh;
+  min-height: 240px;
+  max-height: 44vh;
 }
 
 .landing-hero-showcase-shell {
@@ -11765,9 +11766,9 @@ html[data-theme="dark"] .site-account-popover {
   line-height: 1.08;
 }
 
-/* ── Landing hero h1 — tighter, bigger ───────────────────────────── */
+/* ── Landing hero h1 — refined size ─────────────────────────────── */
 .landing-hero-copy h1 {
-  font-size: clamp(4.4rem, 9.5vw, 7.8rem);
+  font-size: clamp(2.0rem, 3.0vw, 3.2rem);
 }
 
 /* ── Trust/action sections — refined border ──────────────────────── */
