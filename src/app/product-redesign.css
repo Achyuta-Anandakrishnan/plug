@@ -1261,16 +1261,28 @@ html[data-theme="dark"] .site-account-popover {
 }
 
 .landing-hero {
-  grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.1fr);
-  gap: 36px;
-  align-items: center;
-  min-height: calc(100dvh - var(--app-header-height, 64px) - 80px);
+  grid-template-columns: minmax(260px, 0.82fr) minmax(0, 1.18fr);
+  gap: 32px;
+  align-items: stretch;
 }
 
 .landing-hero-copy {
-  display: grid;
-  gap: 18px;
-  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 500px;
+}
+
+/* Anchor tagline to the bottom of the left column */
+.landing-hero-note {
+  margin-top: auto !important;
+}
+
+/* Right column: 4 boxes stacked above forum */
+.landing-hero-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .landing-hero-topline {
@@ -1381,27 +1393,27 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
   font-size: clamp(4.2rem, 9vw, 7.2rem);
   line-height: 0.95;
   letter-spacing: -0.07em;
-}
-
-/* Blob word treatment — each word gets an elegant dark pill */
-.landing-hero-word {
-  display: inline;
   color: #fff;
   background: #09111e;
-  padding: 0.04em 0.18em 0.08em;
-  border-radius: 0.35em;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  padding: 0.08em 0.18em 0.14em;
+  border-radius: 0.38em;
+  width: fit-content;
   box-shadow:
-    0 2px 12px rgba(0, 0, 0, 0.25),
+    0 4px 24px rgba(0, 0, 0, 0.22),
     0 0 0 1px rgba(255, 255, 255, 0.04) inset;
 }
 
-html[data-theme="dark"] .landing-hero-word {
-  background: rgba(255, 255, 255, 0.07);
+html[data-theme="dark"] .landing-hero-copy h1 {
+  background: rgba(10, 14, 22, 0.92);
   box-shadow:
-    0 2px 12px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+    0 4px 24px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.07) inset;
+}
+
+/* Words are now just white text — background lives on the h1 */
+.landing-hero-word {
+  display: inline;
+  color: inherit;
 }
 
 .landing-hero-copy > p:not(.landing-eyebrow):not(.landing-hero-note) {
@@ -1432,9 +1444,8 @@ html[data-theme="dark"] .landing-hero-word {
 .landing-hero-showcase {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: minmax(150px, 1fr) minmax(150px, 1fr);
-  gap: 10px;
-  align-self: stretch;
+  grid-template-rows: minmax(110px, 1fr) minmax(110px, 1fr);
+  gap: 8px;
 }
 
 .landing-hero-showcase-shell {
@@ -1451,9 +1462,9 @@ html[data-theme="dark"] .landing-hero-word {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 20px;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
   overflow: hidden;
   text-decoration: none;
   color: inherit;
@@ -1541,11 +1552,11 @@ html[data-theme="dark"] .landing-hero-word {
 /* Image thumbnail item */
 .landing-hero-mini-item {
   position: relative;
-  border-radius: 9px;
+  border-radius: 7px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  min-height: 48px;
+  background: transparent;
+  border: none;
+  min-height: 44px;
 }
 
 /* Text item (bounty, no image) */
@@ -1948,10 +1959,10 @@ html[data-theme="dark"] .landing-hero-word {
   color: #5da8ff;
 }
 
-/* ── Landing forums section ── */
+/* ── Landing forums section (inside hero right column) ── */
 .landing-forums-section {
   display: grid;
-  gap: 20px;
+  gap: 10px;
 }
 .landing-forums-head {
   display: flex;
@@ -1961,7 +1972,7 @@ html[data-theme="dark"] .landing-hero-word {
 }
 .landing-forums-head h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--product-text);
@@ -1976,7 +1987,7 @@ html[data-theme="dark"] .landing-hero-word {
 .landing-forums-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 6px;
 }
 @media (max-width: 680px) {
   .landing-forums-grid {
@@ -1986,9 +1997,9 @@ html[data-theme="dark"] .landing-hero-word {
 .landing-forum-post-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px 16px;
-  border-radius: 14px;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
   border: 1px solid var(--product-border);
   background: var(--product-surface);
   text-decoration: none;

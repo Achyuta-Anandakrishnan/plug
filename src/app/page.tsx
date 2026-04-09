@@ -601,63 +601,62 @@ export default async function Home() {
                 <p className="landing-hero-note">browse inventory. live rooms. negotiate deals</p>
               </div>
 
-              <div className="landing-hero-showcase">
-                <HeroSectionCard
-                  href="/live"
-                  variant="live"
-                  eyebrow="Now streaming"
-                  name="Live Auctions"
-                  items={data.streams.slice(0, 4).map((s) => ({ imageUrl: s.imageUrl, title: s.title }))}
-                  className="landing-showcase-card is-hero-featured"
-                />
-                <HeroSectionCard
-                  href="/listings"
-                  variant="marketplace"
-                  eyebrow="Active listings"
-                  name="Marketplace"
-                  items={data.auctions.slice(0, 4).map((a) => ({ imageUrl: a.imageUrl, title: a.title }))}
-                  className="landing-showcase-card is-hero-auction"
-                />
-                <HeroSectionCard
-                  href="/listings"
-                  variant="trade"
-                  eyebrow="For trade"
-                  name="Trade Board"
-                  items={data.trades.slice(0, 4).map((t) => ({ imageUrl: t.imageUrl, title: t.title }))}
-                  className="landing-showcase-card is-hero-trade"
-                />
-                <HeroSectionCard
-                  href="/bounties"
-                  variant="bounty"
-                  eyebrow="Wanted"
-                  name="Bounties"
-                  items={data.bounties.slice(0, 4).map((b) => ({ title: b.itemName, meta: b.budgetLabel }))}
-                  className="landing-showcase-card is-hero-bounty"
-                />
-              </div>
-            </section>
+              {/* Right column: 4 section cards + forum inline */}
+              <div className="landing-hero-right">
+                <div className="landing-hero-showcase">
+                  <HeroSectionCard
+                    href="/live"
+                    variant="live"
+                    eyebrow="Now streaming"
+                    name="Live Auctions"
+                    items={data.streams.slice(0, 4).map((s) => ({ imageUrl: s.imageUrl, title: s.title }))}
+                  />
+                  <HeroSectionCard
+                    href="/listings"
+                    variant="marketplace"
+                    eyebrow="Active listings"
+                    name="Marketplace"
+                    items={data.auctions.slice(0, 4).map((a) => ({ imageUrl: a.imageUrl, title: a.title }))}
+                  />
+                  <HeroSectionCard
+                    href="/listings"
+                    variant="trade"
+                    eyebrow="For trade"
+                    name="Trade Board"
+                    items={data.trades.slice(0, 4).map((t) => ({ imageUrl: t.imageUrl, title: t.title }))}
+                  />
+                  <HeroSectionCard
+                    href="/bounties"
+                    variant="bounty"
+                    eyebrow="Wanted"
+                    name="Bounties"
+                    items={data.bounties.slice(0, 4).map((b) => ({ title: b.itemName, meta: b.budgetLabel }))}
+                  />
+                </div>
 
-            {/* ── Forums section ────────────────────────────────────────── */}
-            <section className="landing-section landing-forums-section">
-              <div className="landing-forums-head">
-                <h2>Forum</h2>
-                <Link href="/forum" className="landing-forums-see-all">See all discussions →</Link>
-              </div>
-              <div className="landing-forums-grid">
-                {data.forumPosts.length === 0 ? (
-                  <div className="landing-forums-empty">No forum posts yet. <Link href="/forum">Start a discussion.</Link></div>
-                ) : (
-                  data.forumPosts.slice(0, 4).map((post) => (
-                    <Link key={post.id} href={`/forum/${post.id}`} className="landing-forum-post-card">
-                      <p className="landing-forum-post-title">{post.title}</p>
-                      <p className="landing-forum-post-meta">@{post.authorName} · {timeAgoShort(post.publishedAt)} ago</p>
-                      <div className="landing-forum-post-votes">
-                        <span>↑ {post.voteScore}</span>
-                        <span>· {post.commentCount} replies</span>
-                      </div>
-                    </Link>
-                  ))
-                )}
+                {/* Forum strip — same width as the 4 boxes */}
+                <div className="landing-forums-section">
+                  <div className="landing-forums-head">
+                    <h2>Forum</h2>
+                    <Link href="/forum" className="landing-forums-see-all">See all →</Link>
+                  </div>
+                  <div className="landing-forums-grid">
+                    {data.forumPosts.length === 0 ? (
+                      <div className="landing-forums-empty">No posts yet. <Link href="/forum">Start a discussion.</Link></div>
+                    ) : (
+                      data.forumPosts.slice(0, 4).map((post) => (
+                        <Link key={post.id} href={`/forum/${post.id}`} className="landing-forum-post-card">
+                          <p className="landing-forum-post-title">{post.title}</p>
+                          <p className="landing-forum-post-meta">@{post.authorName} · {timeAgoShort(post.publishedAt)} ago</p>
+                          <div className="landing-forum-post-votes">
+                            <span>↑ {post.voteScore}</span>
+                            <span>· {post.commentCount} replies</span>
+                          </div>
+                        </Link>
+                      ))
+                    )}
+                  </div>
+                </div>
               </div>
             </section>
 
