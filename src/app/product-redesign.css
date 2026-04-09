@@ -1240,7 +1240,7 @@ html[data-theme="dark"] .site-account-popover {
 
 .landing-page {
   gap: 48px;
-  padding-top: 32px;
+  padding-top: 28px;
   padding-bottom: 72px;
 }
 
@@ -1260,11 +1260,59 @@ html[data-theme="dark"] .site-account-popover {
   text-transform: uppercase;
 }
 
+/* Eyebrow pill — glass badge */
+.landing-hero-topline .landing-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 10px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+
+.landing-hero-topline .landing-eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  flex-shrink: 0;
+}
+
 .landing-hero {
   grid-template-columns: minmax(240px, 0.78fr) minmax(0, 1.22fr);
   gap: 32px;
   align-items: stretch;
   min-height: calc(100dvh - var(--app-header-height, 64px));
+  position: relative;
+  overflow: visible;
+}
+
+/* Glassmorphism ambient gradient — floats behind both columns */
+.landing-hero::before {
+  content: "";
+  position: absolute;
+  inset: -24px;
+  border-radius: 32px;
+  background:
+    radial-gradient(ellipse 55% 60% at 18% 55%, rgba(99, 102, 241, 0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 38% 50% at 82% 18%, rgba(59, 130, 246, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 45% 40% at 65% 90%, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.landing-hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .landing-hero-copy {
@@ -1296,6 +1344,7 @@ html[data-theme="dark"] .site-account-popover {
 
 .landing-hero-topline .landing-eyebrow {
   flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .landing-hero-topline .landing-search-bar {
@@ -1392,7 +1441,7 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 
 .landing-hero-copy h1 {
   margin: 0;
-  font-size: clamp(2.6rem, 5.5vw, 4rem);
+  font-size: clamp(2.1rem, 4.2vw, 3.1rem);
   line-height: 1.1;
   letter-spacing: -0.05em;
 }
@@ -1445,8 +1494,9 @@ html[data-theme="dark"] .landing-hero-word {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 8px;
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
+  max-height: 58vh;
 }
 
 .landing-hero-showcase-shell {
@@ -1476,22 +1526,33 @@ html[data-theme="dark"] .landing-hero-word {
   transform: translateY(-2px);
 }
 
-/* Section cards — white/light surface */
+/* Section cards — glassmorphism */
 .landing-hero-section-card.is-live,
 .landing-hero-section-card.is-marketplace,
 .landing-hero-section-card.is-trade,
 .landing-hero-section-card.is-bounty {
-  background: var(--product-surface);
-  border: 1px solid var(--product-border);
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.07);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow:
+    0 4px 24px rgba(15, 23, 42, 0.07),
+    0 1px 3px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
   color: var(--product-text);
 }
+
 .landing-hero-section-card.is-live:hover,
 .landing-hero-section-card.is-marketplace:hover,
 .landing-hero-section-card.is-trade:hover,
 .landing-hero-section-card.is-bounty:hover {
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.11);
-  border-color: rgba(15, 23, 42, 0.15);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow:
+    0 8px 32px rgba(15, 23, 42, 0.1),
+    0 2px 6px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 0.96);
+  transform: translateY(-2px);
 }
 
 /* Card header */
@@ -1545,8 +1606,10 @@ html[data-theme="dark"] .landing-hero-word {
 .landing-hero-mini-text-item {
   border-radius: 8px;
   padding: 7px 9px;
-  background: var(--product-surface-muted, #f4f5f8);
-  border: 1px solid var(--product-border);
+  background: rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1941,6 +2004,13 @@ html[data-theme="dark"] .landing-hero-word {
 .landing-forums-section {
   display: grid;
   gap: 10px;
+  padding: 14px 16px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 .landing-forums-head {
   display: flex;
@@ -1978,14 +2048,18 @@ html[data-theme="dark"] .landing-hero-word {
   gap: 4px;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid var(--product-border);
-  background: var(--product-surface);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 .landing-forum-post-card:hover {
-  border-color: var(--product-accent);
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.07);
 }
 .landing-forum-post-title {
   font-size: 13px;
@@ -13268,13 +13342,16 @@ html[data-theme="dark"] .app-page--forum .app-page-header {
   position: sticky;
   top: var(--app-header-height);
   z-index: 38;
-  padding: 8px 12px;
-  background: rgba(244, 245, 248, 0.94);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  border: 1px solid var(--product-border);
+  padding: 8px 14px;
+  background: rgba(248, 249, 252, 0.92);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.78);
   border-radius: 22px;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9),
+    0 4px 24px rgba(15, 23, 42, 0.06),
+    0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 html[data-theme="dark"] .app-page--market .app-discovery-bar,
@@ -13285,6 +13362,13 @@ html[data-theme="dark"] .app-page--forum .app-discovery-bar {
   background: rgba(12, 14, 20, 0.94);
   border-color: rgba(255, 255, 255, 0.07);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+}
+
+/* ── Tighten top padding on hub pages so toolbar is flush with nav ── */
+.app-page--bounties,
+.app-page--live,
+.app-page--forum {
+  padding-top: 6px;
 }
 
 /* ── app-control-title in combined toolbar pill ── */
