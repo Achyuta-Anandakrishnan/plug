@@ -13364,11 +13364,13 @@ html[data-theme="dark"] .app-page--forum .app-discovery-bar {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
 }
 
-/* ── Tighten top padding on hub pages so toolbar is flush with nav ── */
+/* ── Zero top padding on hub pages — toolbar flushes with nav ── */
 .app-page--bounties,
 .app-page--live,
-.app-page--forum {
-  padding-top: 6px;
+.app-page--forum,
+.app-page--market,
+.app-page--trades {
+  padding-top: 0;
 }
 
 /* ── app-control-title in combined toolbar pill ── */
