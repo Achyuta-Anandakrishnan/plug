@@ -16232,3 +16232,296 @@ body.stream-room-active .app-container {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   POLISH PASS 2 — headers, whitespace, buttons, cards, typography
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. WHITESPACE RHYTHM ──────────────────────────────────────────── */
+
+/* More generous breathing room on every app page */
+.app-page {
+  padding-block: 22px 44px;
+}
+
+/* Better vertical separation between top-level sections on hub pages */
+.market-page,
+.bounty-page,
+.live-page,
+.forum-page,
+.messages-page,
+.trades-page,
+.listing-system-page {
+  gap: 16px;
+}
+
+/* Tighter within-section spacing on hub pages */
+.market-page .app-section,
+.bounty-page .app-section,
+.live-page .app-section,
+.forum-page .app-section {
+  gap: 12px;
+}
+
+/* Discovery + inventory sub-sections */
+.market-overview,
+.market-discovery-section,
+.market-inventory-section,
+.listing-system-page > .app-section,
+.listing-system-feed {
+  gap: 12px;
+}
+
+/* Remove extra padding-top now that toolbar border handles separation */
+.app-page--market .market-discovery-section,
+.app-page--bounties .bounty-board-page,
+.app-page--live .listing-system-feed {
+  gap: 12px;
+  padding-top: 0;
+}
+
+/* Bounty card list — remove redundant top padding (toolbar border + gap covers it) */
+.bounty-row-list {
+  padding-top: 4px;
+}
+
+/* ── 2. UNIFIED PAGE HEADERS — two-row toolbar ─────────────────────── */
+
+/*
+ * Toolbar layout: title occupies full row 1, controls wrap to row 2.
+ * A border-bottom separates the header zone from page content.
+ */
+.app-control-bar.listing-system-toolbar,
+.app-control-bar.forum-toolbar,
+.app-control-bar.messages-toolbar {
+  flex-wrap: wrap;
+  overflow: visible;
+  min-height: auto;
+  gap: 10px;
+  padding-top: 2px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--product-border);
+}
+
+/* Title: full-width on row 1, display-scale weight */
+.app-control-bar.listing-system-toolbar > .app-control-title,
+.app-control-bar.forum-toolbar > .app-control-title,
+.app-control-bar.messages-toolbar > .app-control-title {
+  flex: 0 0 100%;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  line-height: 1;
+  min-height: auto;
+  padding-bottom: 4px;
+  color: var(--product-text);
+}
+
+/* Controls row — uniform height for search + chips + sort */
+.app-control-bar.listing-system-toolbar > :not(.app-control-title),
+.app-control-bar.forum-toolbar > :not(.app-control-title),
+.app-control-bar.messages-toolbar > :not(.app-control-title) {
+  align-self: center;
+}
+
+/* ── 3. TYPOGRAPHY HIERARCHY ───────────────────────────────────────── */
+
+/* Section titles — stronger, more distinct from body text */
+.app-section-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+/* Feed section titles — slightly smaller since they follow a strong page title */
+.listing-system-feed .app-section-title {
+  font-size: 18px;
+}
+
+/* Page title (PageHeader component, used on detail pages) */
+.app-page-title {
+  letter-spacing: -0.055em;
+}
+
+/* Eyebrow — slightly stronger */
+.app-eyebrow {
+  letter-spacing: 0.16em;
+}
+
+/* ── 4. BUTTON REFINEMENT ──────────────────────────────────────────── */
+
+/* Slightly tighter, sharper — 36px feels more refined than 38px */
+.app-button {
+  min-height: 36px;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+/* Subtler primary shadow — let shape speak for itself */
+.app-button-primary {
+  box-shadow: 0 1px 5px rgba(19, 34, 56, 0.2);
+}
+
+.app-button-primary:hover {
+  box-shadow: 0 4px 14px rgba(19, 34, 56, 0.26);
+}
+
+/* Site nav — slightly tighter padding */
+.site-nav-link {
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+/* ── 5. CARD PADDING REFINEMENT ────────────────────────────────────── */
+
+/* Listing card info panel — more generous padding, better breathing */
+.listing-card-info {
+  gap: 5px;
+  padding: 13px 15px 16px;
+}
+
+/* Listing card title — sharper */
+.listing-card-title {
+  letter-spacing: -0.015em;
+}
+
+/* Listing card price — stronger weight */
+.listing-card-price {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  margin-top: 2px;
+}
+
+/* Bounty card body — more generous padding */
+.bounty-row-body {
+  padding: 14px 16px 12px;
+  gap: 6px;
+}
+
+/* Bounty card pricing strip */
+.bounty-row-pricing {
+  padding: 8px 16px 10px;
+}
+
+/* Bounty row title — slightly bigger */
+.bounty-row-title {
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+
+/* Forum thread card — more padding */
+.forum-thread-card {
+  padding: 13px 16px;
+}
+
+/* Forum thread list — tighter gap between items (editorial feel) */
+.forum-thread-list:not(.forum-thread-list-mobile) {
+  gap: 4px;
+}
+
+/* ── 6. CONTROLS — tighter, more editorial ─────────────────────────── */
+
+/* Search input — slightly tighter */
+.app-search {
+  height: 40px;
+}
+
+/* Filter chips — smaller, more refined */
+.app-chip {
+  min-height: 26px;
+  padding: 0 10px;
+  letter-spacing: 0.06em;
+}
+
+/* Segment control buttons */
+.app-segment button {
+  min-height: 24px;
+  padding: 0 11px;
+}
+
+/* Select dropdown */
+.app-select {
+  min-height: 34px;
+  font-size: 12px;
+}
+
+/* ── 7. DARK MODE HEADER BORDER ────────────────────────────────────── */
+
+html[data-theme="dark"] .app-control-bar.listing-system-toolbar,
+html[data-theme="dark"] .app-control-bar.forum-toolbar,
+html[data-theme="dark"] .app-control-bar.messages-toolbar {
+  border-bottom-color: var(--product-border);
+}
+
+/* ── 8. SECTION HEADER SPACING ─────────────────────────────────────── */
+
+/* Better vertical rhythm between section header and content */
+.app-section-header {
+  margin-bottom: 2px;
+}
+
+.app-section-header-copy {
+  gap: 4px;
+}
+
+/* ── 9. STAT PILL REFINEMENT ───────────────────────────────────────── */
+
+.app-stat-pill {
+  padding: 11px 14px;
+}
+
+.app-stat-pill strong {
+  letter-spacing: -0.04em;
+}
+
+/* ── 10. SELL PAGE HEADER — consistent separator ───────────────────── */
+
+.sell-desktop-header {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--product-border);
+}
+
+/* Sell page title — match toolbar title scale */
+.sell-desktop-header .app-page-title {
+  font-size: 28px;
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+/* ── 11. APP PAGE TITLE — sharper across the board ─────────────────── */
+
+.app-page-title {
+  letter-spacing: -0.055em;
+}
+
+/* ── 12. EMPTY STATE — better internal spacing ──────────────────────── */
+
+.app-empty-state {
+  padding: 18px 20px;
+}
+
+.app-empty-state h3 {
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+/* ── 13. MESSAGES TOOLBAR — search expands on row 2 ─────────────────── */
+
+.app-control-bar.messages-toolbar .app-search {
+  flex: 1 1 320px;
+  max-width: 480px;
+}
+
+/* ── 14. MARKET GRID — tighter card gap on desktop ──────────────────── */
+
+.market-page .market-v2-grid {
+  gap: 12px;
+}
+
+/* ── 15. BOUNTY ROW STATUS BADGE — tighter ──────────────────────────── */
+
+.bounty-row-status-badge {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
