@@ -13425,7 +13425,8 @@ html[data-theme="dark"] .app-page--forum .app-page-header {
 .app-page--trades .app-discovery-bar,
 .app-page--bounties .app-discovery-bar,
 .app-page--live .app-discovery-bar,
-.app-page--forum .app-discovery-bar {
+.app-page--forum .app-discovery-bar,
+.app-page--forum-post .app-discovery-bar {
   position: sticky;
   top: var(--app-header-height);
   z-index: 38;
@@ -13445,13 +13446,14 @@ html[data-theme="dark"] .app-page--market .app-discovery-bar,
 html[data-theme="dark"] .app-page--trades .app-discovery-bar,
 html[data-theme="dark"] .app-page--bounties .app-discovery-bar,
 html[data-theme="dark"] .app-page--live .app-discovery-bar,
-html[data-theme="dark"] .app-page--forum .app-discovery-bar {
+html[data-theme="dark"] .app-page--forum .app-discovery-bar,
+html[data-theme="dark"] .app-page--forum-post .app-discovery-bar {
   background: rgba(12, 14, 20, 0.94);
   border-color: rgba(255, 255, 255, 0.07);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
 }
 
-/* ── Zero top padding on hub pages — toolbar flushes with nav ── */
+/* ── Zero top padding on hub + thread pages — toolbar flushes with nav ── */
 .app-page--bounties,
 .app-page--live,
 .app-page--forum,
@@ -13467,7 +13469,8 @@ html[data-theme="dark"] .app-page--forum .app-discovery-bar {
 .app-page--bounties .app-discovery-bar .app-control-title,
 .app-page--live .app-discovery-bar .app-control-title,
 .app-page--forum .app-discovery-bar .app-control-title,
-.app-page--trades .app-discovery-bar .app-control-title {
+.app-page--trades .app-discovery-bar .app-control-title,
+.app-page--forum-post .app-discovery-bar .app-control-title {
   font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: -0.04em;

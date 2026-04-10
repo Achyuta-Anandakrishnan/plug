@@ -186,32 +186,31 @@ function useSiteHeaderState() {
 
   const mobileTitle = useMemo(() => {
     if (!pathname || pathname === "/") return null;
-    if (pathname === "/bounties") return "Bounty";
+    // Hub pages: title lives in the in-page toolbar, not the header
+    if (pathname === "/listings" || pathname === "/explore") return null;
+    if (pathname === "/bounties") return null;
+    if (pathname === "/live") return null;
+    if (pathname === "/forum") return null;
+    if (pathname === "/trades") return null;
+    // Detail / sub-pages
     if (pathname.startsWith("/bounties/")) return pathname === "/bounties/new" ? "Post bounty" : "Bounty";
-    if (
-      pathname === "/listings"
-      || pathname === "/explore"
-      || pathname.startsWith("/listings/")
-      || pathname.startsWith("/explore/")
-    ) {
-      return "Market";
-    }
+    if (pathname.startsWith("/listings/") || pathname.startsWith("/explore/")) return "Market";
     if (pathname.startsWith("/auctions/")) return "Listing";
-    if (pathname === "/live" || pathname.startsWith("/live/")) return "Live";
+    if (pathname.startsWith("/live/")) return "Live";
+    if (pathname === "/streams/schedule") return "Schedule";
     if (pathname.startsWith("/streams/")) return "Live room";
-    if (pathname === "/trades") return "Market";
     if (pathname === "/trades/new") return "New trade";
     if (pathname.startsWith("/trades/")) return "Trade";
-    if (pathname === "/forum") return "Forum";
     if (pathname === "/forum/new") return "Write thread";
     if (pathname.startsWith("/forum/")) return "Thread";
     if (pathname === "/messages" || pathname.startsWith("/messages/")) return "Inbox";
     if (pathname.startsWith("/my/")) return "My activity";
     if (pathname === "/sell") return "Create listing";
-    if (pathname === "/settings") return "Settings";
+    if (pathname.startsWith("/settings")) return "Settings";
     if (pathname === "/orders") return "Orders";
     if (pathname === "/referral") return "Referral";
     if (pathname === "/seller/verification") return "Seller verification";
+    if (pathname.startsWith("/profiles/") || pathname.startsWith("/u/")) return "Profile";
     if (pathname === "/signin") return "Sign in";
     if (pathname === "/signup") return "Create account";
     return null;
@@ -223,12 +222,13 @@ function useSiteHeaderState() {
     if (pathname.startsWith("/forum/")) return "/forum";
     if (pathname === "/bounties/new") return "/bounties";
     if (pathname.startsWith("/bounties/")) return "/bounties";
-    if (pathname === "/trades/new") return "/listings";
-    if (pathname.startsWith("/trades/")) return "/listings";
+    if (pathname === "/trades/new") return "/trades";
+    if (pathname.startsWith("/trades/")) return "/trades";
     if (pathname.startsWith("/streams/")) return "/live";
     if (pathname.startsWith("/auctions/")) return "/listings";
     if (pathname.startsWith("/my/")) return "/settings";
     if (pathname === "/referral" || pathname === "/orders") return "/settings";
+    if (pathname.startsWith("/settings/")) return "/settings";
     if (pathname.startsWith("/profiles/") || pathname.startsWith("/u/")) return "/listings";
     return null;
   }, [pathname]);
@@ -239,6 +239,7 @@ function useSiteHeaderState() {
       "/",
       "/listings",
       "/explore",
+      "/trades",
       "/bounties",
       "/live",
       "/forum",
