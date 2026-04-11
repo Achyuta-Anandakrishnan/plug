@@ -13600,10 +13600,13 @@ html[data-theme="dark"] .app-page--forum-post .app-discovery-bar {
 }
 
 .app-page--market .market-discovery-section,
-.app-page--bounties .bounty-board-page,
 .app-page--live .listing-system-feed {
   gap: 10px;
   padding-top: 8px;
+}
+
+.app-page--bounties .bounty-board-page {
+  gap: 10px;
 }
 
 .app-page--market .market-inventory-section,
