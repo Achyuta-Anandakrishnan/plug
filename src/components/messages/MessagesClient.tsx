@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import {
-  DiscoveryBar,
+  AppPageBar,
   EmptyStateCard,
   PageContainer,
   PrimaryButton,
@@ -450,9 +450,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
       <PageContainer className="messages-page app-page--messages">
         <section className="app-section">
           {isDesktop ? (
-            <DiscoveryBar className="app-control-bar messages-toolbar">
-              <div className="app-control-title">Messages</div>
-            </DiscoveryBar>
+            <AppPageBar title="Messages" />
           ) : (
             <section className="mobile-page-toolbar messages-mobile-toolbar">
               <div className="mobile-page-toolbar-top">
@@ -475,8 +473,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
       <section className="app-section app-screen-section--messages">
         {isDesktop || mobilePane === "threads" ? (
           isDesktop ? (
-            <DiscoveryBar className="app-control-bar messages-toolbar">
-              <div className="app-control-title">Messages</div>
+            <AppPageBar title="Messages">
               <div className="app-search">
                 <SearchIcon />
                 <input
@@ -485,8 +482,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
                   placeholder="Search conversations or profiles"
                 />
               </div>
-              <div className="app-toolbar-spacer" aria-hidden="true" />
-            </DiscoveryBar>
+            </AppPageBar>
           ) : (
             <section className="mobile-page-toolbar messages-mobile-toolbar">
               <div className="mobile-page-toolbar-top">

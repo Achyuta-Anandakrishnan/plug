@@ -595,10 +595,12 @@ export default async function Home() {
                   <span className="landing-hero-word">Trades</span>{" "}
                   <span className="landing-hero-word">Bounties</span>
                 </h1>
-                <div className="landing-hero-actions">
-                  <PrimaryButton href="/waitlist">Join Waitlist</PrimaryButton>
+                <div className="landing-hero-cta-group">
+                  <div className="landing-hero-actions">
+                    <PrimaryButton href="/waitlist">Join Waitlist</PrimaryButton>
+                  </div>
+                  <p className="landing-hero-note">browse inventory. live rooms. negotiate deals</p>
                 </div>
-                <p className="landing-hero-note">browse inventory. live rooms. negotiate deals</p>
               </div>
 
               {/* Right column: 4 section cards + forum inline */}

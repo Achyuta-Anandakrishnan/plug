@@ -7,7 +7,7 @@ import { ListingCard } from "@/components/market/ListingCard";
 import { ListingGrid } from "@/components/market/ListingGrid";
 import type { MarketListing, SortMode } from "@/components/market/types";
 import {
-  DiscoveryBar,
+  AppPageBar,
   EmptyStateCard,
   FilterChip,
   PageContainer,
@@ -264,8 +264,7 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
   return (
     <PageContainer className="market-page listing-system-page app-page--market">
       <section className="app-section market-overview">
-        <DiscoveryBar className="app-control-bar listing-system-toolbar market-toolbar">
-          <div className="app-control-title">Marketplace</div>
+        <AppPageBar title="Marketplace">
           <div className="app-search">
             <SearchIcon />
             <input
@@ -305,7 +304,7 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
               ))}
             </select>
           </label>
-        </DiscoveryBar>
+        </AppPageBar>
 
         {listingsError ? <EmptyStateCard title="Marketplace unavailable" description={listingsError} /> : null}
       </section>

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import {
-  DiscoveryBar,
+  AppPageBar,
   EmptyStateCard,
   FilterChip,
   PageContainer,
@@ -213,8 +213,7 @@ export function ForumClient({ initialIsMobile }: ForumClientProps) {
   return (
     <PageContainer className="forum-page app-page--forum">
       <section className="app-section">
-        <DiscoveryBar className="app-control-bar forum-toolbar">
-          <div className="app-control-title">Forum</div>
+        <AppPageBar title="Forum">
           <div className="app-search">
             <SearchIcon />
             <input
@@ -248,7 +247,7 @@ export function ForumClient({ initialIsMobile }: ForumClientProps) {
             ? <PrimaryButton href="/forum/new">Write thread</PrimaryButton>
             : <SecondaryButton onClick={() => signIn()}>Sign in</SecondaryButton>
           }
-        </DiscoveryBar>
+        </AppPageBar>
 
         {error ? <EmptyStateCard title="Forum unavailable" description={error} /> : null}
         {draftWarning ? <EmptyStateCard title="Drafts unavailable" description={draftWarning} /> : null}

@@ -1007,6 +1007,69 @@ html[data-theme="dark"] .site-account-popover {
   min-width: 24px;
 }
 
+/* ── Shared page bar — two-zone hub page header ──────────────────────── */
+/*
+ * Zone 1: title (row 1) — prominent, compact, never wraps
+ * Zone 2: controls (row 2) — search + chips + sort + CTA
+ */
+.app-page-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 6px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--product-border);
+  overflow: visible;
+}
+
+.app-page-bar-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  line-height: 1;
+  color: var(--product-text);
+  white-space: nowrap;
+  margin: 0;
+}
+
+.app-page-bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: visible;
+}
+
+.app-page-bar-controls .app-search {
+  flex: 0 1 400px;
+  min-width: 220px;
+  max-width: 480px;
+}
+
+.app-page-bar-controls .app-chip-row {
+  flex: 0 1 320px;
+  min-width: 0;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  padding-bottom: 1px;
+}
+
+.app-page-bar-controls .app-chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+.app-page-bar-controls .app-toolbar-spacer {
+  flex: 1 1 auto;
+  min-width: 16px;
+}
+
+.app-page-bar-controls .app-button,
+.app-page-bar-controls .app-select-wrap,
+.app-page-bar-controls .app-segment {
+  flex-shrink: 0;
+}
+
 .app-select-wrap.app-select-inline {
   display: flex;
   align-items: center;
@@ -1288,10 +1351,10 @@ html[data-theme="dark"] .site-account-popover {
 }
 
 .landing-hero {
-  grid-template-columns: minmax(280px, 0.55fr) minmax(0, 1.45fr);
-  gap: 32px;
-  align-items: stretch;
-  min-height: calc(100dvh - var(--app-header-height, 64px));
+  grid-template-columns: minmax(320px, 0.6fr) minmax(0, 1.4fr);
+  gap: 48px;
+  align-items: center;
+  min-height: clamp(480px, 72vh, 720px);
   position: relative;
   overflow: visible;
 }
@@ -1318,9 +1381,8 @@ html[data-theme="dark"] .site-account-popover {
 .landing-hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 20px;
   max-width: 480px;
-  justify-content: center;
 }
 
 /* Right column: 4 boxes stacked above forum, fills full hero height */
@@ -1437,27 +1499,15 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 
 .landing-hero-copy h1 {
   margin: 0;
-  font-size: clamp(4rem, 6.5vw, 6.5rem);
-  line-height: 1.1;
-  letter-spacing: -0.04em;
+  font-size: clamp(3.4rem, 5.2vw, 5.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  color: var(--product-text);
 }
 
-/* Per-word bubble — tight black pill around each word */
 .landing-hero-word {
   display: inline;
-  color: #fff;
-  background: #09111e;
-  padding: 0.02em 0.09em 0.05em;
-  border-radius: 0.16em;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
-  margin-right: 0.04em;
-}
-
-html[data-theme="dark"] .landing-hero-word {
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
 }
 
 .landing-hero-copy > p:not(.landing-eyebrow):not(.landing-hero-note) {
@@ -1466,6 +1516,12 @@ html[data-theme="dark"] .landing-hero-word {
   color: var(--product-text-soft);
   font-size: 16px;
   line-height: 1.55;
+}
+
+.landing-hero-cta-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .landing-hero-actions,

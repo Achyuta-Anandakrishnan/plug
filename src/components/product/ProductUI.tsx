@@ -1,6 +1,12 @@
 import Link from "next/link";
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 
+type AppPageBarProps = {
+  title: string;
+  children?: ReactNode;
+  className?: string;
+} & HTMLAttributes<HTMLElement>;
+
 type PageContainerProps = {
   children: ReactNode;
   className?: string;
@@ -160,6 +166,19 @@ export function DiscoveryBar({ children, className, ...props }: DiscoveryBarProp
 }
 
 export const AppToolbar = DiscoveryBar;
+
+/**
+ * AppPageBar — shared two-zone page header for all hub pages.
+ * Renders the page title as the primary anchor, with controls below.
+ */
+export function AppPageBar({ title, children, className, ...props }: AppPageBarProps) {
+  return (
+    <section className={classNames("app-page-bar", className)} {...props}>
+      <div className="app-page-bar-title">{title}</div>
+      {children ? <div className="app-page-bar-controls">{children}</div> : null}
+    </section>
+  );
+}
 
 export function FilterChip({ label, active = false, onClick, className }: FilterChipProps) {
   return (

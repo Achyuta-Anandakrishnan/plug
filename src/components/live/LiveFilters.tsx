@@ -1,5 +1,5 @@
 import type { LiveSortMode, LiveTimingFilter } from "@/components/live/types";
-import { DiscoveryBar, SearchIcon, SegmentedControl } from "@/components/product/ProductUI";
+import { AppPageBar, SearchIcon, SegmentedControl } from "@/components/product/ProductUI";
 import { useMobileUi } from "@/hooks/useMobileUi";
 
 const SORT_OPTIONS: Array<{ value: LiveSortMode; label: string }> = [
@@ -68,8 +68,7 @@ export function LiveFilters({
   }
 
   return (
-    <DiscoveryBar className="app-control-bar listing-system-toolbar live-toolbar" aria-label="Live stream discovery filters">
-      <div className="app-control-title">{title}</div>
+    <AppPageBar title={title} aria-label="Live stream discovery filters">
       <div className="app-search">
         <SearchIcon />
         <input
@@ -90,6 +89,6 @@ export function LiveFilters({
           ))}
         </select>
       </label>
-    </DiscoveryBar>
+    </AppPageBar>
   );
 }

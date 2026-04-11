@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckersLoader } from "@/components/CheckersLoader";
 import {
-  DiscoveryBar,
+  AppPageBar,
   EmptyStateCard,
   PageContainer,
   PrimaryButton,
@@ -246,8 +246,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
   return (
     <PageContainer className="bounty-page listing-system-page app-page--bounties">
       <section className="app-section bounty-board-page">
-        <DiscoveryBar className="app-control-bar listing-system-toolbar bounty-toolbar">
-          <div className="app-control-title">Bounty</div>
+        <AppPageBar title="Bounty">
           <div className="app-search">
             <SearchIcon />
             <input
@@ -264,7 +263,7 @@ export function BountyBoardClient({ initialIsMobile }: BountyBoardClientProps) {
             </select>
           </label>
           <PrimaryButton href="/bounties/new">Post bounty</PrimaryButton>
-        </DiscoveryBar>
+        </AppPageBar>
 
         {error ? <EmptyStateCard title="Bounty unavailable" description={error} /> : null}
         {loading ? <CheckersLoader title="Loading bounties..." compact /> : null}
