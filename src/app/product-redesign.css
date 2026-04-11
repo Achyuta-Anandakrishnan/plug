@@ -1511,11 +1511,14 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 
 .landing-hero-word {
   display: inline;
-  text-shadow:
-    0.5px  0.5px 0 rgba(9, 17, 30, 0.14),
-    -0.5px 0.5px 0 rgba(9, 17, 30, 0.1),
-    0.5px -0.5px 0 rgba(9, 17, 30, 0.1),
-    -0.5px -0.5px 0 rgba(9, 17, 30, 0.1);
+  /* Subtle stroke: dark fill + 1px dark stroke via paint-order for premium depth */
+  -webkit-text-stroke: 1px rgba(9, 17, 30, 0.65);
+  paint-order: stroke fill;
+  color: var(--product-text);
+}
+
+html[data-theme="dark"] .landing-hero-word {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.55);
 }
 
 .landing-hero-copy > p:not(.landing-eyebrow):not(.landing-hero-note) {
@@ -4391,8 +4394,8 @@ html[data-theme="dark"] .trade-duel-forfeit-warning {
 }
 
 .settings-panel {
-  width: min(100%, 720px);
-  padding: 16px;
+  padding: 20px;
+  width: auto;
   max-width: none;
   margin-inline: 0;
 }
@@ -4401,12 +4404,20 @@ html[data-theme="dark"] .trade-duel-forfeit-warning {
   margin-inline: 0;
 }
 
-.settings-sections {
+/* Two-column settings dashboard */
+.settings-dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
+  gap: 20px;
+  padding-top: 16px;
+  align-items: start;
+  width: 100%;
+}
+
+.settings-col {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding-top: 20px;
-  width: min(100%, 720px);
+  gap: 8px;
 }
 
 .settings-section {
@@ -4430,12 +4441,12 @@ html[data-theme="dark"] .trade-duel-forfeit-warning {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 14px 16px;
+  padding: 16px;
   max-width: none;
 }
 
 .settings-prefs-panel {
-  padding: 14px 16px;
+  padding: 16px;
   max-width: none;
 }
 
@@ -4449,11 +4460,16 @@ html[data-theme="dark"] .trade-duel-forfeit-warning {
 .settings-account-card {
   display: grid;
   gap: 14px;
-  padding: 16px;
-  border: 1px solid var(--product-border);
-  border-radius: var(--product-radius);
-  background: var(--product-surface);
-  box-shadow: var(--product-shadow-soft);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Separator between profile photo card and form card */
+.settings-account-card {
+  padding-top: 16px;
+  border-top: 1px solid var(--product-border);
 }
 
 .settings-avatar-row {

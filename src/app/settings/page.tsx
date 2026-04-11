@@ -49,34 +49,38 @@ export default function SettingsPage() {
       <section className="app-section settings-screen">
         <AppPageBar title="Settings" />
 
-        <div className="settings-sections">
-          <section className="settings-section">
+        <div className="settings-dashboard">
+          {/* Left column: profile */}
+          <div className="settings-col">
             <h2 className="settings-section-label">Profile</h2>
             <section className="product-card settings-panel">
               <ProfileEditor />
             </section>
-          </section>
+          </div>
 
-          <section className="settings-section">
-            <h2 className="settings-section-label">Account</h2>
-            <div className="product-card settings-links-panel">
-              <SecondaryButton href="/orders">Orders</SecondaryButton>
-              <SecondaryButton href="/settings/payments">Payments</SecondaryButton>
-              <SecondaryButton href="/referral">Referral program</SecondaryButton>
-              {session?.user?.id ? (
-                <SecondaryButton onClick={() => void signOut()}>Sign out</SecondaryButton>
-              ) : (
-                <PrimaryButton onClick={() => void signIn()}>Sign in</PrimaryButton>
-              )}
-            </div>
-          </section>
+          {/* Right column: account + preferences */}
+          <div className="settings-col">
+            <section className="settings-section">
+              <h2 className="settings-section-label">Account</h2>
+              <div className="product-card settings-links-panel">
+                <SecondaryButton href="/orders">Orders</SecondaryButton>
+                <SecondaryButton href="/settings/payments">Payments</SecondaryButton>
+                <SecondaryButton href="/referral">Referral program</SecondaryButton>
+                {session?.user?.id ? (
+                  <SecondaryButton onClick={() => void signOut()}>Sign out</SecondaryButton>
+                ) : (
+                  <PrimaryButton onClick={() => void signIn()}>Sign in</PrimaryButton>
+                )}
+              </div>
+            </section>
 
-          <section className="settings-section">
-            <h2 className="settings-section-label">Preferences</h2>
-            <div className="product-card settings-prefs-panel">
-              <ThemeToggle />
-            </div>
-          </section>
+            <section className="settings-section">
+              <h2 className="settings-section-label">Preferences</h2>
+              <div className="product-card settings-prefs-panel">
+                <ThemeToggle />
+              </div>
+            </section>
+          </div>
         </div>
       </section>
     </PageContainer>
