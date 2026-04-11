@@ -779,7 +779,7 @@ html[data-theme="dark"] .site-account-popover {
   box-sizing: border-box;
   width: 100%;
   min-height: 100%;
-  padding-block: 22px 44px;
+  padding-block: 14px 44px;
   display: grid;
   align-content: start;
   gap: 16px;
@@ -971,9 +971,9 @@ html[data-theme="dark"] .site-account-popover {
   align-items: center;
   min-height: 38px;
   color: var(--product-text);
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
   white-space: nowrap;
 }
 
@@ -1318,14 +1318,9 @@ html[data-theme="dark"] .site-account-popover {
 .landing-hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   max-width: 480px;
-  height: 100%;
-}
-
-/* Anchor tagline to the bottom of the left column */
-.landing-hero-note {
-  margin-top: auto !important;
+  justify-content: center;
 }
 
 /* Right column: 4 boxes stacked above forum, fills full hero height */
@@ -1338,9 +1333,9 @@ html[data-theme="dark"] .site-account-popover {
 
 .landing-hero-topline {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .landing-hero-topline .landing-eyebrow {
@@ -1349,7 +1344,7 @@ html[data-theme="dark"] .site-account-popover {
 }
 
 .landing-hero-topline .landing-search-bar {
-  margin-left: auto;
+  margin-left: 0;
 }
 
 /* ── Landing search bar ───────────────────────────────────────────────── */
@@ -1442,8 +1437,8 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
 
 .landing-hero-copy h1 {
   margin: 0;
-  font-size: clamp(3.2rem, 5.0vw, 5.0rem);
-  line-height: 1.15;
+  font-size: clamp(4rem, 6.5vw, 6.5rem);
+  line-height: 1.1;
   letter-spacing: -0.04em;
 }
 
@@ -2221,10 +2216,9 @@ html[data-theme="dark"] .landing-hero-word {
 }
 
 .listing-system-toolbar {
-  flex-wrap: wrap;
   gap: 10px;
-  min-height: auto;
-  padding-bottom: 16px;
+  padding-top: 8px;
+  padding-bottom: 12px;
   overflow: visible;
   border-bottom: 1px solid var(--product-border);
 }
@@ -2253,13 +2247,7 @@ html[data-theme="dark"] .landing-hero-word {
 }
 
 .listing-system-toolbar .app-control-title {
-  flex: 0 0 100%;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.055em;
-  line-height: 1;
-  min-height: auto;
-  padding-bottom: 4px;
+  min-width: 80px;
 }
 
 .listing-system-toolbar .app-chip-row {
@@ -4049,20 +4037,11 @@ html[data-theme="dark"] .trade-duel-forfeit-warning {
 }
 
 .forum-toolbar {
-  flex-wrap: wrap;
   gap: 10px;
   overflow: visible;
-  padding-bottom: 16px;
+  padding-top: 8px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--product-border);
-}
-
-.forum-toolbar > .app-control-title {
-  flex: 0 0 100%;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.055em;
-  line-height: 1;
-  padding-bottom: 4px;
 }
 
 .forum-toolbar .app-search {
@@ -4642,25 +4621,10 @@ html[data-theme="dark"] .streams-scheduled-item {
   min-height: 0;
 }
 
-.messages-toolbar {
-  flex-wrap: wrap;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--product-border);
-}
-
-.messages-toolbar > .app-control-title {
-  flex: 0 0 100%;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.055em;
-  line-height: 1;
-  padding-bottom: 4px;
-}
-
 .messages-toolbar .app-search {
-  flex: 1 1 320px;
+  flex: 0 1 360px;
   min-width: 280px;
-  max-width: 480px;
+  max-width: 420px;
 }
 
 .messages-sidebar {

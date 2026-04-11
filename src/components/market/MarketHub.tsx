@@ -345,11 +345,6 @@ export function MarketHub({ initialIsMobile }: MarketHubProps) {
           </>
         ) : (
           <>
-            <SectionHeader
-              title="Inventory"
-              subtitle="Browse active listings and compare them fast."
-              action={<span className="market-count">{sortedListings.length} items</span>}
-            />
             {listingsLoading ? (
               <CheckersLoader title="Loading inventory..." compact />
             ) : sortedListings.length === 0 ? (
