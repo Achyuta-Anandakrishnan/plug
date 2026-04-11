@@ -8459,7 +8459,9 @@ html[data-theme="dark"] .streams-scheduled-item {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 12px 8px;
+  /* border-bottom spans full pane width; padding-inline centers content to ~720px column */
+  padding-block: 10px 8px;
+  padding-inline: max(12px, calc((100% - 696px) / 2));
   border-bottom: 1px solid rgba(15, 23, 42, 0.07);
 }
 
@@ -8533,9 +8535,9 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-feed-inner {
   width: 100%;
-  max-width: 500px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 6px 0 4px;
+  padding: 12px 24px 8px;
   min-height: 100%;
 }
 
@@ -8556,7 +8558,7 @@ html[data-theme="dark"] .streams-scheduled-item {
   gap: 1px;
   justify-self: start;
   width: fit-content;
-  max-width: min(62%, 420px);
+  max-width: min(70%, 480px);
   padding: 3px 5px;
   border-radius: 12px;
 }
@@ -8633,7 +8635,9 @@ html[data-theme="dark"] .streams-scheduled-item {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px 6px;
+  /* border-top and background span full pane width; padding-inline centers controls to ~720px column */
+  padding-block: 6px;
+  padding-inline: max(8px, calc((100% - 704px) / 2));
   border-top: 1px solid rgba(15, 23, 42, 0.07);
   background: rgba(247, 248, 250, 0.9);
   backdrop-filter: blur(10px);
