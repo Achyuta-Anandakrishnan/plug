@@ -2,9 +2,8 @@
 
 import { signIn, signOut, useSession } from "next-auth/react";
 import {
-  FormContainer,
+  AppPageBar,
   PageContainer,
-  PageHeader,
   PrimaryButton,
   SecondaryButton,
 } from "@/components/product/ProductUI";
@@ -48,11 +47,19 @@ export default function SettingsPage() {
   return (
     <PageContainer className="settings-page app-page--settings">
       <section className="app-section settings-screen">
-        <PageHeader
-          title="Settings"
-          subtitle="Profile, orders, referrals, and account controls in one place."
-          actions={(
-            <div className="settings-header-actions">
+        <AppPageBar title="Settings" />
+
+        <div className="settings-sections">
+          <section className="settings-section">
+            <h2 className="settings-section-label">Profile</h2>
+            <section className="product-card settings-panel">
+              <ProfileEditor />
+            </section>
+          </section>
+
+          <section className="settings-section">
+            <h2 className="settings-section-label">Account</h2>
+            <div className="product-card settings-links-panel">
               <SecondaryButton href="/orders">Orders</SecondaryButton>
               <SecondaryButton href="/settings/payments">Payments</SecondaryButton>
               <SecondaryButton href="/referral">Referral program</SecondaryButton>
@@ -62,25 +69,15 @@ export default function SettingsPage() {
                 <PrimaryButton onClick={() => void signIn()}>Sign in</PrimaryButton>
               )}
             </div>
-          )}
-        />
-
-        <div className="settings-quick-links" aria-label="Settings shortcuts">
-          <SecondaryButton href="/orders">Orders</SecondaryButton>
-          <SecondaryButton href="/referral">Referral program</SecondaryButton>
-          <ThemeToggle />
-          {session?.user?.id ? (
-            <SecondaryButton onClick={() => void signOut()}>Sign out</SecondaryButton>
-          ) : (
-            <PrimaryButton onClick={() => void signIn()}>Sign in</PrimaryButton>
-          )}
-        </div>
-
-        <FormContainer className="settings-form-column">
-          <section className="product-card settings-panel">
-            <ProfileEditor />
           </section>
-        </FormContainer>
+
+          <section className="settings-section">
+            <h2 className="settings-section-label">Preferences</h2>
+            <div className="product-card settings-prefs-panel">
+              <ThemeToggle />
+            </div>
+          </section>
+        </div>
       </section>
     </PageContainer>
   );
