@@ -1507,19 +1507,18 @@ html[data-theme="dark"] .landing-search-bar:focus-within {
   letter-spacing: -0.05em;
   font-weight: 800;
   color: var(--product-text);
+  /* C-bracket stroke around the whole word stack — left side open */
+  align-self: flex-start;
+  padding: 8px 20px 12px 2px;
+  border-top: 2px solid rgba(0, 0, 0, 0.75);
+  border-right: 2px solid rgba(0, 0, 0, 0.75);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.75);
+  border-left: none;
+  border-radius: 0 4px 4px 0;
 }
 
 .landing-hero-word {
   display: inline;
-  /* Lighter fill so the black stroke is visibly distinct */
-  color: #1e3d60;
-  -webkit-text-stroke: 2px #000000;
-  paint-order: stroke fill;
-}
-
-html[data-theme="dark"] .landing-hero-word {
-  color: #c8daf0;
-  -webkit-text-stroke: 2px rgba(0, 0, 0, 0.85);
 }
 
 .landing-hero-copy > p:not(.landing-eyebrow):not(.landing-hero-note) {
