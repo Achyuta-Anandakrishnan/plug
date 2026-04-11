@@ -8446,12 +8446,23 @@ html[data-theme="dark"] .streams-scheduled-item {
 }
 
 .messages-chat {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
   min-height: 0;
   height: 100%;
   overflow: hidden;
   padding: 0;
+}
+
+.messages-chat-column {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
+  max-width: 720px;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .messages-chat-head {
@@ -8459,9 +8470,7 @@ html[data-theme="dark"] .streams-scheduled-item {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  /* border-bottom spans full pane width; padding-inline centers content to ~720px column */
-  padding-block: 10px 8px;
-  padding-inline: max(12px, calc((100% - 696px) / 2));
+  padding: 10px 16px 8px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.07);
 }
 
@@ -8535,9 +8544,8 @@ html[data-theme="dark"] .streams-scheduled-item {
 
 .messages-feed-inner {
   width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 12px 24px 8px;
+  margin: 0;
+  padding: 12px 16px 8px;
   min-height: 100%;
 }
 
@@ -8635,9 +8643,7 @@ html[data-theme="dark"] .streams-scheduled-item {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  /* border-top and background span full pane width; padding-inline centers controls to ~720px column */
-  padding-block: 6px;
-  padding-inline: max(8px, calc((100% - 704px) / 2));
+  padding: 6px 12px;
   border-top: 1px solid rgba(15, 23, 42, 0.07);
   background: rgba(247, 248, 250, 0.9);
   backdrop-filter: blur(10px);

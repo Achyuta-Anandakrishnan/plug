@@ -601,6 +601,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
 
         {showChatPane ? (
           <section className={`messages-chat messages-panel ${!isDesktop ? "is-mobile-pane" : ""}`}>
+            <div className="messages-chat-column">
             {activeConversation ? (
               <>
                 <div className="messages-chat-head">
@@ -759,6 +760,7 @@ export function MessagesClient({ initialIsMobile }: MessagesClientProps) {
             ) : (
               <EmptyStateCard title="Select a conversation." description="Choose a thread on the left to start messaging." />
             )}
+            </div>
           </section>
         ) : null}
         </section>
