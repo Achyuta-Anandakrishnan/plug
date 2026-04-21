@@ -1,0 +1,4 @@
+event_type,frame_idx,timestamp_sec,confidence,approximate,evidence
+release,10,0.166,0.45,true,"{'reason': 'track_start'}"
+probable_contact,42,0.700,0.63,true,"{'turn_cosine': 0.37}"
+net_hit_candidate,57,0.950,0.70,true,"{'inside_net_bbox': 'yes'}"

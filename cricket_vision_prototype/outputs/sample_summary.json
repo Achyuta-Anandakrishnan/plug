@@ -1,0 +1,62 @@
+{
+  "video_name": "demo_net_session.mp4",
+  "fps": 60,
+  "calibration_quality": 0.66,
+  "ball_track_confidence": 0.62,
+  "events": [
+    {
+      "event_type": "release",
+      "frame_idx": 10,
+      "timestamp_sec": 0.166,
+      "confidence": 0.45,
+      "approximate": true,
+      "evidence": {"reason": "track_start"}
+    },
+    {
+      "event_type": "probable_contact",
+      "frame_idx": 42,
+      "timestamp_sec": 0.7,
+      "confidence": 0.63,
+      "approximate": true,
+      "evidence": {"turn_cosine": 0.37}
+    },
+    {
+      "event_type": "net_hit_candidate",
+      "frame_idx": 57,
+      "timestamp_sec": 0.95,
+      "confidence": 0.7,
+      "approximate": true,
+      "evidence": {"inside_net_bbox": "yes"}
+    }
+  ],
+  "net_impact": {
+    "impact_x_ratio": 0.71,
+    "impact_y_ratio": 0.44,
+    "impact_point_px": [880.0, 290.0],
+    "impact_point_net_plane": [0.71, 0.44],
+    "confidence": 0.72,
+    "approximate": true
+  },
+  "speed_estimates": {
+    "speed_pre_contact_kmh": 105.1,
+    "speed_post_contact_kmh": 82.3,
+    "speed_pre_contact_pxps": 420.0,
+    "speed_post_contact_pxps": 330.0,
+    "method_used": "scale_velocity",
+    "confidence": 0.66,
+    "approximate": true
+  },
+  "projection": {
+    "projected_angle_deg": 23.8,
+    "projected_distance_m": 46.2,
+    "projected_landing_xy_m": [42.3, 18.6],
+    "projected_outcome_label": "likely_four",
+    "uncertainty_radius_m": 14.8,
+    "confidence": 0.67,
+    "approximate": true
+  },
+  "approximate_output": true,
+  "notes": [
+    "All outputs are approximate. Do not use for official umpiring or exact biomechanical reconstruction."
+  ]
+}

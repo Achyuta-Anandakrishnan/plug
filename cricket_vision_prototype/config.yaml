@@ -1,0 +1,27 @@
+pitch_length_m: 20.12
+stump_height_m: 0.71
+stump_width_m: 0.228
+crease_length_m: 2.64
+net_width_m: 3.6
+net_height_m: 3.0
+distance_camera_to_stumps_m: 2.0
+frame_rate_override: null
+gravity_mps2: 9.81
+field_radius_m: 75.0
+calibration_frame_idx: 0
+smoothing:
+  method: moving_average
+  window: 5
+  savgol_window: 7
+  savgol_poly_order: 2
+tracker:
+  max_jump_px: 90
+  max_missed_frames: 6
+  min_detection_confidence: 0.2
+  min_contour_area_px: 6
+  max_contour_area_px: 220
+  min_circularity: 0.35
+confidence:
+  min_calibration_quality: 0.3
+  min_track_quality: 0.25
+  low_confidence_note_threshold: 0.5
