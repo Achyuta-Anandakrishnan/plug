@@ -106,6 +106,7 @@ export function AuctionDetailClient({ auction, stripeEnabled = true, certSnapsho
   const hasBuyNow = typeof auction.buyNowPrice === "number" && auction.buyNowPrice > 0;
   const isAuction = auction.listingType === "AUCTION" || auction.listingType === "BOTH";
   const isLive = auction.status === "LIVE";
+  const isEnded = auction.status === "ENDED" || auction.status === "CANCELED";
   const sellerName = auction.seller?.user?.displayName ?? "Seller";
   const description = auction.description ?? auction.item?.description ?? null;
   const endDate = auction.extendedTime ?? auction.endTime;
@@ -265,9 +266,16 @@ export function AuctionDetailClient({ auction, stripeEnabled = true, certSnapsho
             ) : null}
 
             {!isLive ? (
-              <Link href={`/streams/${auction.id}`} className="app-button app-button-secondary">
-                View listing room
-              </Link>
+              <>
+                <Link href="/listings" className="app-button app-button-secondary">
+                  {isEnded ? "Browse more listings" : "Back to listings"}
+                </Link>
+                <p className="auction-detail-note">
+                  {isEnded
+                    ? "This listing is no longer live."
+                    : "This listing is available in the marketplace until the seller starts a live room."}
+                </p>
+              </>
             ) : null}
           </div>
 
